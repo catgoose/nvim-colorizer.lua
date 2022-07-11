@@ -1,6 +1,5 @@
 --- Highlights terminal CSI ANSI color codes.
 -- @module colorizer
-local nvim = require "colorizer/nvim"
 local Trie = require "colorizer/trie"
 local bit = require "bit"
 local ffi = require "ffi"
@@ -10,6 +9,7 @@ local nvim_buf_clear_namespace = vim.api.nvim_buf_clear_namespace
 local nvim_buf_get_lines = vim.api.nvim_buf_get_lines
 local nvim_get_current_buf = vim.api.nvim_get_current_buf
 local nvim_buf_set_virtual_text = vim.api.nvim_buf_set_virtual_text
+local nvim_command = vim.api.nvim_command
 local band, lshift, bor, tohex = bit.band, bit.lshift, bit.bor, bit.tohex
 local rshift = bit.rshift
 local floor, min, max = math.floor, math.min, math.max
@@ -27,7 +27,7 @@ local function initialize_trie()
    if not COLOR_TRIE then
       COLOR_MAP = {}
       COLOR_TRIE = Trie()
-      for k, v in pairs(nvim.get_color_map()) do
+      for k, v in pairs(vim.api.nvim_get_color_map()) do
          if not (COLOR_NAME_SETTINGS.strip_digits and k:match "%d+$") then
             COLOR_NAME_MINLEN = COLOR_NAME_MINLEN and min(#k, COLOR_NAME_MINLEN) or #k
             COLOR_NAME_MAXLEN = COLOR_NAME_MAXLEN and max(#k, COLOR_NAME_MAXLEN) or #k
@@ -457,7 +457,7 @@ end
 -- The name is "terminal_highlight"
 -- @see highlight_buffer
 -- @see attach_to_buffer
-local DEFAULT_NAMESPACE = nvim.create_namespace "colorizer"
+local DEFAULT_NAMESPACE = vim.api.nvim_create_namespace "colorizer"
 local HIGHLIGHT_NAME_PREFIX = "colorizer"
 local HIGHLIGHT_MODE_NAMES = {
    background = "mb",
@@ -489,7 +489,7 @@ local function create_highlight(rgb_hex, options)
       -- Create the highlight
       highlight_name = make_highlight_name(rgb_hex, mode)
       if mode == "foreground" then
-         nvim.ex.highlight(highlight_name, "guifg=#" .. rgb_hex)
+         nvim_command("highlight " .. highlight_name .. " guifg=#" .. rgb_hex)
       else
          local r, g, b = rgb_hex:sub(1, 2), rgb_hex:sub(3, 4), rgb_hex:sub(5, 6)
          r, g, b = tonumber(r, 16), tonumber(g, 16), tonumber(b, 16)
@@ -499,7 +499,7 @@ local function create_highlight(rgb_hex, options)
          else
             fg_color = "White"
          end
-         nvim.ex.highlight(highlight_name, "guifg=" .. fg_color, "guibg=#" .. rgb_hex)
+         nvim_command("highlight " .. highlight_name .. " guifg=" .. fg_color .. " guibg=#" .. rgb_hex)
       end
       HIGHLIGHT_CACHE[cache_key] = highlight_name
    end
@@ -573,7 +573,7 @@ end
 
 local function add_highlight(options, buf, ns, data)
    for linenr, hls in pairs(data) do
-      if vim.tbl_contains({ "foreground", "background" }, options.mode) then
+      if options.mode == "background" or options.mode == "foreground" then
          for _, hl in ipairs(hls) do
             nvim_buf_add_highlight(buf, ns, hl.name, linenr, hl.range[1], hl.range[2])
          end
@@ -648,7 +648,7 @@ local function rehighlight_buffer(buf, options)
 end
 
 local function new_buffer_options(buf)
-   local filetype = nvim.buf_get_option(buf, "filetype")
+   local filetype = vim.api.nvim_buf_get_option(buf, "filetype")
    return FILETYPE_OPTIONS[filetype] or SETUP_SETTINGS.default_options
 end
 
@@ -681,7 +681,7 @@ local function attach_to_buffer(buf, options)
       return
    end
    -- send_buffer: true doesn't actually do anything in Lua (yet)
-   nvim.buf_attach(buf, false, {
+   vim.api.nvim_buf_attach(buf, false, {
       on_lines = function(event_type, buf, changed_tick, firstline, lastline, new_lastline)
          -- This is used to signal stopping the handler highlights
          if not BUFFER_OPTIONS[buf] then
@@ -728,8 +728,8 @@ end
 -- @tparam[opt] {[string]=string} default_options Default options to apply for the filetypes enable.
 -- @usage require'colorizer'.setup()
 local function setup(filetypes, user_default_options)
-   if not nvim.o.termguicolors then
-      nvim.err_writeln "&termguicolors must be set"
+   if not vim.o.termguicolors then
+      vim.api.nvim_err_writeln "&termguicolors must be set"
       return
    end
    FILETYPE_OPTIONS = {}
@@ -740,17 +740,18 @@ local function setup(filetypes, user_default_options)
    -- Initialize this AFTER setting COLOR_NAME_SETTINGS
    initialize_trie()
    function COLORIZER_SETUP_HOOK()
-      local filetype = nvim.bo.filetype
+      local filetype = vim.bo.filetype
       if SETUP_SETTINGS.exclusions[filetype] then
          return
       end
       local options = FILETYPE_OPTIONS[filetype] or SETUP_SETTINGS.default_options
       attach_to_buffer(nvim_get_current_buf(), options)
    end
-   nvim.ex.augroup "ColorizerSetup"
-   nvim.ex.autocmd_()
+
+   nvim_command "augroup ColorizerSetup"
+   nvim_command "autocmd!"
    if not filetypes then
-      nvim.ex.autocmd "FileType * lua COLORIZER_SETUP_HOOK()"
+      nvim_command "autocmd FileType * lua COLORIZER_SETUP_HOOK()"
    else
       for k, v in pairs(filetypes) do
          local filetype
@@ -758,7 +759,7 @@ local function setup(filetypes, user_default_options)
          if type(k) == "string" then
             filetype = k
             if type(v) ~= "table" then
-               nvim.err_writeln("colorizer: Invalid option type for filetype " .. filetype)
+               vim.api.nvim_err_writeln("colorizer: Invalid option type for filetype " .. filetype)
             else
                options = merge(SETUP_SETTINGS.default_options, v)
                assert(
@@ -775,11 +776,11 @@ local function setup(filetypes, user_default_options)
          else
             FILETYPE_OPTIONS[filetype] = options
             -- TODO What's the right mode for this? BufEnter?
-            nvim.ex.autocmd("FileType", filetype, "lua COLORIZER_SETUP_HOOK()")
+            nvim_command("autocmd FileType " .. filetype .. " lua COLORIZER_SETUP_HOOK()")
          end
       end
    end
-   nvim.ex.augroup "END"
+   nvim_command "augroup END"
 end
 
 --- Reload all of the currently active highlighted buffers.
