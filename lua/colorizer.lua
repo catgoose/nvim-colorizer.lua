@@ -279,7 +279,7 @@ local function setup(config)
     return
   end
 
-  local conf = vim.deepcopy(config)
+  local conf = vim.deepcopy(config) or {}
 
   -- if nothing given the enable for all filetypes
   local filetypes = conf.filetypes or conf[1] or { "*" }
