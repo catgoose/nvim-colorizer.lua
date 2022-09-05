@@ -1,6 +1,6 @@
 # colorizer.lua
 
-[![luadoc](https://img.shields.io/badge/luadoc-0.1-blue)](https://akianonymus.github.io/nvim-colorizer.lua)
+[![luadoc](https://img.shields.io/badge/luadoc-0.1-blue)](https://nvchad.github.io/nvim-colorizer.lua)
 
 A high-performance color highlighter for Neovim which has **no external dependencies**! Written in performant Luajit.
 
@@ -15,7 +15,7 @@ unsure, [read this excellent guide](https://github.com/termstandard/colors).
 Use your plugin manager or clone directly into your package.
 
 ```lua
-use 'Akianonymus/nvim-colorizer.lua'
+use 'NvChad/nvim-colorizer.lua'
 ```
 
 As long as you have `malloc()` and `free()` on your system, this will work.
@@ -173,12 +173,12 @@ require 'colorizer'.setup(
 )
 ```
 
-For lower level interface, see the [LuaDocs for API details](https://akianonymus.github.io/luadoc/nvim-colorizer.lua/modules/colorizer.html) or use `:h colorizer` once installed.
+For lower level interface, see the [LuaDocs for API details](https://nvchad.github.io/luadoc/nvim-colorizer.lua/modules/colorizer.html) or use `:h colorizer` once installed.
 
 ## Extras
 
 Documentaion is generated using ldoc. See
-[scripts/gen_docs.sh](https://github.com/Akianonymus/nvim-colorizer.lua/blob/master/scripts/gen_docs.sh)
+[scripts/gen_docs.sh](https://github.com/NvChad/nvim-colorizer.lua/blob/master/scripts/gen_docs.sh)
 
 ## TODO
 
