@@ -9,9 +9,10 @@ local set_highlight = api.nvim_set_hl
 
 local color_utils = require "colorizer.color_utils"
 local color_is_bright = color_utils.color_is_bright
+local sass_update_variables = color_utils.sass_update_variables
+local sass_cleanup = color_utils.sass_cleanup
 
-local matcher_utils = require "colorizer.matcher_utils"
-local make_matcher = matcher_utils.make_matcher
+local make_matcher = require("colorizer.matcher_utils").make_matcher
 
 local highlight_buffer, rehighlight_buffer
 local BUFFER_LINES = {}
@@ -159,8 +160,9 @@ local TW_LSP_CLIENT = {}
 ---@param line_end number: Last line to highlight
 ---@param options table: Configuration options as described in `setup`
 ---@param options_local table: Buffer local variables
----@return nil|boolean|number,function|nil
+---@return nil|boolean|number,table
 function highlight_buffer(buf, ns, lines, line_start, line_end, options, options_local)
+  local returns = { detach = { ns = {}, functions = {} } }
   if buf == 0 or buf == nil then
     buf = api.nvim_get_current_buf()
   end
@@ -168,7 +170,13 @@ function highlight_buffer(buf, ns, lines, line_start, line_end, options, options
   ns = ns or DEFAULT_NAMESPACE
   local loop_parse_fn = make_matcher(options)
   if not loop_parse_fn then
-    return false
+    return false, returns
+  end
+
+  -- only update sass varibled when text is changed
+  if options_local.__event ~= "WinScrolled" and options.sass and options.sass.enable then
+    table.insert(returns.detach.functions, sass_cleanup)
+    sass_update_variables(buf, 0, -1, nil, make_matcher(options.sass.parsers or { css = true }), options, options_local)
   end
 
   local data = {}
@@ -178,7 +186,7 @@ function highlight_buffer(buf, ns, lines, line_start, line_end, options, options
     -- Upvalues are options and current_linenum
     local i = 1
     while i < #line do
-      local length, rgb_hex = loop_parse_fn(line, i)
+      local length, rgb_hex = loop_parse_fn(line, i, buf)
       if length and rgb_hex then
         local name = create_highlight(rgb_hex, mode)
         local d = data[current_linenum] or {}
@@ -193,7 +201,7 @@ function highlight_buffer(buf, ns, lines, line_start, line_end, options, options
   add_highlight(options, buf, ns, data, line_start, line_end)
 
   if not options.tailwind or (options.tailwind ~= "lsp" and options.tailwind ~= "both") then
-    return
+    return true, returns
   end
 
   if not TW_LSP_CLIENT[buf] or TW_LSP_CLIENT[buf].is_stopped() then
@@ -246,11 +254,15 @@ function highlight_buffer(buf, ns, lines, line_start, line_end, options, options
     end)
     tailwind_client = ok and tailwind_client or {}
     if vim.tbl_isempty(tailwind_client) then
-      return DEFAULT_NAMESPACE_TAILWIND, del_tailwind_stuff
+      table.insert(returns.detach.functions, del_tailwind_stuff)
+      table.insert(returns.detach.ns, DEFAULT_NAMESPACE_TAILWIND)
+      return true, returns
     end
 
     if not tailwind_client[1] or not tailwind_client[1].supports_method "textDocument/documentColor" then
-      return DEFAULT_NAMESPACE_TAILWIND, del_tailwind_stuff
+      table.insert(returns.detach.functions, del_tailwind_stuff)
+      table.insert(returns.detach.ns, DEFAULT_NAMESPACE_TAILWIND)
+      return true, returns
     end
 
     TW_LSP_CLIENT[buf] = tailwind_client[1]
@@ -260,13 +272,18 @@ function highlight_buffer(buf, ns, lines, line_start, line_end, options, options
       highlight_buffer_tailwind(buf, DEFAULT_NAMESPACE_TAILWIND, mode, options)
     end, 100)
 
-    return DEFAULT_NAMESPACE_TAILWIND, del_tailwind_stuff
+    table.insert(returns.detach.functions, del_tailwind_stuff)
+    table.insert(returns.detach.ns, DEFAULT_NAMESPACE_TAILWIND)
+
+    return true, returns
   end
 
   -- only try to do tailwindcss highlight if lsp is attached
   if TW_LSP_CLIENT[buf] then
     highlight_buffer_tailwind(buf, DEFAULT_NAMESPACE_TAILWIND, mode, options)
   end
+
+  return true, returns
 end
 
 -- get the amount lines to highlight
@@ -288,7 +305,7 @@ local function getrow(buf)
   if old_min and old_max then
     -- Triggered for TextChanged autocmds
     -- TODO: Find a way to just apply highlight to changed text lines
-    if old_max == new_max then
+    if (old_max == new_max) or (old_min == new_min) then
       min, max = new_min, new_max
     -- Triggered for WinScrolled autocmd - Scroll Down
     elseif old_max < new_max then
@@ -318,7 +335,7 @@ end
 ---@param options table: Buffer options
 ---@param options_local table|nil: Buffer local variables
 ---@param use_local_lines boolean|nil Whether to use lines num range from options_local
----@return nil|boolean|number,function|nil
+---@return nil|boolean|number,table
 function rehighlight_buffer(buf, options, options_local, use_local_lines)
   if buf == 0 or buf == nil then
     buf = api.nvim_get_current_buf()
@@ -328,13 +345,17 @@ function rehighlight_buffer(buf, options, options_local, use_local_lines)
 
   local min, max
   if use_local_lines and options_local then
-    min, max = options_local.__startline, options_local.__endline
+    min, max = options_local.__startline or 0, options_local.__endline or -1
   else
     min, max = getrow(buf)
   end
-
   local lines = buf_get_lines(buf, min, max, false)
-  return highlight_buffer(buf, ns, lines, min, max, options, options_local or {})
+
+  local bool, returns = highlight_buffer(buf, ns, lines, min, max, options, options_local or {})
+  table.insert(returns.detach.functions, function()
+    BUFFER_LINES[buf] = nil
+  end)
+  return bool, returns
 end
 
 --- @export

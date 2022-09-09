@@ -79,6 +79,14 @@
 	<td class="name" nowrap><a href="#percent_or_hex">percent_or_hex (v)</a></td>
 	<td class="summary">Obvious.</td>
 	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#get_last_modified">get_last_modified (path)</a></td>
+	<td class="summary">Get last modified time of a file</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#watch_file">watch_file (path, callback, ...)</a></td>
+	<td class="summary">Watch a file for changes and execute callback</td>
+	</tr>
 </table>
 
 <br/>
@@ -211,6 +219,62 @@
     <ol>
 
         number|nil
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "get_last_modified"></a>
+    <strong>get_last_modified (path)</strong>
+    </dt>
+    <dd>
+    Get last modified time of a file
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">path</span>
+         string: file path
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        number|nil: modified time
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "watch_file"></a>
+    <strong>watch_file (path, callback, ...)</strong>
+    </dt>
+    <dd>
+    Watch a file for changes and execute callback
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">path</span>
+         string: File path
+        </li>
+        <li><span class="parameter">callback</span>
+         function: Callback to execute
+        </li>
+        <li><span class="parameter">...</span>
+         array: params for callback
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        function|nil
     </ol>
 
 

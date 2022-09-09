@@ -208,7 +208,9 @@ user_default_options                            *colorizer.user_default_options*
 	  mode = "background", -- Set the display mode.
 	  -- Available methods are false / true / "normal" / "lsp" / "both"
 	  -- True is same as normal
-	  tailwind = false -- Enable tailwind colors
+	  tailwind = false, -- Enable tailwind colors
+	  -- parsers can contain values used in |user_default_options|
+	  sass = { enable = false, parsers = { css }, }, -- Enable sass colors
 	  virtualtext = "■",
       }
 <
@@ -226,6 +228,7 @@ user_default_options                            *colorizer.user_default_options*
 	{css_fn} -  boolean
 	{mode} -  string
 	{tailwind} -  boolean|string
+	{sass} -  table
 	{virtualtext} -  string
 
 
@@ -292,7 +295,7 @@ highlight_buffer({buf}, {ns}, {lines}, {line_start}, {line_end}, {options},
 	{options_local} -  table: Buffer local variables
 
     returns:~
-	nil or boolean or number,function or nil
+	nil or boolean or number,table
 
 
 
@@ -309,7 +312,7 @@ rehighlight_buffer({buf}, {options}, {options_local}, {use_local_lines})
 	options_local
 
     returns:~
-	nil or boolean or number,function or nil
+	nil or boolean or number,table
 
 
 
@@ -347,6 +350,14 @@ Functions: ~
 
     |color_name_parser| - Grab all the colour values from
     `vim.api.nvim_get_color_map` and create a lookup table.
+
+    |sass_cleanup| - Cleanup sass variables
+
+    |sass_update_variables| - Parse the given lines for sass variabled and add
+    to SASS[buf].DEFINITIONS_ALL.
+
+    |sass_name_parser| - Parse the given line for sass color names
+ check for value in SASS[buf].DEFINITIONS_ALL
 
     |rgb_function_parser| - Parse for rgb() css function and return rgb hex.
 
@@ -387,6 +398,53 @@ color_name_parser({line}, {i}, {opts}) *colorizer.color_utils.color_name_parser*
 	{line} -  string: Line to parse
 	{i} -  number: Index of line from where to start parsing
 	{opts} -  table: Currently contains whether tailwind is enabled or not
+
+
+
+sass_cleanup({buf})                         *colorizer.color_utils.sass_cleanup*
+    Cleanup sass variables
+
+    Parameters: ~
+	{buf} -  number
+
+
+
+
+				   *colorizer.color_utils.sass_update_variables*
+sass_update_variables({buf}, {line_start}, {line_end}, {lines}, {color_parser},
+{options}, {options_local})
+    Parse the given lines for sass variabled and add to
+    SASS[buf].DEFINITIONS_ALL.
+
+     which is then used in |sass_name_parser|
+     If lines are not given, then fetch the lines with line_start and line_end
+
+
+    Parameters: ~
+	{buf} -  number
+	{line_start} -  number
+	{line_end} -  number
+	{lines} -  table|nil
+	{color_parser} -  function|boolean
+	{options} -  table: Buffer options
+	{options_local} -  table|nil: Buffer local variables
+
+    returns:~
+	boolean
+
+
+
+sass_name_parser({line}, {i}, {buf})    *colorizer.color_utils.sass_name_parser*
+    Parse the given line for sass color names
+     check for value in SASS[buf].DEFINITIONS_ALL
+
+    Parameters: ~
+	{line} -  string: Line to parse
+	{i} -  number: Index of line from where to start parsing
+	{buf} -  number
+
+    returns:~
+	number or nil, string or nil
 
 
 

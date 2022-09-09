@@ -108,7 +108,9 @@ local BUFFER_LOCAL = {}
 --      mode = "background", -- Set the display mode.
 --      -- Available methods are false / true / "normal" / "lsp" / "both"
 --      -- True is same as normal
---      tailwind = false -- Enable tailwind colors
+--      tailwind = false, -- Enable tailwind colors
+--      -- parsers can contain values used in |user_default_options|
+--      sass = { enable = false, parsers = { css }, }, -- Enable sass colors
 --      virtualtext = "■",
 --  }
 --</pre>
@@ -124,6 +126,7 @@ local BUFFER_LOCAL = {}
 --@field css_fn boolean
 --@field mode string
 --@field tailwind boolean|string
+--@field sass table
 --@field virtualtext string
 local USER_DEFAULT_OPTIONS = {
   RGB = true,
@@ -137,6 +140,7 @@ local USER_DEFAULT_OPTIONS = {
   css_fn = false,
   mode = "background",
   tailwind = false,
+  sass = { enable = false, parsers = { css = true } },
   virtualtext = "■",
 }
 
@@ -198,10 +202,13 @@ local function detach_from_buffer(buf, ns)
 
   clear_namespace(buf, ns or DEFAULT_NAMESPACE, 0, -1)
   if BUFFER_LOCAL[buf] then
-    if BUFFER_LOCAL[buf].__tailwind_ns then
-      clear_namespace(buf, BUFFER_LOCAL[buf].__tailwind_ns, 0, -1)
-      if type(BUFFER_LOCAL[buf].__tailwind_detach) == "function" then
-        BUFFER_LOCAL[buf].__tailwind_detach()
+    for _, namespace in pairs(BUFFER_LOCAL[buf].__detach.ns) do
+      clear_namespace(buf, namespace, 0, -1)
+    end
+
+    for _, f in pairs(BUFFER_LOCAL[buf].__detach.functions) do
+      if type(f) == "function" then
+        f(buf)
       end
     end
 
@@ -210,6 +217,7 @@ local function detach_from_buffer(buf, ns)
     end
 
     BUFFER_LOCAL[buf].__autocmds = nil
+    BUFFER_LOCAL[buf].__detach = nil
   end
   -- because now the buffer is not visible, so delete its information
   BUFFER_OPTIONS[buf] = nil
@@ -253,9 +261,13 @@ local function attach_to_buffer(buf, options, typ)
   BUFFER_OPTIONS[buf] = options
 
   BUFFER_LOCAL[buf] = BUFFER_LOCAL[buf] or {}
-  local tailwind_ns, tailwind_detach = rehighlight_buffer(buf, options)
-  BUFFER_LOCAL[buf].__tailwind_ns = BUFFER_LOCAL[buf].__tailwind_ns or tailwind_ns
-  BUFFER_LOCAL[buf].__tailwind_detach = BUFFER_LOCAL[buf].__tailwind_detach or tailwind_detach
+  local highlighted, returns = rehighlight_buffer(buf, options)
+
+  if not highlighted then
+    return
+  end
+
+  BUFFER_LOCAL[buf].__detach = BUFFER_LOCAL[buf].__detach or returns.detach
 
   BUFFER_LOCAL[buf].__init = true
 
@@ -266,13 +278,20 @@ local function attach_to_buffer(buf, options, typ)
   local autocmds = {}
   local au_group_id = AUGROUP_ID
 
-  autocmds[#autocmds + 1] = autocmd({ "TextChanged", "TextChangedI", "TextChangedP" }, {
+  local text_changed_au = { "TextChanged", "TextChangedI", "TextChangedP" }
+  -- only enable InsertLeave in sass, rest don't require it
+  if options.sass and options.sass.enable then
+    table.insert(text_changed_au, "InsertLeave")
+  end
+
+  autocmds[#autocmds + 1] = autocmd(text_changed_au, {
     group = au_group_id,
     buffer = buf,
     callback = function(args)
       -- only reload if it was not disabled using detach_from_buffer
       if BUFFER_OPTIONS[buf] then
-        if args.event == "TextChanged" then
+        BUFFER_LOCAL[buf].__event = args.event
+        if args.event == "TextChanged" or args.event == "InsertLeave" then
           rehighlight_buffer(buf, options, BUFFER_LOCAL[buf])
         else
           local pos = vim.fn.getpos "."
@@ -287,9 +306,10 @@ local function attach_to_buffer(buf, options, typ)
   autocmds[#autocmds + 1] = autocmd({ "WinScrolled" }, {
     group = au_group_id,
     buffer = buf,
-    callback = function()
+    callback = function(args)
       -- only reload if it was not disabled using detach_from_buffer
       if BUFFER_OPTIONS[buf] then
+        BUFFER_LOCAL[buf].__event = args.event
         rehighlight_buffer(buf, options, BUFFER_LOCAL[buf])
       end
     end,

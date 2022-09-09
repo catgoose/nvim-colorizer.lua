@@ -3,6 +3,8 @@
 local bit, ffi = require "bit", require "ffi"
 local band, bor, rshift, lshift = bit.band, bit.bor, bit.rshift, bit.lshift
 
+local uv = vim.loop
+
 -- -- TODO use rgb as the return value from the matcher functions
 -- -- instead of the rgb_hex. Can be the highlight key as well
 -- -- when you shift it left 8 bits. Use the lower 8 bits for
@@ -101,6 +103,68 @@ local function percent_or_hex(v)
   return x
 end
 
+--- Get last modified time of a file
+---@param path string: file path
+---@return number|nil: modified time
+local function get_last_modified(path)
+  local fd = uv.fs_open(path, "r", 438)
+  if not fd then
+    return
+  end
+
+  local stat = uv.fs_fstat(fd)
+  uv.fs_close(fd)
+  if stat then
+    return stat.mtime.nsec
+  else
+    return
+  end
+end
+
+--- Watch a file for changes and execute callback
+---@param path string: File path
+---@param callback function: Callback to execute
+---@param ... array: params for callback
+---@return function|nil
+local function watch_file(path, callback, ...)
+  if not path or type(callback) ~= "function" then
+    return
+  end
+
+  local fullpath = uv.fs_realpath(path)
+  if not fullpath then
+    return
+  end
+
+  local start
+  local args = { ... }
+
+  local handle = uv.new_fs_event()
+  local function on_change(err, filename, _)
+    -- Do work...
+    callback(filename, unpack(args))
+    -- Debounce: stop/start.
+    handle:stop()
+    if not err or not get_last_modified(filename) then
+      start()
+    end
+  end
+
+  function start()
+    uv.fs_event_start(
+      handle,
+      fullpath,
+      {},
+      vim.schedule_wrap(function(...)
+        on_change(...)
+      end)
+    )
+  end
+
+  start()
+  return handle
+end
+
 --- @export
 return {
   byte_is_alphanumeric = byte_is_alphanumeric,
@@ -108,4 +172,6 @@ return {
   merge = merge,
   parse_hex = parse_hex,
   percent_or_hex = percent_or_hex,
+  get_last_modified = get_last_modified,
+  watch_file = watch_file,
 }

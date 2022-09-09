@@ -400,7 +400,9 @@ Setup an autocmd which enables colorizing for the filetypes and options specifie
       mode = "background", -- Set the display mode.
       -- Available methods are false / true / "normal" / "lsp" / "both"
       -- True is same as normal
-      tailwind = false -- Enable tailwind colors
+      tailwind = false, -- Enable tailwind colors
+      -- parsers can contain values used in |user_default_options|
+      sass = { enable = false, parsers = { css }, }, -- Enable sass colors
       virtualtext = "■",
   }
 </pre>
@@ -442,6 +444,9 @@ Setup an autocmd which enables colorizing for the filetypes and options specifie
         </li>
         <li><span class="parameter">tailwind</span>
          boolean|string
+        </li>
+        <li><span class="parameter">sass</span>
+         table
         </li>
         <li><span class="parameter">virtualtext</span>
          string

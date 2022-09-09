@@ -1,0 +1,25 @@
+@import "scss/colors1";
+
+$dd: $test7;
+$test0: $color1;
+
+// recursive definitions
+$d: $test1;
+$dark: $d;
+$e: $dark;
+$f: $e;
+$g: $f;
+$h: $g;
+$test1: $color2;
+
+$test2: hotpink;
+$test3: $color3;
+$test4: $color4;
+$test5: rgb(123, 255, 123);
+$test6: $color6; // this should be absent and this comment shoudl be ignored $color6: black
+$test7: rgba(255, 123, 123, 0.9);
+$test8: $color8;
+$test9: $color9;
+$test10: $color10;
+$test11: $color11;
+$aki: red;

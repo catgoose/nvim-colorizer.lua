@@ -5,6 +5,7 @@ local min, max = math.min, math.max
 
 local color_utils = require "colorizer.color_utils"
 local color_name_parser = color_utils.color_name_parser
+local sass_name_parser = color_utils.sass_name_parser
 local rgba_hex_parser = color_utils.rgba_hex_parser
 
 local parser = {}
@@ -13,6 +14,7 @@ parser["_rgb"] = color_utils.rgb_function_parser
 parser["_rgba"] = color_utils.rgba_function_parser
 parser["_hsl"] = color_utils.hsl_function_parser
 parser["_hsla"] = color_utils.hsla_function_parser
+local b_hash, dollar_hash = ("#"):byte(), ("$"):byte()
 
 ---Form a trie stuct with the given prefixes
 ---@param matchers table: List of prefixes, {"rgb", "hsl"}
@@ -21,12 +23,18 @@ parser["_hsla"] = color_utils.hsla_function_parser
 local function compile_matcher(matchers, matchers_trie)
   local trie = Trie(matchers_trie)
 
-  local b_hash = ("#"):byte()
-  local function parse_fn(line, i)
+  local function parse_fn(line, i, buf)
     -- prefix #
     if matchers.rgba_hex_parser then
       if line:byte(i) == b_hash then
         return rgba_hex_parser(line, i, matchers.rgba_hex_parser)
+      end
+    end
+
+    -- prefix $, SASS Colour names
+    if matchers.sass_name_parser then
+      if line:byte(i) == dollar_hash then
+        return sass_name_parser(line, i, buf)
       end
     end
 
@@ -55,6 +63,7 @@ local MATCHER_CACHE = {}
 ---@return function|boolean: function which will just parse the line for enabled parsers
 local function make_matcher(options)
   local enable_names = options.css or options.names
+  local enable_sass = options.sass and options.sass.enable
   local enable_tailwind = options.tailwind
   local enable_RGB = options.css or options.RGB
   local enable_RRGGBB = options.css or options.RRGGBB
@@ -74,6 +83,7 @@ local function make_matcher(options)
     + ((enable_tailwind == true or enable_tailwind == "normal") and 1 or 7)
     + (enable_tailwind == "lsp" and 1 or 8)
     + (enable_tailwind == "both" and 1 or 9)
+    + (enable_sass and 1 or 10)
 
   if matcher_key == 0 then
     return false
@@ -90,6 +100,10 @@ local function make_matcher(options)
 
   if enable_names then
     matchers.color_name_parser = { tailwind = options.tailwind }
+  end
+
+  if enable_sass then
+    matchers.sass_name_parser = true
   end
 
   local valid_lengths = { [3] = enable_RGB, [6] = enable_RRGGBB, [8] = enable_RRGGBBAA }
