@@ -69,7 +69,7 @@ Apart from that, it only applies the highlights to the current visible contents,
 even if a big file is opened, the editor won't just choke on a blank screen.
 
 This idea was copied from
- [brenoprata10/nvim-highlight-colors](https://github.com/brenoprata10/nvim-highlight-colors.)
+ [brenoprata10/nvim-highlight-colors](https://github.com/brenoprata10/nvim-highlight-colors)
 Credits to [brenoprata10](https://github.com/brenoprata10)
 
 Additionally, having a Lua API that's available means users can use this as a
