@@ -137,9 +137,8 @@ local function highlight_buffer_tailwind(buf, ns, mode, options)
           local first_col = color.range.start.character
           local end_col = color.range["end"].character
 
-          local d = datas[cur_line] or {}
-          table.insert(d, { name = name, range = { first_col, end_col } })
-          datas[cur_line] = d
+          datas[cur_line] = datas[cur_line] or {}
+          table.insert(datas[cur_line], { name = name, range = { first_col, end_col } })
         end
         add_highlight(options, buf, ns, datas, line_start or 0, line_end and (line_end + 2) or -1)
       end
@@ -183,15 +182,15 @@ function highlight_buffer(buf, ns, lines, line_start, line_end, options, options
   local mode = options.mode == "background" and { mode = "background" } or { mode = "foreground" }
   for current_linenum, line in ipairs(lines) do
     current_linenum = current_linenum - 1 + line_start
+    data[current_linenum] = data[current_linenum] or {}
+
     -- Upvalues are options and current_linenum
     local i = 1
     while i < #line do
       local length, rgb_hex = loop_parse_fn(line, i, buf)
       if length and rgb_hex then
         local name = create_highlight(rgb_hex, mode)
-        local d = data[current_linenum] or {}
-        table.insert(d, { name = name, range = { i - 1, i + length - 1 } })
-        data[current_linenum] = d
+        table.insert(data[current_linenum], { name = name, range = { i - 1, i + length - 1 } })
         i = i + length
       else
         i = i + 1
