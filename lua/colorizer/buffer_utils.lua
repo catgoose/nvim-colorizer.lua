@@ -9,8 +9,10 @@ local set_highlight = api.nvim_set_hl
 
 local color_utils = require "colorizer.color_utils"
 local color_is_bright = color_utils.color_is_bright
-local sass_update_variables = color_utils.sass_update_variables
-local sass_cleanup = color_utils.sass_cleanup
+
+local sass = require "colorizer.sass"
+local sass_update_variables = sass.sass_update_variables
+local sass_cleanup = sass.sass_cleanup
 
 local make_matcher = require("colorizer.matcher_utils").make_matcher
 

@@ -5,8 +5,10 @@ local min, max = math.min, math.max
 
 local color_utils = require "colorizer.color_utils"
 local color_name_parser = color_utils.color_name_parser
-local sass_name_parser = color_utils.sass_name_parser
 local rgba_hex_parser = color_utils.rgba_hex_parser
+
+local sass = require "colorizer.sass"
+local sass_name_parser = sass.sass_name_parser
 
 local parser = {}
 parser["_0x"] = color_utils.argb_hex_parser

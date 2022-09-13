@@ -42,6 +42,7 @@
   <li><a href="../modules/colorizer.buffer_utils.html">buffer_utils</a></li>
   <li><strong>color_utils</strong></li>
   <li><a href="../modules/colorizer.matcher_utils.html">matcher_utils</a></li>
+  <li><a href="../modules/colorizer.sass.html">sass</a></li>
   <li><a href="../modules/colorizer.trie.html">trie</a></li>
   <li><a href="../modules/utils.html">utils</a></li>
 </ul>
@@ -66,19 +67,6 @@
 	<tr>
 	<td class="name" nowrap><a href="#color_name_parser">color_name_parser (line, i, opts)</a></td>
 	<td class="summary">Grab all the colour values from <code>vim.api.nvim_get_color_map</code> and create a lookup table.</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#sass_cleanup">sass_cleanup (buf)</a></td>
-	<td class="summary">Cleanup sass variables</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#sass_update_variables">sass_update_variables (buf, line_start, line_end, lines, color_parser, options, options_local)</a></td>
-	<td class="summary">Parse the given lines for sass variabled and add to SASS[buf].DEFINITIONS_ALL.</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#sass_name_parser">sass_name_parser (line, i, buf)</a></td>
-	<td class="summary">Parse the given line for sass color names
- check for value in SASS[buf].DEFINITIONS_ALL</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#rgb_function_parser">rgb_function_parser (line, i)</a></td>
@@ -164,103 +152,6 @@
         </li>
     </ul>
 
-
-
-
-
-</dd>
-    <dt>
-    <a name = "sass_cleanup"></a>
-    <strong>sass_cleanup (buf)</strong>
-    </dt>
-    <dd>
-    Cleanup sass variables
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">buf</span>
-         number
-        </li>
-    </ul>
-
-
-
-
-
-</dd>
-    <dt>
-    <a name = "sass_update_variables"></a>
-    <strong>sass_update_variables (buf, line_start, line_end, lines, color_parser, options, options_local)</strong>
-    </dt>
-    <dd>
-    Parse the given lines for sass variabled and add to SASS[buf].DEFINITIONS<em>ALL.
- which is then used in |sass</em>name<em>parser|
- If lines are not given, then fetch the lines with line</em>start and line_end
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">buf</span>
-         number
-        </li>
-        <li><span class="parameter">line_start</span>
-         number
-        </li>
-        <li><span class="parameter">line_end</span>
-         number
-        </li>
-        <li><span class="parameter">lines</span>
-         table|nil
-        </li>
-        <li><span class="parameter">color_parser</span>
-         function|boolean
-        </li>
-        <li><span class="parameter">options</span>
-         table: Buffer options
-        </li>
-        <li><span class="parameter">options_local</span>
-         table|nil: Buffer local variables
-        </li>
-    </ul>
-
-    <h3>Returns:</h3>
-    <ol>
-
-        boolean
-    </ol>
-
-
-
-
-</dd>
-    <dt>
-    <a name = "sass_name_parser"></a>
-    <strong>sass_name_parser (line, i, buf)</strong>
-    </dt>
-    <dd>
-    Parse the given line for sass color names
- check for value in SASS[buf].DEFINITIONS_ALL
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">line</span>
-         string: Line to parse
-        </li>
-        <li><span class="parameter">i</span>
-         number: Index of line from where to start parsing
-        </li>
-        <li><span class="parameter">buf</span>
-         number
-        </li>
-    </ul>
-
-    <h3>Returns:</h3>
-    <ol>
-
-        number|nil, string|nil
-    </ol>
 
 
 
