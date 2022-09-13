@@ -241,7 +241,10 @@ function highlight_buffer(buf, ns, lines, line_start, line_end, options, options
 
     TW_LSP_CLIENT[buf] = nil
 
-    local tailwind_client = vim.lsp.get_active_clients { bufnr = buf, name = "tailwindcss" }
+    local ok, tailwind_client = pcall(function()
+      return vim.lsp.get_active_clients { bufnr = buf, name = "tailwindcss" }
+    end)
+    tailwind_client = ok and tailwind_client or {}
     if vim.tbl_isempty(tailwind_client) then
       return DEFAULT_NAMESPACE_TAILWIND, del_tailwind_stuff
     end
