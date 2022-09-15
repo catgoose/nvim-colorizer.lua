@@ -80,6 +80,7 @@ function tailwind.setup_lsp_colors(buf, options, options_local, add_highlight)
       -- create the autocmds so tailwind colours only activate when tailwindcss lsp is active
       if not TAILWIND[buf].AU_CREATED then
         tailwind.cleanup(buf)
+        TAILWIND[buf] = { AU_ID = {} }
         TAILWIND[buf].AU_ID[1] = api.nvim_create_autocmd("LspAttach", {
           group = options_local.__augroup_id,
           buffer = buf,
