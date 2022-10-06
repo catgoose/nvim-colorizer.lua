@@ -112,6 +112,7 @@ function buffer.add_highlight(buf, ns, line_start, line_end, data, options)
         buf_set_virtual_text(0, ns, linenr, hl.range[2], {
           end_col = hl.range[2],
           virt_text = { { options.virtualtext or "■", hlname } },
+          hl_mode = "combine",
         })
       end
     end
