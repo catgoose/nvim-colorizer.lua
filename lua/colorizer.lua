@@ -452,7 +452,6 @@ function colorizer.setup(config)
           COLORIZER_SETUP_HOOK(typ)
         end,
       })
-      COLORIZER_SETUP_HOOK(typ)
     elseif tbl then
       vim.notify_once(string.format("colorizer: Invalid type for %stypes %s", typ, vim.inspect(tbl)), "ErrorMsg")
     end
