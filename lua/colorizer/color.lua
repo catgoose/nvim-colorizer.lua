@@ -96,7 +96,8 @@ local function _generic_hsl_function_parser(line, i)
   if #line < i + GENERIC_HSL_FN_MINIMUM_LENGTH then
     return
   end
-  local h, s, l, match_end = line:sub(i):match "^hsl%(%s*(%d+)%s*,%s*(%d+%.%d+)%s*,%s*(%d+%.%d+)%s*%)()"
+  -- local h, s, l, match_end = line:sub(i):match "^hsl%(%s*(%d+)%s*,%s*(%d+%.%d+)%s*,%s*(%d+%[.%d]+)%s*%)()"
+  local h, s, l, match_end = line:sub(i):match "^hsl%(%s*(%d+)%s*,%s*([.%d]+)%s*,%s*([.%d]+)%s*%)()"
   if not match_end then
     return
   end
@@ -130,7 +131,7 @@ local function _generic_hsla_function_parser(line, i)
   if #line < i + GENERIC_HSLA_FN_MINIMUM_LENGTH then
     return
   end
-  local h, s, l, a, match_end = line:sub(i):match "^hsla%(%s*(%d+)%s*,%s*(%d+%.%d+)%s*,%s*(%d+%.%d+)%s*,%s*([.%d]+)%s*%)()"
+  local h, s, l, a, match_end = line:sub(i):match "^hsla%(%s*(%d+)%s*,%s*([.%d]+)%s*,%s*([.%d]+)%s*,%s*([.%d]+)%s*%)()"
   if not match_end then
     return
   end
