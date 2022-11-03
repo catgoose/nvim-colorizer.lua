@@ -96,7 +96,7 @@ local function _generic_hsl_function_parser(line, i)
   if #line < i + GENERIC_HSL_FN_MINIMUM_LENGTH then
     return
   end
-  local h, s, l, match_end = line:sub(i):match "^hsl%(%s*(%d+)%s*,%s*(%d+)%s*,%s*(%d+)%s*%)()"
+  local h, s, l, match_end = line:sub(i):match "^hsl%(%s*(%d+)%s*,%s*(%d+%.%d+)%s*,%s*(%d+%.%d+)%s*%)()"
   if not match_end then
     return
   end
@@ -105,14 +105,14 @@ local function _generic_hsl_function_parser(line, i)
     return
   end
   s = tonumber(s)
-  if s > 100 then
+  if s > 1 or s < 0 then
     return
   end
   l = tonumber(l)
-  if l > 100 then
+  if l > 1 then
     return
   end
-  local r, g, b = color.hsl_to_rgb(h / 360, s / 100, l / 100)
+  local r, g, b = color.hsl_to_rgb(h / 360, s, l)
   if r == nil or g == nil or b == nil then
     return
   end
@@ -130,7 +130,7 @@ local function _generic_hsla_function_parser(line, i)
   if #line < i + GENERIC_HSLA_FN_MINIMUM_LENGTH then
     return
   end
-  local h, s, l, a, match_end = line:sub(i):match "^hsla%(%s*(%d+)%s*,%s*(%d+)%s*,%s*(%d+)%s*,%s*([.%d]+)%s*%)()"
+  local h, s, l, a, match_end = line:sub(i):match "^hsla%(%s*(%d+)%s*,%s*(%d+%.%d+)%s*,%s*(%d+%.%d+)%s*,%s*([.%d]+)%s*%)()"
   if not match_end then
     return
   end
@@ -143,14 +143,14 @@ local function _generic_hsla_function_parser(line, i)
     return
   end
   s = tonumber(s)
-  if s > 100 then
+  if s > 1 then
     return
   end
   l = tonumber(l)
-  if l > 100 then
+  if l > 1 then
     return
   end
-  local r, g, b = color.hsl_to_rgb(h / 360, s / 100, l / 100)
+  local r, g, b = color.hsl_to_rgb(h / 360, s, l)
   if r == nil or g == nil or b == nil then
     return
   end
