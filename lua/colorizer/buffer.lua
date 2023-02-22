@@ -142,7 +142,7 @@ function buffer.highlight(buf, ns, line_start, line_end, options, options_local)
   -- only update sass varibles when text is changed
   if options_local.__event ~= "WinScrolled" and options.sass and options.sass.enable then
     table.insert(returns.detach.functions, sass_cleanup)
-    sass_update_variables(buf, 0, -1, nil, make_matcher(options.sass.parsers or { css = true }), options, options_local)
+    sass_update_variables(buf, 0, -1, nil, make_matcher(options.sass.parsers), options, options_local)
   end
 
   local data = buffer.parse_lines(buf, lines, line_start, options) or {}
@@ -199,6 +199,7 @@ local function getrow(buf)
   end
 
   local a = api.nvim_buf_call(buf, function()
+    ---@diagnostic disable-next-line: redundant-return-value
     return {
       vim.fn.line "w0",
       vim.fn.line "w$",

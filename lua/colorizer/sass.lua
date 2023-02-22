@@ -163,10 +163,10 @@ local function sass_parse_lines(buf, line_start, content, name)
             if last_modified then
               -- grab the full path
               v = uv.fs_realpath(v)
-              SASS[buf].CURRENT_IMPORTS[name][v] = true
+              SASS[buf].CURRENT_IMPORTS[name][v or ""] = true
 
               if not SASS[buf].WATCH_IMPORTS[name][v] then
-                SASS[buf].IMPORTS[name][v] = last_modified
+                SASS[buf].IMPORTS[name][v or ""] = last_modified
                 local c, ind = {}, 0
                 for l in io.lines(v) do
                   ind = ind + 1
@@ -177,6 +177,7 @@ local function sass_parse_lines(buf, line_start, content, name)
 
                 local function watch_callback()
                   local dimen = vim.api.nvim_buf_call(buf, function()
+                    ---@diagnostic disable-next-line: redundant-return-value
                     return { vim.fn.line "w0", vim.fn.line "w$", vim.fn.line "$", vim.api.nvim_win_get_height(0) }
                   end)
                   -- todo: Improve this to only refresh highlight for visible lines

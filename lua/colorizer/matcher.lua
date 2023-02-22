@@ -68,15 +68,19 @@ local MATCHER_CACHE = {}
 ---@param options table: options created in `colorizer.setup`
 ---@return function|boolean: function which will just parse the line for enabled parsers
 function matcher.make(options)
-  local enable_names = options.css or options.names
+  if not options then
+    return false
+  end
+
+  local enable_names = options.names
   local enable_sass = options.sass and options.sass.enable
   local enable_tailwind = options.tailwind
-  local enable_RGB = options.css or options.RGB
-  local enable_RRGGBB = options.css or options.RRGGBB
-  local enable_RRGGBBAA = options.css or options.RRGGBBAA
+  local enable_RGB = options.RGB
+  local enable_RRGGBB = options.RRGGBB
+  local enable_RRGGBBAA = options.RRGGBBAA
   local enable_AARRGGBB = options.AARRGGBB
-  local enable_rgb = options.css or options.css_fns or options.rgb_fn
-  local enable_hsl = options.css or options.css_fns or options.hsl_fn
+  local enable_rgb = options.rgb_fn
+  local enable_hsl = options.hsl_fn
 
   local matcher_key = 0
     + (enable_names and 1 or 0)

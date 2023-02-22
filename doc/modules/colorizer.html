@@ -385,7 +385,38 @@ Setup an autocmd which enables colorizing for the filetypes and options specifie
     </dt>
     <dd>
 
-<p>defaults options. </p>
+<p>defaults options.
+In <a href="../modules/colorizer.html#user_default_options">user_default_options</a>, there are 2 types of options</p>
+
+<ol>
+    <li><p>Individual options - <code>names</code>, <code>RGB</code>, <code>RRGGBB</code>, <code>RRGGBBAA</code>, <code>hsl_fn</code>, <code>rgb_fn</code> , <code>RRGGBBAA</code>, <code>AARRGGBB</code>, <code>tailwind</code>, <code>sass</code></p></li>
+    <li><p>Alias options - <code>css</code>, <code>css_fn</code></p></li>
+</ol>
+
+<p>If <code>css_fn</code> is true, then <code>hsl_fn</code>, <code>rgb_fn</code> becomes <code>true</code></p>
+
+<p>If <code>css</code> is true, then <code>names</code>, <code>RGB</code>, <code>RRGGBB</code>, <code>RRGGBBAA</code>, <code>hsl_fn</code>, <code>rgb_fn</code> becomes <code>true</code></p>
+
+<p>These options have a priority, Individual options have the highest priority, then alias options</p>
+
+<p>For alias, <code>css_fn</code> has more priority over <code>css</code></p>
+
+<p>e.g: Here <code>RGB</code>, <code>RRGGBB</code>, <code>RRGGBBAA</code>, <code>hsl_fn</code>, <code>rgb_fn</code> is enabled but not <code>names</code></p>
+
+
+<pre>
+  require 'colorizer'.setup { user_default_options = { names = false, css = true } }
+</pre>
+
+
+<p>e.g: Here <code>names</code>, <code>RGB</code>, <code>RRGGBB</code>, <code>RRGGBBAA</code> is enabled but not <code>rgb_fn</code> and <code>hsl_fn</code></p>
+
+
+<pre>
+  require 'colorizer'.setup { user_default_options = { css_fn = false, css = true } }
+</pre>
+
+
 
 <pre>
   user_default_options = {

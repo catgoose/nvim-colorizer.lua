@@ -162,6 +162,32 @@ require 'colorizer'.setup {
 
 ```
 
+In `user_default_options`, there are 2 types of options
+
+1. Individual options - `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn` , `RRGGBBAA`, `AARRGGBB`, `tailwind`, `sass`
+
+1. Alias options - `css`, `css_fn` 
+
+If `css_fn` is true, then `hsl_fn`, `rgb_fn` becomes `true`
+
+If `css` is true, then `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn` becomes `true`
+
+These options have a priority, Individual options have the highest priority, then alias options
+
+For alias, `css_fn` has more priority over `css`
+
+e.g: Here `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn` is enabled but not `names`
+
+```lua
+require 'colorizer'.setup { user_default_options = { names = false, css = true } }
+```
+
+e.g: Here `names`, `RGB`, `RRGGBB`, `RRGGBBAA` is enabled but not `rgb_fn` and `hsl_fn`
+
+```lua
+require 'colorizer'.setup { user_default_options = { css_fn = false, css = true } }
+```
+
 All the above examples can also be apply to buftypes. Also no buftypes trigger colorizer by default
 
 Buftype value is fetched by `vim.bo.buftype`

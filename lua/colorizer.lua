@@ -92,6 +92,32 @@ local BUFFER_OPTIONS = {}
 local BUFFER_LOCAL = {}
 
 ---defaults options.
+--In `user_default_options`, there are 2 types of options
+--
+--1. Individual options - `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn` , `RRGGBBAA`, `AARRGGBB`, `tailwind`, `sass`
+--
+--1. Alias options - `css`, `css_fn`
+--
+--If `css_fn` is true, then `hsl_fn`, `rgb_fn` becomes `true`
+--
+--If `css` is true, then `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn` becomes `true`
+--
+--These options have a priority, Individual options have the highest priority, then alias options
+--
+--For alias, `css_fn` has more priority over `css`
+--
+--e.g: Here `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn` is enabled but not `names`
+--
+--<pre>
+--  require 'colorizer'.setup { user_default_options = { names = false, css = true } }
+--</pre>
+--
+--e.g: Here `names`, `RGB`, `RRGGBB`, `RRGGBBAA` is enabled but not `rgb_fn` and `hsl_fn`
+--
+--<pre>
+--  require 'colorizer'.setup { user_default_options = { css_fn = false, css = true } }
+--</pre>
+--
 --<pre>
 --  user_default_options = {
 --      RGB = true, -- #RGB hex codes
@@ -162,6 +188,53 @@ local function new_buffer_options(buf, typ)
     value = buf_get_option(buf, "filetype")
   end
   return OPTIONS.file[value] or SETUP_SETTINGS.default_options
+end
+
+--- Parse buffer Configuration and convert aliases to normal values
+---@param options table: options table
+---@return table
+local function parse_buffer_options(options)
+  local includes = {
+    ["css"] = { "names", "RGB", "RRGGBB", "RRGGBBAA", "hsl_fn", "rgb_fn" },
+    ["css_fn"] = { "hsl_fn", "rgb_fn" },
+  }
+  local css_includes = { "names", "RGB", "RRGGBB", "RRGGBBAA", "hsl_fn", "rgb_fn" }
+  local css_fn_includes = { "hsl_fn", "rgb_fn" }
+  local default_opts = USER_DEFAULT_OPTIONS
+
+  local function handle_alias(name, opts, d_opts)
+    if not includes[name] then
+      return
+    end
+    if opts == true or opts[name] == true then
+      for _, child in ipairs(includes[name]) do
+        d_opts[child] = true
+      end
+    elseif opts[name] == false then
+      for _, child in ipairs(includes[name]) do
+        d_opts[child] = false
+      end
+    end
+  end
+  -- https://github.com/NvChad/nvim-colorizer.lua/issues/48
+  handle_alias("css", options, default_opts)
+  handle_alias("css_fn", options, default_opts)
+
+  if options.sass then
+    if type(options.sass.parsers) == "table" then
+      for child, _ in pairs(options.sass.parsers) do
+        handle_alias(child, options.sass.parsers, default_opts.sass.parsers)
+      end
+    else
+      options.sass.parsers = {}
+      for child, _ in pairs(default_opts.sass.parsers) do
+        handle_alias(child, true, options.sass.parsers)
+      end
+    end
+  end
+
+  options = merge(default_opts, options)
+  return options
 end
 
 --- Check if attached to a buffer.
@@ -245,6 +318,8 @@ function colorizer.attach_to_buffer(buf, options, typ)
   if not options then
     options = new_buffer_options(buf, typ)
   end
+
+  options = parse_buffer_options(options)
 
   if not buffer_utils.highlight_mode_names[options.mode] then
     if options.mode ~= nil then
@@ -353,7 +428,7 @@ end
 function colorizer.setup(config)
   if not vim.opt.termguicolors then
     vim.schedule(function()
-      vim.notify("Colorizer: Error: &termguicolors must be set", "Error")
+      vim.notify("Colorizer: Error: &termguicolors must be set", 4)
     end)
     return
   end
@@ -369,7 +444,7 @@ function colorizer.setup(config)
   SETUP_SETTINGS = {
     exclusions = { buf = {}, file = {} },
     all = { file = false, buf = false },
-    default_options = merge(USER_DEFAULT_OPTIONS, user_default_options),
+    default_options = user_default_options,
   }
   BUFFER_OPTIONS, BUFFER_LOCAL = {}, {}
 
@@ -426,7 +501,7 @@ function colorizer.setup(config)
         if type(k) == "string" then
           value = k
           if type(v) ~= "table" then
-            vim.notify("colorizer: Invalid option type for " .. typ .. "type" .. value, "ErrorMsg")
+            vim.notify("colorizer: Invalid option type for " .. typ .. "type" .. value, 4)
           else
             options = merge(SETUP_SETTINGS.default_options, v)
           end
@@ -453,7 +528,7 @@ function colorizer.setup(config)
         end,
       })
     elseif tbl then
-      vim.notify_once(string.format("colorizer: Invalid type for %stypes %s", typ, vim.inspect(tbl)), "ErrorMsg")
+      vim.notify_once(string.format("colorizer: Invalid type for %stypes %s", typ, vim.inspect(tbl)), 4)
     end
   end
 
