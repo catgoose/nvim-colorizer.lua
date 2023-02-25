@@ -90,6 +90,8 @@ local AUGROUP_NAME = "ColorizerSetup"
 local BUFFER_OPTIONS = {}
 -- buffer local options created after setup
 local BUFFER_LOCAL = {}
+-- the current buffer id, used in buf_attach calls
+local CURRENT_BUF = 0
 
 ---defaults options.
 --In `user_default_options`, there are 2 types of options
@@ -358,10 +360,38 @@ function colorizer.attach_to_buffer(buf, options, typ)
     table.insert(text_changed_au, "InsertLeave")
   end
 
+  if CURRENT_BUF == 0 then
+    CURRENT_BUF = buf
+  end
+
+  -- attach using lua api so buffer gets updated even when not the current buffer
+  -- completely moving to buf_attach is not possible because it doesn't handle all the text change events
+  vim.api.nvim_buf_attach(buf, false, {
+    on_lines = function(_, buffer)
+      -- only reload if the buffer is not the current one
+      if not (CURRENT_BUF == buffer) then
+        -- only reload if it was not disabled using detach_from_buffer
+        if BUFFER_OPTIONS[buf] then
+          rehighlight_buffer(buf, options, BUFFER_LOCAL[buf])
+        end
+      end
+    end,
+    on_reload = function(_, buffer)
+      -- only reload if the buffer is not the current one
+      if not (CURRENT_BUF == buffer) then
+        -- only reload if it was not disabled using detach_from_buffer
+        if BUFFER_OPTIONS[buf] then
+          rehighlight_buffer(buf, options, BUFFER_LOCAL[buf])
+        end
+      end
+    end,
+  })
+
   autocmds[#autocmds + 1] = autocmd(text_changed_au, {
     group = au_group_id,
     buffer = buf,
     callback = function(args)
+      CURRENT_BUF = buf
       -- only reload if it was not disabled using detach_from_buffer
       if BUFFER_OPTIONS[buf] then
         BUFFER_LOCAL[buf].__event = args.event
