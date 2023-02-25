@@ -17,7 +17,7 @@ local parser = {
   ["_rgb"] = color.rgb_function_parser,
   ["_rgba"] = color.rgba_function_parser,
   ["_hsl"] = color.hsl_function_parser,
-  ["_hsla"] = color.hsla_function_parser,
+  ["_hsla"] = color.hsl_function_parser,
 }
 
 local matcher = {}
@@ -49,7 +49,7 @@ function matcher.compile(matchers, matchers_trie)
     if prefix then
       local fn = "_" .. prefix
       if parser[fn] then
-        return parser[fn](line, i, matchers[fn])
+        return parser[fn](line, i, matchers[prefix])
       end
     end
 
@@ -143,6 +143,10 @@ function matcher.make(options)
   elseif enable_hsl then
     table.insert(matchers_prefix, "hsla")
     table.insert(matchers_prefix, "hsl")
+  end
+
+  for _, value in ipairs(matchers_prefix) do
+    matchers[value] = { prefix = value }
   end
 
   loop_parse_fn = matcher.compile(matchers, matchers_prefix)

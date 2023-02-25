@@ -387,9 +387,8 @@ Functions: ~
 
     |hsl_to_rgb| - Converts an HSL color value to RGB.
 
-    |hsl_function_parser| - Parse for hsl() css function and return rgb hex.
-
-    |hsla_function_parser| - Parse for hsl() css function and return rgb hex.
+    |hsl_function_parser| - Parse for hsl() hsla() css function and return rgb
+    hex.
 
     |hue_to_rgb| - Convert hsl colour values to rgb.
 
@@ -434,28 +433,20 @@ hsl_to_rgb({h}, {s}, {l})                           *colorizer.color.hsl_to_rgb*
 
 
 
-hsl_function_parser({line}, {i})           *colorizer.color.hsl_function_parser*
-    Parse for hsl() css function and return rgb hex.
+hsl_function_parser({line}, {i}, {opts})   *colorizer.color.hsl_function_parser*
+    Parse for hsl() hsla() css function and return rgb hex.
+
+     For more info:
+     https://developer.mozilla.org/en-US/docs/Web/CSS/color_value/hsl
+
 
     Parameters: ~
 	{line} -  string: Line to parse
 	{i} -  number: Index of line from where to start parsing
+	{opts} -  table: Values passed from matchers like prefix
 
     returns:~
-	number or nil: Index of line where the hsl function ended
-	string or nil: rgb hex value
-
-
-
-hsla_function_parser({line}, {i})         *colorizer.color.hsla_function_parser*
-    Parse for hsl() css function and return rgb hex.
-
-    Parameters: ~
-	{line} -  string: Line to parse
-	{i} -  number: Index of line from where to start parsing
-
-    returns:~
-	number or nil: Index of line where the hsla function ended
+	number or nil: Index of line where the hsla/hsl function ended
 	string or nil: rgb hex value
 
 
