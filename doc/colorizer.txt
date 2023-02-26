@@ -576,13 +576,13 @@ Helper functions for colorizer to enable required parsers
 LUA API                                              *colorizer.matcher-lua-api*
 
 Functions: ~
-    |compile| - Form a trie stuct with the given prefixes
+    |compile| - Form a trie struct with the given prefixes
 
     |make| - Parse the given options and return a function with enabled parsers.
 
 
 compile({matchers}, {matchers_trie})                 *colorizer.matcher.compile*
-    Form a trie stuct with the given prefixes
+    Form a trie struct with the given prefixes
 
     Parameters: ~
 	{matchers} -  table: List of prefixes, {"rgb", "hsl"}

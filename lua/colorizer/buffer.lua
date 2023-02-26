@@ -12,14 +12,6 @@ local color_is_bright = color.is_bright
 
 local make_matcher = require("colorizer.matcher").make
 
-local sass = require "colorizer.sass"
-local sass_update_variables = sass.update_variables
-local sass_cleanup = sass.cleanup
-
-local tailwind = require "colorizer.tailwind"
-local tailwind_setup_lsp = tailwind.setup_lsp_colors
-local tailwind_cleanup = tailwind.cleanup
-
 local buffer = {}
 
 local HIGHLIGHT_NAME_PREFIX = "colorizer"
@@ -139,8 +131,12 @@ function buffer.highlight(buf, ns, line_start, line_end, options, options_local)
 
   ns = ns or buffer.default_namespace
 
-  -- only update sass varibles when text is changed
+  -- only update sass variables when text is changed
   if options_local.__event ~= "WinScrolled" and options.sass and options.sass.enable then
+    local sass = require "colorizer.sass"
+    local sass_update_variables = sass.update_variables
+    local sass_cleanup = sass.cleanup
+
     table.insert(returns.detach.functions, sass_cleanup)
     sass_update_variables(buf, 0, -1, nil, make_matcher(options.sass.parsers), options, options_local)
   end
@@ -149,6 +145,10 @@ function buffer.highlight(buf, ns, line_start, line_end, options, options_local)
   buffer.add_highlight(buf, ns, line_start, line_end, data, options)
 
   if options.tailwind == "lsp" or options.tailwind == "both" then
+    local tailwind = require "colorizer.tailwind"
+    local tailwind_setup_lsp = tailwind.setup_lsp_colors
+    local tailwind_cleanup = tailwind.cleanup
+
     tailwind_setup_lsp(buf, options, options_local, buffer.add_highlight)
     table.insert(returns.detach.functions, tailwind_cleanup)
   end

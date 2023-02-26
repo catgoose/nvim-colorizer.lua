@@ -7,9 +7,6 @@ local color = require "colorizer.color"
 local color_name_parser = color.name_parser
 local rgba_hex_parser = color.rgba_hex_parser
 
-local sass = require "colorizer.sass"
-local sass_name_parser = sass.name_parser
-
 local B_HASH, DOLLAR_HASH = ("#"):byte(), ("$"):byte()
 
 local parser = {
@@ -22,7 +19,7 @@ local parser = {
 
 local matcher = {}
 
----Form a trie stuct with the given prefixes
+---Form a trie struct with the given prefixes
 ---@param matchers table: List of prefixes, {"rgb", "hsl"}
 ---@param matchers_trie table: Table containing information regarding non-trie based parsers
 ---@return function: function which will just parse the line for enabled parsers
@@ -40,7 +37,7 @@ function matcher.compile(matchers, matchers_trie)
     -- prefix $, SASS Colour names
     if matchers.sass_name_parser then
       if line:byte(i) == DOLLAR_HASH then
-        return sass_name_parser(line, i, buf)
+        return matchers.sass_name_parser(line, i, buf)
       end
     end
 
@@ -113,7 +110,7 @@ function matcher.make(options)
   end
 
   if enable_sass then
-    matchers.sass_name_parser = true
+    matchers.sass_name_parser = require("colorizer.sass").sass_name_parser
   end
 
   local valid_lengths = { [3] = enable_RGB, [6] = enable_RRGGBB, [8] = enable_RRGGBBAA }

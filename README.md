@@ -234,7 +234,7 @@ For lower level interface, see the [LuaDocs for API details](https://nvchad.com/
 
 ## Extras
 
-Documentaion is generated using ldoc. See
+Documentation is generated using ldoc. See
 [scripts/gen_docs.sh](https://github.com/NvChad/nvim-colorizer.lua/blob/master/scripts/gen_docs.sh)
 
 ## TODO
