@@ -60,6 +60,7 @@
 local buffer_utils = require "colorizer.buffer"
 local clear_hl_cache = buffer_utils.clear_hl_cache
 local rehighlight_buffer = buffer_utils.rehighlight
+local clear_matcher_cache = require("colorizer.matcher").clear_cache
 
 local utils = require "colorizer.utils"
 local merge = utils.merge
@@ -173,6 +174,7 @@ local USER_DEFAULT_OPTIONS = {
   sass = { enable = false, parsers = { css = true } },
   virtualtext = "■",
   always_update = false,
+  custom = nil,
 }
 
 local OPTIONS = { buf = {}, file = {} }
@@ -480,7 +482,11 @@ function colorizer.setup(config)
     all = { file = false, buf = false },
     default_options = user_default_options,
   }
-  BUFFER_OPTIONS, BUFFER_LOCAL = {}, {}
+
+  -- clear autocmds
+  pcall(api.nvim_del_augroup_by_name, AUGROUP_NAME)
+
+  BUFFER_LOCAL = {}
 
   local function COLORIZER_SETUP_HOOK(typ)
     local filetype = vim.bo.filetype
@@ -575,6 +581,19 @@ function colorizer.setup(config)
       require("colorizer").clear_highlight_cache()
     end,
   })
+
+  -- if old buffers, reattach them with new settings
+  local old_buffers = vim.deepcopy(BUFFER_OPTIONS)
+  BUFFER_OPTIONS = {}
+  if old_buffers then
+    clear_matcher_cache()
+    clear_hl_cache()
+    for buf, _ in pairs(old_buffers) do
+      colorizer.detach_from_buffer(buf)
+      colorizer.attach_to_buffer(buf)
+    end
+  end
+
 end
 
 --- Return the currently active buffer options.
@@ -591,6 +610,12 @@ end
 function colorizer.reload_all_buffers()
   for buf, _ in pairs(BUFFER_OPTIONS) do
     colorizer.attach_to_buffer(buf, colorizer.get_buffer_options(buf))
+  end
+end
+
+function colorizer.detach_all_buffers()
+  for buf, _ in pairs(BUFFER_OPTIONS) do
+    colorizer.detach_from_buffer(buf)
   end
 end
 

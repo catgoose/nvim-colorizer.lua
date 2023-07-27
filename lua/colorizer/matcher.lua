@@ -65,15 +65,18 @@ function matcher.compile(matchers, matchers_trie)
 end
 
 local MATCHER_CACHE = {}
+
+
+function matcher.clear_cache()
+  MATCHER_CACHE = {}
+end
+
 ---Parse the given options and return a function with enabled parsers.
 --if no parsers enabled then return false
 --Do not try make the function again if it is present in the cache
 ---@param options table: options created in `colorizer.setup`
 ---@return function|boolean: function which will just parse the line for enabled parsers
 function matcher.make(options)
-  if not options then
-    return false
-  end
 
   local enable_names = options.names
   local enable_sass = options.sass and options.sass.enable
@@ -98,9 +101,6 @@ function matcher.make(options)
     + (enable_tailwind == "both" and 1 or 9)
     + (enable_sass and 1 or 10)
 
-  if matcher_key == 0 then
-    return false
-  end
 
   local loop_parse_fn = MATCHER_CACHE[matcher_key]
   if loop_parse_fn then
@@ -112,7 +112,7 @@ function matcher.make(options)
   matchers.max_prefix_length = 0
 
   if enable_names then
-    matchers.color_name_parser = { tailwind = options.tailwind }
+    matchers.color_name_parser = { tailwind = options.tailwind, custom = options.custom }
   end
 
   if enable_sass then
