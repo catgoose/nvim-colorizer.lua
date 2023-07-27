@@ -613,12 +613,6 @@ function colorizer.reload_all_buffers()
   end
 end
 
-function colorizer.detach_all_buffers()
-  for buf, _ in pairs(BUFFER_OPTIONS) do
-    colorizer.detach_from_buffer(buf)
-  end
-end
-
 --- Clear the highlight cache and reload all buffers.
 function colorizer.clear_highlight_cache()
   clear_hl_cache()
