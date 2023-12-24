@@ -3,20 +3,13 @@
 local Trie = require "colorizer.trie"
 local min, max = math.min, math.max
 
-local color_name_parser = require "colorizer.parser.names"
-
 local rgb_function_parser = require "colorizer.parser.rgb"
 local hsl_function_parser = require "colorizer.parser.hsl"
-
-local argb_hex_parser = require "colorizer.parser.argb_hex"
-local rgba_hex_parser = require "colorizer.parser.rgba_hex"
-
-local sass_name_parser = require("colorizer.sass").name_parser
 
 local B_HASH, DOLLAR_HASH = ("#"):byte(), ("$"):byte()
 
 local parser = {
-  ["_0x"] = argb_hex_parser,
+  ["_0x"] = require "colorizer.parser.argb_hex",
   ["_rgb"] = rgb_function_parser,
   ["_rgba"] = rgb_function_parser,
   ["_hsl"] = hsl_function_parser,
@@ -36,14 +29,14 @@ function matcher.compile(matchers, matchers_trie)
     -- prefix #
     if matchers.rgba_hex_parser then
       if line:byte(i) == B_HASH then
-        return rgba_hex_parser(line, i, matchers.rgba_hex_parser)
+        return require("colorizer.parser.rgba_hex")(line, i, matchers.rgba_hex_parser)
       end
     end
 
     -- prefix $, SASS Colour names
     if matchers.sass_name_parser then
       if line:byte(i) == DOLLAR_HASH then
-        return sass_name_parser(line, i, buf)
+        return require("colorizer.sass").name_parser(line, i, buf)
       end
     end
 
@@ -58,7 +51,7 @@ function matcher.compile(matchers, matchers_trie)
 
     -- Colour names
     if matchers.color_name_parser then
-      return color_name_parser(line, i, matchers.color_name_parser)
+      return require("colorizer.parser.names").name_parser(line, i, matchers.color_name_parser)
     end
   end
   return parse_fn
@@ -77,7 +70,6 @@ function matcher.make(options)
 
   local enable_names = options.names
   local enable_sass = options.sass and options.sass.enable
-  local enable_tailwind = options.tailwind
   local enable_RGB = options.RGB
   local enable_RRGGBB = options.RRGGBB
   local enable_RRGGBBAA = options.RRGGBBAA
@@ -93,9 +85,9 @@ function matcher.make(options)
     + (enable_AARRGGBB and 1 or 4)
     + (enable_rgb and 1 or 5)
     + (enable_hsl and 1 or 6)
-    + ((enable_tailwind == true or enable_tailwind == "normal") and 1 or 7)
-    + (enable_tailwind == "lsp" and 1 or 8)
-    + (enable_tailwind == "both" and 1 or 9)
+    + (enable_names == "tailwind" and 1 or 7)
+    + (enable_names == "tailwind_lsp" and 1 or 8)
+    + (enable_names == "tailwind_both" and 1 or 9)
     + (enable_sass and 1 or 10)
 
   if matcher_key == 0 then
@@ -112,7 +104,7 @@ function matcher.make(options)
   matchers.max_prefix_length = 0
 
   if enable_names then
-    matchers.color_name_parser = { tailwind = options.tailwind }
+    matchers.color_name_parser = options.names
   end
 
   if enable_sass then

@@ -67,7 +67,7 @@ local merge = utils.merge
 local api = vim.api
 local augroup = api.nvim_create_augroup
 local autocmd = api.nvim_create_autocmd
-local buf_get_option = api.nvim_buf_get_option
+local buf_opt = vim.bo
 local clear_namespace = api.nvim_buf_clear_namespace
 local current_buf = api.nvim_get_current_buf
 
@@ -96,7 +96,7 @@ local CURRENT_BUF = 0
 ---defaults options.
 --In `user_default_options`, there are 2 types of options
 --
---1. Individual options - `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn` , `RRGGBBAA`, `AARRGGBB`, `tailwind`, `sass`
+--1. Individual options - `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn` , `RRGGBBAA`, `AARRGGBB`, `custom`, `sass`
 --
 --1. Alias options - `css`, `css_fn`
 --
@@ -124,7 +124,12 @@ local CURRENT_BUF = 0
 --  user_default_options = {
 --      RGB = true, -- #RGB hex codes
 --      RRGGBB = true, -- #RRGGBB hex codes
---      names = true, -- "Name" codes like Blue or blue
+--      -- can be a boolean, or:
+--      -- table like {Name='#colorhex'},
+--      -- function returning it (for colorscheme-dependant updates),
+--      -- "nvim": for all neovim "Name" codes like Blue ...,
+--      -- "tailwind" (_lsp/_both): for tailwind/css-like color names
+--      names = "nvim",
 --      RRGGBBAA = false, -- #RRGGBBAA hex codes
 --      AARRGGBB = false, -- 0xAARRGGBB hex codes
 --      rgb_fn = false, -- CSS rgb() and rgba() functions
@@ -135,7 +140,6 @@ local CURRENT_BUF = 0
 --      mode = "background", -- Set the display mode.
 --      -- Available methods are false / true / "normal" / "lsp" / "both"
 --      -- True is same as normal
---      tailwind = false, -- Enable tailwind colors
 --      -- parsers can contain values used in |user_default_options|
 --      sass = { enable = false, parsers = { css }, }, -- Enable sass colors
 --      virtualtext = "■",
@@ -143,25 +147,24 @@ local CURRENT_BUF = 0
 --      always_update = false
 --  }
 --</pre>
----@table user_default_options
---@field RGB boolean
---@field RRGGBB boolean
---@field names boolean
---@field RRGGBBAA boolean
---@field AARRGGBB boolean
---@field rgb_fn boolean
---@field hsl_fn boolean
---@field css boolean
---@field css_fn boolean
---@field mode string
---@field tailwind boolean|string
---@field sass table
---@field virtualtext string
---@field always_update boolean
+---@class colorizer.user_default_options
+---@field RGB boolean
+---@field RRGGBB boolean
+---@field names string|table<string,string>|function|boolean
+---@field RRGGBBAA boolean
+---@field AARRGGBB boolean
+---@field rgb_fn boolean
+---@field hsl_fn boolean
+---@field css boolean
+---@field css_fn boolean
+---@field mode string
+---@field sass table
+---@field virtualtext string
+---@field always_update boolean
 local USER_DEFAULT_OPTIONS = {
   RGB = true,
   RRGGBB = true,
-  names = true,
+  names = "nvim",
   RRGGBBAA = false,
   AARRGGBB = false,
   rgb_fn = false,
@@ -169,7 +172,6 @@ local USER_DEFAULT_OPTIONS = {
   css = false,
   css_fn = false,
   mode = "background",
-  tailwind = false,
   sass = { enable = false, parsers = { css = true } },
   virtualtext = "■",
   always_update = false,
@@ -189,9 +191,9 @@ local SETUP_SETTINGS = {
 local function new_buffer_options(buf, typ)
   local value
   if typ == "buf" then
-    value = buf_get_option(buf, "buftype")
+    value = buf_opt[buf].buftype
   else
-    value = buf_get_option(buf, "filetype")
+    value = buf_opt[buf].filetype
   end
   return OPTIONS.file[value] or SETUP_SETTINGS.default_options
 end
@@ -204,7 +206,7 @@ local function parse_buffer_options(options)
     ["css"] = { "names", "RGB", "RRGGBB", "RRGGBBAA", "hsl_fn", "rgb_fn" },
     ["css_fn"] = { "hsl_fn", "rgb_fn" },
   }
-  local default_opts = USER_DEFAULT_OPTIONS
+  local default_opts = vim.deepcopy(USER_DEFAULT_OPTIONS)
 
   local function handle_alias(name, opts, d_opts)
     if not includes[name] then
@@ -313,17 +315,7 @@ function colorizer.attach_to_buffer(buf, options, typ)
     end
   end
 
-  -- if the buffer is already attached then grab those options
-  if not options then
-    options = colorizer.get_buffer_options(buf)
-  end
-
-  -- if not make new options
-  if not options then
-    options = new_buffer_options(buf, typ)
-  end
-
-  options = parse_buffer_options(options)
+  options = parse_buffer_options(options or colorizer.get_buffer_options(buf) or new_buffer_options(buf, typ))
 
   if not buffer_utils.highlight_mode_names[options.mode] then
     if options.mode ~= nil then
@@ -499,17 +491,16 @@ function colorizer.setup(config)
     end
 
     local fopts, bopts, options = OPTIONS[typ][filetype], OPTIONS[typ][buftype], nil
-    if typ == "file" then
-      options = fopts
-      -- if buffer and filetype options both are given, then prefer fileoptions
-    elseif fopts and bopts then
-      options = fopts
-    else
-      options = bopts
+
+    if not (fopts or bopts or SETUP_SETTINGS.all[typ]) then
+      return
     end
 
-    if not options and not SETUP_SETTINGS.all[typ] then
-      return
+    if typ == "file" then
+      options = fopts
+    else
+      -- if buffer and filetype options both are given, then prefer fileoptions
+      options = bopts and fopts or bopts
     end
 
     options = options or SETUP_SETTINGS.default_options
@@ -522,10 +513,9 @@ function colorizer.setup(config)
     end
   end
 
-  AUGROUP_ID = augroup(AUGROUP_NAME, {})
+  AUGROUP_ID = augroup(AUGROUP_NAME, { clear = true })
 
-  local aucmd = { buf = "BufWinEnter", file = "FileType" }
-  local function parse_opts(typ, tbl)
+  local function parse_opts(typ, tbl, event)
     if type(tbl) == "table" then
       local list = {}
 
@@ -554,9 +544,9 @@ function colorizer.setup(config)
           end
         end
       end
-      autocmd({ aucmd[typ] }, {
+      autocmd(event, {
         group = AUGROUP_ID,
-        pattern = typ == "file" and (SETUP_SETTINGS.all[typ] and "*" or list) or nil,
+        pattern = typ == "file" and (SETUP_SETTINGS.all.file and "*" or list) or nil,
         callback = function()
           COLORIZER_SETUP_HOOK(typ)
         end,
@@ -566,15 +556,10 @@ function colorizer.setup(config)
     end
   end
 
-  parse_opts("file", filetypes)
-  parse_opts("buf", buftypes)
+  parse_opts("file", filetypes, "FileType")
+  parse_opts("buf", buftypes, "BufWinEnter")
 
-  autocmd("ColorScheme", {
-    group = AUGROUP_ID,
-    callback = function()
-      require("colorizer").clear_highlight_cache()
-    end,
-  })
+  autocmd("ColorScheme", { group = AUGROUP_ID, callback = colorizer.clear_highlight_cache })
 end
 
 --- Return the currently active buffer options.
@@ -590,12 +575,15 @@ end
 --- Reload all of the currently active highlighted buffers.
 function colorizer.reload_all_buffers()
   for buf, _ in pairs(BUFFER_OPTIONS) do
-    colorizer.attach_to_buffer(buf, colorizer.get_buffer_options(buf))
+    colorizer.attach_to_buffer(buf)
   end
 end
 
 --- Clear the highlight cache and reload all buffers.
 function colorizer.clear_highlight_cache()
+  if type(SETUP_SETTINGS.default_options.names) == "function" then
+    require("colorizer.parser.names").init(SETUP_SETTINGS.default_options.names)
+  end
   clear_hl_cache()
   vim.schedule(colorizer.reload_all_buffers)
 end

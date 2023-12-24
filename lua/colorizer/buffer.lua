@@ -148,7 +148,7 @@ function buffer.highlight(buf, ns, line_start, line_end, options, options_local)
   local data = buffer.parse_lines(buf, lines, line_start, options) or {}
   buffer.add_highlight(buf, ns, line_start, line_end, data, options)
 
-  if options.tailwind == "lsp" or options.tailwind == "both" then
+  if options.names == "tailwind_lsp" or options.names == "tailwind_both" then
     tailwind_setup_lsp(buf, options, options_local, buffer.add_highlight)
     table.insert(returns.detach.functions, tailwind_cleanup)
   end
