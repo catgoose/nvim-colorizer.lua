@@ -245,6 +245,7 @@ user_default_options                            *colorizer.user_default_options*
 	  -- parsers can contain values used in |user_default_options|
 	  sass = { enable = false, parsers = { css }, }, -- Enable sass colors
 	  virtualtext = "■",
+	  virtualtext_inline = false, -- Show the virtualtext inline with the color
 	  -- update color values even if buffer is not focused
 	  always_update = false
       }

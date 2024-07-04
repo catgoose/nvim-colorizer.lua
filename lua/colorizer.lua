@@ -139,6 +139,7 @@ local CURRENT_BUF = 0
 --      -- parsers can contain values used in |user_default_options|
 --      sass = { enable = false, parsers = { css }, }, -- Enable sass colors
 --      virtualtext = "■",
+--      virtualtext_inline = false, -- Show the virtualtext inline with the color
 --      -- update color values even if buffer is not focused
 --      always_update = false
 --  }
@@ -157,6 +158,7 @@ local CURRENT_BUF = 0
 --@field tailwind boolean|string
 --@field sass table
 --@field virtualtext string
+--@field virtualtext_inline? boolean
 --@field always_update boolean
 local USER_DEFAULT_OPTIONS = {
   RGB = true,
@@ -172,6 +174,7 @@ local USER_DEFAULT_OPTIONS = {
   tailwind = false,
   sass = { enable = false, parsers = { css = true } },
   virtualtext = "■",
+  virtualtext_inline = false,
   always_update = false,
 }
 
