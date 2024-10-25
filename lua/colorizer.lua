@@ -207,7 +207,11 @@ local function parse_buffer_options(options)
     ["css"] = { "names", "RGB", "RRGGBB", "RRGGBBAA", "hsl_fn", "rgb_fn" },
     ["css_fn"] = { "hsl_fn", "rgb_fn" },
   }
-  local default_opts = USER_DEFAULT_OPTIONS
+
+  -- default_opts is modified below so make a deepcopy here
+  -- otherwise it seems like the defaults get lost somewhere along
+  -- the way
+  local default_opts = vim.deepcopy(USER_DEFAULT_OPTIONS)
 
   local function handle_alias(name, opts, d_opts)
     if not includes[name] then
