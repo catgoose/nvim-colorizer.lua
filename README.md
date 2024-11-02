@@ -1,4 +1,6 @@
-# colorizer.lua
+# colorizer.lua  ( NOT MAINTAINED, Looking for maintainers  )
+
+ 
 
 [![luadoc](https://img.shields.io/badge/luadoc-0.1-blue)](https://nvchad.com/nvim-colorizer.lua/)
 

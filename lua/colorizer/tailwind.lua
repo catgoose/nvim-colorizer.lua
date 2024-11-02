@@ -115,7 +115,7 @@ function tailwind.setup_lsp_colors(buf, options, options_local, add_highlight)
     TAILWIND[buf].CLIENT = nil
 
     local ok, tailwind_client = pcall(function()
-      return vim.lsp.get_active_clients { bufnr = buf, name = "tailwindcss" }
+      return vim.lsp.get_clients { bufnr = buf, name = "tailwindcss" }
     end)
     if not ok then
       return
