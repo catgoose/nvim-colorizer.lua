@@ -1,5 +1,5 @@
 -- vim:ft=lua
-require("colorizer").detach_from_buffer(0)
+require("colorizer").detach_from_buffer()
 require("colorizer").attach_to_buffer(0, { AARRGGBB = true, css = true, mode = "foreground" })
 --[[ SUCCESS
 0xFf32A14B 0xFf32A14B
