@@ -67,7 +67,7 @@ local merge = utils.merge
 local api = vim.api
 local augroup = api.nvim_create_augroup
 local autocmd = api.nvim_create_autocmd
-local buf_get_option = api.nvim_buf_get_option
+local buf_get_option = api.nvim_get_option_value
 local clear_namespace = api.nvim_buf_clear_namespace
 local current_buf = api.nvim_get_current_buf
 
@@ -178,25 +178,20 @@ local USER_DEFAULT_OPTIONS = {
   always_update = false,
 }
 
-local OPTIONS = { buf = {}, file = {} }
+local OPTIONS = { buftype = {}, filetype = {} }
 local SETUP_SETTINGS = {
-  exclusions = { buf = {}, file = {} },
-  all = { file = false, buf = false },
+  exclusions = { buftype = {}, filetype = {} },
+  all = { buftype = false, filetype = false },
   default_options = USER_DEFAULT_OPTIONS,
 }
 
 --- Make new buffer Configuration
 ---@param buf number: buffer number
----@param typ string|nil: "buf" or "file" - The type of buffer option
+---@param bo_type 'buftype'|'filetype': The type of buffer option
 ---@return table
-local function new_buffer_options(buf, typ)
-  local value
-  if typ == "buf" then
-    value = buf_get_option(buf, "buftype")
-  else
-    value = buf_get_option(buf, "filetype")
-  end
-  return OPTIONS.file[value] or SETUP_SETTINGS.default_options
+local function new_buffer_options(buf, bo_type)
+  local value = buf_get_option(bo_type, { buf = buf })
+  return OPTIONS.filetype[value] or SETUP_SETTINGS.default_options
 end
 
 --- Parse buffer Configuration and convert aliases to normal values
@@ -305,28 +300,16 @@ end
 ---Attach to a buffer and continuously highlight changes.
 ---@param buf integer: A value of 0 implies the current buffer.
 ---@param options table|nil: Configuration options as described in `setup`
----@param typ string|nil: "buf" or "file" - The type of buffer option
-function colorizer.attach_to_buffer(buf, options, typ)
-  if buf == 0 or buf == nil then
-    buf = current_buf()
-  else
-    if not api.nvim_buf_is_valid(buf) then
-      BUFFER_LOCAL[buf], BUFFER_OPTIONS[buf] = nil, nil
-      return
-    end
+---@param bo_type 'buftype'|'filetype': The type of buffer option
+function colorizer.attach_to_buffer(buf, options, bo_type)
+  buf = buf and buf ~= 0 and api.nvim_buf_is_valid(buf) and buf or current_buf()
+  if not api.nvim_buf_is_valid(buf) then
+    BUFFER_LOCAL[buf], BUFFER_OPTIONS[buf] = nil, nil
+    return
   end
 
-  -- if the buffer is already attached then grab those options
-  if not options then
-    options = colorizer.get_buffer_options(buf)
-  end
-
-  -- if not make new options
-  if not options then
-    options = new_buffer_options(buf, typ)
-  end
-
-  options = parse_buffer_options(options)
+  -- set options by grabbing existing or creating new options, then parsing
+  options = parse_buffer_options(options or colorizer.get_buffer_options(buf) or new_buffer_options(buf, bo_type))
 
   if not buffer_utils.highlight_mode_names[options.mode] then
     if options.mode ~= nil then
@@ -477,21 +460,21 @@ function colorizer.setup(config)
   local user_default_options = conf.user_default_options or conf[2] or {}
   local buftypes = conf.buftypes or conf[3] or nil
 
-  OPTIONS = { buf = {}, file = {} }
+  OPTIONS = { buftype = {}, filetype = {} }
   SETUP_SETTINGS = {
-    exclusions = { buf = {}, file = {} },
-    all = { file = false, buf = false },
+    exclusions = { buftype = {}, filetype = {} },
+    all = { buftype = false, filetype = false },
     default_options = user_default_options,
   }
   BUFFER_OPTIONS, BUFFER_LOCAL = {}, {}
 
-  local function COLORIZER_SETUP_HOOK(typ)
+  local function COLORIZER_SETUP_HOOK(bo_type)
     local filetype = vim.bo.filetype
     local buftype = vim.bo.buftype
     local buf = current_buf()
     BUFFER_LOCAL[buf] = BUFFER_LOCAL[buf] or {}
 
-    if SETUP_SETTINGS.exclusions.file[filetype] or SETUP_SETTINGS.exclusions.buf[buftype] then
+    if SETUP_SETTINGS.exclusions.filetype[filetype] or SETUP_SETTINGS.exclusions.buftype[buftype] then
       -- when a filetype is disabled but buftype is enabled, it can Attach in
       -- some cases, so manually detach
       if BUFFER_OPTIONS[buf] then
@@ -501,8 +484,8 @@ function colorizer.setup(config)
       return
     end
 
-    local fopts, bopts, options = OPTIONS[typ][filetype], OPTIONS[typ][buftype], nil
-    if typ == "file" then
+    local fopts, bopts, options = OPTIONS[bo_type][filetype], OPTIONS[bo_type][buftype], nil
+    if bo_type == "filetype" then
       options = fopts
       -- if buffer and filetype options both are given, then prefer fileoptions
     elseif fopts and bopts then
@@ -511,7 +494,7 @@ function colorizer.setup(config)
       options = bopts
     end
 
-    if not options and not SETUP_SETTINGS.all[typ] then
+    if not options and not SETUP_SETTINGS.all[bo_type] then
       return
     end
 
@@ -521,14 +504,14 @@ function colorizer.setup(config)
     -- but BufWinEnter also triggers for split formation
     -- but we don't want that so add a check using local buffer variable
     if not BUFFER_LOCAL[buf].__init then
-      colorizer.attach_to_buffer(buf, options, typ)
+      colorizer.attach_to_buffer(buf, options, bo_type)
     end
   end
 
   AUGROUP_ID = augroup(AUGROUP_NAME, {})
 
-  local aucmd = { buf = "BufWinEnter", file = "FileType" }
-  local function parse_opts(typ, tbl)
+  local aucmd = { buftype = "BufWinEnter", filetype = "FileType" }
+  local function parse_opts(bo_type, tbl)
     if type(tbl) == "table" then
       local list = {}
 
@@ -538,7 +521,7 @@ function colorizer.setup(config)
         if type(k) == "string" then
           value = k
           if type(v) ~= "table" then
-            vim.notify("colorizer: Invalid option type for " .. typ .. "type" .. value, 4)
+            vim.notify(string.format("colorizer: Invalid option type for %s", value), 4)
           else
             options = merge(SETUP_SETTINGS.default_options, v)
           end
@@ -547,30 +530,30 @@ function colorizer.setup(config)
         end
         -- Exclude
         if value:sub(1, 1) == "!" then
-          SETUP_SETTINGS.exclusions[typ][value:sub(2)] = true
+          SETUP_SETTINGS.exclusions[bo_type][value:sub(2)] = true
         else
-          OPTIONS[typ][value] = options
+          OPTIONS[bo_type][value] = options
           if value == "*" then
-            SETUP_SETTINGS.all[typ] = true
+            SETUP_SETTINGS.all[bo_type] = true
           else
             table.insert(list, value)
           end
         end
       end
-      autocmd({ aucmd[typ] }, {
+      autocmd({ aucmd[bo_type] }, {
         group = AUGROUP_ID,
-        pattern = typ == "file" and (SETUP_SETTINGS.all[typ] and "*" or list) or nil,
+        pattern = bo_type == "filetype" and (SETUP_SETTINGS.all[bo_type] and "*" or list) or nil,
         callback = function()
-          COLORIZER_SETUP_HOOK(typ)
+          COLORIZER_SETUP_HOOK(bo_type)
         end,
       })
     elseif tbl then
-      vim.notify_once(string.format("colorizer: Invalid type for %stypes %s", typ, vim.inspect(tbl)), 4)
+      vim.notify_once(string.format("colorizer: Invalid type for %ss %s", bo_type, vim.inspect(tbl)), 4)
     end
   end
 
-  parse_opts("file", filetypes)
-  parse_opts("buf", buftypes)
+  parse_opts("filetype", filetypes)
+  parse_opts("buftype", buftypes)
 
   autocmd("ColorScheme", {
     group = AUGROUP_ID,
@@ -593,7 +576,7 @@ end
 --- Reload all of the currently active highlighted buffers.
 function colorizer.reload_all_buffers()
   for buf, _ in pairs(BUFFER_OPTIONS) do
-    colorizer.attach_to_buffer(buf, colorizer.get_buffer_options(buf))
+    colorizer.attach_to_buffer(buf, colorizer.get_buffer_options(buf), "buftype")
   end
 end
 
