@@ -48,6 +48,7 @@ function matcher.compile(matchers, matchers_trie)
     end
 
     -- Prefix 0x, rgba, rgb, hsla, hsl
+    ---@diagnostic disable-next-line: undefined-field
     local prefix = trie:longest_prefix(line, i)
     if prefix then
       local fn = "_" .. prefix
@@ -85,18 +86,20 @@ function matcher.make(options)
   local enable_rgb = options.rgb_fn
   local enable_hsl = options.hsl_fn
 
+  -- Rather than use bit.lshift or calculate 2^x, use precalculated values to
+  -- create unique bitmask
   local matcher_key = 0
     + (enable_names and 1 or 0)
-    + (enable_RGB and 1 or 1)
-    + (enable_RRGGBB and 1 or 2)
-    + (enable_RRGGBBAA and 1 or 3)
-    + (enable_AARRGGBB and 1 or 4)
-    + (enable_rgb and 1 or 5)
-    + (enable_hsl and 1 or 6)
-    + ((enable_tailwind == true or enable_tailwind == "normal") and 1 or 7)
-    + (enable_tailwind == "lsp" and 1 or 8)
-    + (enable_tailwind == "both" and 1 or 9)
-    + (enable_sass and 1 or 10)
+    + (enable_RGB and 2 or 0)
+    + (enable_RRGGBB and 4 or 0)
+    + (enable_RRGGBBAA and 8 or 0)
+    + (enable_AARRGGBB and 16 or 0)
+    + (enable_rgb and 32 or 0)
+    + (enable_hsl and 64 or 0)
+    + ((enable_tailwind == true or enable_tailwind == "normal") and 128 or 0)
+    + (enable_tailwind == "lsp" and 256 or 0)
+    + (enable_tailwind == "both" and 512 or 0)
+    + (enable_sass and 1024 or 0)
 
   if matcher_key == 0 then
     return false

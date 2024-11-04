@@ -34,10 +34,12 @@ function parser.name_parser(line, i, opts)
         COLOR_NAME_MAXLEN = COLOR_NAME_MAXLEN and max(#k, COLOR_NAME_MAXLEN) or #k
         local rgb_hex = tohex(v, 6)
         COLOR_MAP[k] = rgb_hex
+        ---@diagnostic disable-next-line: undefined-field
         COLOR_TRIE:insert(k)
         if COLOR_NAME_SETTINGS.lowercase then
           local lowercase = k:lower()
           COLOR_MAP[lowercase] = rgb_hex
+          ---@diagnostic disable-next-line: undefined-field
           COLOR_TRIE:insert(lowercase)
         end
       end
@@ -52,6 +54,7 @@ function parser.name_parser(line, i, opts)
             COLOR_NAME_MINLEN = COLOR_NAME_MINLEN and min(#name, COLOR_NAME_MINLEN) or #name
             COLOR_NAME_MAXLEN = COLOR_NAME_MAXLEN and max(#name, COLOR_NAME_MAXLEN) or #name
             COLOR_MAP[name] = v
+            ---@diagnostic disable-next-line: undefined-field
             COLOR_TRIE:insert(name)
           end
         end

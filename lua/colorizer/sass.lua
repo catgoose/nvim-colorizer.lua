@@ -163,52 +163,54 @@ local function sass_parse_lines(buf, line_start, content, name)
             if last_modified then
               -- grab the full path
               v = uv.fs_realpath(v)
-              SASS[buf].CURRENT_IMPORTS[name][v or ""] = true
+              if v then
+                SASS[buf].CURRENT_IMPORTS[name][v or ""] = true
 
-              if not SASS[buf].WATCH_IMPORTS[name][v] then
-                SASS[buf].IMPORTS[name][v or ""] = last_modified
-                local c, ind = {}, 0
-                for l in io.lines(v) do
-                  ind = ind + 1
-                  c[ind] = l
-                end
-                sass_parse_lines(buf, 0, c, v)
-                c = nil
-
-                local function watch_callback()
-                  local dimen = vim.api.nvim_buf_call(buf, function()
-                    ---@diagnostic disable-next-line: redundant-return-value
-                    return { vim.fn.line "w0", vim.fn.line "w$", vim.fn.line "$", vim.api.nvim_win_get_height(0) }
-                  end)
-                  -- todo: Improve this to only refresh highlight for visible lines
-                  -- can't find out how to get visible rows from another window
-                  -- probably a neovim bug, it is returning 1 and 1 or 1 and 5
-                  if
-                    SASS[buf].LOCAL_OPTIONS
-                    and dimen[1] ~= dimen[2]
-                    and ((dimen[3] > dimen[4] and dimen[2] > dimen[4]) or (dimen[2] >= dimen[3]))
-                  then
-                    SASS[buf].LOCAL_OPTIONS.__startline = dimen[1]
-                    SASS[buf].LOCAL_OPTIONS.__endline = dimen[2]
+                if not SASS[buf].WATCH_IMPORTS[name][v] then
+                  SASS[buf].IMPORTS[name][v or ""] = last_modified
+                  local c, ind = {}, 0
+                  for l in io.lines(v) do
+                    ind = ind + 1
+                    c[ind] = l
                   end
-                  SASS[buf].LOCAL_OPTIONS.__event = ""
+                  sass_parse_lines(buf, 0, c, v)
+                  c = nil
 
-                  local lastm = get_last_modified(v)
-                  if lastm then
-                    SASS[buf].IMPORTS[name] = SASS[buf].IMPORTS[name] or {}
-                    SASS[buf].IMPORTS[name][v] = lastm
-                    local cc, inde = {}, 0
-                    for l in io.lines(v) do
-                      inde = inde + 1
-                      cc[inde] = l
+                  local function watch_callback()
+                    local dimen = vim.api.nvim_buf_call(buf, function()
+                      ---@diagnostic disable-next-line: redundant-return-value
+                      return { vim.fn.line "w0", vim.fn.line "w$", vim.fn.line "$", vim.api.nvim_win_get_height(0) }
+                    end)
+                    -- todo: Improve this to only refresh highlight for visible lines
+                    -- can't find out how to get visible rows from another window
+                    -- probably a neovim bug, it is returning 1 and 1 or 1 and 5
+                    if
+                      SASS[buf].LOCAL_OPTIONS
+                      and dimen[1] ~= dimen[2]
+                      and ((dimen[3] > dimen[4] and dimen[2] > dimen[4]) or (dimen[2] >= dimen[3]))
+                    then
+                      SASS[buf].LOCAL_OPTIONS.__startline = dimen[1]
+                      SASS[buf].LOCAL_OPTIONS.__endline = dimen[2]
                     end
-                    sass_parse_lines(buf, 0, cc, v)
-                    cc = nil
-                  end
+                    SASS[buf].LOCAL_OPTIONS.__event = ""
 
-                  require("colorizer.buffer").rehighlight(buf, SASS[buf].OPTIONS, SASS[buf].LOCAL_OPTIONS, true)
+                    local lastm = get_last_modified(v)
+                    if lastm then
+                      SASS[buf].IMPORTS[name] = SASS[buf].IMPORTS[name] or {}
+                      SASS[buf].IMPORTS[name][v] = lastm
+                      local cc, inde = {}, 0
+                      for l in io.lines(v) do
+                        inde = inde + 1
+                        cc[inde] = l
+                      end
+                      sass_parse_lines(buf, 0, cc, v)
+                      cc = nil
+                    end
+
+                    require("colorizer.buffer").rehighlight(buf, SASS[buf].OPTIONS, SASS[buf].LOCAL_OPTIONS, true)
+                  end
+                  SASS[buf].WATCH_IMPORTS[name][v] = watch_file(v, watch_callback)
                 end
-                SASS[buf].WATCH_IMPORTS[name][v] = watch_file(v, watch_callback)
               end
             else
               -- if file does not exists then remove related variables
