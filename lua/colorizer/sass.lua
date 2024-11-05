@@ -15,25 +15,25 @@ local COLON_HASH = (";"):byte()
 
 local SASS = {}
 
-local function remove_unused_imports(buf, import_name)
-  if type(SASS[buf].IMPORTS[import_name]) == "table" then
-    for file, _ in pairs(SASS[buf].IMPORTS[import_name]) do
-      remove_unused_imports(buf, file)
+local function remove_unused_imports(bufnr, import_name)
+  if type(SASS[bufnr].IMPORTS[import_name]) == "table" then
+    for file, _ in pairs(SASS[bufnr].IMPORTS[import_name]) do
+      remove_unused_imports(bufnr, file)
     end
   end
-  SASS[buf].DEFINITIONS[import_name] = nil
-  SASS[buf].DEFINITIONS_LINEWISE[import_name] = nil
-  SASS[buf].IMPORTS[import_name] = nil
+  SASS[bufnr].DEFINITIONS[import_name] = nil
+  SASS[bufnr].DEFINITIONS_LINEWISE[import_name] = nil
+  SASS[bufnr].IMPORTS[import_name] = nil
   -- stop the watch handler
-  pcall(uv.fs_event_stop, SASS[buf].WATCH_IMPORTS[import_name])
-  SASS[buf].WATCH_IMPORTS[import_name] = nil
+  pcall(uv.fs_event_stop, SASS[bufnr].WATCH_IMPORTS[import_name])
+  SASS[bufnr].WATCH_IMPORTS[import_name] = nil
 end
 
 --- Cleanup sass variables and watch handlers
----@param buf number
-function sass.cleanup(buf)
-  remove_unused_imports(buf, api.nvim_buf_get_name(buf))
-  SASS[buf] = nil
+---@param bufnr number
+function sass.cleanup(bufnr)
+  remove_unused_imports(bufnr, api.nvim_buf_get_name(bufnr))
+  SASS[bufnr] = nil
 end
 
 --- Parse the given line for sass color names
