@@ -8,15 +8,15 @@ local color_name_parser = require "colorizer.parser.names"
 local rgb_function_parser = require "colorizer.parser.rgb"
 local hsl_function_parser = require "colorizer.parser.hsl"
 
-local argb_hex_parser = require "colorizer.parser.argb_hex"
-local rgba_hex_parser = require "colorizer.parser.rgba_hex"
+local hex_0x_parser = require "colorizer.parser.hex_0x"
+local hex_hash_parser = require "colorizer.parser.hex_hash"
 
 local sass_name_parser = require("colorizer.sass").name_parser
 
 local B_HASH, DOLLAR_HASH = ("#"):byte(), ("$"):byte()
 
 local parser = {
-  ["_0x"] = argb_hex_parser,
+  ["_0x"] = hex_0x_parser,
   ["_rgb"] = rgb_function_parser,
   ["_rgba"] = rgb_function_parser,
   ["_hsl"] = hsl_function_parser,
@@ -32,19 +32,15 @@ local matcher = {}
 function matcher.compile(matchers, matchers_trie)
   local trie = Trie(matchers_trie)
 
-  local function parse_fn(line, i, buf)
+  local function parse_fn(line, i, bufnr)
     -- prefix #
-    if matchers.rgba_hex_parser then
-      if line:byte(i) == B_HASH then
-        return rgba_hex_parser(line, i, matchers.rgba_hex_parser)
-      end
+    if matchers.hex_parser and line:byte(i) == B_HASH then
+      return hex_hash_parser(line, i, matchers.hex_parser)
     end
 
     -- prefix $, SASS Colour names
-    if matchers.sass_name_parser then
-      if line:byte(i) == DOLLAR_HASH then
-        return sass_name_parser(line, i, buf)
-      end
+    if matchers.sass_name_parser and line:byte(i) == DOLLAR_HASH then
+      return sass_name_parser(line, i, bufnr)
     end
 
     -- Prefix 0x, rgba, rgb, hsla, hsl
@@ -112,7 +108,6 @@ function matcher.make(options)
 
   local matchers = {}
   local matchers_prefix = {}
-  matchers.max_prefix_length = 0
 
   if enable_names then
     matchers.color_name_parser = { tailwind = options.tailwind }
@@ -132,13 +127,14 @@ function matcher.make(options)
   end
 
   if minlen then
-    matchers.rgba_hex_parser = {}
-    matchers.rgba_hex_parser.valid_lengths = valid_lengths
-    matchers.rgba_hex_parser.maxlen = maxlen
-    matchers.rgba_hex_parser.minlen = minlen
+    matchers.hex_parser = {}
+    matchers.hex_parser.valid_lengths = valid_lengths
+    matchers.hex_parser.maxlen = maxlen
+    matchers.hex_parser.minlen = minlen
   end
 
-  if enable_AARRGGBB then
+  --  TODO: 2024-11-05 - Add custom prefixes
+  if enable_AARRGGBB or enable_RRGGBB or enable_RGB then
     table.insert(matchers_prefix, "0x")
   end
 

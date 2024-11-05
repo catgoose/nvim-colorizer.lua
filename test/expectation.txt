@@ -1,8 +1,16 @@
 -- vim:ft=lua
 require("colorizer").detach_from_buffer()
-require("colorizer").attach_to_buffer(0, { AARRGGBB = true, css = true, mode = "foreground" })
+require("colorizer").attach_to_buffer(0, {
+  AARRGGBB = true,
+  css = true,
+  mode = "foreground",
+})
 --[[ SUCCESS
-0xFf32A14B 0xFf32A14B
+0xFf32A14B 0xFf32A14B 
+0x1B29FB 0x1B29FB 
+0xF0F 0xF0F 
+0xA3B67CDE 0x7F12D9A5 0x7E43F2 0x34E8D3 0xB3A 0x1CD
+
 #32a14b
 
 #F0F #FF00FF #FFF00F8F #F0F #FF00FF
@@ -31,6 +39,10 @@ hsla(360   ,  50%  ,  50%   ,  1.0000000000000001)
 ]]
 
 --[[ FAIL
+0xf32A14B 0xf32A14B 
+0xB29FB 0xB29FB 
+0x0F 0x0F 
+0x3B67CDE 0xF12D9A5 0xE43F2 0x4E8D3 0x3A 0xCD
 #---
 #F0FF
 #F0FFF

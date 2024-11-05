@@ -1,4 +1,3 @@
----Helper function to parse argb
 local api = vim.api
 
 local bit = require "bit"
