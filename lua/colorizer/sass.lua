@@ -30,7 +30,7 @@ local function remove_unused_imports(bufnr, import_name)
 end
 
 --- Cleanup sass variables and watch handlers
----@param bufnr number
+---@param bufnr number: Buffer number
 function sass.cleanup(bufnr)
   remove_unused_imports(bufnr, api.nvim_buf_get_name(bufnr))
   SASS[bufnr] = nil
@@ -40,7 +40,7 @@ end
 -- check for value in SASS[buf].DEFINITIONS_ALL
 ---@param line string: Line to parse
 ---@param i number: Index of line from where to start parsing
----@param bufnr number
+---@param bufnr number: Buffer number
 ---@return number|nil, string|nil
 function sass.name_parser(line, i, bufnr)
   local variable_name = line:match("^%$([%w_-]+)", i)
@@ -235,7 +235,7 @@ end -- sass_parse_lines end
 --- Parse the given lines for sass variabled and add to `SASS[buf].DEFINITIONS_ALL`.
 -- which is then used in |sass_name_parser|
 -- If lines are not given, then fetch the lines with line_start and line_end
----@param bufnr number: buffer number (0 for current)
+---@param bufnr number: Buffer number
 ---@param line_start number
 ---@param line_end number
 ---@param lines table|nil

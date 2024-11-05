@@ -10,7 +10,7 @@ local DEFAULT_NAMESPACE_TAILWIND = api.nvim_create_namespace "colorizer_tailwind
 local TAILWIND = {}
 
 --- Cleanup tailwind variables and autocmd
----@param bufnr number: buffer number (0 for current)
+---@param bufnr number: Buffer number (0 for current)
 function tailwind.cleanup(bufnr)
   if TAILWIND[bufnr] and TAILWIND[bufnr].AU_ID and TAILWIND[bufnr].AU_ID[1] then
     pcall(api.nvim_del_autocmd, TAILWIND[bufnr].AU_ID[1])
@@ -67,7 +67,7 @@ end
 
 --- highlight buffer using values returned by tailwindcss
 -- To see these table information, see |colorizer.buffer|
----@param bufnr number: buffer number (0 for current)
+---@param bufnr number: Buffer number (0 for current)
 ---@param options table
 ---@param options_local table
 ---@param add_highlight function

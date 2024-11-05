@@ -185,7 +185,7 @@ local SETUP_SETTINGS = {
 }
 
 --- Make new buffer Configuration
----@param bufnr number: buffer number (0 for current)
+---@param bufnr number: Buffer number
 ---@param bo_type 'buftype'|'filetype': The type of buffer option
 ---@return table
 local function new_buffer_options(bufnr, bo_type)
@@ -194,7 +194,7 @@ local function new_buffer_options(bufnr, bo_type)
 end
 
 --- Parse buffer Configuration and convert aliases to normal values
----@param options table: options table
+---@param options table: Buffer options table
 ---@return table
 local function parse_buffer_options(options)
   local includes = {
@@ -239,8 +239,8 @@ local function parse_buffer_options(options)
 end
 
 --- Check if attached to a buffer.
----@param bufnr number|nil: A value of 0 implies the current buffer.
----@return number|nil: if attached to the buffer, false otherwise.
+---@param bufnr number|nil: Buffer number (0 for current)
+---@return number|nil: Attached buffer number, nil otherwise.
 ---@see colorizer.buffer.highlight
 function colorizer.is_buffer_attached(bufnr)
   if bufnr == 0 or not bufnr then
