@@ -67,7 +67,7 @@ local merge = utils.merge
 local api = vim.api
 local augroup = api.nvim_create_augroup
 local autocmd = api.nvim_create_autocmd
-local buf_get_option = api.nvim_get_option_value
+local get_option_value = api.nvim_get_option_value
 local clear_namespace = api.nvim_buf_clear_namespace
 local current_buf = api.nvim_get_current_buf
 
@@ -84,8 +84,7 @@ colorizer.DEFAULT_NAMESPACE = buffer_utils.default_namespace
 colorizer.highlight_buffer = buffer_utils.highlight
 
 -- USER FACING FUNCTIONALITY --
-local AUGROUP_ID
-local AUGROUP_NAME = "ColorizerSetup"
+local AU_GROUP = augroup("ColorizerSetup", {})
 -- buffer specific options given in setup
 local BUFFER_OPTIONS = {}
 -- buffer local options created after setup
@@ -190,7 +189,7 @@ local SETUP_SETTINGS = {
 ---@param bo_type 'buftype'|'filetype': The type of buffer option
 ---@return table
 local function new_buffer_options(bufnr, bo_type)
-  local value = buf_get_option(bo_type, { buf = bufnr })
+  local value = get_option_value(bo_type, { buf = bufnr })
   return OPTIONS.filetype[value] or SETUP_SETTINGS.default_options
 end
 
@@ -254,7 +253,7 @@ function colorizer.is_buffer_attached(bufnr)
   end
 
   local au = api.nvim_get_autocmds {
-    group = AUGROUP_ID,
+    group = AU_GROUP,
     event = { "WinScrolled", "TextChanged", "TextChangedI", "TextChangedP" },
     buffer = bufnr,
   }
@@ -312,14 +311,10 @@ function colorizer.attach_to_buffer(bufnr, options, bo_type)
   -- set options by grabbing existing or creating new options, then parsing
   options = parse_buffer_options(options or colorizer.get_buffer_options(bufnr) or new_buffer_options(bufnr, bo_type))
 
-  if not buffer_utils.highlight_mode_names[options.mode] then
-    if options.mode ~= nil then
-      local mode = options.mode
-      vim.defer_fn(function()
-        -- just notify the user once
-        vim.notify_once(string.format("Warning: Invalid mode given to colorizer setup [ %s ]", mode))
-      end, 0)
-    end
+  if options.mode and not buffer_utils.highlight_mode_names[options.mode] then
+    vim.defer_fn(function()
+      vim.notify_once(string.format("Warning: Invalid mode given to colorizer setup [ %s ]", options.mode))
+    end, 0)
     options.mode = "background"
   end
 
@@ -341,7 +336,7 @@ function colorizer.attach_to_buffer(bufnr, options, bo_type)
   end
 
   local autocmds = {}
-  local au_group_id = AUGROUP_ID
+  local au_group_id = AU_GROUP
 
   local text_changed_au = { "TextChanged", "TextChangedI", "TextChangedP" }
   -- only enable InsertLeave in sass, rest don't require it
@@ -349,9 +344,7 @@ function colorizer.attach_to_buffer(bufnr, options, bo_type)
     table.insert(text_changed_au, "InsertLeave")
   end
 
-  if CURRENT_BUF == 0 then
-    CURRENT_BUF = bufnr
-  end
+  CURRENT_BUF = CURRENT_BUF == 0 and bufnr or CURRENT_BUF
 
   if options.always_update then
     -- attach using lua api so buffer gets updated even when not the current buffer
@@ -359,7 +352,7 @@ function colorizer.attach_to_buffer(bufnr, options, bo_type)
     vim.api.nvim_buf_attach(bufnr, false, {
       on_lines = function(_, buffer)
         -- only reload if the buffer is not the current one
-        if not (CURRENT_BUF == buffer) then
+        if CURRENT_BUF ~= buffer then
           -- only reload if it was not disabled using detach_from_buffer
           if BUFFER_OPTIONS[bufnr] then
             rehighlight_buffer(bufnr, options, BUFFER_LOCAL[bufnr])
@@ -368,7 +361,7 @@ function colorizer.attach_to_buffer(bufnr, options, bo_type)
       end,
       on_reload = function(_, buffer)
         -- only reload if the buffer is not the current one
-        if not (CURRENT_BUF == buffer) then
+        if CURRENT_BUF ~= buffer then
           -- only reload if it was not disabled using detach_from_buffer
           if BUFFER_OPTIONS[bufnr] then
             rehighlight_buffer(bufnr, options, BUFFER_LOCAL[bufnr])
@@ -509,8 +502,6 @@ function colorizer.setup(config)
     end
   end
 
-  AUGROUP_ID = augroup(AUGROUP_NAME, {})
-
   local aucmd = { buftype = "BufWinEnter", filetype = "FileType" }
   local function parse_opts(bo_type, tbl)
     if type(tbl) == "table" then
@@ -542,7 +533,7 @@ function colorizer.setup(config)
         end
       end
       autocmd({ aucmd[bo_type] }, {
-        group = AUGROUP_ID,
+        group = AU_GROUP,
         pattern = bo_type == "filetype" and (SETUP_SETTINGS.all[bo_type] and "*" or list) or nil,
         callback = function()
           COLORIZER_SETUP_HOOK(bo_type)
@@ -557,7 +548,7 @@ function colorizer.setup(config)
   parse_opts("buftype", buftypes)
 
   autocmd("ColorScheme", {
-    group = AUGROUP_ID,
+    group = AU_GROUP,
     callback = function()
       require("colorizer").clear_highlight_cache()
     end,
@@ -569,9 +560,7 @@ end
 ---@return table|nil
 function colorizer.get_buffer_options(bufnr)
   local buffer = colorizer.is_buffer_attached(bufnr)
-  if buffer then
-    return BUFFER_OPTIONS[buffer]
-  end
+  return BUFFER_OPTIONS[buffer]
 end
 
 --- Reload all of the currently active highlighted buffers.

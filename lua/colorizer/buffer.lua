@@ -143,14 +143,11 @@ end
 ---@param options_local table: Buffer local variables
 ---@return nil|boolean|number,table
 function buffer.highlight(bufnr, ns_id, line_start, line_end, options, options_local)
-  local returns = { detach = { ns_id = {}, functions = {} } }
-  if bufnr == 0 or bufnr == nil then
-    bufnr = api.nvim_get_current_buf()
-  end
-
-  local lines = buf_get_lines(bufnr, line_start, line_end, false)
-
+  bufnr = (bufnr == 0 or not bufnr) and current_buf() or bufnr
   ns_id = ns_id or buffer.default_namespace
+
+  local returns = { detach = { ns_id = {}, functions = {} } }
+  local lines = buf_get_lines(bufnr, line_start, line_end, false)
 
   -- only update sass varibles when text is changed
   if options_local.__event ~= "WinScrolled" and options.sass and options.sass.enable then
@@ -258,9 +255,11 @@ function buffer.rehighlight(bufnr, options, options_local, use_local_lines)
 
   local ns_id = buffer.default_namespace
 
-  local min, max
+  local min = 0
+  local max = -1
   if use_local_lines and options_local then
-    min, max = options_local.__startline or 0, options_local.__endline or -1
+    min = options_local.__startline or min
+    max = options_local.__endline or max
   else
     min, max = getrow(bufnr)
   end

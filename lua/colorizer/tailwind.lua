@@ -30,7 +30,7 @@ local function highlight_tailwind(bufnr, ns, options, add_highlight)
 
     local opts = { textDocument = vim.lsp.util.make_text_document_params() }
     TAILWIND[bufnr].CLIENT.request("textDocument/documentColor", opts, function(err, results, _, _)
-      if err == nil and results ~= nil then
+      if not err and results then
         local data, line_start, line_end = {}, nil, nil
         for _, color in pairs(results) do
           local cur_line = color.range.start.line
