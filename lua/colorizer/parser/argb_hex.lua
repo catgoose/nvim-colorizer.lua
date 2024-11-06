@@ -14,7 +14,7 @@ local parser = {}
 ---@param i number: index of line from where to start parsing
 ---@return number|nil: index of line where the hex value ended
 ---@return string|nil: rgb hex value
-function parser.hex_0x(line, i)
+function parser.argb_hex_parser(line, i)
   local minlen = #"0xRGB" - 1
   local maxlen = #"0xAARRGGBB" - 1
   if #line < i + minlen then
@@ -62,4 +62,4 @@ function parser.hex_0x(line, i)
   return length, rgb_hex
 end
 
-return parser.hex_0x
+return parser.argb_hex_parser

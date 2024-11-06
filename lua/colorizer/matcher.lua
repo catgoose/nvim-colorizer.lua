@@ -8,15 +8,18 @@ local color_name_parser = require "colorizer.parser.names"
 local rgb_function_parser = require "colorizer.parser.rgb"
 local hsl_function_parser = require "colorizer.parser.hsl"
 
-local hex_0x_parser = require "colorizer.parser.hex_0x"
-local hex_hash_parser = require "colorizer.parser.hex_hash"
+local argb_hex_parser = require "colorizer.parser.argb_hex"
+local rgba_hex_parser = require "colorizer.parser.rgba_hex"
 
 local sass_name_parser = require("colorizer.sass").name_parser
 
 local B_HASH, DOLLAR_HASH = ("#"):byte(), ("$"):byte()
 
+--  TODO: 2024-11-05 - Instead of AARRGGBB vs RRGGBBAA parsers, should we have
+--  0x, # prefix parsers for 0xAARRGGBB, 0xRRGGBB, 0xRGB and #RRGGBBAA, #RRGGBB,
+--  #RGB?
 local parser = {
-  ["_0x"] = hex_0x_parser,
+  ["_0x"] = argb_hex_parser,
   ["_rgb"] = rgb_function_parser,
   ["_rgba"] = rgb_function_parser,
   ["_hsl"] = hsl_function_parser,
@@ -34,8 +37,8 @@ function matcher.compile(matchers, matchers_trie)
 
   local function parse_fn(line, i, bufnr)
     -- prefix #
-    if matchers.hex_parser and line:byte(i) == B_HASH then
-      return hex_hash_parser(line, i, matchers.hex_parser)
+    if matchers.rgba_hex_parser and line:byte(i) == B_HASH then
+      return rgba_hex_parser(line, i, matchers.rgba_hex_parser)
     end
 
     -- prefix $, SASS Colour names
@@ -127,14 +130,14 @@ function matcher.make(options)
   end
 
   if minlen then
-    matchers.hex_parser = {}
-    matchers.hex_parser.valid_lengths = valid_lengths
-    matchers.hex_parser.maxlen = maxlen
-    matchers.hex_parser.minlen = minlen
+    matchers.rgba_hex_parser = {}
+    matchers.rgba_hex_parser.valid_lengths = valid_lengths
+    matchers.rgba_hex_parser.maxlen = maxlen
+    matchers.rgba_hex_parser.minlen = minlen
   end
 
   --  TODO: 2024-11-05 - Add custom prefixes
-  if enable_AARRGGBB or enable_RRGGBB or enable_RGB then
+  if enable_AARRGGBB then
     table.insert(matchers_prefix, "0x")
   end
 

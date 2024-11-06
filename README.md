@@ -1,4 +1,4 @@
-# colorizer.lua  ( NOT MAINTAINED, Looking for maintainers  )
+# colorizer.lua
 
  
 
