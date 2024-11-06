@@ -121,6 +121,13 @@ local CURRENT_BUF = 0
 --</pre>
 --
 --<pre>
+--  user_commands = {
+--   "ColorizerAttachToBuffer",
+--   "ColorizerDetachFromBuffer",
+--   "ColorizerReloadAllBuffers",
+--   "ColorizerToggle",
+-- }, -- List of commands to enable, set to false to disable all user commands,
+-- true to enable all
 --  user_default_options = {
 --      RGB = true, -- #RGB hex codes
 --      RRGGBB = true, -- #RRGGBB hex codes
@@ -179,10 +186,17 @@ local USER_DEFAULT_OPTIONS = {
 }
 
 local OPTIONS = { buftype = {}, filetype = {} }
+local USER_COMMANDS = {
+  "ColorizerAttachToBuffer",
+  "ColorizerDetachFromBuffer",
+  "ColorizerReloadAllBuffers",
+  "ColorizerToggle",
+}
 local SETUP_SETTINGS = {
   exclusions = { buftype = {}, filetype = {} },
   all = { buftype = false, filetype = false },
   default_options = USER_DEFAULT_OPTIONS,
+  user_commands = USER_COMMANDS,
 }
 
 --- Make new buffer Configuration
@@ -437,6 +451,7 @@ end
 --Setup with all the default options:~
 --<pre>
 --    require("colorizer").setup {
+--      user_commands,
 --      filetypes = { "*" },
 --      user_default_options,
 --      -- all the sub-options of filetypes apply to buftypes
@@ -457,15 +472,18 @@ function colorizer.setup(config)
   local conf = vim.deepcopy(config) or {}
 
   -- if nothing given the enable for all filetypes
+  --  TODO: 2024-11-06 - why is conf[i] used here?
   local filetypes = conf.filetypes or conf[1] or { "*" }
   local user_default_options = conf.user_default_options or conf[2] or {}
   local buftypes = conf.buftypes or conf[3] or nil
+  local user_commands = conf.user_commands == nil and true or conf.user_commands
 
   OPTIONS = { buftype = {}, filetype = {} }
   SETUP_SETTINGS = {
     exclusions = { buftype = {}, filetype = {} },
     all = { buftype = false, filetype = false },
     default_options = user_default_options,
+    user_commands = user_commands,
   }
   BUFFER_OPTIONS, BUFFER_LOCAL = {}, {}
 
@@ -562,6 +580,8 @@ function colorizer.setup(config)
       require("colorizer").clear_highlight_cache()
     end,
   })
+
+  require("colorizer.utils.usercmds").make(SETUP_SETTINGS.user_commands)
 end
 
 --- Return the currently active buffer options.
