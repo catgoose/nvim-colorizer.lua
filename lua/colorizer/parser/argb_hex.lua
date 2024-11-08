@@ -1,15 +1,10 @@
 ---Helper function to parse argb
+local M = {}
 
-local bit = require "bit"
+local bit = require("bit")
+local utils = require("colorizer.utils")
 local floor, min = math.floor, math.min
 local band, rshift, lshift = bit.band, bit.rshift, bit.lshift
-
-local utils = require "colorizer.utils"
-local byte_is_alphanumeric = utils.byte_is_alphanumeric
-local byte_is_hex = utils.byte_is_hex
-local parse_hex = utils.parse_hex
-
-local parser = {}
 
 local ARGB_MINIMUM_LENGTH = #"0xAARRGGBB" - 1
 ---parse for 0xaarrggbb and return rgb hex.
@@ -18,7 +13,7 @@ local ARGB_MINIMUM_LENGTH = #"0xAARRGGBB" - 1
 ---@param i number: index of line from where to start parsing
 ---@return number|nil: index of line where the hex value ended
 ---@return string|nil: rgb hex value
-function parser.argb_hex_parser(line, i)
+function M.argb_hex_parser(line, i)
   if #line < i + ARGB_MINIMUM_LENGTH then
     return
   end
@@ -30,17 +25,17 @@ function parser.argb_hex_parser(line, i)
   local v = 0
   while j <= min(n, #line) do
     local b = line:byte(j)
-    if not byte_is_hex(b) then
+    if not utils.byte_is_hex(b) then
       break
     end
     if j - i <= 3 then
-      alpha = parse_hex(b) + lshift(alpha or 0, 4)
+      alpha = utils.parse_hex(b) + lshift(alpha or 0, 4)
     else
-      v = parse_hex(b) + lshift(v, 4)
+      v = utils.parse_hex(b) + lshift(v, 4)
     end
     j = j + 1
   end
-  if #line >= j and byte_is_alphanumeric(line:byte(j)) then
+  if #line >= j and utils.byte_is_alphanumeric(line:byte(j)) then
     return
   end
   local length = j - i
@@ -55,4 +50,4 @@ function parser.argb_hex_parser(line, i)
   return length, rgb_hex
 end
 
-return parser.argb_hex_parser
+return M.argb_hex_parser

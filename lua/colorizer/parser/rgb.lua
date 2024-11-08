@@ -1,7 +1,8 @@
 ---Helper function to parse argb
+local M = {}
+
 local count = require("colorizer.utils").count
 
-local parser = {}
 local CSS_RGBA_FN_MINIMUM_LENGTH = #"rgba(0,0,0)" - 1
 local CSS_RGB_FN_MINIMUM_LENGTH = #"rgb(0,0,0)" - 1
 ---Parse for rgb() rgba() css function and return rgb hex.
@@ -11,7 +12,7 @@ local CSS_RGB_FN_MINIMUM_LENGTH = #"rgb(0,0,0)" - 1
 ---@param opts table: Values passed from matchers like prefix
 ---@return number|nil: Index of line where the rgb/rgba function ended
 ---@return string|nil: rgb hex value
-function parser.rgb_function_parser(line, i, opts)
+function M.rgb_function_parser(line, i, opts)
   local min_len = CSS_RGBA_FN_MINIMUM_LENGTH
   local min_commas, min_spaces, min_percent = 2, 2, 3
   local pattern = "^"
@@ -39,7 +40,7 @@ function parser.rgb_function_parser(line, i, opts)
   end
 
   local units = ("%s%s%s"):format(unit1, unit2, unit3)
-  if units:match "%%" then
+  if units:match("%%") then
     if not ((count(units, "%%")) == min_percent) then
       return
     end
@@ -48,7 +49,7 @@ function parser.rgb_function_parser(line, i, opts)
   local c_seps = ("%s%s%s"):format(csep1, csep2, sep3)
   local s_seps = ("%s%s"):format(ssep1, ssep2)
   -- comma separator syntax
-  if c_seps:match "," then
+  if c_seps:match(",") then
     if not (count(c_seps, ",") == min_commas) then
       return
     end
@@ -111,4 +112,4 @@ function parser.rgb_function_parser(line, i, opts)
   return match_end - 1, rgb_hex
 end
 
-return parser.rgb_function_parser
+return M.rgb_function_parser

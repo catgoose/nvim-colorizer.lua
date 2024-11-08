@@ -1,11 +1,8 @@
----Helper utils
 --@module colorizer.utils
-local bit, ffi = require "bit", require "ffi"
+local M = {}
+
+local bit, ffi = require("bit"), require("ffi")
 local band, bor, rshift, lshift = bit.band, bit.bor, bit.rshift, bit.lshift
-
-local uv = vim.loop
-
-local utils = {}
 
 -- -- TODO use rgb as the return value from the matcher functions
 -- -- instead of the rgb_hex. Can be the highlight key as well
@@ -18,7 +15,7 @@ local utils = {}
 
 -- Create a lookup table where the bottom 4 bits are used to indicate the
 -- category and the top 4 bits are the hex value of the ASCII byte.
-local BYTE_CATEGORY = ffi.new "uint8_t[256]"
+local BYTE_CATEGORY = ffi.new("uint8_t[256]")
 local CATEGORY_DIGIT = lshift(1, 0)
 local CATEGORY_ALPHA = lshift(1, 1)
 local CATEGORY_HEX = lshift(1, 2)
@@ -27,7 +24,8 @@ local CATEGORY_ALPHANUM = bor(CATEGORY_ALPHA, CATEGORY_DIGIT)
 do
   -- do not run the loop multiple times
   local b = string.byte
-  local byte_values = { ["0"] = b "0", ["9"] = b "9", ["a"] = b "a", ["f"] = b "f", ["z"] = b "z" }
+  local byte_values =
+    { ["0"] = b("0"), ["9"] = b("9"), ["a"] = b("a"), ["f"] = b("f"), ["z"] = b("z") }
 
   for i = 0, 255 do
     local v = 0
@@ -52,7 +50,7 @@ end
 ---Obvious.
 ---@param byte number
 ---@return boolean
-function utils.byte_is_alphanumeric(byte)
+function M.byte_is_alphanumeric(byte)
   local category = BYTE_CATEGORY[byte]
   return band(category, CATEGORY_ALPHANUM) ~= 0
 end
@@ -60,36 +58,36 @@ end
 ---Obvious.
 ---@param byte number
 ---@return boolean
-function utils.byte_is_hex(byte)
+function M.byte_is_hex(byte)
   return band(BYTE_CATEGORY[byte], CATEGORY_HEX) ~= 0
 end
 
 ---Valid colorchars are alphanumeric and - ( tailwind colors )
 ---@param byte number
 ---@return boolean
-function utils.byte_is_valid_colorchar(byte)
-  return utils.byte_is_alphanumeric(byte) or byte == ("-"):byte()
+function M.byte_is_valid_colorchar(byte)
+  return M.byte_is_alphanumeric(byte) or byte == ("-"):byte()
 end
 
 ---Count the number of character in a string
 ---@param str string
 ---@param pattern string
 ---@return number
-function utils.count(str, pattern)
+function M.count(str, pattern)
   return select(2, string.gsub(str, pattern, ""))
 end
 
 --- Get last modified time of a file
 ---@param path string: file path
 ---@return number|nil: modified time
-function utils.get_last_modified(path)
-  local fd = uv.fs_open(path, "r", 438)
+function M.get_last_modified(path)
+  local fd = vim.loop.fs_open(path, "r", 438)
   if not fd then
     return
   end
 
-  local stat = uv.fs_fstat(fd)
-  uv.fs_close(fd)
+  local stat = vim.loop.fs_fstat(fd)
+  vim.loop.fs_close(fd)
   if stat then
     return stat.mtime.nsec
   else
@@ -101,7 +99,7 @@ end
 --
 -- todo: Remove this and use `vim.tbl_deep_extend`
 ---@return table
-function utils.merge(...)
+function M.merge(...)
   local res = {}
   for i = 1, select("#", ...) do
     local o = select(i, ...)
@@ -118,7 +116,7 @@ end
 --- Obvious.
 ---@param byte number
 ---@return number
-function utils.parse_hex(byte)
+function M.parse_hex(byte)
   return rshift(BYTE_CATEGORY[byte], 4)
 end
 
@@ -127,12 +125,12 @@ end
 ---@param callback function: Callback to execute
 ---@param ... table: params for callback
 ---@return uv_fs_event_t|nil
-function utils.watch_file(path, callback, ...)
+function M.watch_file(path, callback, ...)
   if not path or type(callback) ~= "function" then
     return
   end
 
-  local fullpath = uv.fs_realpath(path)
+  local fullpath = vim.loop.fs_realpath(path)
   if not fullpath then
     return
   end
@@ -140,7 +138,7 @@ function utils.watch_file(path, callback, ...)
   local start
   local args = { ... }
 
-  local handle = uv.new_fs_event()
+  local handle = vim.loop.new_fs_event()
   if not handle then
     return
   end
@@ -149,13 +147,13 @@ function utils.watch_file(path, callback, ...)
     callback(filename, unpack(args))
     -- Debounce: stop/start.
     handle:stop()
-    if not err or not utils.get_last_modified(filename) then
+    if not err or not M.get_last_modified(filename) then
       start()
     end
   end
 
   function start()
-    uv.fs_event_start(
+    vim.loop.fs_event_start(
       handle,
       fullpath,
       {},
@@ -169,4 +167,4 @@ function utils.watch_file(path, callback, ...)
   return handle
 end
 
-return utils
+return M

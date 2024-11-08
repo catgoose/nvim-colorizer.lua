@@ -1,7 +1,5 @@
 local M = {}
 
-local buf_get_option = vim.api.nvim_get_option_value
-
 ---defaults options.
 --In `user_default_options`, there are 2 types of options
 --
@@ -139,7 +137,7 @@ function M.get_setup_settings()
 end
 
 function M.new_buffer_options(bufnr, bo_type)
-  local value = buf_get_option(bo_type, { buf = bufnr })
+  local value = vim.api.nvim_get_option_value(bo_type, { buf = bufnr })
   return OPTIONS.filetype[value] or M.get_setup_settings().default_options
 end
 

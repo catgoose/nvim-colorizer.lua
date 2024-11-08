@@ -1,14 +1,11 @@
 ---Helper function to parse argb
-local bit = require "bit"
+local M = {}
+
+local bit = require("bit")
 local floor, min = math.floor, math.min
 local band, rshift, lshift = bit.band, bit.rshift, bit.lshift
 
-local utils = require "colorizer.utils"
-local byte_is_alphanumeric = utils.byte_is_alphanumeric
-local byte_is_hex = utils.byte_is_hex
-local parse_hex = utils.parse_hex
-
-local parser = {}
+local utils = require("colorizer.utils")
 
 ---parse for #rrggbbaa and return rgb hex.
 -- a format used in android apps
@@ -17,14 +14,14 @@ local parser = {}
 ---@param opts table: Containing minlen, maxlen, valid_lengths
 ---@return number|nil: index of line where the hex value ended
 ---@return string|nil: rgb hex value
-function parser.rgba_hex_parser(line, i, opts)
+function M.rgba_hex_parser(line, i, opts)
   local minlen, maxlen, valid_lengths = opts.minlen, opts.maxlen, opts.valid_lengths
   local j = i + 1
   if #line < j + minlen - 1 then
     return
   end
 
-  if i > 1 and byte_is_alphanumeric(line:byte(i - 1)) then
+  if i > 1 and utils.byte_is_alphanumeric(line:byte(i - 1)) then
     return
   end
 
@@ -34,18 +31,18 @@ function parser.rgba_hex_parser(line, i, opts)
 
   while j <= min(n, #line) do
     local b = line:byte(j)
-    if not byte_is_hex(b) then
+    if not utils.byte_is_hex(b) then
       break
     end
     if j - i >= 7 then
-      alpha = parse_hex(b) + lshift(alpha or 0, 4)
+      alpha = utils.parse_hex(b) + lshift(alpha or 0, 4)
     else
-      v = parse_hex(b) + lshift(v, 4)
+      v = utils.parse_hex(b) + lshift(v, 4)
     end
     j = j + 1
   end
 
-  if #line >= j and byte_is_alphanumeric(line:byte(j)) then
+  if #line >= j and utils.byte_is_alphanumeric(line:byte(j)) then
     return
   end
 
@@ -65,4 +62,4 @@ function parser.rgba_hex_parser(line, i, opts)
   return (valid_lengths[length - 1] and length), line:sub(i + 1, i + length - 1)
 end
 
-return parser.rgba_hex_parser
+return M.rgba_hex_parser

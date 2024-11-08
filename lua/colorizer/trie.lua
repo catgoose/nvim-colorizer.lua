@@ -16,18 +16,18 @@
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 --@module trie
-local ffi = require "ffi"
+local ffi = require("ffi")
 
-ffi.cdef [[
+ffi.cdef([[
 struct Trie {
 	bool is_leaf;
 	struct Trie* character[62];
 };
 void *malloc(size_t size);
 void free(void *ptr);
-]]
+]])
 
-local Trie_t = ffi.typeof "struct Trie"
+local Trie_t = ffi.typeof("struct Trie")
 local Trie_ptr_t = ffi.typeof("$ *", Trie_t)
 local Trie_size = ffi.sizeof(Trie_t)
 
@@ -57,9 +57,16 @@ local CHAR_LOOKUP_TABLE = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopq
 do
   local b = string.byte
   local extra_char = {
-    [b "-"] = true,
+    [b("-")] = true,
   }
-  local byte = { ["0"] = b "0", ["9"] = b "9", ["a"] = b "a", ["A"] = b "A", ["z"] = b "z", ["Z"] = b "Z" }
+  local byte = {
+    ["0"] = b("0"),
+    ["9"] = b("9"),
+    ["a"] = b("a"),
+    ["A"] = b("A"),
+    ["z"] = b("z"),
+    ["Z"] = b("Z"),
+  }
   for i = 0, total_char do
     if i >= byte["0"] and i <= byte["9"] then
       INDEX_LOOKUP_TABLE[i] = i - byte["0"]
@@ -209,7 +216,7 @@ local function print_trie_table(s)
   local child_count = 0
   for i, line in ipairs(lines) do
     local line_parts = {}
-    if line:match "^%w" then
+    if line:match("^%w") then
       child_count = child_count + 1
       if i == 1 then
         line_parts = { mark }

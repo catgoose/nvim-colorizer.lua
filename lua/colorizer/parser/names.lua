@@ -1,17 +1,10 @@
 ---Helper function to parse argb
-local api = vim.api
+local M = {}
 
-local bit = require "bit"
-local tohex = bit.tohex
-
+local Trie = require("colorizer.trie")
+local utils = require("colorizer.utils")
+local tohex = require("bit").tohex
 local min, max = math.min, math.max
-
-local Trie = require "colorizer.trie"
-
-local utils = require "colorizer.utils"
-local byte_is_valid_colorchar = utils.byte_is_valid_colorchar
-
-local parser = {}
 
 local COLOR_MAP
 local COLOR_TRIE
@@ -23,13 +16,13 @@ local TAILWIND_ENABLED = false
 ---@param line string: Line to parse
 ---@param i number: Index of line from where to start parsing
 ---@param opts table: Currently contains whether tailwind is enabled or not
-function parser.name_parser(line, i, opts)
+function M.name_parser(line, i, opts)
   --- Setup the COLOR_MAP and COLOR_TRIE
   if not COLOR_TRIE or opts.tailwind ~= TAILWIND_ENABLED then
     COLOR_MAP = {}
     COLOR_TRIE = Trie()
-    for k, v in pairs(api.nvim_get_color_map()) do
-      if not (COLOR_NAME_SETTINGS.strip_digits and k:match "%d+$") then
+    for k, v in pairs(vim.api.nvim_get_color_map()) do
+      if not (COLOR_NAME_SETTINGS.strip_digits and k:match("%d+$")) then
         COLOR_NAME_MINLEN = COLOR_NAME_MINLEN and min(#k, COLOR_NAME_MINLEN) or #k
         COLOR_NAME_MAXLEN = COLOR_NAME_MAXLEN and max(#k, COLOR_NAME_MAXLEN) or #k
         local rgb_hex = tohex(v, 6)
@@ -46,7 +39,7 @@ function parser.name_parser(line, i, opts)
     end
     if opts and opts.tailwind then
       if opts.tailwind == true or opts.tailwind == "normal" or opts.tailwind == "both" then
-        local tailwind = require "colorizer.tailwind_colors"
+        local tailwind = require("colorizer.tailwind_colors")
         -- setup tailwind colors
         for k, v in pairs(tailwind.colors) do
           for _, pre in ipairs(tailwind.prefixes) do
@@ -67,7 +60,7 @@ function parser.name_parser(line, i, opts)
     return
   end
 
-  if i > 1 and byte_is_valid_colorchar(line:byte(i - 1)) then
+  if i > 1 and utils.byte_is_valid_colorchar(line:byte(i - 1)) then
     return
   end
 
@@ -77,11 +70,11 @@ function parser.name_parser(line, i, opts)
     -- Take the Blue out of Blueberry
     -- Line end or non-letter.
     local next_byte_index = i + #prefix
-    if #line >= next_byte_index and byte_is_valid_colorchar(line:byte(next_byte_index)) then
+    if #line >= next_byte_index and utils.byte_is_valid_colorchar(line:byte(next_byte_index)) then
       return
     end
     return #prefix, COLOR_MAP[prefix]
   end
 end
 
-return parser.name_parser
+return M.name_parser

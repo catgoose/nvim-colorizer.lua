@@ -1,8 +1,8 @@
+local M = {}
+
 local command = function(name, f)
   vim.api.nvim_create_user_command(name, f, {})
 end
-
-local M = {}
 
 --- Create User Commands
 ---@param cmds table|boolean: List of commands
@@ -22,7 +22,7 @@ function M.make(cmds)
     end,
     ColorizerToggle = function()
       command("ColorizerToggle", function()
-        local c = require "colorizer"
+        local c = require("colorizer")
         if c.is_buffer_attached() then
           c.detach_from_buffer()
         else

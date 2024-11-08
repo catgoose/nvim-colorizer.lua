@@ -1,19 +1,15 @@
----Helper functions for colorizer to enable required parsers
 --@module colorizer.matcher
-local Trie = require "colorizer.trie"
+local M = {}
+
+local Trie = require("colorizer.trie")
 local min, max = math.min, math.max
 
-local color_name_parser = require "colorizer.parser.names"
-
-local rgb_function_parser = require "colorizer.parser.rgb"
-local hsl_function_parser = require "colorizer.parser.hsl"
-
-local argb_hex_parser = require "colorizer.parser.argb_hex"
-local rgba_hex_parser = require "colorizer.parser.rgba_hex"
-
+local argb_hex_parser = require("colorizer.parser.argb_hex")
+local color_name_parser = require("colorizer.parser.names")
+local hsl_function_parser = require("colorizer.parser.hsl")
+local rgb_function_parser = require("colorizer.parser.rgb")
+local rgba_hex_parser = require("colorizer.parser.rgba_hex")
 local sass_name_parser = require("colorizer.sass").name_parser
-
-local B_HASH, DOLLAR_HASH = ("#"):byte(), ("$"):byte()
 
 local parser = {
   ["_0x"] = argb_hex_parser,
@@ -23,26 +19,24 @@ local parser = {
   ["_hsla"] = hsl_function_parser,
 }
 
-local matcher = {}
-
 ---Form a trie stuct with the given prefixes
 ---@param matchers table: List of prefixes, {"rgb", "hsl"}
 ---@param matchers_trie table: Table containing information regarding non-trie based parsers
 ---@return function: function which will just parse the line for enabled parsers
-function matcher.compile(matchers, matchers_trie)
+function M.compile(matchers, matchers_trie)
   local trie = Trie(matchers_trie)
 
   local function parse_fn(line, i, buf)
     -- prefix #
     if matchers.rgba_hex_parser then
-      if line:byte(i) == B_HASH then
+      if line:byte(i) == ("#"):byte() then
         return rgba_hex_parser(line, i, matchers.rgba_hex_parser)
       end
     end
 
     -- prefix $, SASS Colour names
     if matchers.sass_name_parser then
-      if line:byte(i) == DOLLAR_HASH then
+      if line:byte(i) == ("$"):byte() then
         return sass_name_parser(line, i, buf)
       end
     end
@@ -71,7 +65,7 @@ local MATCHER_CACHE = {}
 --Do not try make the function again if it is present in the cache
 ---@param options table: options created in `colorizer.setup`
 ---@return function|boolean: function which will just parse the line for enabled parsers
-function matcher.make(options)
+function M.make(options)
   if not options then
     return false
   end
@@ -159,10 +153,10 @@ function matcher.make(options)
     matchers[value] = { prefix = value }
   end
 
-  loop_parse_fn = matcher.compile(matchers, matchers_prefix)
+  loop_parse_fn = M.compile(matchers, matchers_prefix)
   MATCHER_CACHE[matcher_key] = loop_parse_fn
 
   return loop_parse_fn
 end
 
-return matcher
+return M

@@ -1,10 +1,9 @@
 ---Helper function to parse argb
+local M = {}
+
 local count = require("colorizer.utils").count
 local floor = math.floor
-
 local hsl_to_rgb = require("colorizer.color").hsl_to_rgb
-
-local parser = {}
 
 local CSS_HSLA_FN_MINIMUM_LENGTH = #"hsla(0,0%,0%)" - 1
 local CSS_HSL_FN_MINIMUM_LENGTH = #"hsl(0,0%,0%)" - 1
@@ -15,7 +14,7 @@ local CSS_HSL_FN_MINIMUM_LENGTH = #"hsl(0,0%,0%)" - 1
 ---@param opts table: Values passed from matchers like prefix
 ---@return number|nil: Index of line where the hsla/hsl function ended
 ---@return string|nil: rgb hex value
-function parser.hsl_function_parser(line, i, opts)
+function M.hsl_function_parser(line, i, opts)
   local min_len = CSS_HSLA_FN_MINIMUM_LENGTH
   local min_commas, min_spaces = 2, 2
   local pattern = "^"
@@ -30,7 +29,8 @@ function parser.hsl_function_parser(line, i, opts)
     return
   end
 
-  local h, deg, turn, ssep1, csep1, s, ssep2, csep2, l, sep3, a, percent_sign, match_end = line:sub(i):match(pattern)
+  local h, deg, turn, ssep1, csep1, s, ssep2, csep2, l, sep3, a, percent_sign, match_end =
+    line:sub(i):match(pattern)
   if not match_end then
     return
   end
@@ -48,7 +48,7 @@ function parser.hsl_function_parser(line, i, opts)
   local c_seps = ("%s%s%s"):format(csep1, csep2, sep3)
   local s_seps = ("%s%s"):format(ssep1, ssep2)
   -- comma separator syntax
-  if c_seps:match "," then
+  if c_seps:match(",") then
     if not (count(c_seps, ",") == min_commas) then
       return
     end
@@ -107,4 +107,4 @@ function parser.hsl_function_parser(line, i, opts)
   return match_end - 1, rgb_hex
 end
 
-return parser.hsl_function_parser
+return M.hsl_function_parser

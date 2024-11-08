@@ -1,13 +1,12 @@
----Helper color functions
 --@module colorizer.color
-local color = {}
+local M = {}
 
 --- Converts an HSL color value to RGB.
 ---@param h number: Hue
 ---@param s number: Saturation
 ---@param l number: Lightness
 ---@return number|nil,number|nil,number|nil
-function color.hsl_to_rgb(h, s, l)
+function M.hsl_to_rgb(h, s, l)
   if h > 1 or s > 1 or l > 1 then
     return
   end
@@ -22,9 +21,9 @@ function color.hsl_to_rgb(h, s, l)
     q = l + s - l * s
   end
   local p = 2 * l - q
-  return 255 * color.hue_to_rgb(p, q, h + 1 / 3),
-    255 * color.hue_to_rgb(p, q, h),
-    255 * color.hue_to_rgb(p, q, h - 1 / 3)
+  return 255 * M.hue_to_rgb(p, q, h + 1 / 3),
+    255 * M.hue_to_rgb(p, q, h),
+    255 * M.hue_to_rgb(p, q, h - 1 / 3)
 end
 
 ---Convert hsl colour values to rgb.
@@ -33,7 +32,7 @@ end
 ---@param q number
 ---@param t number
 ---@return number
-function color.hue_to_rgb(p, q, t)
+function M.hue_to_rgb(p, q, t)
   if t < 0 then
     t = t + 1
   end
@@ -59,7 +58,7 @@ end
 ---@param r number: Red
 ---@param g number: Green
 ---@param b number: Blue
-function color.is_bright(r, g, b)
+function M.is_bright(r, g, b)
   -- counting the perceptive luminance - human eye favors green color
   local luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
   if luminance > 0.5 then
@@ -69,4 +68,4 @@ function color.is_bright(r, g, b)
   end
 end
 
-return color
+return M
