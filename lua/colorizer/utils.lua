@@ -211,7 +211,7 @@ end
 
 --- Get validate buffer number
 ---@return number: Returns bufnr if valid buf and not 0, else current buffer
-function M.get_bufnr(bufnr)
+function M.bufme(bufnr)
   return bufnr and bufnr ~= 0 and vim.api.nvim_buf_is_valid(bufnr) and bufnr
     or vim.api.nvim_get_current_buf()
 end
