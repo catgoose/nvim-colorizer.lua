@@ -1,6 +1,7 @@
 local M = {}
 
 local buffer = require("colorizer.buffer")
+local config = require("colorizer.config")
 local utils = require("colorizer.utils")
 
 --- Requires Neovim >= 0.7.0 and `set termguicolors`
@@ -82,120 +83,14 @@ local BUFFER_LOCAL = {}
 -- the current buffer id, used in buf_attach calls
 local CURRENT_BUF = 0
 
----defaults options.
---In `user_default_options`, there are 2 types of options
---
---1. Individual options - `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn` , `RRGGBBAA`, `AARRGGBB`, `tailwind`, `sass`
---
---1. Alias options - `css`, `css_fn`
---
---If `css_fn` is true, then `hsl_fn`, `rgb_fn` becomes `true`
---
---If `css` is true, then `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn` becomes `true`
---
---These options have a priority, Individual options have the highest priority, then alias options
---
---For alias, `css_fn` has more priority over `css`
---
---e.g: Here `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn` is enabled but not `names`
---
---<pre>
---  require 'colorizer'.setup { user_default_options = { names = false, css = true } }
---</pre>
---
---e.g: Here `names`, `RGB`, `RRGGBB`, `RRGGBBAA` is enabled but not `rgb_fn` and `hsl_fn`
---
---<pre>
---  require 'colorizer'.setup { user_default_options = { css_fn = false, css = true } }
---</pre>
---
---<pre>
---  user_commands = {
---   "ColorizerAttachToBuffer",
---   "ColorizerDetachFromBuffer",
---   "ColorizerReloadAllBuffers",
---   "ColorizerToggle",
--- }, -- List of commands to enable, set to false to disable all user commands,
--- true to enable all
---  user_default_options = {
---      RGB = true, -- #RGB hex codes
---      RRGGBB = true, -- #RRGGBB hex codes
---      names = true, -- "Name" codes like Blue or blue
---      RRGGBBAA = false, -- #RRGGBBAA hex codes
---      AARRGGBB = false, -- 0xAARRGGBB hex codes
---      rgb_fn = false, -- CSS rgb() and rgba() functions
---      hsl_fn = false, -- CSS hsl() and hsla() functions
---      css = false, -- Enable all CSS features: rgb_fn, hsl_fn, names, RGB, RRGGBB
---      css_fn = false, -- Enable all CSS *functions*: rgb_fn, hsl_fn
---      -- Available modes for `mode`: foreground, background,  virtualtext
---      mode = "background", -- Set the display mode.
---      -- Available methods are false / true / "normal" / "lsp" / "both"
---      -- True is same as normal
---      tailwind = false, -- Enable tailwind colors
---      -- parsers can contain values used in |user_default_options|
---      sass = { enable = false, parsers = { css }, }, -- Enable sass colors
---      virtualtext = "■",
---      virtualtext_inline = false, -- Show the virtualtext inline with the color
---      -- update color values even if buffer is not focused
---      always_update = false
---  }
---</pre>
----@table user_default_options
---@field RGB boolean
---@field RRGGBB boolean
---@field names boolean
---@field RRGGBBAA boolean
---@field AARRGGBB boolean
---@field rgb_fn boolean
---@field hsl_fn boolean
---@field css boolean
---@field css_fn boolean
---@field mode string
---@field tailwind boolean|string
---@field sass table
---@field virtualtext string
---@field virtualtext_inline? boolean
---@field always_update boolean
-local USER_DEFAULT_OPTIONS = {
-  RGB = true,
-  RRGGBB = true,
-  names = true,
-  RRGGBBAA = false,
-  AARRGGBB = false,
-  rgb_fn = false,
-  hsl_fn = false,
-  css = false,
-  css_fn = false,
-  mode = "background",
-  tailwind = false,
-  sass = { enable = false, parsers = { css = true } },
-  virtualtext = "■",
-  virtualtext_inline = false,
-  always_update = false,
-}
-
-local OPTIONS = { buftype = {}, filetype = {} }
-local USER_COMMANDS = {
-  "ColorizerAttachToBuffer",
-  "ColorizerDetachFromBuffer",
-  "ColorizerReloadAllBuffers",
-  "ColorizerToggle",
-}
-local SETUP_SETTINGS = {
-  exclusions = { buftype = {}, filetype = {} },
-  all = { buftype = false, filetype = false },
-  default_options = USER_DEFAULT_OPTIONS,
-  user_commands = USER_COMMANDS,
-}
-
---- Make new buffer Configuration
----@param bufnr number: buffer number (0 for current)
----@param bo_type 'buftype'|'filetype': The type of buffer option
----@return table
-local function new_buffer_options(bufnr, bo_type)
-  local value = vim.api.nvim_get_option_value(bo_type, { buf = bufnr })
-  return OPTIONS.filetype[value] or SETUP_SETTINGS.default_options
-end
+-- --- Make new buffer Configuration
+-- ---@param bufnr number: buffer number (0 for current)
+-- ---@param bo_type 'buftype'|'filetype': The type of buffer option
+-- ---@return table
+-- local function new_buffer_options(bufnr, bo_type)
+--   local value = vim.api.nvim_get_option_value(bo_type, { buf = bufnr })
+--   return OPTIONS.filetype[value] or SETUP_SETTINGS.default_options
+-- end
 
 --- Parse buffer Configuration and convert aliases to normal values
 ---@param options table: options table
@@ -205,7 +100,7 @@ local function parse_buffer_options(options)
     ["css"] = { "names", "RGB", "RRGGBB", "RRGGBBAA", "hsl_fn", "rgb_fn" },
     ["css_fn"] = { "hsl_fn", "rgb_fn" },
   }
-  local default_opts = USER_DEFAULT_OPTIONS
+  local default_opts = config.get_user_default_options()
 
   local function handle_alias(name, opts, d_opts)
     if not includes[name] then
@@ -315,7 +210,7 @@ function M.attach_to_buffer(bufnr, options, bo_type)
 
   -- set options by grabbing existing or creating new options, then parsing
   options = parse_buffer_options(
-    options or M.get_buffer_options(bufnr) or new_buffer_options(bufnr, bo_type)
+    options or M.get_buffer_options(bufnr) or config.new_buffer_options(bufnr, bo_type)
   )
 
   if not buffer.highlight_mode_names[options.mode] then
@@ -453,9 +348,9 @@ end
 --    }
 --</pre>
 --For all user_default_options, see |user_default_options|
----@param config table: Config containing above parameters.
+---@param opts table: Config containing above parameters.
 ---@usage `require'colorizer'.setup()`
-function M.setup(config)
+function M.setup(opts)
   if not vim.opt.termguicolors then
     vim.schedule(function()
       vim.notify("Colorizer: Error: &termguicolors must be set", 4)
@@ -463,22 +358,7 @@ function M.setup(config)
     return
   end
 
-  local conf = vim.deepcopy(config) or {}
-
-  -- if nothing given the enable for all filetypes
-  --  TODO: 2024-11-06 - why is conf[i] used here?
-  local filetypes = conf.filetypes or conf[1] or { "*" }
-  local user_default_options = conf.user_default_options or conf[2] or {}
-  local buftypes = conf.buftypes or conf[3] or nil
-  local user_commands = conf.user_commands == nil and true or conf.user_commands
-
-  OPTIONS = { buftype = {}, filetype = {} }
-  SETUP_SETTINGS = {
-    exclusions = { buftype = {}, filetype = {} },
-    all = { buftype = false, filetype = false },
-    default_options = user_default_options,
-    user_commands = user_commands,
-  }
+  local conf = config.setup(opts)
   BUFFER_OPTIONS, BUFFER_LOCAL = {}, {}
 
   local function COLORIZER_SETUP_HOOK(bo_type)
@@ -487,9 +367,7 @@ function M.setup(config)
     local bufnr = vim.api.nvim_get_current_buf()
     BUFFER_LOCAL[bufnr] = BUFFER_LOCAL[bufnr] or {}
 
-    if
-      SETUP_SETTINGS.exclusions.filetype[filetype] or SETUP_SETTINGS.exclusions.buftype[buftype]
-    then
+    if conf.exclusions.filetype[filetype] or conf.exclusions.buftype[buftype] then
       -- when a filetype is disabled but buftype is enabled, it can Attach in
       -- some cases, so manually detach
       if BUFFER_OPTIONS[bufnr] then
@@ -499,7 +377,7 @@ function M.setup(config)
       return
     end
 
-    local fopts, bopts, options = OPTIONS[bo_type][filetype], OPTIONS[bo_type][buftype], nil
+    local fopts, bopts, options = config.get_options(bo_type, buftype, filetype)
     if bo_type == "filetype" then
       options = fopts
       -- if buffer and filetype options both are given, then prefer fileoptions
@@ -509,11 +387,11 @@ function M.setup(config)
       options = bopts
     end
 
-    if not options and not SETUP_SETTINGS.all[bo_type] then
+    if not options and not conf.all[bo_type] then
       return
     end
 
-    options = options or SETUP_SETTINGS.default_options
+    options = options or conf.default_options
 
     -- this should ideally be triggered one time per buffer
     -- but BufWinEnter also triggers for split formation
@@ -532,24 +410,24 @@ function M.setup(config)
 
       for k, v in pairs(tbl) do
         local value
-        local options = SETUP_SETTINGS.default_options
+        local options = conf.default_options
         if type(k) == "string" then
           value = k
           if type(v) ~= "table" then
             vim.notify(string.format("colorizer: Invalid option type for %s", value), 4)
           else
-            options = utils.merge(SETUP_SETTINGS.default_options, v)
+            options = utils.merge(conf.default_options, v)
           end
         else
           value = v
         end
         -- Exclude
         if value:sub(1, 1) == "!" then
-          SETUP_SETTINGS.exclusions[bo_type][value:sub(2)] = true
+          conf.exclusions[bo_type][value:sub(2)] = true
         else
-          OPTIONS[bo_type][value] = options
+          config.set_bo_value(bo_type, value, options)
           if value == "*" then
-            SETUP_SETTINGS.all[bo_type] = true
+            conf.all[bo_type] = true
           else
             table.insert(list, value)
           end
@@ -557,7 +435,7 @@ function M.setup(config)
       end
       vim.api.nvim_create_autocmd({ aucmd[bo_type] }, {
         group = AUGROUP_ID,
-        pattern = bo_type == "filetype" and (SETUP_SETTINGS.all[bo_type] and "*" or list) or nil,
+        pattern = bo_type == "filetype" and (conf.all[bo_type] and "*" or list) or nil,
         callback = function()
           COLORIZER_SETUP_HOOK(bo_type)
         end,
@@ -570,9 +448,6 @@ function M.setup(config)
     end
   end
 
-  parse_opts("filetype", filetypes)
-  parse_opts("buftype", buftypes)
-
   vim.api.nvim_create_autocmd("ColorScheme", {
     group = AUGROUP_ID,
     callback = function()
@@ -580,7 +455,10 @@ function M.setup(config)
     end,
   })
 
-  require("colorizer.utils.usercmds").make(SETUP_SETTINGS.user_commands)
+  parse_opts("filetype", conf.filetypes)
+  parse_opts("buftype", conf.buftypes)
+
+  require("colorizer.utils.usercmds").make(conf.user_commands)
 end
 
 --- Return the currently active buffer options.

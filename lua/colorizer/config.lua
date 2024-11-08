@@ -98,6 +98,7 @@ local USER_COMMANDS = {
   "ColorizerReloadAllBuffers",
   "ColorizerToggle",
 }
+
 local SETUP_SETTINGS = {
   exclusions = { buftype = {}, filetype = {} },
   all = { buftype = false, filetype = false },
@@ -107,12 +108,12 @@ local SETUP_SETTINGS = {
 
 local OPTIONS = { buftype = {}, filetype = {} }
 
-function M.setup(cfg)
+function M.setup(opts)
   -- if nothing given the enable for all filetypes
-  local _filetypes = cfg.filetypes or cfg[1] or { "*" }
-  local _user_default_options = cfg.user_default_options or cfg[2] or {}
-  local _buftypes = cfg.buftypes or cfg[3] or nil
-  local _user_commands = cfg.user_commands == nil and true or cfg.user_commands
+  local _filetypes = opts.filetypes or opts[1] or { "*" }
+  local _user_default_options = opts.user_default_options or opts[2] or {}
+  local _buftypes = opts.buftypes or opts[3] or nil
+  local _user_commands = opts.user_commands == nil and true or opts.user_commands
 
   local _settings = {
     exclusions = { buftype = {}, filetype = {} },
@@ -123,22 +124,16 @@ function M.setup(cfg)
     buftypes = _buftypes,
   }
 
-  SETUP_SETTINGS = _settings
-
-  return SETUP_SETTINGS
+  return _settings
 end
 
 function M.get_user_default_options()
   return user_default_options
 end
 
-function M.get_setup_settings()
-  return SETUP_SETTINGS
-end
-
 function M.new_buffer_options(bufnr, bo_type)
   local value = vim.api.nvim_get_option_value(bo_type, { buf = bufnr })
-  return OPTIONS.filetype[value] or M.get_setup_settings().default_options
+  return OPTIONS.filetype[value] or SETUP_SETTINGS.default_options
 end
 
 function M.get_options(bo_type, buftype, filetype)
