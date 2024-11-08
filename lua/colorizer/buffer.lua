@@ -10,8 +10,8 @@ local HIGHLIGHT_NAME_PREFIX = "colorizer"
 local HIGHLIGHT_CACHE = {}
 
 --- Default namespace used in `highlight` and `colorizer.attach_to_buffer`.
--- @see highlight
--- @see colorizer.attach_to_buffer
+---@see highlight
+---@see colorizer.attach_to_buffer
 M.default_namespace = vim.api.nvim_create_namespace("colorizer")
 
 --- Highlight mode which will be use to render the colour

@@ -64,24 +64,22 @@ local utils = require("colorizer.utils")
 -- @see colorizer.detach_from_buffer
 
 ---Default namespace used in `colorizer.buffer.highlight` and `attach_to_buffer`.
--- @see colorizer.buffer.highlight
--- @see attach_to_buffer
-M.DEFAULT_NAMESPACE = buffer.default_namespace
+---@see colorizer.buffer.highlight
+---@see attach_to_buffer
 
 ---Highlight the buffer region
 ---@function highlight_buffer
--- @see colorizer.buffer.highlight
+---@see colorizer.buffer.highlight
+--  TODO: 2024-11-08 - Organize exposed methods in api module
 M.highlight_buffer = buffer.highlight
 
--- USER FACING FUNCTIONALITY --
-local AUGROUP_ID
-local AUGROUP_NAME = "ColorizerSetup"
--- buffer specific options given in setup
-local BUFFER_OPTIONS = {}
--- buffer local options created after setup
-local BUFFER_LOCAL = {}
--- the current buffer id, used in buf_attach calls
-local CURRENT_BUF = 0
+local state = {
+  buffer_options = {},
+  buffer_local = {},
+  buffer_current = 0,
+  --  TODO: 2024-11-08 - Create constants module
+  augroup = vim.api.nvim_create_augroup("ColorizerSetup", {}),
+}
 
 --- Parse buffer Configuration and convert aliases to normal values
 ---@param options table: options table
@@ -137,17 +135,17 @@ function M.is_buffer_attached(bufnr)
     bufnr = vim.api.nvim_get_current_buf()
   else
     if not vim.api.nvim_buf_is_valid(bufnr) then
-      BUFFER_LOCAL[bufnr], BUFFER_OPTIONS[bufnr] = nil, nil
+      state.buffer_local[bufnr], state.buffer_options[bufnr] = nil, nil
       return
     end
   end
 
   local au = vim.api.nvim_get_autocmds({
-    group = AUGROUP_ID,
+    group = state.augroup,
     event = { "WinScrolled", "TextChanged", "TextChangedI", "TextChangedP" },
     buffer = bufnr,
   })
-  if not BUFFER_OPTIONS[bufnr] or vim.tbl_isempty(au) then
+  if not state.buffer_options[bufnr] or vim.tbl_isempty(au) then
     return
   end
 
@@ -163,27 +161,27 @@ function M.detach_from_buffer(bufnr, ns_id)
     return
   end
 
-  vim.api.nvim_buf_clear_namespace(bufnr, ns_id or M.DEFAULT_NAMESPACE, 0, -1)
-  if BUFFER_LOCAL[bufnr] then
-    for _, namespace in pairs(BUFFER_LOCAL[bufnr].__detach.ns_id) do
+  vim.api.nvim_buf_clear_namespace(bufnr, ns_id or buffer.default_namespace, 0, -1)
+  if state.buffer_local[bufnr] then
+    for _, namespace in pairs(state.buffer_local[bufnr].__detach.ns_id) do
       vim.api.nvim_buf_clear_namespace(bufnr, namespace, 0, -1)
     end
 
-    for _, f in pairs(BUFFER_LOCAL[bufnr].__detach.functions) do
+    for _, f in pairs(state.buffer_local[bufnr].__detach.functions) do
       if type(f) == "function" then
         f(bufnr)
       end
     end
 
-    for _, id in ipairs(BUFFER_LOCAL[bufnr].__autocmds or {}) do
+    for _, id in ipairs(state.buffer_local[bufnr].__autocmds or {}) do
       pcall(vim.api.nvim_del_autocmd, id)
     end
 
-    BUFFER_LOCAL[bufnr].__autocmds = nil
-    BUFFER_LOCAL[bufnr].__detach = nil
+    state.buffer_local[bufnr].__autocmds = nil
+    state.buffer_local[bufnr].__detach = nil
   end
   -- because now the buffer is not visible, so delete its information
-  BUFFER_OPTIONS[bufnr] = nil
+  state.buffer_options[bufnr] = nil
 end
 
 ---Attach to a buffer and continuously highlight changes.
@@ -195,7 +193,7 @@ function M.attach_to_buffer(bufnr, options, bo_type)
     or vim.api.nvim_get_current_buf()
   bo_type = bo_type or "buftype"
   if not vim.api.nvim_buf_is_valid(bufnr) then
-    BUFFER_LOCAL[bufnr], BUFFER_OPTIONS[bufnr] = nil, nil
+    state.buffer_local[bufnr], state.buffer_options[bufnr] = nil, nil
     return
   end
 
@@ -217,25 +215,25 @@ function M.attach_to_buffer(bufnr, options, bo_type)
     options.mode = "background"
   end
 
-  BUFFER_OPTIONS[bufnr] = options
+  state.buffer_options[bufnr] = options
 
-  BUFFER_LOCAL[bufnr] = BUFFER_LOCAL[bufnr] or {}
+  state.buffer_local[bufnr] = state.buffer_local[bufnr] or {}
   local highlighted, returns = buffer.rehighlight(bufnr, options)
 
   if not highlighted then
     return
   end
 
-  BUFFER_LOCAL[bufnr].__detach = BUFFER_LOCAL[bufnr].__detach or returns.detach
+  state.buffer_local[bufnr].__detach = state.buffer_local[bufnr].__detach or returns.detach
 
-  BUFFER_LOCAL[bufnr].__init = true
+  state.buffer_local[bufnr].__init = true
 
-  if BUFFER_LOCAL[bufnr].__autocmds then
+  if state.buffer_local[bufnr].__autocmds then
     return
   end
 
   local autocmds = {}
-  local au_group_id = AUGROUP_ID
+  local au_group_id = state.augroup
 
   local text_changed_au = { "TextChanged", "TextChangedI", "TextChangedP" }
   -- only enable InsertLeave in sass, rest don't require it
@@ -243,8 +241,8 @@ function M.attach_to_buffer(bufnr, options, bo_type)
     table.insert(text_changed_au, "InsertLeave")
   end
 
-  if CURRENT_BUF == 0 then
-    CURRENT_BUF = bufnr
+  if state.buffer_current == 0 then
+    state.buffer_current = bufnr
   end
 
   if options.always_update then
@@ -253,19 +251,19 @@ function M.attach_to_buffer(bufnr, options, bo_type)
     vim.api.nvim_buf_attach(bufnr, false, {
       on_lines = function(_, _bufnr)
         -- only reload if the buffer is not the current one
-        if not (CURRENT_BUF == _bufnr) then
+        if not (state.buffer_current == _bufnr) then
           -- only reload if it was not disabled using detach_from_buffer
-          if BUFFER_OPTIONS[bufnr] then
-            buffer.rehighlight(bufnr, options, BUFFER_LOCAL[bufnr])
+          if state.buffer_options[bufnr] then
+            buffer.rehighlight(bufnr, options, state.buffer_local[bufnr])
           end
         end
       end,
       on_reload = function(_, _bufnr)
         -- only reload if the buffer is not the current one
-        if not (CURRENT_BUF == _bufnr) then
+        if not (state.buffer_current == _bufnr) then
           -- only reload if it was not disabled using detach_from_buffer
-          if BUFFER_OPTIONS[bufnr] then
-            buffer.rehighlight(bufnr, options, BUFFER_LOCAL[bufnr])
+          if state.buffer_options[bufnr] then
+            buffer.rehighlight(bufnr, options, state.buffer_local[bufnr])
           end
         end
       end,
@@ -276,17 +274,17 @@ function M.attach_to_buffer(bufnr, options, bo_type)
     group = au_group_id,
     buffer = bufnr,
     callback = function(args)
-      CURRENT_BUF = bufnr
+      state.buffer_current = bufnr
       -- only reload if it was not disabled using detach_from_buffer
-      if BUFFER_OPTIONS[bufnr] then
-        BUFFER_LOCAL[bufnr].__event = args.event
+      if state.buffer_options[bufnr] then
+        state.buffer_local[bufnr].__event = args.event
         if args.event == "TextChanged" or args.event == "InsertLeave" then
-          buffer.rehighlight(bufnr, options, BUFFER_LOCAL[bufnr])
+          buffer.rehighlight(bufnr, options, state.buffer_local[bufnr])
         else
           local pos = vim.fn.getpos(".")
-          BUFFER_LOCAL[bufnr].__startline = pos[2] - 1
-          BUFFER_LOCAL[bufnr].__endline = pos[2]
-          buffer.rehighlight(bufnr, options, BUFFER_LOCAL[bufnr], true)
+          state.buffer_local[bufnr].__startline = pos[2] - 1
+          state.buffer_local[bufnr].__endline = pos[2]
+          buffer.rehighlight(bufnr, options, state.buffer_local[bufnr], true)
         end
       end
     end,
@@ -297,9 +295,9 @@ function M.attach_to_buffer(bufnr, options, bo_type)
     buffer = bufnr,
     callback = function(args)
       -- only reload if it was not disabled using detach_from_buffer
-      if BUFFER_OPTIONS[bufnr] then
-        BUFFER_LOCAL[bufnr].__event = args.event
-        buffer.rehighlight(bufnr, options, BUFFER_LOCAL[bufnr])
+      if state.buffer_options[bufnr] then
+        state.buffer_local[bufnr].__event = args.event
+        buffer.rehighlight(bufnr, options, state.buffer_local[bufnr])
       end
     end,
   })
@@ -308,15 +306,15 @@ function M.attach_to_buffer(bufnr, options, bo_type)
     group = au_group_id,
     buffer = bufnr,
     callback = function()
-      if BUFFER_OPTIONS[bufnr] then
+      if state.buffer_options[bufnr] then
         M.detach_from_buffer(bufnr)
       end
-      BUFFER_LOCAL[bufnr].__init = nil
+      state.buffer_local[bufnr].__init = nil
     end,
   })
 
-  BUFFER_LOCAL[bufnr].__autocmds = autocmds
-  BUFFER_LOCAL[bufnr].__augroup_id = au_group_id
+  state.buffer_local[bufnr].__autocmds = autocmds
+  state.buffer_local[bufnr].__augroup_id = au_group_id
 end
 
 ---Easy to use function if you want the full setup without fine grained control.
@@ -350,21 +348,20 @@ function M.setup(opts)
   end
 
   local conf = config.setup(opts)
-  BUFFER_OPTIONS, BUFFER_LOCAL = {}, {}
 
   local function COLORIZER_SETUP_HOOK(bo_type)
     local filetype = vim.bo.filetype
     local buftype = vim.bo.buftype
     local bufnr = vim.api.nvim_get_current_buf()
-    BUFFER_LOCAL[bufnr] = BUFFER_LOCAL[bufnr] or {}
+    state.buffer_local[bufnr] = state.buffer_local[bufnr] or {}
 
     if conf.exclusions.filetype[filetype] or conf.exclusions.buftype[buftype] then
       -- when a filetype is disabled but buftype is enabled, it can Attach in
       -- some cases, so manually detach
-      if BUFFER_OPTIONS[bufnr] then
+      if state.buffer_options[bufnr] then
         M.detach_from_buffer(bufnr)
       end
-      BUFFER_LOCAL[bufnr].__init = nil
+      state.buffer_local[bufnr].__init = nil
       return
     end
 
@@ -381,18 +378,16 @@ function M.setup(opts)
     -- this should ideally be triggered one time per buffer
     -- but BufWinEnter also triggers for split formation
     -- but we don't want that so add a check using local buffer variable
-    if not BUFFER_LOCAL[bufnr].__init then
+    if not state.buffer_local[bufnr].__init then
       M.attach_to_buffer(bufnr, options, bo_type)
     end
   end
 
-  AUGROUP_ID = vim.api.nvim_create_augroup(AUGROUP_NAME, {})
-
+  --  TODO: 2024-11-08 - Create autocmd module
   local aucmd = { buftype = "BufWinEnter", filetype = "FileType" }
   local function parse_opts(bo_type, tbl)
     if type(tbl) == "table" then
       local list = {}
-
       for k, v in pairs(tbl) do
         local value
         local options = conf.default_options
@@ -419,7 +414,7 @@ function M.setup(opts)
         end
       end
       vim.api.nvim_create_autocmd({ aucmd[bo_type] }, {
-        group = AUGROUP_ID,
+        group = state.augroup,
         pattern = bo_type == "filetype" and (conf.all[bo_type] and "*" or list) or nil,
         callback = function()
           COLORIZER_SETUP_HOOK(bo_type)
@@ -434,7 +429,7 @@ function M.setup(opts)
   end
 
   vim.api.nvim_create_autocmd("ColorScheme", {
-    group = AUGROUP_ID,
+    group = state.augroup,
     callback = function()
       require("colorizer").clear_highlight_cache()
     end,
@@ -452,13 +447,13 @@ end
 function M.get_buffer_options(bufnr)
   local _bufnr = M.is_buffer_attached(bufnr)
   if _bufnr then
-    return BUFFER_OPTIONS[_bufnr]
+    return state.buffer_options[_bufnr]
   end
 end
 
 --- Reload all of the currently active highlighted buffers.
 function M.reload_all_buffers()
-  for bufnr, _ in pairs(BUFFER_OPTIONS) do
+  for bufnr, _ in pairs(state.buffer_options) do
     M.attach_to_buffer(bufnr, M.get_buffer_options(bufnr), "buftype")
   end
 end

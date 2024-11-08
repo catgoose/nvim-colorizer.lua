@@ -97,7 +97,7 @@ M.default_options = {
 local options_state = { buftype = {}, filetype = {} }
 
 --- Setup function to initialize module settings based on user-provided options.
--- @param opts table: User-provided configuration options.
+---@param opts table: User-provided configuration options.
 function M.setup(opts)
   opts = opts or {}
   local defaults = {
