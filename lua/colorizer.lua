@@ -83,15 +83,6 @@ local BUFFER_LOCAL = {}
 -- the current buffer id, used in buf_attach calls
 local CURRENT_BUF = 0
 
--- --- Make new buffer Configuration
--- ---@param bufnr number: buffer number (0 for current)
--- ---@param bo_type 'buftype'|'filetype': The type of buffer option
--- ---@return table
--- local function new_buffer_options(bufnr, bo_type)
---   local value = vim.api.nvim_get_option_value(bo_type, { buf = bufnr })
---   return OPTIONS.filetype[value] or SETUP_SETTINGS.default_options
--- end
-
 --- Parse buffer Configuration and convert aliases to normal values
 ---@param options table: options table
 ---@return table
@@ -100,7 +91,7 @@ local function parse_buffer_options(options)
     ["css"] = { "names", "RGB", "RRGGBB", "RRGGBBAA", "hsl_fn", "rgb_fn" },
     ["css_fn"] = { "hsl_fn", "rgb_fn" },
   }
-  local default_opts = config.get_user_default_options()
+  local default_opts = config.default_options
 
   local function handle_alias(name, opts, d_opts)
     if not includes[name] then
@@ -377,15 +368,9 @@ function M.setup(opts)
       return
     end
 
-    local fopts, bopts, options = config.get_options(bo_type, buftype, filetype)
-    if bo_type == "filetype" then
-      options = fopts
-      -- if buffer and filetype options both are given, then prefer fileoptions
-    elseif fopts and bopts then
-      options = fopts
-    else
-      options = bopts
-    end
+    local fopts, bopts = config.get_options(bo_type, buftype, filetype)
+    -- if buffer and filetype options both are given, then prefer fileoptions
+    local options = bo_type == "filetype" and fopts or (fopts and fopts or bopts)
 
     if not options and not conf.all[bo_type] then
       return

@@ -58,6 +58,7 @@ local M = {}
 --      always_update = false
 --  }
 --</pre>
+-- Default options for the user
 ---@table user_default_options
 --@field RGB boolean
 --@field RRGGBB boolean
@@ -74,7 +75,7 @@ local M = {}
 --@field virtualtext string
 --@field virtualtext_inline? boolean
 --@field always_update boolean
-local user_default_options = {
+M.default_options = {
   RGB = true,
   RRGGBB = true,
   names = true,
@@ -92,57 +93,53 @@ local user_default_options = {
   always_update = false,
 }
 
-local USER_COMMANDS = {
-  "ColorizerAttachToBuffer",
-  "ColorizerDetachFromBuffer",
-  "ColorizerReloadAllBuffers",
-  "ColorizerToggle",
-}
+-- State for managing buffer and filetype-specific options
+local options_state = { buftype = {}, filetype = {} }
 
-local SETUP_SETTINGS = {
-  exclusions = { buftype = {}, filetype = {} },
-  all = { buftype = false, filetype = false },
-  default_options = user_default_options,
-  user_commands = USER_COMMANDS,
-}
-
-local OPTIONS = { buftype = {}, filetype = {} }
-
+--- Setup function to initialize module settings based on user-provided options.
+-- @param opts table: User-provided configuration options.
 function M.setup(opts)
-  -- if nothing given the enable for all filetypes
-  local _filetypes = opts.filetypes or opts[1] or { "*" }
-  local _user_default_options = opts.user_default_options or opts[2] or {}
-  local _buftypes = opts.buftypes or opts[3] or nil
-  local _user_commands = opts.user_commands == nil and true or opts.user_commands
-
-  local _settings = {
+  opts = opts or {}
+  local defaults = {
+    filetypes = { "*" },
+    user_default_options = {},
+    buftypes = nil,
+    user_commands = true,
+  }
+  opts = vim.tbl_deep_extend("force", defaults, opts)
+  local settings = {
     exclusions = { buftype = {}, filetype = {} },
     all = { buftype = false, filetype = false },
-    default_options = _user_default_options,
-    user_commands = _user_commands,
-    filetypes = _filetypes,
-    buftypes = _buftypes,
+    default_options = vim.tbl_deep_extend("force", M.default_options, opts.user_default_options),
+    user_commands = opts.user_commands,
+    filetypes = opts.filetypes,
+    buftypes = opts.buftypes,
   }
-
-  return _settings
+  return settings
 end
 
-function M.get_user_default_options()
-  return user_default_options
+--- Retrieve default options or buffer-specific options.
+---@param bufnr number: The buffer number.
+---@param option_type string: The option type to retrieve.
+function M.new_buffer_options(bufnr, option_type)
+  local value = vim.api.nvim_get_option_value(option_type, { buf = bufnr })
+  return options_state.filetype[value] or M.default_options
 end
 
-function M.new_buffer_options(bufnr, bo_type)
-  local value = vim.api.nvim_get_option_value(bo_type, { buf = bufnr })
-  return OPTIONS.filetype[value] or SETUP_SETTINGS.default_options
-end
-
+--- Retrieve options based on buffer type and file type.
+---@param bo_type 'filetype' | 'buftype': Type of buffer option
+---@param buftype string: Buffer type.
+---@param filetype string: File type.
 function M.get_options(bo_type, buftype, filetype)
-  local fopts, bopts, options = OPTIONS[bo_type][filetype], OPTIONS[bo_type][buftype], nil
-  return fopts, bopts, options
+  return options_state[bo_type][filetype], options_state[bo_type][buftype]
 end
 
+--- Set options for a specific buffer or file type.
+---@param bo_type 'filetype' | 'buftype': Type of buffer option
+---@param value string: The specific value to set.
+---@param options table: Options to associate with the value.
 function M.set_bo_value(bo_type, value, options)
-  OPTIONS[bo_type][value] = options
+  options_state[bo_type][value] = options
 end
 
 return M
