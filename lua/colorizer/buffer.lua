@@ -1,4 +1,5 @@
 --@module colorizer.buffer
+--  TODO: 2024-11-08 - rename this to highlight
 local M = {}
 
 local color = require("colorizer.color")
@@ -6,13 +7,16 @@ local make_matcher = require("colorizer.matcher").make
 local sass = require("colorizer.sass")
 local tailwind = require("colorizer.tailwind")
 
-local HIGHLIGHT_NAME_PREFIX = "colorizer"
-local HIGHLIGHT_CACHE = {}
-
---- Default namespace used in `highlight` and `colorizer.attach_to_buffer`.
----@see highlight
----@see colorizer.attach_to_buffer
-M.default_namespace = vim.api.nvim_create_namespace("colorizer")
+--- State table holding configuration and caching information for colorizer highlighting
+---@class highlightState
+local hl_state = {
+  --- Prefix used for creating unique highlight groups for colorizer
+  --- @type string
+  name_prefix = "colorizer",
+  --- Cache for storing precomputed highlight groups and settings
+  --- @type table<string, any>
+  cache = {},
+}
 
 --- Highlight mode which will be use to render the colour
 M.highlight_mode_names = {
@@ -21,14 +25,19 @@ M.highlight_mode_names = {
   virtualtext = "mv",
 }
 
+--- Default namespace used in `highlight` and `colorizer.attach_to_buffer`.
+---@see highlight
+---@see colorizer.attach_to_buffer
+M.default_namespace = vim.api.nvim_create_namespace("colorizer")
+
 --- Clean the highlight cache
 function M.clear_hl_cache()
-  HIGHLIGHT_CACHE = {}
+  hl_state.cache = {}
 end
 
 --- Make a deterministic name for a highlight given these attributes
 local function make_highlight_name(rgb, mode)
-  return table.concat({ HIGHLIGHT_NAME_PREFIX, M.highlight_mode_names[mode], rgb }, "_")
+  return table.concat({ hl_state.name_prefix, M.highlight_mode_names[mode], rgb }, "_")
 end
 
 local function create_highlight(rgb_hex, mode)
@@ -36,7 +45,7 @@ local function create_highlight(rgb_hex, mode)
   -- TODO validate rgb format?
   rgb_hex = rgb_hex:lower()
   local cache_key = table.concat({ M.highlight_mode_names[mode], rgb_hex }, "_")
-  local highlight_name = HIGHLIGHT_CACHE[cache_key]
+  local highlight_name = hl_state.cache[cache_key]
 
   -- Look up in our cache.
   if highlight_name then
@@ -67,7 +76,7 @@ local function create_highlight(rgb_hex, mode)
     end
     vim.api.nvim_set_hl(0, highlight_name, { fg = fg_color, bg = "#" .. rgb_hex })
   end
-  HIGHLIGHT_CACHE[cache_key] = highlight_name
+  hl_state.cache[cache_key] = highlight_name
   return highlight_name
 end
 
@@ -125,7 +134,7 @@ end
 ---@param options table: Configuration options as described in `setup`
 ---@param options_local table: Buffer local variables
 ---@return nil|boolean|number,table
-function M.highlight(bufnr, ns_id, line_start, line_end, options, options_local)
+function M.hl_region(bufnr, ns_id, line_start, line_end, options, options_local)
   local returns = { detach = { ns_id = {}, functions = {} } }
   if bufnr == 0 or bufnr == nil then
     bufnr = vim.api.nvim_get_current_buf()
@@ -195,76 +204,6 @@ function M.parse_lines(bufnr, lines, line_start, options)
   end
 
   return data
-end
-
--- gets used in rehighlight function only
-local BUFFER_LINES = {}
--- get the amount lines to highlight
-local function getrow(bufnr)
-  BUFFER_LINES[bufnr] = BUFFER_LINES[bufnr] or {}
-
-  local a = vim.api.nvim_buf_call(bufnr, function()
-    return {
-      vim.fn.line("w0"),
-      vim.fn.line("w$"),
-    }
-  end)
-  local min, max
-  local new_min, new_max = a[1] - 1, a[2]
-  local old_min, old_max = BUFFER_LINES[bufnr]["min"], BUFFER_LINES[bufnr]["max"]
-
-  if old_min and old_max then
-    -- Triggered for TextChanged autocmds
-    -- TODO: Find a way to just apply highlight to changed text lines
-    if (old_max == new_max) or (old_min == new_min) then
-      min, max = new_min, new_max
-    -- Triggered for WinScrolled autocmd - Scroll Down
-    elseif old_max < new_max then
-      min = old_max
-      max = new_max
-    -- Triggered for WinScrolled autocmd - Scroll Up
-    elseif old_max > new_max then
-      min = new_min
-      max = new_min + (old_max - new_max)
-    end
-    -- just in case a long jump was made
-    if max - min > new_max - new_min then
-      min = new_min
-      max = new_max
-    end
-  end
-  min = min or new_min
-  max = max or new_max
-  -- store current window position to be used later to incremently highlight
-  BUFFER_LINES[bufnr]["max"] = new_max
-  BUFFER_LINES[bufnr]["min"] = new_min
-  return min, max
-end
-
---- Rehighlight the buffer if colorizer is active
----@param bufnr number: buffer number (0 for current)
----@param options table: Buffer options
----@param options_local table|nil: Buffer local variables
----@param use_local_lines boolean|nil Whether to use lines num range from options_local
----@return nil|boolean|number,table
-function M.rehighlight(bufnr, options, options_local, use_local_lines)
-  bufnr = (bufnr == 0 or not bufnr) and vim.api.nvim_get_current_buf() or bufnr
-
-  local ns_id = M.default_namespace
-
-  local min, max
-  if use_local_lines and options_local then
-    min, max = options_local.__startline or 0, options_local.__endline or -1
-  else
-    min, max = getrow(bufnr)
-  end
-
-  local bool, returns = M.highlight(bufnr, ns_id, min, max, options, options_local or {})
-  table.insert(returns.detach.functions, function()
-    BUFFER_LINES[bufnr] = nil
-  end)
-
-  return bool, returns
 end
 
 return M
