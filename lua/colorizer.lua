@@ -16,12 +16,12 @@
 --
 --   *:ColorizerAttachToBuffer*
 --
---       Attach to the current buffer and start highlighting with the settings as
---       specified in setup (or the defaults).
+--       Attach to the current buffer and start continuously highlighting
+--       matched color names and codes.
 --
 --       If the buffer was already attached(i.e. being highlighted), the
---       settings will be reloaded with the ones from setup.
---       This is useful for reloading settings for just one buffer.
+--       settings will be reloaded. This is useful for reloading settings for
+--       just one buffer.
 --
 --   *:ColorizerDetachFromBuffer*
 --
@@ -30,29 +30,50 @@
 --   *:ColorizerReloadAllBuffers*
 --
 --       Reload all buffers that are being highlighted currently.
---       Shortcut for ColorizerAttachToBuffer on every buffer.
+--       Calls ColorizerAttachToBuffer on every buffer.
 --
 --   *:ColorizerToggle*
 --       Toggle highlighting of the current buffer.
 --
 --USE WITH LUA
 --
---       All options that can be passed to user_default_options in `setup`
---       can be passed here. Can be empty too.
---       `0` is the buffer number here
+--Attach
+--       Accepts buffer number (0 or nil for current) and an option
+--       table of user_default_options from `setup`.  Option table can be nil
+--       which defaults to setup options
 --
---       Attach to current buffer <pre>
+--       Attach to current buffer with local options <pre>
 --           require("colorizer").attach_to_buffer(0, {
 --             mode = "background",
 --             css = false,
 --           })
 --</pre>
---       Detach from buffer <pre>
---           require("colorizer").detach_from_buffer(0, {
+--
+--       Attach to current buffer with setup options <pre>
+--           require("colorizer").attach_to_buffer(0, {
 --             mode = "background",
 --             css = false,
 --           })
 --</pre>
+--
+--       Accepts an optional buffer number (0 or nil for current).  Defaults to
+--       current buffer.
+--
+--Detach
+--
+--       Detach to buffer with id 22 <pre>
+--           require("colorizer").attach_to_buffer(22)
+--</pre>
+--
+--       Detach from current buffer <pre>
+--           require("colorizer").detach_from_buffer(0)
+--           require("colorizer").detach_from_buffer()
+--</pre>
+--
+--       Detach from buffer with id 22 <pre>
+--           require("colorizer").detach_from_buffer(22)
+--</pre>
+
 -- @see colorizer.setup
 -- @see colorizer.attach_to_buffer
 -- @see colorizer.detach_from_buffer
@@ -331,14 +352,13 @@ end
 
 --- Stop highlighting the current buffer.
 ---@param bufnr number|nil: buffer number (0 for current)
----@param ns_id number|nil: namespace id.  default is "colorizer", created with vim.api.nvim_create_namespace
-function M.detach_from_buffer(bufnr, ns_id)
+function M.detach_from_buffer(bufnr)
   bufnr = utils.bufme(bufnr)
   bufnr = M.is_buffer_attached(bufnr)
   if not bufnr then
     return
   end
-  vim.api.nvim_buf_clear_namespace(bufnr, ns_id or buffer.default_namespace, 0, -1)
+  vim.api.nvim_buf_clear_namespace(bufnr, buffer.default_namespace, 0, -1)
   if colorizer_state.buffer_local[bufnr] then
     for _, namespace in pairs(colorizer_state.buffer_local[bufnr].__detach.ns_id) do
       vim.api.nvim_buf_clear_namespace(bufnr, namespace, 0, -1)

@@ -1,7 +1,7 @@
 --@module colorizer.usercmds
 local M = {}
 
-local command = function(name, f)
+local wrap = function(name, f)
   vim.api.nvim_create_user_command(name, f, {})
 end
 
@@ -11,18 +11,18 @@ function M.make(cmds)
   if not cmds then
     return
   end
-  local cmd_m = {
+  local cmd_list = {
     ColorizerAttachToBuffer = function()
-      command("ColorizerAttachToBuffer", require("colorizer").attach_to_buffer)
+      wrap("ColorizerAttachToBuffer", require("colorizer").attach_to_buffer)
     end,
     ColorizerDetachFromBuffer = function()
-      command("ColorizerDetachFromBuffer", require("colorizer").detach_from_buffer)
+      wrap("ColorizerDetachFromBuffer", require("colorizer").detach_from_buffer)
     end,
     ColorizerReloadAllBuffers = function()
-      command("ColorizerReloadAllBuffers", require("colorizer").reload_all_buffers)
+      wrap("ColorizerReloadAllBuffers", require("colorizer").reload_all_buffers)
     end,
     ColorizerToggle = function()
-      command("ColorizerToggle", function()
+      wrap("ColorizerToggle", function()
         local c = require("colorizer")
         if c.is_buffer_attached() then
           c.detach_from_buffer()
@@ -34,14 +34,14 @@ function M.make(cmds)
   }
 
   if type(cmds) == "boolean" and cmds then
-    cmds = vim.tbl_keys(cmd_m)
+    cmds = vim.tbl_keys(cmd_list)
   end
   if type(cmds) ~= "table" then
     return
   end
   for _, cmd in ipairs(cmds) do
-    if cmd_m[cmd] then
-      cmd_m[cmd]()
+    if cmd_list[cmd] then
+      cmd_list[cmd]()
     end
   end
 end
