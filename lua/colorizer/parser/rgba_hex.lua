@@ -1,4 +1,3 @@
----Helper function to parse argb
 local bit = require "bit"
 local floor, min = math.floor, math.min
 local band, rshift, lshift = bit.band, bit.rshift, bit.lshift
@@ -11,7 +10,6 @@ local parse_hex = utils.parse_hex
 local parser = {}
 
 ---parse for #rrggbbaa and return rgb hex.
--- a format used in android apps
 ---@param line string: line to parse
 ---@param i number: index of line from where to start parsing
 ---@param opts table: Containing minlen, maxlen, valid_lengths

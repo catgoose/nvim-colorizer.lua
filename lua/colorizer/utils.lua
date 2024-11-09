@@ -126,7 +126,7 @@ end
 ---@param path string: File path
 ---@param callback function: Callback to execute
 ---@param ... table: params for callback
----@return function|nil
+---@return uv_fs_event_t|nil
 function utils.watch_file(path, callback, ...)
   if not path or type(callback) ~= "function" then
     return
@@ -141,6 +141,9 @@ function utils.watch_file(path, callback, ...)
   local args = { ... }
 
   local handle = uv.new_fs_event()
+  if not handle then
+    return
+  end
   local function on_change(err, filename, _)
     -- Do work...
     callback(filename, unpack(args))

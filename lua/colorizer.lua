@@ -67,7 +67,7 @@ local merge = utils.merge
 local api = vim.api
 local augroup = api.nvim_create_augroup
 local autocmd = api.nvim_create_autocmd
-local buf_get_option = api.nvim_buf_get_option
+local get_option_value = api.nvim_get_option_value
 local clear_namespace = api.nvim_buf_clear_namespace
 local current_buf = api.nvim_get_current_buf
 
@@ -84,8 +84,7 @@ colorizer.DEFAULT_NAMESPACE = buffer_utils.default_namespace
 colorizer.highlight_buffer = buffer_utils.highlight
 
 -- USER FACING FUNCTIONALITY --
-local AUGROUP_ID
-local AUGROUP_NAME = "ColorizerSetup"
+local AU_GROUP = augroup("ColorizerSetup", {})
 -- buffer specific options given in setup
 local BUFFER_OPTIONS = {}
 -- buffer local options created after setup
@@ -178,29 +177,24 @@ local USER_DEFAULT_OPTIONS = {
   always_update = false,
 }
 
-local OPTIONS = { buf = {}, file = {} }
+local OPTIONS = { buftype = {}, filetype = {} }
 local SETUP_SETTINGS = {
-  exclusions = { buf = {}, file = {} },
-  all = { file = false, buf = false },
+  exclusions = { buftype = {}, filetype = {} },
+  all = { buftype = false, filetype = false },
   default_options = USER_DEFAULT_OPTIONS,
 }
 
 --- Make new buffer Configuration
----@param buf number: buffer number
----@param typ string|nil: "buf" or "file" - The type of buffer option
+---@param bufnr number: Buffer number
+---@param bo_type 'buftype'|'filetype': The type of buffer option
 ---@return table
-local function new_buffer_options(buf, typ)
-  local value
-  if typ == "buf" then
-    value = buf_get_option(buf, "buftype")
-  else
-    value = buf_get_option(buf, "filetype")
-  end
-  return OPTIONS.file[value] or SETUP_SETTINGS.default_options
+local function new_buffer_options(bufnr, bo_type)
+  local value = get_option_value(bo_type, { buf = bufnr })
+  return OPTIONS.filetype[value] or SETUP_SETTINGS.default_options
 end
 
 --- Parse buffer Configuration and convert aliases to normal values
----@param options table: options table
+---@param options table: Buffer options table
 ---@return table
 local function parse_buffer_options(options)
   local includes = {
@@ -249,119 +243,104 @@ local function parse_buffer_options(options)
 end
 
 --- Check if attached to a buffer.
----@param buf number|nil: A value of 0 implies the current buffer.
----@return number|nil: if attached to the buffer, false otherwise.
+---@param bufnr number|nil: Buffer number (0 for current)
+---@return number|nil: Attached buffer number, nil otherwise.
 ---@see colorizer.buffer.highlight
-function colorizer.is_buffer_attached(buf)
-  if buf == 0 or buf == nil then
-    buf = current_buf()
+function colorizer.is_buffer_attached(bufnr)
+  if bufnr == 0 or not bufnr then
+    bufnr = current_buf()
   else
-    if not api.nvim_buf_is_valid(buf) then
-      BUFFER_LOCAL[buf], BUFFER_OPTIONS[buf] = nil, nil
+    if not api.nvim_buf_is_valid(bufnr) then
+      BUFFER_LOCAL[bufnr], BUFFER_OPTIONS[bufnr] = nil, nil
       return
     end
   end
 
   local au = api.nvim_get_autocmds {
-    group = AUGROUP_ID,
+    group = AU_GROUP,
     event = { "WinScrolled", "TextChanged", "TextChangedI", "TextChangedP" },
-    buffer = buf,
+    buffer = bufnr,
   }
-  if not BUFFER_OPTIONS[buf] or vim.tbl_isempty(au) then
+  if not BUFFER_OPTIONS[bufnr] or vim.tbl_isempty(au) then
     return
   end
 
-  return buf
+  return bufnr
 end
 
 --- Stop highlighting the current buffer.
----@param buf number|nil: buf A value of 0 or nil implies the current buffer.
----@param ns number|nil: ns the namespace id, if not given DEFAULT_NAMESPACE is used
-function colorizer.detach_from_buffer(buf, ns)
-  buf = colorizer.is_buffer_attached(buf)
-  if not buf then
+---@param bufnr number|nil: buffer number (0 for current)
+---@param ns_id number|nil: namespace id.  default is "colorizer", created with vim.api.nvim_create_namespace
+function colorizer.detach_from_buffer(bufnr, ns_id)
+  bufnr = colorizer.is_buffer_attached(bufnr)
+  if not bufnr then
     return
   end
 
-  clear_namespace(buf, ns or colorizer.DEFAULT_NAMESPACE, 0, -1)
-  if BUFFER_LOCAL[buf] then
-    for _, namespace in pairs(BUFFER_LOCAL[buf].__detach.ns) do
-      clear_namespace(buf, namespace, 0, -1)
+  clear_namespace(bufnr, ns_id or colorizer.DEFAULT_NAMESPACE, 0, -1)
+  if BUFFER_LOCAL[bufnr] then
+    for _, namespace in pairs(BUFFER_LOCAL[bufnr].__detach.ns_id) do
+      clear_namespace(bufnr, namespace, 0, -1)
     end
 
-    for _, f in pairs(BUFFER_LOCAL[buf].__detach.functions) do
+    for _, f in pairs(BUFFER_LOCAL[bufnr].__detach.functions) do
       if type(f) == "function" then
-        f(buf)
+        f(bufnr)
       end
     end
 
-    for _, id in ipairs(BUFFER_LOCAL[buf].__autocmds or {}) do
+    for _, id in ipairs(BUFFER_LOCAL[bufnr].__autocmds or {}) do
       pcall(api.nvim_del_autocmd, id)
     end
 
-    BUFFER_LOCAL[buf].__autocmds = nil
-    BUFFER_LOCAL[buf].__detach = nil
+    BUFFER_LOCAL[bufnr].__autocmds = nil
+    BUFFER_LOCAL[bufnr].__detach = nil
   end
   -- because now the buffer is not visible, so delete its information
-  BUFFER_OPTIONS[buf] = nil
+  BUFFER_OPTIONS[bufnr] = nil
 end
 
 ---Attach to a buffer and continuously highlight changes.
----@param buf integer: A value of 0 implies the current buffer.
+---@param bufnr number|nil: buffer number (0 for current)
 ---@param options table|nil: Configuration options as described in `setup`
----@param typ string|nil: "buf" or "file" - The type of buffer option
-function colorizer.attach_to_buffer(buf, options, typ)
-  if buf == 0 or buf == nil then
-    buf = current_buf()
-  else
-    if not api.nvim_buf_is_valid(buf) then
-      BUFFER_LOCAL[buf], BUFFER_OPTIONS[buf] = nil, nil
-      return
-    end
+---@param bo_type 'buftype'|'filetype'|nil: The type of buffer option
+function colorizer.attach_to_buffer(bufnr, options, bo_type)
+  bufnr = bufnr and bufnr ~= 0 and api.nvim_buf_is_valid(bufnr) and bufnr or current_buf()
+  bo_type = bo_type or "buftype"
+  if not api.nvim_buf_is_valid(bufnr) then
+    BUFFER_LOCAL[bufnr], BUFFER_OPTIONS[bufnr] = nil, nil
+    return
   end
 
-  -- if the buffer is already attached then grab those options
-  if not options then
-    options = colorizer.get_buffer_options(buf)
-  end
+  -- set options by grabbing existing or creating new options, then parsing
+  options = parse_buffer_options(options or colorizer.get_buffer_options(bufnr) or new_buffer_options(bufnr, bo_type))
 
-  -- if not make new options
-  if not options then
-    options = new_buffer_options(buf, typ)
-  end
-
-  options = parse_buffer_options(options)
-
-  if not buffer_utils.highlight_mode_names[options.mode] then
-    if options.mode ~= nil then
-      local mode = options.mode
-      vim.defer_fn(function()
-        -- just notify the user once
-        vim.notify_once(string.format("Warning: Invalid mode given to colorizer setup [ %s ]", mode))
-      end, 0)
-    end
+  if options.mode and not buffer_utils.highlight_mode_names[options.mode] then
+    vim.defer_fn(function()
+      vim.notify_once(string.format("Warning: Invalid mode given to colorizer setup [ %s ]", options.mode))
+    end, 0)
     options.mode = "background"
   end
 
-  BUFFER_OPTIONS[buf] = options
+  BUFFER_OPTIONS[bufnr] = options
 
-  BUFFER_LOCAL[buf] = BUFFER_LOCAL[buf] or {}
-  local highlighted, returns = rehighlight_buffer(buf, options)
+  BUFFER_LOCAL[bufnr] = BUFFER_LOCAL[bufnr] or {}
+  local highlighted, returns = rehighlight_buffer(bufnr, options)
 
   if not highlighted then
     return
   end
 
-  BUFFER_LOCAL[buf].__detach = BUFFER_LOCAL[buf].__detach or returns.detach
+  BUFFER_LOCAL[bufnr].__detach = BUFFER_LOCAL[bufnr].__detach or returns.detach
 
-  BUFFER_LOCAL[buf].__init = true
+  BUFFER_LOCAL[bufnr].__init = true
 
-  if BUFFER_LOCAL[buf].__autocmds then
+  if BUFFER_LOCAL[bufnr].__autocmds then
     return
   end
 
   local autocmds = {}
-  local au_group_id = AUGROUP_ID
+  local au_group_id = AU_GROUP
 
   local text_changed_au = { "TextChanged", "TextChangedI", "TextChangedP" }
   -- only enable InsertLeave in sass, rest don't require it
@@ -369,29 +348,27 @@ function colorizer.attach_to_buffer(buf, options, typ)
     table.insert(text_changed_au, "InsertLeave")
   end
 
-  if CURRENT_BUF == 0 then
-    CURRENT_BUF = buf
-  end
+  CURRENT_BUF = CURRENT_BUF == 0 and bufnr or CURRENT_BUF
 
   if options.always_update then
     -- attach using lua api so buffer gets updated even when not the current buffer
     -- completely moving to buf_attach is not possible because it doesn't handle all the text change events
-    vim.api.nvim_buf_attach(buf, false, {
+    vim.api.nvim_buf_attach(bufnr, false, {
       on_lines = function(_, buffer)
         -- only reload if the buffer is not the current one
-        if not (CURRENT_BUF == buffer) then
+        if CURRENT_BUF ~= buffer then
           -- only reload if it was not disabled using detach_from_buffer
-          if BUFFER_OPTIONS[buf] then
-            rehighlight_buffer(buf, options, BUFFER_LOCAL[buf])
+          if BUFFER_OPTIONS[bufnr] then
+            rehighlight_buffer(bufnr, options, BUFFER_LOCAL[bufnr])
           end
         end
       end,
       on_reload = function(_, buffer)
         -- only reload if the buffer is not the current one
-        if not (CURRENT_BUF == buffer) then
+        if CURRENT_BUF ~= buffer then
           -- only reload if it was not disabled using detach_from_buffer
-          if BUFFER_OPTIONS[buf] then
-            rehighlight_buffer(buf, options, BUFFER_LOCAL[buf])
+          if BUFFER_OPTIONS[bufnr] then
+            rehighlight_buffer(bufnr, options, BUFFER_LOCAL[bufnr])
           end
         end
       end,
@@ -400,19 +377,19 @@ function colorizer.attach_to_buffer(buf, options, typ)
 
   autocmds[#autocmds + 1] = autocmd(text_changed_au, {
     group = au_group_id,
-    buffer = buf,
+    buffer = bufnr,
     callback = function(args)
-      CURRENT_BUF = buf
+      CURRENT_BUF = bufnr
       -- only reload if it was not disabled using detach_from_buffer
-      if BUFFER_OPTIONS[buf] then
-        BUFFER_LOCAL[buf].__event = args.event
+      if BUFFER_OPTIONS[bufnr] then
+        BUFFER_LOCAL[bufnr].__event = args.event
         if args.event == "TextChanged" or args.event == "InsertLeave" then
-          rehighlight_buffer(buf, options, BUFFER_LOCAL[buf])
+          rehighlight_buffer(bufnr, options, BUFFER_LOCAL[bufnr])
         else
           local pos = vim.fn.getpos "."
-          BUFFER_LOCAL[buf].__startline = pos[2] - 1
-          BUFFER_LOCAL[buf].__endline = pos[2]
-          rehighlight_buffer(buf, options, BUFFER_LOCAL[buf], true)
+          BUFFER_LOCAL[bufnr].__startline = pos[2] - 1
+          BUFFER_LOCAL[bufnr].__endline = pos[2]
+          rehighlight_buffer(bufnr, options, BUFFER_LOCAL[bufnr], true)
         end
       end
     end,
@@ -420,29 +397,29 @@ function colorizer.attach_to_buffer(buf, options, typ)
 
   autocmds[#autocmds + 1] = autocmd({ "WinScrolled" }, {
     group = au_group_id,
-    buffer = buf,
+    buffer = bufnr,
     callback = function(args)
       -- only reload if it was not disabled using detach_from_buffer
-      if BUFFER_OPTIONS[buf] then
-        BUFFER_LOCAL[buf].__event = args.event
-        rehighlight_buffer(buf, options, BUFFER_LOCAL[buf])
+      if BUFFER_OPTIONS[bufnr] then
+        BUFFER_LOCAL[bufnr].__event = args.event
+        rehighlight_buffer(bufnr, options, BUFFER_LOCAL[bufnr])
       end
     end,
   })
 
   autocmd({ "BufUnload", "BufDelete" }, {
     group = au_group_id,
-    buffer = buf,
+    buffer = bufnr,
     callback = function()
-      if BUFFER_OPTIONS[buf] then
-        colorizer.detach_from_buffer(buf)
+      if BUFFER_OPTIONS[bufnr] then
+        colorizer.detach_from_buffer(bufnr)
       end
-      BUFFER_LOCAL[buf].__init = nil
+      BUFFER_LOCAL[bufnr].__init = nil
     end,
   })
 
-  BUFFER_LOCAL[buf].__autocmds = autocmds
-  BUFFER_LOCAL[buf].__augroup_id = au_group_id
+  BUFFER_LOCAL[bufnr].__autocmds = autocmds
+  BUFFER_LOCAL[bufnr].__augroup_id = au_group_id
 end
 
 ---Easy to use function if you want the full setup without fine grained control.
@@ -481,32 +458,32 @@ function colorizer.setup(config)
   local user_default_options = conf.user_default_options or conf[2] or {}
   local buftypes = conf.buftypes or conf[3] or nil
 
-  OPTIONS = { buf = {}, file = {} }
+  OPTIONS = { buftype = {}, filetype = {} }
   SETUP_SETTINGS = {
-    exclusions = { buf = {}, file = {} },
-    all = { file = false, buf = false },
+    exclusions = { buftype = {}, filetype = {} },
+    all = { buftype = false, filetype = false },
     default_options = user_default_options,
   }
   BUFFER_OPTIONS, BUFFER_LOCAL = {}, {}
 
-  local function COLORIZER_SETUP_HOOK(typ)
+  local function COLORIZER_SETUP_HOOK(bo_type)
     local filetype = vim.bo.filetype
     local buftype = vim.bo.buftype
-    local buf = current_buf()
-    BUFFER_LOCAL[buf] = BUFFER_LOCAL[buf] or {}
+    local bufnr = current_buf()
+    BUFFER_LOCAL[bufnr] = BUFFER_LOCAL[bufnr] or {}
 
-    if SETUP_SETTINGS.exclusions.file[filetype] or SETUP_SETTINGS.exclusions.buf[buftype] then
+    if SETUP_SETTINGS.exclusions.filetype[filetype] or SETUP_SETTINGS.exclusions.buftype[buftype] then
       -- when a filetype is disabled but buftype is enabled, it can Attach in
       -- some cases, so manually detach
-      if BUFFER_OPTIONS[buf] then
-        colorizer.detach_from_buffer(buf)
+      if BUFFER_OPTIONS[bufnr] then
+        colorizer.detach_from_buffer(bufnr)
       end
-      BUFFER_LOCAL[buf].__init = nil
+      BUFFER_LOCAL[bufnr].__init = nil
       return
     end
 
-    local fopts, bopts, options = OPTIONS[typ][filetype], OPTIONS[typ][buftype], nil
-    if typ == "file" then
+    local fopts, bopts, options = OPTIONS[bo_type][filetype], OPTIONS[bo_type][buftype], nil
+    if bo_type == "filetype" then
       options = fopts
       -- if buffer and filetype options both are given, then prefer fileoptions
     elseif fopts and bopts then
@@ -515,7 +492,7 @@ function colorizer.setup(config)
       options = bopts
     end
 
-    if not options and not SETUP_SETTINGS.all[typ] then
+    if not options and not SETUP_SETTINGS.all[bo_type] then
       return
     end
 
@@ -524,15 +501,13 @@ function colorizer.setup(config)
     -- this should ideally be triggered one time per buffer
     -- but BufWinEnter also triggers for split formation
     -- but we don't want that so add a check using local buffer variable
-    if not BUFFER_LOCAL[buf].__init then
-      colorizer.attach_to_buffer(buf, options, typ)
+    if not BUFFER_LOCAL[bufnr].__init then
+      colorizer.attach_to_buffer(bufnr, options, bo_type)
     end
   end
 
-  AUGROUP_ID = augroup(AUGROUP_NAME, {})
-
-  local aucmd = { buf = "BufWinEnter", file = "FileType" }
-  local function parse_opts(typ, tbl)
+  local aucmd = { buftype = "BufWinEnter", filetype = "FileType" }
+  local function parse_opts(bo_type, tbl)
     if type(tbl) == "table" then
       local list = {}
 
@@ -542,7 +517,7 @@ function colorizer.setup(config)
         if type(k) == "string" then
           value = k
           if type(v) ~= "table" then
-            vim.notify("colorizer: Invalid option type for " .. typ .. "type" .. value, 4)
+            vim.notify(string.format("colorizer: Invalid option type for %s", value), 4)
           else
             options = merge(SETUP_SETTINGS.default_options, v)
           end
@@ -551,33 +526,33 @@ function colorizer.setup(config)
         end
         -- Exclude
         if value:sub(1, 1) == "!" then
-          SETUP_SETTINGS.exclusions[typ][value:sub(2)] = true
+          SETUP_SETTINGS.exclusions[bo_type][value:sub(2)] = true
         else
-          OPTIONS[typ][value] = options
+          OPTIONS[bo_type][value] = options
           if value == "*" then
-            SETUP_SETTINGS.all[typ] = true
+            SETUP_SETTINGS.all[bo_type] = true
           else
             table.insert(list, value)
           end
         end
       end
-      autocmd({ aucmd[typ] }, {
-        group = AUGROUP_ID,
-        pattern = typ == "file" and (SETUP_SETTINGS.all[typ] and "*" or list) or nil,
+      autocmd({ aucmd[bo_type] }, {
+        group = AU_GROUP,
+        pattern = bo_type == "filetype" and (SETUP_SETTINGS.all[bo_type] and "*" or list) or nil,
         callback = function()
-          COLORIZER_SETUP_HOOK(typ)
+          COLORIZER_SETUP_HOOK(bo_type)
         end,
       })
     elseif tbl then
-      vim.notify_once(string.format("colorizer: Invalid type for %stypes %s", typ, vim.inspect(tbl)), 4)
+      vim.notify_once(string.format("colorizer: Invalid type for %ss %s", bo_type, vim.inspect(tbl)), 4)
     end
   end
 
-  parse_opts("file", filetypes)
-  parse_opts("buf", buftypes)
+  parse_opts("filetype", filetypes)
+  parse_opts("buftype", buftypes)
 
   autocmd("ColorScheme", {
-    group = AUGROUP_ID,
+    group = AU_GROUP,
     callback = function()
       require("colorizer").clear_highlight_cache()
     end,
@@ -585,19 +560,17 @@ function colorizer.setup(config)
 end
 
 --- Return the currently active buffer options.
----@param buf number|nil: Buffer number
+---@param bufnr number|nil: buffer number (0 for current)
 ---@return table|nil
-function colorizer.get_buffer_options(buf)
-  local buffer = colorizer.is_buffer_attached(buf)
-  if buffer then
-    return BUFFER_OPTIONS[buffer]
-  end
+function colorizer.get_buffer_options(bufnr)
+  local buffer = colorizer.is_buffer_attached(bufnr)
+  return BUFFER_OPTIONS[buffer]
 end
 
 --- Reload all of the currently active highlighted buffers.
 function colorizer.reload_all_buffers()
-  for buf, _ in pairs(BUFFER_OPTIONS) do
-    colorizer.attach_to_buffer(buf, colorizer.get_buffer_options(buf))
+  for bufnr, _ in pairs(BUFFER_OPTIONS) do
+    colorizer.attach_to_buffer(bufnr, colorizer.get_buffer_options(bufnr), "buftype")
   end
 end
 

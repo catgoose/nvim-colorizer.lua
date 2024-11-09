@@ -1,4 +1,3 @@
----Helper function to parse argb
 local count = require("colorizer.utils").count
 
 local parser = {}

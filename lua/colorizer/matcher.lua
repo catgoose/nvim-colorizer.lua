@@ -15,6 +15,9 @@ local sass_name_parser = require("colorizer.sass").name_parser
 
 local B_HASH, DOLLAR_HASH = ("#"):byte(), ("$"):byte()
 
+--  TODO: 2024-11-05 - Instead of AARRGGBB vs RRGGBBAA parsers, should we have
+--  0x, # prefix parsers for 0xAARRGGBB, 0xRRGGBB, 0xRGB and #RRGGBBAA, #RRGGBB,
+--  #RGB?
 local parser = {
   ["_0x"] = argb_hex_parser,
   ["_rgb"] = rgb_function_parser,
@@ -32,22 +35,19 @@ local matcher = {}
 function matcher.compile(matchers, matchers_trie)
   local trie = Trie(matchers_trie)
 
-  local function parse_fn(line, i, buf)
+  local function parse_fn(line, i, bufnr)
     -- prefix #
-    if matchers.rgba_hex_parser then
-      if line:byte(i) == B_HASH then
-        return rgba_hex_parser(line, i, matchers.rgba_hex_parser)
-      end
+    if matchers.rgba_hex_parser and line:byte(i) == B_HASH then
+      return rgba_hex_parser(line, i, matchers.rgba_hex_parser)
     end
 
     -- prefix $, SASS Colour names
-    if matchers.sass_name_parser then
-      if line:byte(i) == DOLLAR_HASH then
-        return sass_name_parser(line, i, buf)
-      end
+    if matchers.sass_name_parser and line:byte(i) == DOLLAR_HASH then
+      return sass_name_parser(line, i, bufnr)
     end
 
     -- Prefix 0x, rgba, rgb, hsla, hsl
+    ---@diagnostic disable-next-line: undefined-field
     local prefix = trie:longest_prefix(line, i)
     if prefix then
       local fn = "_" .. prefix
@@ -85,18 +85,20 @@ function matcher.make(options)
   local enable_rgb = options.rgb_fn
   local enable_hsl = options.hsl_fn
 
+  -- Rather than use bit.lshift or calculate 2^x, use precalculated values to
+  -- create unique bitmask
   local matcher_key = 0
     + (enable_names and 1 or 0)
-    + (enable_RGB and 1 or 1)
-    + (enable_RRGGBB and 1 or 2)
-    + (enable_RRGGBBAA and 1 or 3)
-    + (enable_AARRGGBB and 1 or 4)
-    + (enable_rgb and 1 or 5)
-    + (enable_hsl and 1 or 6)
-    + ((enable_tailwind == true or enable_tailwind == "normal") and 1 or 7)
-    + (enable_tailwind == "lsp" and 1 or 8)
-    + (enable_tailwind == "both" and 1 or 9)
-    + (enable_sass and 1 or 10)
+    + (enable_RGB and 2 or 0)
+    + (enable_RRGGBB and 4 or 0)
+    + (enable_RRGGBBAA and 8 or 0)
+    + (enable_AARRGGBB and 16 or 0)
+    + (enable_rgb and 32 or 0)
+    + (enable_hsl and 64 or 0)
+    + ((enable_tailwind == true or enable_tailwind == "normal") and 128 or 0)
+    + (enable_tailwind == "lsp" and 256 or 0)
+    + (enable_tailwind == "both" and 512 or 0)
+    + (enable_sass and 1024 or 0)
 
   if matcher_key == 0 then
     return false
@@ -109,7 +111,6 @@ function matcher.make(options)
 
   local matchers = {}
   local matchers_prefix = {}
-  matchers.max_prefix_length = 0
 
   if enable_names then
     matchers.color_name_parser = { tailwind = options.tailwind }
@@ -135,6 +136,7 @@ function matcher.make(options)
     matchers.rgba_hex_parser.minlen = minlen
   end
 
+  --  TODO: 2024-11-05 - Add custom prefixes
   if enable_AARRGGBB then
     table.insert(matchers_prefix, "0x")
   end

@@ -21,6 +21,8 @@ return {
     "text",
     "to",
     "via",
+    "ring",
+    "ring-offset",
   },
   -- Generated using https://github.com/tailwindlabs/tailwindcss/raw/master/src/public/colors.js
   colors = {
@@ -267,6 +269,6 @@ return {
     ["rose-700"] = "be123c",
     ["rose-800"] = "9f1239",
     ["rose-900"] = "881337",
-    ["rose-950"] = "4c0519"
+    ["rose-950"] = "4c0519",
   },
 }

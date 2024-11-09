@@ -33,6 +33,7 @@ local Trie_size = ffi.sizeof(Trie_t)
 
 local function trie_create()
   local ptr = ffi.C.malloc(Trie_size)
+  ---@diagnostic disable-next-line: param-type-mismatch
   ffi.fill(ptr, Trie_size)
   return ffi.cast(Trie_ptr_t, ptr)
 end
@@ -164,7 +165,7 @@ end
 
 local function trie_as_table(trie)
   if trie == nil then
-    return nil
+    return
   end
   local children = {}
   for i = 0, 61 do
