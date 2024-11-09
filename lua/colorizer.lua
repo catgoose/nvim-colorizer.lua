@@ -63,15 +63,6 @@ local buffer = require("colorizer.buffer")
 local config = require("colorizer.config")
 local utils = require("colorizer.utils")
 
----Default namespace used in `colorizer.buffer.highlight` and `attach_to_buffer`.
-
----@see colorizer.buffer.highlight
----@see attach_to_buffer
----Highlight the buffer region
----@function highlight_buffer
----@see colorizer.buffer.highlight
---  TODO: 2024-11-08 - Organize exposed methods in api module
-
 --- State and configuration dynamic holding information table tracking
 ---@class colorizerState
 local colorizer_state = {
@@ -91,9 +82,15 @@ local colorizer_state = {
   buffer_lines = {},
 }
 
-M.highlight_buffer = buffer.hl_region
-
 -- get the amount lines to highlight
+---@function highlight_buffer
+---@see colorizer.buffer.highlight
+M.highlight_buffer = buffer.highlight
+
+---Default namespace used in `colorizer.buffer.highlight` and `attach_to_buffer`.
+---@string: default_namespace
+---@see colorizer.buffer.default_namespace
+M.default_namespace = buffer.default_namespace
 
 --- Rehighlight the buffer if colorizer is active
 ---@param bufnr number: buffer number (0 for current)
@@ -103,7 +100,6 @@ M.highlight_buffer = buffer.hl_region
 ---@return nil|boolean|number,table
 function M.rehighlight(bufnr, options, options_local, use_local_lines)
   bufnr = utils.bufme(bufnr)
-
   local ns_id = M.default_namespace
 
   local min, max
@@ -164,7 +160,7 @@ local function parse_buffer_options(options)
     ["css"] = { "names", "RGB", "RRGGBB", "RRGGBBAA", "hsl_fn", "rgb_fn" },
     ["css_fn"] = { "hsl_fn", "rgb_fn" },
   }
-  local default_opts = config.default_options
+  local default_opts = config.user_default_options
 
   local function handle_alias(name, opts, d_opts)
     if not includes[name] then
@@ -239,7 +235,6 @@ function M.attach_to_buffer(bufnr, options, bo_type)
   end
 
   colorizer_state.buffer_options[bufnr] = options
-
   colorizer_state.buffer_local[bufnr] = colorizer_state.buffer_local[bufnr] or {}
   local highlighted, returns = M.rehighlight(bufnr, options)
 
@@ -249,7 +244,6 @@ function M.attach_to_buffer(bufnr, options, bo_type)
 
   colorizer_state.buffer_local[bufnr].__detach = colorizer_state.buffer_local[bufnr].__detach
     or returns.detach
-
   colorizer_state.buffer_local[bufnr].__init = true
 
   if colorizer_state.buffer_local[bufnr].__autocmds then
@@ -484,7 +478,7 @@ function M.setup(opts)
   parse_opts("filetype", conf.filetypes)
   parse_opts("buftype", conf.buftypes)
 
-  require("colorizer.utils.usercmds").make(conf.user_commands)
+  require("colorizer.usercmds").make(conf.user_commands)
 end
 
 --- Clear the highlight cache and reload all buffers.

@@ -1,10 +1,8 @@
----Helper function to parse argb
+--@module colorizer.parser.rgb
 local M = {}
 
 local count = require("colorizer.utils").count
 
-local CSS_RGBA_FN_MINIMUM_LENGTH = #"rgba(0,0,0)" - 1
-local CSS_RGB_FN_MINIMUM_LENGTH = #"rgb(0,0,0)" - 1
 ---Parse for rgb() rgba() css function and return rgb hex.
 -- For more info: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value/rgb
 ---@param line string: Line to parse
@@ -13,14 +11,14 @@ local CSS_RGB_FN_MINIMUM_LENGTH = #"rgb(0,0,0)" - 1
 ---@return number|nil: Index of line where the rgb/rgba function ended
 ---@return string|nil: rgb hex value
 function M.rgb_function_parser(line, i, opts)
-  local min_len = CSS_RGBA_FN_MINIMUM_LENGTH
+  local min_len = #"rgba(0,0,0)" - 1
   local min_commas, min_spaces, min_percent = 2, 2, 3
   local pattern = "^"
     .. opts.prefix
     .. "%(%s*([.%d]+)([%%]?)(%s?)%s*(,?)%s*([.%d]+)([%%]?)(%s?)%s*(,?)%s*([.%d]+)([%%]?)%s*(/?,?)%s*([.%d]*)([%%]?)%s*%)()"
 
   if opts.prefix == "rgb" then
-    min_len = CSS_RGB_FN_MINIMUM_LENGTH
+    min_len = #"rgb(0,0,0)" - 1
   end
 
   if #line < i + min_len then

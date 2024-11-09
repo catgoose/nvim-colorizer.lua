@@ -1,12 +1,10 @@
----Helper function to parse argb
+--@module colorizer.parser.hsl
 local M = {}
 
 local count = require("colorizer.utils").count
 local floor = math.floor
 local hsl_to_rgb = require("colorizer.color").hsl_to_rgb
 
-local CSS_HSLA_FN_MINIMUM_LENGTH = #"hsla(0,0%,0%)" - 1
-local CSS_HSL_FN_MINIMUM_LENGTH = #"hsl(0,0%,0%)" - 1
 ---Parse for hsl() hsla() css function and return rgb hex.
 -- For more info: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value/hsl
 ---@param line string: Line to parse
@@ -15,14 +13,14 @@ local CSS_HSL_FN_MINIMUM_LENGTH = #"hsl(0,0%,0%)" - 1
 ---@return number|nil: Index of line where the hsla/hsl function ended
 ---@return string|nil: rgb hex value
 function M.hsl_function_parser(line, i, opts)
-  local min_len = CSS_HSLA_FN_MINIMUM_LENGTH
+  local min_len = #"hsla(0,0%,0%)" - 1
   local min_commas, min_spaces = 2, 2
   local pattern = "^"
     .. opts.prefix
     .. "%(%s*([.%d]+)([deg]*)([turn]*)(%s?)%s*(,?)%s*(%d+)%%(%s?)%s*(,?)%s*(%d+)%%%s*(/?,?)%s*([.%d]*)([%%]?)%s*%)()"
 
   if opts.prefix == "hsl" then
-    min_len = CSS_HSL_FN_MINIMUM_LENGTH
+    min_len = #"hsl(0,0%,0%)" - 1
   end
 
   if #line < i + min_len then

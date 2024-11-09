@@ -1,4 +1,4 @@
----Helper function to parse argb
+--@module colorizer.parser.rgb_hex
 local M = {}
 
 local bit = require("bit")

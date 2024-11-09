@@ -34,7 +34,7 @@ function M.compile(matchers, matchers_trie)
       end
     end
 
-    -- prefix $, SASS Colour names
+    -- prefix $, SASS Color names
     if matchers.sass_name_parser then
       if line:byte(i) == ("$"):byte() then
         return sass_name_parser(line, i, buf)
@@ -51,7 +51,7 @@ function M.compile(matchers, matchers_trie)
       end
     end
 
-    -- Colour names
+    -- Color names
     if matchers.color_name_parser then
       return color_name_parser(line, i, matchers.color_name_parser)
     end

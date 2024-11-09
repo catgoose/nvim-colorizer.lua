@@ -1,3 +1,4 @@
+--@module colorizer.usercmds
 local M = {}
 
 local command = function(name, f)

@@ -78,7 +78,7 @@ function M.setup_lsp_colors(bufnr, options, options_local, add_highlight)
 
   if not state[bufnr].CLIENT or state[bufnr].CLIENT.is_stopped() then
     if vim.version().minor >= 8 then
-      -- create the autocmds so tailwind colours only activate when tailwindcss lsp is active
+      -- create the autocmds so tailwind colors only activate when tailwindcss lsp is active
       if not state[bufnr].AU_CREATED then
         vim.api.nvim_buf_clear_namespace(bufnr, namespace, 0, -1)
         state[bufnr].AU_ID[1] = vim.api.nvim_create_autocmd("LspAttach", {

@@ -26,7 +26,7 @@ function M.hsl_to_rgb(h, s, l)
     255 * M.hue_to_rgb(p, q, h - 1 / 3)
 end
 
----Convert hsl colour values to rgb.
+---Convert hsl color values to rgb.
 -- Source: https://gist.github.com/mjackson/5311256
 ---@param p number
 ---@param q number

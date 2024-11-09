@@ -1,3 +1,4 @@
+--@module colorizer.config
 local M = {}
 
 ---defaults options.
@@ -75,7 +76,7 @@ local M = {}
 --@field virtualtext string
 --@field virtualtext_inline? boolean
 --@field always_update boolean
-M.default_options = {
+M.user_default_options = {
   RGB = true,
   RRGGBB = true,
   names = true,
@@ -110,7 +111,11 @@ function M.setup(opts)
   local settings = {
     exclusions = { buftype = {}, filetype = {} },
     all = { buftype = false, filetype = false },
-    default_options = vim.tbl_deep_extend("force", M.default_options, opts.user_default_options),
+    default_options = vim.tbl_deep_extend(
+      "force",
+      M.user_default_options,
+      opts.user_default_options
+    ),
     user_commands = opts.user_commands,
     filetypes = opts.filetypes,
     buftypes = opts.buftypes,
@@ -123,7 +128,7 @@ end
 ---@param option_type string: The option type to retrieve.
 function M.new_buffer_options(bufnr, option_type)
   local value = vim.api.nvim_get_option_value(option_type, { buf = bufnr })
-  return options_state.filetype[value] or M.default_options
+  return options_state.filetype[value] or M.user_default_options
 end
 
 --- Retrieve options based on buffer type and file type.

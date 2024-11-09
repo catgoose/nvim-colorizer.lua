@@ -15,11 +15,9 @@ local band, bor, rshift, lshift = bit.band, bit.bor, bit.rshift, bit.lshift
 
 -- Create a lookup table where the bottom 4 bits are used to indicate the
 -- category and the top 4 bits are the hex value of the ASCII byte.
-local BYTE_CATEGORY = ffi.new("uint8_t[256]")
-local CATEGORY_DIGIT = lshift(1, 0)
-local CATEGORY_ALPHA = lshift(1, 1)
-local CATEGORY_HEX = lshift(1, 2)
-local CATEGORY_ALPHANUM = bor(CATEGORY_ALPHA, CATEGORY_DIGIT)
+local byte_category = ffi.new("uint8_t[256]")
+local category_hex = lshift(1, 2)
+local category_alphanum = bor(lshift(1, 1) --[[alpha]], lshift(1, 0) --[[digit]])
 
 do
   -- do not run the loop multiple times
@@ -43,7 +41,7 @@ do
         v = bor(v, lshift(lowercase - byte_values["a"] + 10, 4))
       end
     end
-    BYTE_CATEGORY[i] = v
+    byte_category[i] = v
   end
 end
 
@@ -51,15 +49,15 @@ end
 ---@param byte number
 ---@return boolean
 function M.byte_is_alphanumeric(byte)
-  local category = BYTE_CATEGORY[byte]
-  return band(category, CATEGORY_ALPHANUM) ~= 0
+  local category = byte_category[byte]
+  return band(category, category_alphanum) ~= 0
 end
 
 ---Obvious.
 ---@param byte number
 ---@return boolean
 function M.byte_is_hex(byte)
-  return band(BYTE_CATEGORY[byte], CATEGORY_HEX) ~= 0
+  return band(byte_category[byte], category_hex) ~= 0
 end
 
 ---Valid colorchars are alphanumeric and - ( tailwind colors )
@@ -96,7 +94,6 @@ function M.get_last_modified(path)
 end
 
 ---Merge two tables.
---
 -- todo: Remove this and use `vim.tbl_deep_extend`
 ---@return table
 function M.merge(...)
@@ -117,7 +114,7 @@ end
 ---@param byte number
 ---@return number
 function M.parse_hex(byte)
-  return rshift(BYTE_CATEGORY[byte], 4)
+  return rshift(byte_category[byte], 4)
 end
 
 --- Watch a file for changes and execute callback

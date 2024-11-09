@@ -18,7 +18,7 @@ local hl_state = {
   cache = {},
 }
 
---- Highlight mode which will be use to render the colour
+--- Highlight mode which will be use to render the color
 M.highlight_mode_names = {
   background = "mb",
   foreground = "mf",
@@ -134,7 +134,7 @@ end
 ---@param options table: Configuration options as described in `setup`
 ---@param options_local table: Buffer local variables
 ---@return nil|boolean|number,table
-function M.hl_region(bufnr, ns_id, line_start, line_end, options, options_local)
+function M.highlight(bufnr, ns_id, line_start, line_end, options, options_local)
   local returns = { detach = { ns_id = {}, functions = {} } }
   if bufnr == 0 or bufnr == nil then
     bufnr = vim.api.nvim_get_current_buf()

@@ -1,4 +1,4 @@
----Helper function to parse argb
+--@module colorizer.parser.names
 local M = {}
 
 local Trie = require("colorizer.trie")
@@ -6,34 +6,34 @@ local utils = require("colorizer.utils")
 local tohex = require("bit").tohex
 local min, max = math.min, math.max
 
-local COLOR_MAP
-local COLOR_TRIE
-local COLOR_NAME_MINLEN, COLOR_NAME_MAXLEN
-local COLOR_NAME_SETTINGS = { lowercase = true, strip_digits = false }
-local TAILWIND_ENABLED = false
---- Grab all the colour values from `vim.api.nvim_get_color_map` and create a lookup table.
--- COLOR_MAP is used to store the colour values
+local color_map
+local color_trie
+local color_name_minlen, color_name_maxlen
+local color_name_settings = { lowercase = true, strip_digits = false }
+local tailwind_enabled = false
+--- Grab all the color values from `vim.api.nvim_get_color_map` and create a lookup table.
+-- color_map is used to store the color values
 ---@param line string: Line to parse
 ---@param i number: Index of line from where to start parsing
 ---@param opts table: Currently contains whether tailwind is enabled or not
 function M.name_parser(line, i, opts)
-  --- Setup the COLOR_MAP and COLOR_TRIE
-  if not COLOR_TRIE or opts.tailwind ~= TAILWIND_ENABLED then
-    COLOR_MAP = {}
-    COLOR_TRIE = Trie()
+  --- Setup the color_map and color_trie
+  if not color_trie or opts.tailwind ~= tailwind_enabled then
+    color_map = {}
+    color_trie = Trie()
     for k, v in pairs(vim.api.nvim_get_color_map()) do
-      if not (COLOR_NAME_SETTINGS.strip_digits and k:match("%d+$")) then
-        COLOR_NAME_MINLEN = COLOR_NAME_MINLEN and min(#k, COLOR_NAME_MINLEN) or #k
-        COLOR_NAME_MAXLEN = COLOR_NAME_MAXLEN and max(#k, COLOR_NAME_MAXLEN) or #k
+      if not (color_name_settings.strip_digits and k:match("%d+$")) then
+        color_name_minlen = color_name_minlen and min(#k, color_name_minlen) or #k
+        color_name_maxlen = color_name_maxlen and max(#k, color_name_maxlen) or #k
         local rgb_hex = tohex(v, 6)
-        COLOR_MAP[k] = rgb_hex
+        color_map[k] = rgb_hex
         ---@diagnostic disable-next-line: undefined-field
-        COLOR_TRIE:insert(k)
-        if COLOR_NAME_SETTINGS.lowercase then
+        color_trie:insert(k)
+        if color_name_settings.lowercase then
           local lowercase = k:lower()
-          COLOR_MAP[lowercase] = rgb_hex
+          color_map[lowercase] = rgb_hex
           ---@diagnostic disable-next-line: undefined-field
-          COLOR_TRIE:insert(lowercase)
+          color_trie:insert(lowercase)
         end
       end
     end
@@ -44,19 +44,19 @@ function M.name_parser(line, i, opts)
         for k, v in pairs(tailwind.colors) do
           for _, pre in ipairs(tailwind.prefixes) do
             local name = pre .. "-" .. k
-            COLOR_NAME_MINLEN = COLOR_NAME_MINLEN and min(#name, COLOR_NAME_MINLEN) or #name
-            COLOR_NAME_MAXLEN = COLOR_NAME_MAXLEN and max(#name, COLOR_NAME_MAXLEN) or #name
-            COLOR_MAP[name] = v
+            color_name_minlen = color_name_minlen and min(#name, color_name_minlen) or #name
+            color_name_maxlen = color_name_maxlen and max(#name, color_name_maxlen) or #name
+            color_map[name] = v
             ---@diagnostic disable-next-line: undefined-field
-            COLOR_TRIE:insert(name)
+            color_trie:insert(name)
           end
         end
       end
     end
-    TAILWIND_ENABLED = opts.tailwind
+    tailwind_enabled = opts.tailwind
   end
 
-  if #line < i + COLOR_NAME_MINLEN - 1 then
+  if #line < i + color_name_minlen - 1 then
     return
   end
 
@@ -64,7 +64,7 @@ function M.name_parser(line, i, opts)
     return
   end
 
-  local prefix = COLOR_TRIE:longest_prefix(line, i)
+  local prefix = color_trie:longest_prefix(line, i)
   if prefix then
     -- Check if there is a letter here so as to disallow matching here.
     -- Take the Blue out of Blueberry
@@ -73,7 +73,7 @@ function M.name_parser(line, i, opts)
     if #line >= next_byte_index and utils.byte_is_valid_colorchar(line:byte(next_byte_index)) then
       return
     end
-    return #prefix, COLOR_MAP[prefix]
+    return #prefix, color_map[prefix]
   end
 end
 
