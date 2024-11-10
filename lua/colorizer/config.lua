@@ -109,9 +109,9 @@ function M.setup(opts)
   opts = opts or {}
   local defaults = {
     filetypes = { "*" },
-    user_default_options = user_default_options,
     buftypes = nil,
     user_commands = true,
+    user_default_options = M.user_default_options,
   }
   opts = vim.tbl_deep_extend("force", defaults, opts)
   local settings = {
