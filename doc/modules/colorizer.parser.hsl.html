@@ -33,7 +33,7 @@
 
 <h2>Contents</h2>
 <ul>
-<li><a href="#Class_number">Class number </a></li>
+<li><a href="#Functions">Functions</a></li>
 </ul>
 
 
@@ -44,7 +44,7 @@
   <li><a href="../modules/colorizer.color.html">color</a></li>
   <li><a href="../modules/colorizer.config.html">config</a></li>
   <li><a href="../modules/colorizer.matcher.html">matcher</a></li>
-  <li><a href="../modules/colorizer.parser.argb_hex.html">parser.argb_hex</a></li>
+  <li><a href="../modules/colorizer.parser.rgb_hex.html">parser.rgb_hex</a></li>
   <li><strong>parser.hsl</strong></li>
   <li><a href="../modules/colorizer.parser.names.html">parser.names</a></li>
   <li><a href="../modules/colorizer.parser.rgb.html">parser.rgb</a></li>
@@ -61,15 +61,17 @@
 <div id="content">
 
 <h1>Module <code>colorizer.parser.hsl</code></h1>
-<p></p>
-<p></p>
+<p>This module provides a parser for identifying and converting `hsl()` and `hsla()` CSS functions to RGB hexadecimal format.</p>
+<p>
+ It supports various CSS color value formats, including degrees (`deg`), turns (`turn`), percentages, and alpha transparency.
+ This function is useful for syntax highlighting or color recognition in a text editor.</p>
 
 
-<h2><a href="#Class_number">Class number </a></h2>
+<h2><a href="#Functions">Functions</a></h2>
 <table class="function_list">
 	<tr>
-	<td class="name" nowrap><a href="#number:hsl_function_parser">number:hsl_function_parser (line, i, opts)</a></td>
-	<td class="summary">Parse a CSS `hsl()` or `hsla()` color function and return an RGB hex value.</td>
+	<td class="name" nowrap><a href="#hsl_function_parser">hsl_function_parser (line, i, opts)</a></td>
+	<td class="summary">Parses `hsl()` and `hsla()` CSS functions and converts them to RGB hexadecimal format.</td>
 	</tr>
 </table>
 
@@ -77,22 +79,17 @@
 <br/>
 
 
-    <h2 class="section-header has-description"><a name="Class_number"></a>Class number </h2>
+    <h2 class="section-header "><a name="Functions"></a>Functions</h2>
 
-          <div class="section-description">
-          Minimum length for a 0xAARRGGBB hexadecimal color code
-          </div>
     <dl class="function">
     <dt>
-    <a name = "number:hsl_function_parser"></a>
-    <strong>number:hsl_function_parser (line, i, opts)</strong>
+    <a name = "hsl_function_parser"></a>
+    <strong>hsl_function_parser (line, i, opts)</strong>
     </dt>
     <dd>
-    Parse a CSS `hsl()` or `hsla()` color function and return an RGB hex value.
- This function handles parsing HSL and HSLA CSS color functions, including the optional
- alpha (opacity) value in HSLA.
-<p> For more info: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value/hsl
-
+    Parses `hsl()` and `hsla()` CSS functions and converts them to RGB hexadecimal format.
+ This function matches `hsl()` or `hsla()` functions within a line of text, extracting and converting the hue, saturation, and luminance
+ to an RGB color. It handles angles in degrees and turns, percentages, and an optional alpha (transparency) value.
 
 
     <h3>Parameters:</h3>
@@ -101,19 +98,20 @@
          string The line of text to parse
         </li>
         <li><span class="parameter">i</span>
-         number The index in the line where parsing should start
+         number The starting index within the line where parsing should begin
         </li>
         <li><span class="parameter">opts</span>
-         table Options containing configuration values, including `prefix` for function prefix (e.g., "hsl" or "hsla")
+         table Parsing options, including:
+   - `prefix` (string): "hsl" or "hsla" to specify the CSS function type.
         </li>
     </ul>
 
     <h3>Returns:</h3>
     <ol>
         <li>
-        number|nil The index in the line where the HSL/HSLA function ended, or `nil` if parsing failed</li>
+        number|nil The end index of the parsed `hsl/hsla` function within the line, or `nil` if no match was found.</li>
         <li>
-        string|nil The RGB hex value as a string, or `nil` if parsing failed</li>
+        string|nil The RGB hexadecimal color (e.g., "ff0000" for red), or `nil` if parsing failed</li>
     </ol>
 
 

@@ -44,7 +44,7 @@
   <li><a href="../modules/colorizer.color.html">color</a></li>
   <li><a href="../modules/colorizer.config.html">config</a></li>
   <li><a href="../modules/colorizer.matcher.html">matcher</a></li>
-  <li><a href="../modules/colorizer.parser.rgb_hex.html">parser.rgb_hex</a></li>
+  <li><strong>parser.rgb_hex</strong></li>
   <li><a href="../modules/colorizer.parser.hsl.html">parser.hsl</a></li>
   <li><a href="../modules/colorizer.parser.names.html">parser.names</a></li>
   <li><a href="../modules/colorizer.parser.rgb.html">parser.rgb</a></li>
@@ -52,7 +52,7 @@
   <li><a href="../modules/colorizer.sass.html">sass</a></li>
   <li><a href="../modules/colorizer.tailwind.html">tailwind</a></li>
   <li><a href="../modules/colorizer.trie.html">trie</a></li>
-  <li><strong>usercmds</strong></li>
+  <li><a href="../modules/colorizer.usercmds.html">usercmds</a></li>
   <li><a href="../modules/colorizer.utils.html">utils</a></li>
 </ul>
 
@@ -60,17 +60,18 @@
 
 <div id="content">
 
-<h1>Module <code>colorizer.usercmds</code></h1>
-<p>This module provides functions for creating user commands for the Colorizer plugin in Neovim.</p>
+<h1>Module <code>colorizer.parser.rgb_hex</code></h1>
+<p>This module provides a parser for extracting `0xAARRGGBB` hexadecimal color values and converting them to RGB hex.</p>
 <p>
- It allows the creation of commands to attach, detach, reload, and toggle the Colorizer functionality on buffers.</p>
+ This format is commonly used in Android apps for color values, where the color includes an alpha (transparency) component.
+ The function parses the color, applies the alpha value to each RGB channel, and returns the resulting RGB hex string.</p>
 
 
 <h2><a href="#Functions">Functions</a></h2>
 <table class="function_list">
 	<tr>
-	<td class="name" nowrap><a href="#make">make (cmds)</a></td>
-	<td class="summary">Create user commands for Colorizer based on the given command list.</td>
+	<td class="name" nowrap><a href="#argb_hex_parser">argb_hex_parser (line, i)</a></td>
+	<td class="summary">Parses a `0xAARRGGBB` formatted hexadecimal color and converts it to an RGB hex value.</td>
 	</tr>
 </table>
 
@@ -82,26 +83,33 @@
 
     <dl class="function">
     <dt>
-    <a name = "make"></a>
-    <strong>make (cmds)</strong>
+    <a name = "argb_hex_parser"></a>
+    <strong>argb_hex_parser (line, i)</strong>
     </dt>
     <dd>
-    Create user commands for Colorizer based on the given command list.
- This function defines and registers Colorizer commands based on the provided list.
- Available commands are:
- - `ColorizerAttachToBuffer`: Attaches Colorizer to the current buffer
- - `ColorizerDetachFromBuffer`: Detaches Colorizer from the current buffer
- - `ColorizerReloadAllBuffers`: Reloads Colorizer for all buffers
- - `ColorizerToggle`: Toggles Colorizer attachment to the buffer
+    Parses a `0xAARRGGBB` formatted hexadecimal color and converts it to an RGB hex value.
+ This function reads a color from a line of text, expecting it in the `0xAARRGGBB` format (common in Android apps).
+ It extracts the alpha (AA), red (RR), green (GG), and blue (BB) components, applies the alpha to the RGB channels, and outputs
+ the resulting RGB color in hexadecimal format.
 
 
     <h3>Parameters:</h3>
     <ul>
-        <li><span class="parameter">cmds</span>
-         table|boolean A list of command names to create or `true` to create all available commands
+        <li><span class="parameter">line</span>
+         string The line of text to parse
+        </li>
+        <li><span class="parameter">i</span>
+         number The starting index within the line where parsing should begin
         </li>
     </ul>
 
+    <h3>Returns:</h3>
+    <ol>
+        <li>
+        number|nil The end index of the parsed hex value within the line, or `nil` if parsing failed</li>
+        <li>
+        string|nil The RGB hexadecimal color (e.g., "ff0000" for red), or `nil` if parsing failed</li>
+    </ol>
 
 
 

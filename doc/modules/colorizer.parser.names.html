@@ -44,7 +44,7 @@
   <li><a href="../modules/colorizer.color.html">color</a></li>
   <li><a href="../modules/colorizer.config.html">config</a></li>
   <li><a href="../modules/colorizer.matcher.html">matcher</a></li>
-  <li><a href="../modules/colorizer.parser.argb_hex.html">parser.argb_hex</a></li>
+  <li><a href="../modules/colorizer.parser.rgb_hex.html">parser.rgb_hex</a></li>
   <li><a href="../modules/colorizer.parser.hsl.html">parser.hsl</a></li>
   <li><strong>parser.names</strong></li>
   <li><a href="../modules/colorizer.parser.rgb.html">parser.rgb</a></li>
@@ -71,8 +71,7 @@
 <table class="function_list">
 	<tr>
 	<td class="name" nowrap><a href="#name_parser">name_parser (line, i, opts)</a></td>
-	<td class="summary">Parses a line of text to identify named colors
- Uses a Trie structure to search for the longest prefix that matches a color name in `color_map`.</td>
+	<td class="summary">Grab all the color values from `vim.api.nvim_get_color_map` and create a lookup table.</td>
 	</tr>
 </table>
 
@@ -88,30 +87,23 @@
     <strong>name_parser (line, i, opts)</strong>
     </dt>
     <dd>
-    Parses a line of text to identify named colors
- Uses a Trie structure to search for the longest prefix that matches a color name in `color_map`.
+    Grab all the color values from `vim.api.nvim_get_color_map` and create a lookup table.
+ color_map is used to store the color values
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">line</span>
-         string The line of text to parse for color names
+         string: Line to parse
         </li>
         <li><span class="parameter">i</span>
-         number The index in the line where parsing should start
+         number: Index of line from where to start parsing
         </li>
         <li><span class="parameter">opts</span>
-         table Options, including whether Tailwind colors are enabled
+         table: Currently contains whether tailwind is enabled or not
         </li>
     </ul>
 
-    <h3>Returns:</h3>
-    <ol>
-        <li>
-        number|nil The length of the matched color name, or `nil` if no match</li>
-        <li>
-        string|nil The RGB hex value of the matched color, or `nil` if no match</li>
-    </ol>
 
 
 

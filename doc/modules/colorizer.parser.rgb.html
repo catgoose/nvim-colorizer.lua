@@ -31,6 +31,10 @@
   <li><a href="../index.html">Index</a></li>
 </ul>
 
+<h2>Contents</h2>
+<ul>
+<li><a href="#Functions">Functions</a></li>
+</ul>
 
 
 <h2>Modules</h2>
@@ -40,7 +44,7 @@
   <li><a href="../modules/colorizer.color.html">color</a></li>
   <li><a href="../modules/colorizer.config.html">config</a></li>
   <li><a href="../modules/colorizer.matcher.html">matcher</a></li>
-  <li><a href="../modules/colorizer.parser.argb_hex.html">parser.argb_hex</a></li>
+  <li><a href="../modules/colorizer.parser.rgb_hex.html">parser.rgb_hex</a></li>
   <li><a href="../modules/colorizer.parser.hsl.html">parser.hsl</a></li>
   <li><a href="../modules/colorizer.parser.names.html">parser.names</a></li>
   <li><strong>parser.rgb</strong></li>
@@ -57,16 +61,64 @@
 <div id="content">
 
 <h1>Module <code>colorizer.parser.rgb</code></h1>
-<p>Parse for rgb() rgba() css function and return rgb hex.</p>
+<p>This module provides a parser for identifying and converting `rgb()` and `rgba()` CSS functions to RGB hexadecimal format.</p>
 <p>
- For more info: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value/rgb</p>
+ It supports decimal and percentage values for RGB channels, as well as an optional alpha (transparency) component.
+ The function can interpret a variety of CSS syntax variations, making it useful for syntax highlighting or color parsing.</p>
 
 
+<h2><a href="#Functions">Functions</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#rgb_function_parser">rgb_function_parser (line, i, opts)</a></td>
+	<td class="summary">Parses `rgb()` and `rgba()` CSS functions and converts them to RGB hexadecimal format.</td>
+	</tr>
+</table>
 
 <br/>
 <br/>
 
 
+    <h2 class="section-header "><a name="Functions"></a>Functions</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "rgb_function_parser"></a>
+    <strong>rgb_function_parser (line, i, opts)</strong>
+    </dt>
+    <dd>
+    Parses `rgb()` and `rgba()` CSS functions and converts them to RGB hexadecimal format.
+ This function matches `rgb()` or `rgba()` functions in a line of text, extracting RGB and optional alpha values.
+ It supports decimal and percentage formats, alpha transparency, and comma or space-separated CSS syntax.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">line</span>
+         string The line of text to parse for the color function
+        </li>
+        <li><span class="parameter">i</span>
+         number The starting index within the line where parsing should begin
+        </li>
+        <li><span class="parameter">opts</span>
+         table Parsing options, including:
+   - `prefix` (string): "rgb" or "rgba" to specify the CSS function type
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+        <li>
+        number|nil The end index of the parsed `rgb/rgba` function within the line, or `nil` if parsing failed</li>
+        <li>
+        string|nil The RGB hexadecimal color (e.g., "ff0000" for red), or `nil` if parsing failed</li>
+    </ol>
+
+
+
+
+</dd>
+</dl>
 
 
 </div> <!-- id="content" -->

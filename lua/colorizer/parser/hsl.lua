@@ -1,17 +1,23 @@
---@module colorizer.parser.hsl
+--- This module provides a parser for identifying and converting `hsl()` and `hsla()` CSS functions to RGB hexadecimal format.
+-- It supports various CSS color value formats, including degrees (`deg`), turns (`turn`), percentages, and alpha transparency.
+-- This function is useful for syntax highlighting or color recognition in a text editor.
+-- @module colorizer.parser.hsl
+
 local M = {}
 
 local count = require("colorizer.utils").count
 local floor = math.floor
 local hsl_to_rgb = require("colorizer.color").hsl_to_rgb
 
----Parse for hsl() hsla() css function and return rgb hex.
--- For more info: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value/hsl
----@param line string: Line to parse
----@param i number: Index of line from where to start parsing
----@param opts table: Values passed from matchers like prefix
----@return number|nil: Index of line where the hsla/hsl function ended
----@return string|nil: rgb hex value
+--- Parses `hsl()` and `hsla()` CSS functions and converts them to RGB hexadecimal format.
+-- This function matches `hsl()` or `hsla()` functions within a line of text, extracting and converting the hue, saturation, and luminance
+-- to an RGB color. It handles angles in degrees and turns, percentages, and an optional alpha (transparency) value.
+-- @param line string The line of text to parse
+-- @param i number The starting index within the line where parsing should begin
+-- @param opts table Parsing options, including:
+--   - `prefix` (string): "hsl" or "hsla" to specify the CSS function type.
+-- @return number|nil The end index of the parsed `hsl/hsla` function within the line, or `nil` if no match was found.
+-- @return string|nil The RGB hexadecimal color (e.g., "ff0000" for red), or `nil` if parsing failed
 function M.hsl_function_parser(line, i, opts)
   local min_len = #"hsla(0,0%,0%)" - 1
   local min_commas, min_spaces = 2, 2
@@ -38,19 +44,19 @@ function M.hsl_function_parser(line, i, opts)
     min_commas = min_commas + 1
   end
 
-  -- the text after hue should be either deg or empty
+  -- Ensure the hue is either in degrees, turns, or unspecified (defaulting to degrees)
   if not ((deg == "") or (deg == "deg") or (turn == "turn")) then
     return
   end
 
   local c_seps = ("%s%s%s"):format(csep1, csep2, sep3)
   local s_seps = ("%s%s"):format(ssep1, ssep2)
-  -- comma separator syntax
+  -- Comma separator syntax
   if c_seps:match(",") then
     if not (count(c_seps, ",") == min_commas) then
       return
     end
-    -- space separator syntax with decimal or percentage alpha
+    -- Space separator syntax with decimal or percentage alpha
   elseif count(s_seps, "%s") >= min_spaces then
     if a then
       if not (c_seps == "/") then
@@ -65,29 +71,28 @@ function M.hsl_function_parser(line, i, opts)
     a = 1
   else
     a = tonumber(a)
-    -- if percentage, then convert to decimal
+    -- Convert percentage alpha to decimal if applicable
     if percent_sign == "%" then
       a = a / 100
     end
-    -- although alpha doesn't support larger values than 1, css anyways renders it at 1
     if a > 1 then
       a = 1
     end
   end
 
   h = tonumber(h) or 1
-  -- single turn is 360
+  -- Convert turns to degrees if applicable
   if turn == "turn" then
     h = 360 * h
   end
 
-  -- if hue angle if greater than 360, then calculate the hue within 360
+  -- Normalize hue within 360 degrees if it exceeds this value
   if h > 360 then
     local turns = h / 360
     h = 360 * (turns - floor(turns))
   end
 
-  -- if saturation or luminance percentage is  greater than 100 then reset it to 100
+  -- Clamp saturation and luminance to a maximum of 100%
   s = tonumber(s)
   if s > 100 then
     s = 100

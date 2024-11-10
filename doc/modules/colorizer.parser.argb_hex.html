@@ -31,10 +31,6 @@
   <li><a href="../index.html">Index</a></li>
 </ul>
 
-<h2>Contents</h2>
-<ul>
-<li><a href="#Class_number">Class number </a></li>
-</ul>
 
 
 <h2>Modules</h2>
@@ -61,60 +57,16 @@
 <div id="content">
 
 <h1>Module <code>colorizer.parser.argb_hex</code></h1>
-<p></p>
-<p></p>
+<p>parse for 0xaarrggbb and return rgb hex.</p>
+<p>
+ a format used in android apps</p>
 
 
-<h2><a href="#Class_number">Class number </a></h2>
-<table class="function_list">
-	<tr>
-	<td class="name" nowrap><a href="#number:argb_hex_parser">number:argb_hex_parser (line, i)</a></td>
-	<td class="summary">Parses a hexadecimal color code in 0xAARRGGBB format and returns the RGB hex value.</td>
-	</tr>
-</table>
 
 <br/>
 <br/>
 
 
-    <h2 class="section-header has-description"><a name="Class_number"></a>Class number </h2>
-
-          <div class="section-description">
-          Minimum length for a 0xAARRGGBB hexadecimal color code
-          </div>
-    <dl class="function">
-    <dt>
-    <a name = "number:argb_hex_parser"></a>
-    <strong>number:argb_hex_parser (line, i)</strong>
-    </dt>
-    <dd>
-    Parses a hexadecimal color code in 0xAARRGGBB format and returns the RGB hex value.
- This format is often used in Android apps and includes an alpha channel.
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">line</span>
-         string The line of text to parse for the ARGB color code
-        </li>
-        <li><span class="parameter">i</span>
-         number The starting index in the line to begin parsing
-        </li>
-    </ul>
-
-    <h3>Returns:</h3>
-    <ol>
-        <li>
-        number|nil The ending index in the line where the hex value ended, or `nil` if parsing failed</li>
-        <li>
-        string|nil The RGB hex value as a string, or `nil` if parsing failed</li>
-    </ol>
-
-
-
-
-</dd>
-</dl>
 
 
 </div> <!-- id="content" -->

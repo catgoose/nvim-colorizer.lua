@@ -1,5 +1,7 @@
 ---Trie implementation in luajit.
---todo: write documentation
+-- This module provides a Trie data structure implemented in LuaJIT with efficient memory handling.
+-- It supports operations such as inserting, searching, finding the longest prefix, and converting the Trie into a table format.
+-- The implementation uses LuaJIT's Foreign Function Interface (FFI) for optimized memory allocation.
 
 -- Copyright © 2019 Ashkan Kiani
 -- This program is free software: you can redistribute it and/or modify
@@ -16,6 +18,7 @@
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 --@module trie
+
 local ffi = require("ffi")
 
 ffi.cdef([[
@@ -33,7 +36,6 @@ local Trie_size = ffi.sizeof(Trie_t)
 
 local function trie_create()
   local ptr = ffi.C.malloc(Trie_size)
-  ---@diagnostic disable-next-line: param-type-mismatch
   ffi.fill(ptr, Trie_size)
   return ffi.cast(Trie_ptr_t, ptr)
 end
