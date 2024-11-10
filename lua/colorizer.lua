@@ -5,11 +5,11 @@
 -- @author Ashkan Kiani <from-nvim-colorizer.lua@kiani.io>
 -- @usage Establish the autocmd to highlight all filetypes.
 --
---       `lua require 'colorizer'.setup()`
+--       `lua require('colorizer').setup()`
 --
 -- Highlight using all css highlight modes in every filetype
 --
---       `lua require 'colorizer'.setup(user_default_options = { css = true; })`
+--       `lua require('colorizer').setup(user_default_options = { css = true })`
 --
 --==============================================================================
 --USE WITH COMMANDS                                          *colorizer-commands*
