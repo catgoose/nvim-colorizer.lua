@@ -67,6 +67,8 @@ M.user_default_options = {
   always_update = false,
 }
 
+--  TODO: 2024-11-10 - check if setup() works
+
 -- State for managing buffer and filetype-specific options
 local options_state = { buftype = {}, filetype = {} }
 
@@ -107,7 +109,7 @@ function M.setup(opts)
   opts = opts or {}
   local defaults = {
     filetypes = { "*" },
-    user_default_options = {},
+    user_default_options = user_default_options,
     buftypes = nil,
     user_commands = true,
   }

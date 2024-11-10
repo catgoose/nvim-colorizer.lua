@@ -11,12 +11,12 @@
     - [Updating color even when buffer is not focused](#updating-color-even-when-buffer-is-not-focused)
   - [Extras](#extras)
   - [TODO](#todo)
-  - [Similar projects](#similar-projects)
   <!--toc:end-->
 
 [![luadoc](https://img.shields.io/badge/luadoc-0.1-blue)](https://nvchad.com/nvim-colorizer.lua/)
 
-A high-performance color highlighter for Neovim which has **no external dependencies**! Written in performant Luajit.
+A high-performance color highlighter for Neovim which has **no external
+dependencies**! Written in performant Luajit.
 
 ![Demo.gif](https://raw.githubusercontent.com/norcalli/github-assets/master/nvim-colorizer.lua-demo-short.gif)
 
@@ -56,7 +56,8 @@ require("colorizer").setup()
 ### Use from lua
 
 ```lua
--- All options that can be passed to `user_default_options` in setup() can be passed here
+-- All options that can be passed to `user_default_options` in setup() can be
+-- passed here
 -- Similar for other functions
 
 -- Attach to buffer
@@ -76,8 +77,8 @@ written with performance in mind and leveraging the excellent LuaJIT and a
 handwritten parser, updates can be done in real time. The downside
 is that _this only works for Neovim_, and that will never change.
 
-Apart from that, it only applies the highlights to the current visible contents, so
-even if a big file is opened, the editor won't just choke on a blank screen.
+Apart from that, it only applies the highlights to the current visible contents,
+so even if a big file is opened, the editor won't just choke on a blank screen.
 
 This idea was copied from
 [brenoprata10/nvim-highlight-colors](https://github.com/brenoprata10/nvim-highlight-colors)
@@ -117,6 +118,8 @@ library to do custom highlighting themselves.
     },
     -- all the sub-options of filetypes apply to buftypes
     buftypes = {},
+    user_commands = true, -- Enable all or some usercommands
+    -- Boolean | List of usercommands to enable
   })
 ```
 
@@ -174,46 +177,65 @@ require("colorizer").setup({
   },
 })
 
--- Alwyas update the color values in cmp_docs even if it not focused
+-- Always update the color values in cmp_docs even if it not focused
 require("colorizer").setup({
   filetypes = {
     "*", -- Highlight all files, but customize some others.
     cmp_docs = { always_update = true },
   },
 })
+
+-- Only enable ColorizerToggle and ColorizerReloadAllBuffers user_command
+require("colorizer").setup({
+  user_commands = { "ColorizerToggle", "ColorizerReloadAllBuffers" },
+})
 ```
 
 In `user_default_options`, there are 2 types of options
 
-1. Individual options - `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn` , `RRGGBBAA`, `AARRGGBB`, `tailwind`, `sass`
+1. Individual options - `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn`,
+   `RRGGBBAA`, `AARRGGBB`, `tailwind`, `sass`
 
 1. Alias options - `css`, `css_fn`
 
 If `css_fn` is true, then `hsl_fn`, `rgb_fn` becomes `true`
 
-If `css` is true, then `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn` becomes `true`
+If `css` is true, then `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn`
+becomes `true`
 
-These options have a priority, Individual options have the highest priority, then alias options
+These options have a priority, Individual options have the highest priority,
+then alias options
 
 For alias, `css_fn` has more priority over `css`
 
 e.g: Here `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn` is enabled but not `names`
 
 ```lua
-require("colorizer").setup({ user_default_options = { names = false, css = true } })
+require("colorizer").setup({
+  user_default_options = {
+    names = false,
+    css = true,
+  },
+})
 ```
 
 e.g: Here `names`, `RGB`, `RRGGBB`, `RRGGBBAA` is enabled but not `rgb_fn` and `hsl_fn`
 
 ```lua
-require("colorizer").setup({ user_default_options = { css_fn = false, css = true } })
+require("colorizer").setup({
+  user_default_options = {
+    css_fn = false,
+    css = true,
+  },
+})
 ```
 
 ### Updating color even when buffer is not focused
 
 Like in floating windows, popup menu, etc
 
-use `always_update` flag. Use with caution, as this will update for any change in that buffer, whether focused or not.
+use `always_update` flag. Use with caution, as this will update for any change
+in that buffer, whether focused or not.
 
 ```lua
 -- Alwyas update the color values in cmp_docs even if it not focused
@@ -225,13 +247,14 @@ require("colorizer").setup({
 })
 ```
 
-All the above examples can also be apply to buftypes. Also no buftypes trigger colorizer by default
+All the above examples can also be apply to buftypes. Also no buftypes trigger
+colorizer by default
 
 Buftype value is fetched by `vim.bo.buftype`
 
 ```lua
 -- need to specify buftypes
-require 'colorizer'.setup(
+require("colorizer").setup(
   buftypes = {
       "*",
       -- exclude prompt and popup buftypes from highlight
@@ -241,7 +264,9 @@ require 'colorizer'.setup(
 )
 ```
 
-For lower level interface, see the [LuaDocs for API details](https://nvchad.com/nvim-colorizer.lua/modules/colorizer.html) or use `:h colorizer` once installed.
+For lower level interface, see
+[LuaDocs for API details](https://nvchad.com/nvim-colorizer.lua/modules/colorizer.html)
+or use `:h colorizer` once installed.
 
 ## Extras
 
@@ -250,12 +275,10 @@ Documentaion is generated using ldoc. See
 
 ## TODO
 
-- [ ] Add more colour types ( var, advanced css functions )
+- [ ] Add more color types ( var, advanced css functions )
 - [ ] Add more display modes. E.g - sign column
 - [ ] Use a more space efficient trie implementation.
 
 ## Similar projects
 
 [nvim-highlight-colors](https://github.com/brenoprata10/nvim-highlight-colors)
-
-[vim-hexokinase](https://github.com/RRethy/vim-hexokinase)

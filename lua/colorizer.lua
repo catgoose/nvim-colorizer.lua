@@ -5,11 +5,11 @@
 -- @author Ashkan Kiani <from-nvim-colorizer.lua@kiani.io>
 -- @usage Establish the autocmd to highlight all filetypes.
 --
---       `lua require('colorizer').setup()`
+--       `lua require("colorizer").setup()`
 --
 -- Highlight using all css highlight modes in every filetype
 --
---       `lua require('colorizer').setup(user_default_options = { css = true })`
+--       `lua require("colorizer").setup(user_default_options = { css = true })`
 --
 --==============================================================================
 --USE WITH COMMANDS                                          *colorizer-commands*
@@ -431,7 +431,7 @@ end
 --</pre>
 ---Setup colorizer with user options
 ---@param opts table: User provided options
----@usage `require('colorizer').setup()`
+---@usage `require("colorizer").setup()`
 ---@see colorizer.config
 function M.setup(opts)
   if not vim.opt.termguicolors then
