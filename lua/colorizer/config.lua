@@ -1,64 +1,36 @@
---@module colorizer.config
+--- Provides configuration options and utilities for setting up colorizer.
+-- @module colorizer.config
 local M = {}
 
----defaults options.
---In `user_default_options`, there are 2 types of options
+--- Default user options for colorizer.
+-- This table defines individual options and alias options, allowing configuration of
+-- colorizer's behavior for different color formats (e.g., `#RGB`, `#RRGGBB`, `#AARRGGBB`, etc.).
 --
---1. Individual options - `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn` , `RRGGBBAA`, `AARRGGBB`, `tailwind`, `sass`
+-- **Individual Options**: Options like `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn`,
+-- `AARRGGBB`, `tailwind`, and `sass` can be enabled or disabled independently.
 --
---1. Alias options - `css`, `css_fn`
+-- **Alias Options**: `css` and `css_fn` enable multiple options at once.
+--   - `css_fn = true` enables `hsl_fn` and `rgb_fn`.
+--   - `css = true` enables `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, and `rgb_fn`.
 --
---If `css_fn` is true, then `hsl_fn`, `rgb_fn` becomes `true`
---
---If `css` is true, then `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn` becomes `true`
---
---These options have a priority, Individual options have the highest priority, then alias options
---
---For alias, `css_fn` has more priority over `css`
---
---e.g: Here `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn` is enabled but not `names`
---
---<pre>
---  require 'colorizer'.setup { user_default_options = { names = false, css = true } }
---</pre>
---
---e.g: Here `names`, `RGB`, `RRGGBB`, `RRGGBBAA` is enabled but not `rgb_fn` and `hsl_fn`
---
---<pre>
---  require 'colorizer'.setup { user_default_options = { css_fn = false, css = true } }
---</pre>
---
---<pre>
---  user_commands = {
---   "ColorizerAttachToBuffer",
---   "ColorizerDetachFromBuffer",
---   "ColorizerReloadAllBuffers",
---   "ColorizerToggle",
--- }, -- List of commands to enable, set to false to disable all user commands,
--- true to enable all
---  user_default_options = {
---      RGB = true, -- #RGB hex codes
---      RRGGBB = true, -- #RRGGBB hex codes
---      names = true, -- "Name" codes like Blue or blue
---      RRGGBBAA = false, -- #RRGGBBAA hex codes
---      AARRGGBB = false, -- 0xAARRGGBB hex codes
---      rgb_fn = false, -- CSS rgb() and rgba() functions
---      hsl_fn = false, -- CSS hsl() and hsla() functions
---      css = false, -- Enable all CSS features: rgb_fn, hsl_fn, names, RGB, RRGGBB
---      css_fn = false, -- Enable all CSS *functions*: rgb_fn, hsl_fn
---      -- Available modes for `mode`: foreground, background,  virtualtext
---      mode = "background", -- Set the display mode.
---      -- Available methods are false / true / "normal" / "lsp" / "both"
---      -- True is same as normal
---      tailwind = false, -- Enable tailwind colors
---      -- parsers can contain values used in |user_default_options|
---      sass = { enable = false, parsers = { css }, }, -- Enable sass colors
---      virtualtext = "■",
---      virtualtext_inline = false, -- Show the virtualtext inline with the color
---      -- update color values even if buffer is not focused
---      always_update = false
---  }
---</pre>
+-- **Option Priority**: Individual options have higher priority than aliases.
+-- If both `css` and `css_fn` are true, `css_fn` has more priority over `css`.
+-- @table user_default_options
+-- @field RGB boolean: Enables `#RGB` hex codes.
+-- @field RRGGBB boolean: Enables `#RRGGBB` hex codes.
+-- @field names boolean: Enables named colors (e.g., "Blue").
+-- @field RRGGBBAA boolean: Enables `#RRGGBBAA` hex codes.
+-- @field AARRGGBB boolean: Enables `0xAARRGGBB` hex codes.
+-- @field rgb_fn boolean: Enables CSS `rgb()` and `rgba()` functions.
+-- @field hsl_fn boolean: Enables CSS `hsl()` and `hsla()` functions.
+-- @field css boolean: Enables all CSS features (`rgb_fn`, `hsl_fn`, `names`, `RGB`, `RRGGBB`).
+-- @field css_fn boolean: Enables all CSS functions (`rgb_fn`, `hsl_fn`).
+-- @field mode string: Display mode (e.g., "background", "foreground", "virtualtext").
+-- @field tailwind boolean|string: Enables Tailwind CSS colors (e.g., `"normal"`, `"lsp"`, `"both"`).
+-- @field sass table: Sass color configuration (`enable` flag and `parsers`).
+-- @field virtualtext string: Character used for virtual text display.
+-- @field virtualtext_inline boolean: Shows virtual text inline with color.
+-- @field always_update boolean: Always update color values, even if buffer is not focused.
 
 -- Default options for the user
 ---@table user_default_options
@@ -98,8 +70,39 @@ M.user_default_options = {
 -- State for managing buffer and filetype-specific options
 local options_state = { buftype = {}, filetype = {} }
 
---- Setup function to initialize module settings based on user-provided options.
----@param opts table: User-provided configuration options.
+--- Configuration options for the `setup` function.
+-- @table opts
+-- @field filetypes table A list of file types where colorizer should be enabled. Use `"*"` for all file types.
+-- @field user_default_options table Default options for color handling.
+--   - `RGB` (boolean): Enables support for `#RGB` hex codes.
+--   - `RRGGBB` (boolean): Enables support for `#RRGGBB` hex codes.
+--   - `names` (boolean): Enables named color codes like `"Blue"`.
+--   - `RRGGBBAA` (boolean): Enables support for `#RRGGBBAA` hex codes.
+--   - `AARRGGBB` (boolean): Enables support for `0xAARRGGBB` hex codes.
+--   - `rgb_fn` (boolean): Enables CSS `rgb()` and `rgba()` functions.
+--   - `hsl_fn` (boolean): Enables CSS `hsl()` and `hsla()` functions.
+--   - `css` (boolean): Enables all CSS-related features (e.g., `names`, `RGB`, `RRGGBB`, `hsl_fn`, `rgb_fn`).
+--   - `css_fn` (boolean): Enables all CSS function-related features (e.g., `rgb_fn`, `hsl_fn`).
+--   - `mode` (string): Determines the display mode for highlights. Options are `"background"`, `"foreground"`, and `"virtualtext"`.
+--   - `tailwind` (boolean|string): Enables Tailwind CSS colors. Accepts `true`, `"normal"`, `"lsp"`, or `"both"`.
+--   - `sass` (table): Configures Sass color support.
+--      - `enable` (boolean): Enables Sass color parsing.
+--      - `parsers` (table): A list of parsers to use, typically includes `"css"`.
+--   - `virtualtext` (string): Character used for virtual text display of colors (default is `"■"`).
+--   - `virtualtext_inline` (boolean): If true, shows the virtual text inline with the color.
+--   - `always_update` (boolean): If true, updates color values even if the buffer is not focused.
+-- @field buftypes table|nil Optional. A list of buffer types where colorizer should be enabled. Defaults to all buffer types if not provided.
+-- @field user_commands boolean|table If true, enables all user commands for colorizer. If `false`, disables user commands. Alternatively, provide a table of specific commands to enable:
+--   - `"ColorizerAttachToBuffer"`
+--   - `"ColorizerDetachFromBuffer"`
+--   - `"ColorizerReloadAllBuffers"`
+--   - `"ColorizerToggle"`
+
+--- Initializes colorizer with user-provided options.
+-- Merges default settings with any user-specified options, setting up `filetypes`,
+-- `user_default_options`, and `user_commands`.
+-- @param opts opts User-provided configuration options.
+-- @return table Final settings after merging user and default options.
 function M.setup(opts)
   opts = opts or {}
   local defaults = {

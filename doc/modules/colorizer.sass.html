@@ -61,16 +61,23 @@
 <div id="content">
 
 <h1>Module <code>colorizer.sass</code></h1>
-<p>Cleanup sass variables and watch handlers</p>
-<p></p>
+<p>Manages Sass variable parsing and color detection for buffers.</p>
+<p>
+ This module handles the parsing of Sass color variables, managing import statements,
+ and watching files for updates to Sass variable definitions.
+ It supports recursive Sass imports, resolving color values for each variable, and caching color definitions.</p>
 
 
 <h2><a href="#Functions">Functions</a></h2>
 <table class="function_list">
 	<tr>
+	<td class="name" nowrap><a href="#cleanup">cleanup (bufnr)</a></td>
+	<td class="summary">Cleanup sass variables and watch handlers</td>
+	</tr>
+	<tr>
 	<td class="name" nowrap><a href="#name_parser">name_parser (line, i, bufnr)</a></td>
 	<td class="summary">Parse the given line for sass color names
- check for value in SASS[buf].DEFINITIONS_ALL</td>
+ check for value in state[buf].definitions_all</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#update_variables">update_variables (bufnr, line_start, line_end, lines, color_parser, options, options_local)</a></td>
@@ -86,12 +93,32 @@
 
     <dl class="function">
     <dt>
+    <a name = "cleanup"></a>
+    <strong>cleanup (bufnr)</strong>
+    </dt>
+    <dd>
+    Cleanup sass variables and watch handlers
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">bufnr</span>
+         number
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
     <a name = "name_parser"></a>
     <strong>name_parser (line, i, bufnr)</strong>
     </dt>
     <dd>
     Parse the given line for sass color names
- check for value in SASS[buf].DEFINITIONS_ALL
+ check for value in state[buf].definitions_all
 
 
     <h3>Parameters:</h3>

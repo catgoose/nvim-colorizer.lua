@@ -93,7 +93,7 @@ local colorizer_state = {
   buffer_options = {},
 }
 
--- get the amount lines to highlight
+--- Highlight the buffer region.
 ---@function highlight_buffer
 ---@see colorizer.buffer.highlight
 M.highlight_buffer = buffer.highlight
@@ -102,6 +102,48 @@ M.highlight_buffer = buffer.highlight
 ---@string: default_namespace
 ---@see colorizer.buffer.default_namespace
 M.default_namespace = buffer.default_namespace
+
+--- Get the row range of the current window
+---@param bufnr number: Buffer number
+local function getrow(bufnr)
+  colorizer_state.buffer_lines[bufnr] = colorizer_state.buffer_lines[bufnr] or {}
+  local a = vim.api.nvim_buf_call(bufnr, function()
+    return {
+      vim.fn.line("w0"),
+      vim.fn.line("w$"),
+    }
+  end)
+  local min, max
+  local new_min, new_max = a[1] - 1, a[2]
+  local old_min, old_max =
+    colorizer_state.buffer_lines[bufnr]["min"], colorizer_state.buffer_lines[bufnr]["max"]
+  if old_min and old_max then
+    -- Triggered for TextChanged autocmds
+    -- TODO: Find a way to just apply highlight to changed text lines
+    if (old_max == new_max) or (old_min == new_min) then
+      min, max = new_min, new_max
+    -- Triggered for WinScrolled autocmd - Scroll Down
+    elseif old_max < new_max then
+      min = old_max
+      max = new_max
+    -- Triggered for WinScrolled autocmd - Scroll Up
+    elseif old_max > new_max then
+      min = new_min
+      max = new_min + (old_max - new_max)
+    end
+    -- just in case a long jump was made
+    if max - min > new_max - new_min then
+      min = new_min
+      max = new_max
+    end
+  end
+  min = min or new_min
+  max = max or new_max
+  -- store current window position to be used later to incremently highlight
+  colorizer_state.buffer_lines[bufnr]["max"] = new_max
+  colorizer_state.buffer_lines[bufnr]["min"] = new_min
+  return min, max
+end
 
 --- Rehighlight the buffer if colorizer is active
 ---@param bufnr number: buffer number (0 for current)
@@ -117,7 +159,7 @@ function M.rehighlight(bufnr, options, options_local, use_local_lines)
   if use_local_lines and options_local then
     min, max = options_local.__startline or 0, options_local.__endline or -1
   else
-    min, max = utils.getrow(colorizer_state, bufnr)
+    min, max = getrow(bufnr)
   end
 
   local bool, returns = M.highlight_buffer(bufnr, ns_id, min, max, options, options_local or {})
@@ -128,7 +170,7 @@ function M.rehighlight(bufnr, options, options_local, use_local_lines)
   return bool, returns
 end
 
----Colorizer state
+---Check if attached to a buffer
 ---@param bufnr number|nil: A value of 0 implies the current buffer.
 ---@return number|nil: if attached to the buffer, false otherwise.
 ---@see colorizer.buffer.highlight
@@ -155,7 +197,7 @@ end
 --- Return the currently active buffer options.
 ---@param bufnr number|nil: buffer number (0 for current)
 ---@return table|nil
-function M.get_buffer_options(bufnr)
+local function get_buffer_options(bufnr)
   bufnr = utils.bufme(bufnr)
   local _bufnr = M.is_buffer_attached(bufnr)
   if _bufnr then
@@ -212,7 +254,7 @@ end
 function M.reload_all_buffers()
   for bufnr, _ in pairs(colorizer_state.buffer_options) do
     bufnr = utils.bufme(bufnr)
-    M.attach_to_buffer(bufnr, M.get_buffer_options(bufnr), "buftype")
+    M.attach_to_buffer(bufnr, get_buffer_options(bufnr), "buftype")
   end
 end
 
@@ -229,7 +271,7 @@ function M.attach_to_buffer(bufnr, options, bo_type)
   end
   -- set options by grabbing existing or creating new options, then parsing
   options = parse_buffer_options(
-    options or M.get_buffer_options(bufnr) or config.new_buffer_options(bufnr, bo_type)
+    options or get_buffer_options(bufnr) or config.new_buffer_options(bufnr, bo_type)
   )
 
   if not buffer.highlight_mode_names[options.mode] then
@@ -387,9 +429,10 @@ end
 --      buftypes = {},
 --    }
 --</pre>
---For all user_default_options, see |user_default_options|
----@param opts table: Config containing above parameters.
----@usage `require'colorizer'.setup()`
+---Setup colorizer with user options
+---@param opts table: User provided options
+---@usage `require('colorizer').setup()`
+---@see colorizer.config
 function M.setup(opts)
   if not vim.opt.termguicolors then
     vim.schedule(function()
@@ -481,7 +524,7 @@ function M.setup(opts)
   vim.api.nvim_create_autocmd("ColorScheme", {
     group = colorizer_state.augroup,
     callback = function()
-      require("colorizer").clear_highlight_cache()
+      buffer.clear_highlight_cache()
     end,
   })
 
@@ -489,12 +532,6 @@ function M.setup(opts)
   parse_opts("buftype", conf.buftypes)
 
   require("colorizer.usercmds").make(conf.user_commands)
-end
-
---- Clear the highlight cache and reload all buffers.
-function M.clear_highlight_cache()
-  utils.clear_hl_cache()
-  vim.schedule(buffer.reload_all_buffers)
 end
 
 return M

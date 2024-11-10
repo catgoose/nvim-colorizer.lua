@@ -62,61 +62,15 @@
 <div id="content">
 
 <h1>Module <code>colorizer.config</code></h1>
-<p>defaults options.</p>
-<p>
-In `user_default_options`, there are 2 types of options
-<p>1. Individual options - `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn` , `RRGGBBAA`, `AARRGGBB`, `tailwind`, `sass`
-<p>1. Alias options - `css`, `css_fn`
-<p>If `css_fn` is true, then `hsl_fn`, `rgb_fn` becomes `true`
-<p>If `css` is true, then `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn` becomes `true`
-<p>These options have a priority, Individual options have the highest priority, then alias options
-<p>For alias, `css_fn` has more priority over `css`
-<p>e.g: Here `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn` is enabled but not `names`
-<p><pre>
-  require 'colorizer'.setup { user_default_options = { names = false, css = true } }
-</pre>
-<p>e.g: Here `names`, `RGB`, `RRGGBB`, `RRGGBBAA` is enabled but not `rgb_fn` and `hsl_fn`
-<p><pre>
-  require 'colorizer'.setup { user_default_options = { css_fn = false, css = true } }
-</pre>
-<p><pre>
-  user_commands = {
-   "ColorizerAttachToBuffer",
-   "ColorizerDetachFromBuffer",
-   "ColorizerReloadAllBuffers",
-   "ColorizerToggle",
- }, -- List of commands to enable, set to false to disable all user commands,
- true to enable all
-  user_default_options = {
-      RGB = true, -- #RGB hex codes
-      RRGGBB = true, -- #RRGGBB hex codes
-      names = true, -- "Name" codes like Blue or blue
-      RRGGBBAA = false, -- #RRGGBBAA hex codes
-      AARRGGBB = false, -- 0xAARRGGBB hex codes
-      rgb_fn = false, -- CSS rgb() and rgba() functions
-      hsl_fn = false, -- CSS hsl() and hsla() functions
-      css = false, -- Enable all CSS features: rgb_fn, hsl_fn, names, RGB, RRGGBB
-      css_fn = false, -- Enable all CSS *functions*: rgb_fn, hsl_fn
-      -- Available modes for `mode`: foreground, background,  virtualtext
-      mode = "background", -- Set the display mode.
-      -- Available methods are false / true / "normal" / "lsp" / "both"
-      -- True is same as normal
-      tailwind = false, -- Enable tailwind colors
-      -- parsers can contain values used in |user_default_options|
-      sass = { enable = false, parsers = { css }, }, -- Enable sass colors
-      virtualtext = "■",
-      virtualtext_inline = false, -- Show the virtualtext inline with the color
-      -- update color values even if buffer is not focused
-      always_update = false
-  }
-</pre></p>
+<p>Provides configuration options and utilities for setting up colorizer.</p>
+<p></p>
 
 
 <h2><a href="#Functions">Functions</a></h2>
 <table class="function_list">
 	<tr>
 	<td class="name" nowrap><a href="#setup">setup (opts)</a></td>
-	<td class="summary">Setup function to initialize module settings based on user-provided options.</td>
+	<td class="summary">Initializes colorizer with user-provided options.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#new_buffer_options">new_buffer_options (bufnr, option_type)</a></td>
@@ -135,7 +89,11 @@ In `user_default_options`, there are 2 types of options
 <table class="function_list">
 	<tr>
 	<td class="name" nowrap><a href="#user_default_options">user_default_options</a></td>
-	<td class="summary"></td>
+	<td class="summary">Default user options for colorizer.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#opts">opts</a></td>
+	<td class="summary">Configuration options for the `setup` function.</td>
 	</tr>
 </table>
 
@@ -151,16 +109,23 @@ In `user_default_options`, there are 2 types of options
     <strong>setup (opts)</strong>
     </dt>
     <dd>
-    Setup function to initialize module settings based on user-provided options.
+    Initializes colorizer with user-provided options.
+ Merges default settings with any user-specified options, setting up `filetypes`,
+ `user_default_options`, and `user_commands`.
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">opts</span>
-         table: User-provided configuration options.
+         opts User-provided configuration options.
         </li>
     </ul>
 
+    <h3>Returns:</h3>
+    <ol>
+
+        table Final settings after merging user and default options.
+    </ol>
 
 
 
@@ -250,55 +215,114 @@ In `user_default_options`, there are 2 types of options
     <strong>user_default_options</strong>
     </dt>
     <dd>
-
+    Default user options for colorizer.
+ This table defines individual options and alias options, allowing configuration of
+ colorizer's behavior for different color formats (e.g., `#RGB`, `#RRGGBB`, `#AARRGGBB`, etc.).
+<p> **Individual Options**: Options like `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn`,
+ `AARRGGBB`, `tailwind`, and `sass` can be enabled or disabled independently.
+<p> **Alias Options**: `css` and `css_fn` enable multiple options at once.
+   - `css_fn = true` enables `hsl_fn` and `rgb_fn`.
+   - `css = true` enables `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, and `rgb_fn`.
+<p> **Option Priority**: Individual options have higher priority than aliases.
+ If both `css` and `css_fn` are true, `css_fn` has more priority over `css`.
 
 
     <h3>Fields:</h3>
     <ul>
         <li><span class="parameter">RGB</span>
-         boolean
+         boolean: Enables `#RGB` hex codes.
         </li>
         <li><span class="parameter">RRGGBB</span>
-         boolean
+         boolean: Enables `#RRGGBB` hex codes.
         </li>
         <li><span class="parameter">names</span>
-         boolean
+         boolean: Enables named colors (e.g., "Blue").
         </li>
         <li><span class="parameter">RRGGBBAA</span>
-         boolean
+         boolean: Enables `#RRGGBBAA` hex codes.
         </li>
         <li><span class="parameter">AARRGGBB</span>
-         boolean
+         boolean: Enables `0xAARRGGBB` hex codes.
         </li>
         <li><span class="parameter">rgb_fn</span>
-         boolean
+         boolean: Enables CSS `rgb()` and `rgba()` functions.
         </li>
         <li><span class="parameter">hsl_fn</span>
-         boolean
+         boolean: Enables CSS `hsl()` and `hsla()` functions.
         </li>
         <li><span class="parameter">css</span>
-         boolean
+         boolean: Enables all CSS features (`rgb_fn`, `hsl_fn`, `names`, `RGB`, `RRGGBB`).
         </li>
         <li><span class="parameter">css_fn</span>
-         boolean
+         boolean: Enables all CSS functions (`rgb_fn`, `hsl_fn`).
         </li>
         <li><span class="parameter">mode</span>
-         string
+         string: Display mode (e.g., "background", "foreground", "virtualtext").
         </li>
         <li><span class="parameter">tailwind</span>
-         boolean|string
+         boolean|string: Enables Tailwind CSS colors (e.g., `"normal"`, `"lsp"`, `"both"`).
         </li>
         <li><span class="parameter">sass</span>
-         table
+         table: Sass color configuration (`enable` flag and `parsers`).
         </li>
         <li><span class="parameter">virtualtext</span>
-         string
+         string: Character used for virtual text display.
         </li>
         <li><span class="parameter">virtualtext_inline</span>
-        ? boolean
+         boolean: Shows virtual text inline with color.
         </li>
         <li><span class="parameter">always_update</span>
-         boolean
+         boolean: Always update color values, even if buffer is not focused.
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "opts"></a>
+    <strong>opts</strong>
+    </dt>
+    <dd>
+    Configuration options for the `setup` function.
+
+
+    <h3>Fields:</h3>
+    <ul>
+        <li><span class="parameter">filetypes</span>
+         table A list of file types where colorizer should be enabled. Use `"*"` for all file types.
+        </li>
+        <li><span class="parameter">user_default_options</span>
+         table Default options for color handling.
+   - `RGB` (boolean): Enables support for `#RGB` hex codes.
+   - `RRGGBB` (boolean): Enables support for `#RRGGBB` hex codes.
+   - `names` (boolean): Enables named color codes like `"Blue"`.
+   - `RRGGBBAA` (boolean): Enables support for `#RRGGBBAA` hex codes.
+   - `AARRGGBB` (boolean): Enables support for `0xAARRGGBB` hex codes.
+   - `rgb_fn` (boolean): Enables CSS `rgb()` and `rgba()` functions.
+   - `hsl_fn` (boolean): Enables CSS `hsl()` and `hsla()` functions.
+   - `css` (boolean): Enables all CSS-related features (e.g., `names`, `RGB`, `RRGGBB`, `hsl_fn`, `rgb_fn`).
+   - `css_fn` (boolean): Enables all CSS function-related features (e.g., `rgb_fn`, `hsl_fn`).
+   - `mode` (string): Determines the display mode for highlights. Options are `"background"`, `"foreground"`, and `"virtualtext"`.
+   - `tailwind` (boolean|string): Enables Tailwind CSS colors. Accepts `true`, `"normal"`, `"lsp"`, or `"both"`.
+   - `sass` (table): Configures Sass color support.
+      - `enable` (boolean): Enables Sass color parsing.
+      - `parsers` (table): A list of parsers to use, typically includes `"css"`.
+   - `virtualtext` (string): Character used for virtual text display of colors (default is `"■"`).
+   - `virtualtext_inline` (boolean): If true, shows the virtual text inline with the color.
+   - `always_update` (boolean): If true, updates color values even if the buffer is not focused.
+        </li>
+        <li><span class="parameter">buftypes</span>
+         table|nil Optional. A list of buffer types where colorizer should be enabled. Defaults to all buffer types if not provided.
+        </li>
+        <li><span class="parameter">user_commands</span>
+         boolean|table If true, enables all user commands for colorizer. If `false`, disables user commands. Alternatively, provide a table of specific commands to enable:
+   - `"ColorizerAttachToBuffer"`
+   - `"ColorizerDetachFromBuffer"`
+   - `"ColorizerReloadAllBuffers"`
+   - `"ColorizerToggle"`
         </li>
     </ul>
 

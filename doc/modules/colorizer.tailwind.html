@@ -61,12 +61,19 @@
 <div id="content">
 
 <h1>Module <code>colorizer.tailwind</code></h1>
-<p>Cleanup tailwind variables and autocmd</p>
-<p></p>
+<p>Handles Tailwind CSS color highlighting within buffers.</p>
+<p>
+ This module integrates with the Tailwind CSS Language Server Protocol (LSP) to retrieve and apply
+ color highlights for Tailwind classes in a buffer. It manages LSP attachment, autocmds for color updates,
+ and maintains state for efficient Tailwind highlighting.</p>
 
 
 <h2><a href="#Functions">Functions</a></h2>
 <table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#cleanup">cleanup (bufnr)</a></td>
+	<td class="summary">Cleanup tailwind variables and autocmd</td>
+	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#setup_lsp_colors">setup_lsp_colors (bufnr, options, options_local, add_highlight)</a></td>
 	<td class="summary">highlight buffer using values returned by tailwindcss
@@ -81,6 +88,26 @@
     <h2 class="section-header "><a name="Functions"></a>Functions</h2>
 
     <dl class="function">
+    <dt>
+    <a name = "cleanup"></a>
+    <strong>cleanup (bufnr)</strong>
+    </dt>
+    <dd>
+    Cleanup tailwind variables and autocmd
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">bufnr</span>
+         number: buffer number (0 for current)
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
     <dt>
     <a name = "setup_lsp_colors"></a>
     <strong>setup_lsp_colors (bufnr, options, options_local, add_highlight)</strong>

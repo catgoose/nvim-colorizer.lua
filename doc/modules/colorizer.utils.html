@@ -61,19 +61,25 @@
 <div id="content">
 
 <h1>Module <code>colorizer.utils</code></h1>
-<p>Obvious.</p>
-<p></p>
+<p>Provides utility functions for color handling and file operations.</p>
+<p>
+ This module contains helper functions for checking byte categories, merging tables,
+ parsing colors, managing file watchers, and handling buffer lines.</p>
 
 
 <h2><a href="#Functions">Functions</a></h2>
 <table class="function_list">
 	<tr>
+	<td class="name" nowrap><a href="#byte_is_alphanumeric">byte_is_alphanumeric (byte)</a></td>
+	<td class="summary">Checks if a byte represents an alphanumeric character.</td>
+	</tr>
+	<tr>
 	<td class="name" nowrap><a href="#byte_is_hex">byte_is_hex (byte)</a></td>
-	<td class="summary">Obvious.</td>
+	<td class="summary">Checks if a byte represents a hexadecimal character.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#byte_is_valid_colorchar">byte_is_valid_colorchar (byte)</a></td>
-	<td class="summary">Valid colorchars are alphanumeric and - ( tailwind colors )</td>
+	<td class="summary">Checks if a byte is valid as a color character (alphanumeric or `-` for Tailwind colors).</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#count">count (str, pattern)</a></td>
@@ -89,19 +95,15 @@
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#parse_hex">parse_hex (byte)</a></td>
-	<td class="summary">Obvious.</td>
+	<td class="summary">Parses a hexadecimal byte.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#watch_file">watch_file (path, callback, ...)</a></td>
 	<td class="summary">Watch a file for changes and execute callback</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#getrow">getrow (state, bufnr)</a></td>
-	<td class="summary">Get the row range of the current window</td>
-	</tr>
-	<tr>
 	<td class="name" nowrap><a href="#bufme">bufme (bufnr)</a></td>
-	<td class="summary">Get validate buffer number</td>
+	<td class="summary">Validates and returns a buffer number.</td>
 	</tr>
 </table>
 
@@ -113,24 +115,49 @@
 
     <dl class="function">
     <dt>
-    <a name = "byte_is_hex"></a>
-    <strong>byte_is_hex (byte)</strong>
+    <a name = "byte_is_alphanumeric"></a>
+    <strong>byte_is_alphanumeric (byte)</strong>
     </dt>
     <dd>
-    Obvious.
+    Checks if a byte represents an alphanumeric character.
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">byte</span>
-         number
+         number The byte to check.
         </li>
     </ul>
 
     <h3>Returns:</h3>
     <ol>
 
-        boolean
+        boolean `true` if the byte is alphanumeric, otherwise `false`.
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "byte_is_hex"></a>
+    <strong>byte_is_hex (byte)</strong>
+    </dt>
+    <dd>
+    Checks if a byte represents a hexadecimal character.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">byte</span>
+         number The byte to check.
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        boolean `true` if the byte is hexadecimal, otherwise `false`.
     </ol>
 
 
@@ -142,20 +169,20 @@
     <strong>byte_is_valid_colorchar (byte)</strong>
     </dt>
     <dd>
-    Valid colorchars are alphanumeric and - ( tailwind colors )
+    Checks if a byte is valid as a color character (alphanumeric or `-` for Tailwind colors).
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">byte</span>
-         number
+         number The byte to check.
         </li>
     </ul>
 
     <h3>Returns:</h3>
     <ol>
 
-        boolean
+        boolean `true` if the byte is valid, otherwise `false`.
     </ol>
 
 
@@ -246,20 +273,20 @@
     <strong>parse_hex (byte)</strong>
     </dt>
     <dd>
-    Obvious.
+    Parses a hexadecimal byte.
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">byte</span>
-         number
+         number The byte to parse.
         </li>
     </ul>
 
     <h3>Returns:</h3>
     <ol>
 
-        number
+        number The parsed hexadecimal value of the byte.
     </ol>
 
 
@@ -298,47 +325,25 @@
 
 </dd>
     <dt>
-    <a name = "getrow"></a>
-    <strong>getrow (state, bufnr)</strong>
-    </dt>
-    <dd>
-    Get the row range of the current window
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">state</span>
-         colorizerState: Colorizer state
-        </li>
-        <li><span class="parameter">bufnr</span>
-         number: Buffer number
-        </li>
-    </ul>
-
-
-
-
-
-</dd>
-    <dt>
     <a name = "bufme"></a>
     <strong>bufme (bufnr)</strong>
     </dt>
     <dd>
-    Get validate buffer number
+    Validates and returns a buffer number.
+ If the provided buffer number is invalid, defaults to the current buffer.
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">bufnr</span>
-
+         number|nil: The buffer number to validate.
         </li>
     </ul>
 
     <h3>Returns:</h3>
     <ol>
 
-        number: Returns bufnr if valid buf and not 0, else current buffer
+        number The validated buffer number.
     </ol>
 
 

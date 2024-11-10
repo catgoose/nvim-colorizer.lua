@@ -1,4 +1,9 @@
---@module colorizer.tailwind
+--- Handles Tailwind CSS color highlighting within buffers.
+-- This module integrates with the Tailwind CSS Language Server Protocol (LSP) to retrieve and apply
+-- color highlights for Tailwind classes in a buffer. It manages LSP attachment, autocmds for color updates,
+-- and maintains state for efficient Tailwind highlighting.
+-- @module colorizer.tailwind
+
 local M = {}
 
 -- use a different namespace for tailwind as will be cleared if kept in Default namespace
@@ -9,9 +14,9 @@ local state = {}
 --- Cleanup tailwind variables and autocmd
 ---@param bufnr number: buffer number (0 for current)
 function M.cleanup(bufnr)
-  if state[bufnr] and state[bufnr].AU_ID and state[bufnr].AU_ID[1] then
-    pcall(vim.api.nvim_del_autocmd, state[bufnr].AU_ID[1])
-    pcall(vim.api.nvim_del_autocmd, state[bufnr].AU_ID[2])
+  if state[bufnr] and state[bufnr].au_id and state[bufnr].au_id[1] then
+    pcall(vim.api.nvim_del_autocmd, state[bufnr].au_id[1])
+    pcall(vim.api.nvim_del_autocmd, state[bufnr].au_id[2])
   end
   vim.api.nvim_buf_clear_namespace(bufnr, namespace, 0, -1)
   state[bufnr] = nil
@@ -21,12 +26,12 @@ local function highlight_tailwind(bufnr, ns, options, add_highlight)
   -- it can take some time to actually fetch the results
   -- on top of that, tailwindcss is quite slow in neovim
   vim.defer_fn(function()
-    if not state[bufnr] or not state[bufnr].CLIENT or not state[bufnr].CLIENT.request then
+    if not state[bufnr] or not state[bufnr].client or not state[bufnr].client.request then
       return
     end
 
     local opts = { textDocument = vim.lsp.util.make_text_document_params() }
-    state[bufnr].CLIENT.request("textDocument/documentColor", opts, function(err, results, _, _)
+    state[bufnr].client.request("textDocument/documentColor", opts, function(err, results, _, _)
       if err == nil and results ~= nil then
         local data, line_start, line_end = {}, nil, nil
         for _, color in pairs(results) do
@@ -74,14 +79,14 @@ end
 ---@param add_highlight function
 function M.setup_lsp_colors(bufnr, options, options_local, add_highlight)
   state[bufnr] = state[bufnr] or {}
-  state[bufnr].AU_ID = state[bufnr].AU_ID or {}
+  state[bufnr].au_id = state[bufnr].au_id or {}
 
-  if not state[bufnr].CLIENT or state[bufnr].CLIENT.is_stopped() then
+  if not state[bufnr].client or state[bufnr].client.is_stopped() then
     if vim.version().minor >= 8 then
       -- create the autocmds so tailwind colors only activate when tailwindcss lsp is active
       if not state[bufnr].AU_CREATED then
         vim.api.nvim_buf_clear_namespace(bufnr, namespace, 0, -1)
-        state[bufnr].AU_ID[1] = vim.api.nvim_create_autocmd("LspAttach", {
+        state[bufnr].au_id[1] = vim.api.nvim_create_autocmd("LspAttach", {
           group = options_local.__augroup_id,
           buffer = bufnr,
           callback = function(args)
@@ -92,7 +97,7 @@ function M.setup_lsp_colors(bufnr, options, options_local, add_highlight)
                 and client.supports_method("textDocument/documentColor")
               then
                 -- wait 100 ms for the first request
-                state[bufnr].CLIENT = client
+                state[bufnr].client = client
                 vim.defer_fn(function()
                   highlight_tailwind(bufnr, namespace, options, add_highlight)
                 end, 100)
@@ -101,7 +106,7 @@ function M.setup_lsp_colors(bufnr, options, options_local, add_highlight)
           end,
         })
         -- make sure the autocmds are deleted after lsp server is closed
-        state[bufnr].AU_ID[2] = vim.api.nvim_create_autocmd("LspDetach", {
+        state[bufnr].au_id[2] = vim.api.nvim_create_autocmd("LspDetach", {
           group = options_local.__augroup_id,
           buffer = bufnr,
           callback = function()
@@ -114,7 +119,7 @@ function M.setup_lsp_colors(bufnr, options, options_local, add_highlight)
     -- this will be triggered when no lsp is attached
     vim.api.nvim_buf_clear_namespace(bufnr, namespace, 0, -1)
 
-    state[bufnr].CLIENT = nil
+    state[bufnr].client = nil
 
     local ok, tailwind_client = pcall(function()
       return vim.lsp.get_clients({ bufnr = bufnr, name = "tailwindcss" })
@@ -144,7 +149,7 @@ function M.setup_lsp_colors(bufnr, options, options_local, add_highlight)
       return true
     end
 
-    state[bufnr].CLIENT = tailwind_client
+    state[bufnr].client = tailwind_client
 
     -- wait 500 ms for the first request
     vim.defer_fn(function()
@@ -155,7 +160,7 @@ function M.setup_lsp_colors(bufnr, options, options_local, add_highlight)
   end
 
   -- only try to do tailwindcss highlight if lsp is attached
-  if state[bufnr].CLIENT then
+  if state[bufnr].client then
     highlight_tailwind(bufnr, namespace, options, add_highlight)
   end
 end

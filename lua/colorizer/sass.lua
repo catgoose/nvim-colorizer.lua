@@ -1,4 +1,9 @@
---@module colorizer.sass
+--- Manages Sass variable parsing and color detection for buffers.
+-- This module handles the parsing of Sass color variables, managing import statements,
+-- and watching files for updates to Sass variable definitions.
+-- It supports recursive Sass imports, resolving color values for each variable, and caching color definitions.
+-- @module colorizer.sass
+
 local M = {}
 
 local utils = require("colorizer.utils")
@@ -27,7 +32,7 @@ function M.cleanup(bufnr)
 end
 
 --- Parse the given line for sass color names
--- check for value in SASS[buf].DEFINITIONS_ALL
+-- check for value in state[buf].definitions_all
 ---@param line string: Line to parse
 ---@param i number: Index of line from where to start parsing
 ---@param bufnr number

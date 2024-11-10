@@ -68,11 +68,11 @@
     <ul>
         <pre class="example"> Establish the autocmd to highlight all filetypes.
 
-       `lua require &apos;colorizer&apos;.setup()`
+       `lua require(&apos;colorizer&apos;).setup()`
 
  Highlight using all css highlight modes in every filetype
 
-       `lua require &apos;colorizer&apos;.setup(user_default_options = { css = true; })`
+       `lua require(&apos;colorizer&apos;).setup(user_default_options = { css = true })`
 
 ==============================================================================
 USE WITH COMMANDS                                          *colorizer-commands*
@@ -147,16 +147,16 @@ Detach
 <h2><a href="#Functions">Functions</a></h2>
 <table class="function_list">
 	<tr>
+	<td class="name" nowrap><a href="#highlight_buffer">highlight_buffer ()</a></td>
+	<td class="summary">Highlight the buffer region.</td>
+	</tr>
+	<tr>
 	<td class="name" nowrap><a href="#rehighlight">rehighlight (bufnr, options, options_local, use_local_lines)</a></td>
 	<td class="summary">Rehighlight the buffer if colorizer is active</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#is_buffer_attached">is_buffer_attached (bufnr)</a></td>
-	<td class="summary">Colorizer state</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#get_buffer_options">get_buffer_options (bufnr)</a></td>
-	<td class="summary">Return the currently active buffer options.</td>
+	<td class="summary">Check if attached to a buffer</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#reload_all_buffers">reload_all_buffers ()</a></td>
@@ -174,10 +174,6 @@ Detach
 	<td class="name" nowrap><a href="#setup">setup (opts)</a></td>
 	<td class="summary">Easy to use function if you want the full setup without fine grained control.</td>
 	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#clear_highlight_cache">clear_highlight_cache ()</a></td>
-	<td class="summary">Clear the highlight cache and reload all buffers.</td>
-	</tr>
 </table>
 <h2><a href="#Fields">Fields</a></h2>
 <table class="function_list">
@@ -194,6 +190,24 @@ Detach
     <h2 class="section-header "><a name="Functions"></a>Functions</h2>
 
     <dl class="function">
+    <dt>
+    <a name = "highlight_buffer"></a>
+    <strong>highlight_buffer ()</strong>
+    </dt>
+    <dd>
+    Highlight the buffer region.
+
+
+
+
+
+    <h3>See also:</h3>
+    <ul>
+         <a href="../modules/colorizer.buffer.html#highlight">colorizer.buffer.highlight</a>
+    </ul>
+
+
+</dd>
     <dt>
     <a name = "rehighlight"></a>
     <strong>rehighlight (bufnr, options, options_local, use_local_lines)</strong>
@@ -233,7 +247,7 @@ Detach
     <strong>is_buffer_attached (bufnr)</strong>
     </dt>
     <dd>
-    Colorizer state
+    Check if attached to a buffer
 
 
     <h3>Parameters:</h3>
@@ -254,31 +268,6 @@ Detach
     <ul>
          <a href="../modules/colorizer.buffer.html#highlight">colorizer.buffer.highlight</a>
     </ul>
-
-
-</dd>
-    <dt>
-    <a name = "get_buffer_options"></a>
-    <strong>get_buffer_options (bufnr)</strong>
-    </dt>
-    <dd>
-    Return the currently active buffer options.
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">bufnr</span>
-         number|nil: buffer number (0 for current)
-        </li>
-    </ul>
-
-    <h3>Returns:</h3>
-    <ol>
-
-        table|nil
-    </ol>
-
-
 
 
 </dd>
@@ -364,37 +353,27 @@ Setup with all the default options:~
       buftypes = {},
     }
 </pre>
-For all user_default_options, see |user_default_options|
+Setup colorizer with user options
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">opts</span>
-         table: Config containing above parameters.
+         table: User provided options
         </li>
     </ul>
 
 
 
+    <h3>See also:</h3>
+    <ul>
+         <a href="../modules/colorizer.config.html#">colorizer.config</a>
+    </ul>
 
     <h3>Usage:</h3>
     <ul>
-        <pre class="example"><span class="backtick">`require'colorizer'.setup()`</span></pre>
+        <pre class="example"><span class="backtick">`require('colorizer').setup()`</span></pre>
     </ul>
-
-</dd>
-    <dt>
-    <a name = "clear_highlight_cache"></a>
-    <strong>clear_highlight_cache ()</strong>
-    </dt>
-    <dd>
-    Clear the highlight cache and reload all buffers.
-
-
-
-
-
-
 
 </dd>
 </dl>

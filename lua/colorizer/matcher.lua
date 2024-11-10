@@ -1,4 +1,9 @@
---@module colorizer.matcher
+--- Manages matching and parsing of color patterns in buffers.
+-- This module provides functions for setting up and applying color parsers
+-- for different color formats such as RGB, HSL, hexadecimal, and named colors.
+-- It uses a trie-based structure to optimize prefix-based parsing.
+-- @module colorizer.matcher
+
 local M = {}
 
 local Trie = require("colorizer.trie")
@@ -23,7 +28,7 @@ local parser = {
 ---@param matchers table: List of prefixes, {"rgb", "hsl"}
 ---@param matchers_trie table: Table containing information regarding non-trie based parsers
 ---@return function: function which will just parse the line for enabled parsers
-function M.compile(matchers, matchers_trie)
+local function compile(matchers, matchers_trie)
   local trie = Trie(matchers_trie)
 
   local function parse_fn(line, i, buf)
@@ -58,7 +63,7 @@ function M.compile(matchers, matchers_trie)
   return parse_fn
 end
 
-local MATCHER_CACHE = {}
+local matcher_cache = {}
 ---Parse the given options and return a function with enabled parsers.
 --if no parsers enabled then return false
 --Do not try make the function again if it is present in the cache
@@ -98,7 +103,7 @@ function M.make(options)
     return false
   end
 
-  local loop_parse_fn = MATCHER_CACHE[matcher_key]
+  local loop_parse_fn = matcher_cache[matcher_key]
   if loop_parse_fn then
     return loop_parse_fn
   end
@@ -152,8 +157,8 @@ function M.make(options)
     matchers[value] = { prefix = value }
   end
 
-  loop_parse_fn = M.compile(matchers, matchers_prefix)
-  MATCHER_CACHE[matcher_key] = loop_parse_fn
+  loop_parse_fn = compile(matchers, matchers_prefix)
+  matcher_cache[matcher_key] = loop_parse_fn
 
   return loop_parse_fn
 end

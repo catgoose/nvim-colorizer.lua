@@ -1,12 +1,14 @@
+---Provides highlighting functions for buffer
 --@module colorizer.buffer
---  TODO: 2024-11-08 - rename this to highlight
+
 local M = {}
 
 local color = require("colorizer.color")
-local make_matcher = require("colorizer.matcher").make
+local plugin_name = "colorizer"
 local sass = require("colorizer.sass")
 local tailwind = require("colorizer.tailwind")
-local plugin_name = "colorizer"
+local utils = require("colorizer.utils")
+local make_matcher = require("colorizer.matcher").make
 
 local hl_state = {
   name_prefix = plugin_name,
@@ -78,9 +80,9 @@ end
 
 --- Create highlight and set highlights
 ---@param bufnr number: buffer number (0 for current)
----@param ns_id number
----@param line_start number
----@param line_end number
+---@param ns_id number: namespace id.  default is "colorizer", created with vim.api.nvim_create_namespace
+---@param line_start number: line_start should be 0-indexed
+---@param line_end number: Last line to highlight
 ---@param data table: table output of `parse_lines`
 ---@param options table: Passed in setup, mainly for `user_default_options`
 function M.add_highlight(bufnr, ns_id, line_start, line_end, data, options)
@@ -200,6 +202,12 @@ function M.parse_lines(bufnr, lines, line_start, options)
   end
 
   return data
+end
+
+--- Clear the highlight cache and reload all buffers.
+function M.clear_highlight_cache()
+  utils.clear_hl_cache()
+  vim.schedule(buffer.reload_all_buffers)
 end
 
 return M

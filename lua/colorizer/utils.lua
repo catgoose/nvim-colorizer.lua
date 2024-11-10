@@ -1,4 +1,8 @@
---@module colorizer.utils
+--- Provides utility functions for color handling and file operations.
+-- This module contains helper functions for checking byte categories, merging tables,
+-- parsing colors, managing file watchers, and handling buffer lines.
+-- @module colorizer.utils
+
 local M = {}
 
 local bit, ffi = require("bit"), require("ffi")
@@ -45,24 +49,24 @@ do
   end
 end
 
----Obvious.
----@param byte number
----@return boolean
+--- Checks if a byte represents an alphanumeric character.
+---@param byte number The byte to check.
+---@return boolean `true` if the byte is alphanumeric, otherwise `false`.
 function M.byte_is_alphanumeric(byte)
   local category = byte_category[byte]
   return band(category, category_alphanum) ~= 0
 end
 
----Obvious.
----@param byte number
----@return boolean
+--- Checks if a byte represents a hexadecimal character.
+---@param byte number The byte to check.
+---@return boolean `true` if the byte is hexadecimal, otherwise `false`.
 function M.byte_is_hex(byte)
   return band(byte_category[byte], category_hex) ~= 0
 end
 
----Valid colorchars are alphanumeric and - ( tailwind colors )
----@param byte number
----@return boolean
+--- Checks if a byte is valid as a color character (alphanumeric or `-` for Tailwind colors).
+---@param byte number The byte to check.
+---@return boolean `true` if the byte is valid, otherwise `false`.
 function M.byte_is_valid_colorchar(byte)
   return M.byte_is_alphanumeric(byte) or byte == ("-"):byte()
 end
@@ -110,9 +114,9 @@ function M.merge(...)
   return res
 end
 
---- Obvious.
----@param byte number
----@return number
+--- Parses a hexadecimal byte.
+---@param byte number The byte to parse.
+---@return number The parsed hexadecimal value of the byte.
 function M.parse_hex(byte)
   return rshift(byte_category[byte], 4)
 end
@@ -164,50 +168,10 @@ function M.watch_file(path, callback, ...)
   return handle
 end
 
---- Get the row range of the current window
----@param state colorizerState: Colorizer state
----@param bufnr number: Buffer number
-function M.getrow(state, bufnr)
-  state.buffer_lines[bufnr] = state.buffer_lines[bufnr] or {}
-  local a = vim.api.nvim_buf_call(bufnr, function()
-    return {
-      vim.fn.line("w0"),
-      vim.fn.line("w$"),
-    }
-  end)
-  local min, max
-  local new_min, new_max = a[1] - 1, a[2]
-  local old_min, old_max = state.buffer_lines[bufnr]["min"], state.buffer_lines[bufnr]["max"]
-  if old_min and old_max then
-    -- Triggered for TextChanged autocmds
-    -- TODO: Find a way to just apply highlight to changed text lines
-    if (old_max == new_max) or (old_min == new_min) then
-      min, max = new_min, new_max
-    -- Triggered for WinScrolled autocmd - Scroll Down
-    elseif old_max < new_max then
-      min = old_max
-      max = new_max
-    -- Triggered for WinScrolled autocmd - Scroll Up
-    elseif old_max > new_max then
-      min = new_min
-      max = new_min + (old_max - new_max)
-    end
-    -- just in case a long jump was made
-    if max - min > new_max - new_min then
-      min = new_min
-      max = new_max
-    end
-  end
-  min = min or new_min
-  max = max or new_max
-  -- store current window position to be used later to incremently highlight
-  state.buffer_lines[bufnr]["max"] = new_max
-  state.buffer_lines[bufnr]["min"] = new_min
-  return min, max
-end
-
---- Get validate buffer number
----@return number: Returns bufnr if valid buf and not 0, else current buffer
+--- Validates and returns a buffer number.
+-- If the provided buffer number is invalid, defaults to the current buffer.
+---@param bufnr number|nil: The buffer number to validate.
+---@return number The validated buffer number.
 function M.bufme(bufnr)
   return bufnr and bufnr ~= 0 and vim.api.nvim_buf_is_valid(bufnr) and bufnr
     or vim.api.nvim_get_current_buf()

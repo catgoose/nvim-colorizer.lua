@@ -34,6 +34,7 @@
 <h2>Contents</h2>
 <ul>
 <li><a href="#Functions">Functions</a></li>
+<li><a href="#Tables">Tables</a></li>
 <li><a href="#Fields">Fields</a></li>
 </ul>
 
@@ -62,7 +63,7 @@
 <div id="content">
 
 <h1>Module <code>colorizer.buffer</code></h1>
-<p>Highlight mode which will be use to render the color</p>
+<p>Provides highlighting functions for buffer</p>
 <p></p>
 
 
@@ -84,6 +85,17 @@
 	<td class="name" nowrap><a href="#parse_lines">parse_lines (bufnr, lines, line_start, options)</a></td>
 	<td class="summary">Parse the given lines for colors and return a table containing
  rgb_hex and range per line</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#clear_highlight_cache">clear_highlight_cache ()</a></td>
+	<td class="summary">Clear the highlight cache and reload all buffers.</td>
+	</tr>
+</table>
+<h2><a href="#Tables">Tables</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#highlight_mode_names">highlight_mode_names</a></td>
+	<td class="summary">Highlight mode which will be use to render the color</td>
 	</tr>
 </table>
 <h2><a href="#Fields">Fields</a></h2>
@@ -129,13 +141,13 @@
          number: buffer number (0 for current)
         </li>
         <li><span class="parameter">ns_id</span>
-         number
+         number: namespace id.  default is "colorizer", created with vim.api.nvim_create_namespace
         </li>
         <li><span class="parameter">line_start</span>
-         number
+         number: line_start should be 0-indexed
         </li>
         <li><span class="parameter">line_end</span>
-         number
+         number: Last line to highlight
         </li>
         <li><span class="parameter">data</span>
          table: table output of `parse_lines`
@@ -222,6 +234,50 @@
 
         table|nil
     </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "clear_highlight_cache"></a>
+    <strong>clear_highlight_cache ()</strong>
+    </dt>
+    <dd>
+    Clear the highlight cache and reload all buffers.
+
+
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header "><a name="Tables"></a>Tables</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "highlight_mode_names"></a>
+    <strong>highlight_mode_names</strong>
+    </dt>
+    <dd>
+    Highlight mode which will be use to render the color
+
+
+    <h3>Fields:</h3>
+    <ul>
+        <li><span class="parameter">background</span>
+
+        </li>
+        <li><span class="parameter">foreground</span>
+
+        </li>
+        <li><span class="parameter">virtualtext</span>
+
+        </li>
+    </ul>
+
 
 
 
