@@ -31,17 +31,13 @@
   <li><a href="../index.html">Index</a></li>
 </ul>
 
-<h2>Contents</h2>
-<ul>
-<li><a href="#Functions">Functions</a></li>
-</ul>
 
 
 <h2>Modules</h2>
 <ul class="nowrap">
   <li><a href="../modules/colorizer.html">colorizer</a></li>
   <li><a href="../modules/colorizer.buffer.html">buffer</a></li>
-  <li><strong>color</strong></li>
+  <li><a href="../modules/colorizer.color.html">color</a></li>
   <li><a href="../modules/colorizer.config.html">config</a></li>
   <li><a href="../modules/colorizer.matcher.html">matcher</a></li>
   <li><a href="../modules/colorizer.parser.argb_hex.html">parser.argb_hex</a></li>
@@ -52,7 +48,7 @@
   <li><a href="../modules/colorizer.sass.html">sass</a></li>
   <li><a href="../modules/colorizer.tailwind.html">tailwind</a></li>
   <li><a href="../modules/colorizer.trie.html">trie</a></li>
-  <li><a href="../modules/colorizer.usercmds.html">usercmds</a></li>
+  <li><strong>usercmds</strong></li>
   <li><a href="../modules/colorizer.utils.html">utils</a></li>
 </ul>
 
@@ -60,91 +56,16 @@
 
 <div id="content">
 
-<h1>Module <code>colorizer.color</code></h1>
-<p>Converts an HSL color value to RGB.</p>
+<h1>Module <code>colorizer.usercmds</code></h1>
+<p>Create User Commands</p>
 <p></p>
 
 
-<h2><a href="#Functions">Functions</a></h2>
-<table class="function_list">
-	<tr>
-	<td class="name" nowrap><a href="#hue_to_rgb">hue_to_rgb (p, q, t)</a></td>
-	<td class="summary">Convert hsl color values to rgb.</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#is_bright">is_bright (r, g, b)</a></td>
-	<td class="summary">Determine whether to use black or white text.</td>
-	</tr>
-</table>
 
 <br/>
 <br/>
 
 
-    <h2 class="section-header "><a name="Functions"></a>Functions</h2>
-
-    <dl class="function">
-    <dt>
-    <a name = "hue_to_rgb"></a>
-    <strong>hue_to_rgb (p, q, t)</strong>
-    </dt>
-    <dd>
-    Convert hsl color values to rgb.
- Source: https://gist.github.com/mjackson/5311256
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">p</span>
-         number
-        </li>
-        <li><span class="parameter">q</span>
-         number
-        </li>
-        <li><span class="parameter">t</span>
-         number
-        </li>
-    </ul>
-
-    <h3>Returns:</h3>
-    <ol>
-
-        number
-    </ol>
-
-
-
-
-</dd>
-    <dt>
-    <a name = "is_bright"></a>
-    <strong>is_bright (r, g, b)</strong>
-    </dt>
-    <dd>
-    Determine whether to use black or white text.
-<p> ref: https://stackoverflow.com/a/1855903/837964
- https://stackoverflow.com/questions/596216/formula-to-determine-brightness-of-rgb-color
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">r</span>
-         number: Red
-        </li>
-        <li><span class="parameter">g</span>
-         number: Green
-        </li>
-        <li><span class="parameter">b</span>
-         number: Blue
-        </li>
-    </ul>
-
-
-
-
-
-</dd>
-</dl>
 
 
 </div> <!-- id="content" -->

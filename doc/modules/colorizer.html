@@ -26,6 +26,7 @@
 <br/>
 <h1>colorizer</h1>
 
+
 <ul>
   <li><a href="../index.html">Index</a></li>
 </ul>
@@ -33,7 +34,6 @@
 <h2>Contents</h2>
 <ul>
 <li><a href="#Functions">Functions</a></li>
-<li><a href="#Tables">Tables</a></li>
 <li><a href="#Fields">Fields</a></li>
 </ul>
 
@@ -43,6 +43,7 @@
   <li><strong>colorizer</strong></li>
   <li><a href="../modules/colorizer.buffer.html">buffer</a></li>
   <li><a href="../modules/colorizer.color.html">color</a></li>
+  <li><a href="../modules/colorizer.config.html">config</a></li>
   <li><a href="../modules/colorizer.matcher.html">matcher</a></li>
   <li><a href="../modules/colorizer.parser.argb_hex.html">parser.argb_hex</a></li>
   <li><a href="../modules/colorizer.parser.hsl.html">parser.hsl</a></li>
@@ -52,6 +53,7 @@
   <li><a href="../modules/colorizer.sass.html">sass</a></li>
   <li><a href="../modules/colorizer.tailwind.html">tailwind</a></li>
   <li><a href="../modules/colorizer.trie.html">trie</a></li>
+  <li><a href="../modules/colorizer.usercmds.html">usercmds</a></li>
   <li><a href="../modules/colorizer.utils.html">utils</a></li>
 </ul>
 
@@ -60,14 +62,8 @@
 <div id="content">
 
 <h1>Module <code>colorizer</code></h1>
-<p>Requires Neovim >= 0.7.0 and <code>set termguicolors</code></p>
+<p>Requires Neovim >= 0.7.0 and `set termguicolors`</p>
 <p>Highlights terminal CSI ANSI color codes.</p>
-    <h3>See also:</h3>
-    <ul>
-         <li><a href="../modules/colorizer.html#setup">colorizer.setup</a></li>
-         <li><a href="../modules/colorizer.html#attach_to_buffer">colorizer.attach_to_buffer</a></li>
-         <li><a href="../modules/colorizer.html#detach_from_buffer">colorizer.detach_from_buffer</a></li>
-    </ul>
     <h3>Usage:</h3>
     <ul>
         <pre class="example"> Establish the autocmd to highlight all filetypes.
@@ -83,12 +79,12 @@ USE WITH COMMANDS                                          *colorizer-commands*
 
    *:ColorizerAttachToBuffer*
 
-       Attach to the current buffer and start highlighting with the settings as
-       specified in setup (or the defaults).
+       Attach to the current buffer and start continuously highlighting
+       matched color names and codes.
 
        If the buffer was already attached(i.e. being highlighted), the
-       settings will be reloaded with the ones from setup.
-       This is useful for reloading settings for just one buffer.
+       settings will be reloaded. This is useful for reloading settings for
+       just one buffer.
 
    *:ColorizerDetachFromBuffer*
 
@@ -97,61 +93,69 @@ USE WITH COMMANDS                                          *colorizer-commands*
    *:ColorizerReloadAllBuffers*
 
        Reload all buffers that are being highlighted currently.
-       Shortcut for ColorizerAttachToBuffer on every buffer.
+       Calls ColorizerAttachToBuffer on every buffer.
 
    *:ColorizerToggle*
        Toggle highlighting of the current buffer.
 
 USE WITH LUA
 
-       All options that can be passed to user_default_options in `setup`
-       can be passed here. Can be empty too.
-       `0` is the buffer number here
+Attach
+       Accepts buffer number (0 or nil for current) and an option
+       table of user_default_options from `setup`.  Option table can be nil
+       which defaults to setup options
 
-       Attach to current buffer &lt;pre&gt;
+       Attach to current buffer with local options &lt;pre&gt;
            require(&quot;colorizer&quot;).attach_to_buffer(0, {
              mode = &quot;background&quot;,
              css = false,
            })
 &lt;/pre&gt;
-       Detach from buffer &lt;pre&gt;
-           require(&quot;colorizer&quot;).detach_from_buffer(0, {
+
+       Attach to current buffer with setup options &lt;pre&gt;
+           require(&quot;colorizer&quot;).attach_to_buffer(0, {
              mode = &quot;background&quot;,
              css = false,
            })
+&lt;/pre&gt;
+
+       Accepts an optional buffer number (0 or nil for current).  Defaults to
+       current buffer.
+
+Detach
+
+       Detach to buffer with id 22 &lt;pre&gt;
+           require(&quot;colorizer&quot;).attach_to_buffer(22)
+&lt;/pre&gt;
+
+       Detach from current buffer &lt;pre&gt;
+           require(&quot;colorizer&quot;).detach_from_buffer(0)
+           require(&quot;colorizer&quot;).detach_from_buffer()
+&lt;/pre&gt;
+
+       Detach from buffer with id 22 &lt;pre&gt;
+           require(&quot;colorizer&quot;).detach_from_buffer(22)
 &lt;/pre&gt;
 </pre>
     </ul>
     <h3>Info:</h3>
     <ul>
-        <li><strong>Author</strong>: Ashkan Kiani <a href="&#x6d;&#97;&#x69;&#108;&#x74;&#111;&#x3a;f&#114;&#x6f;&#109;&#x2d;&#110;&#x76;&#105;&#x6d;-&#99;&#x6f;&#108;&#x6f;&#114;&#x69;&#122;&#x65;&#114;&#x2e;l&#117;&#x61;&#64;&#x6b;&#105;&#x61;&#110;&#x69;.&#105;&#x6f;">&#x66;&#114;&#x6f;&#109;&#x2d;&#110;&#x76;i&#109;&#x2d;&#99;&#x6f;&#108;&#x6f;&#114;&#x69;z&#101;&#x72;&#46;&#x6c;&#117;&#x61;&#64;&#x6b;&#105;&#x61;n&#105;&#x2e;&#105;&#x6f;</a></li>
+        <li><strong>Author</strong>: Ashkan Kiani <from-nvim-colorizer.lua@kiani.io></li>
     </ul>
 
 
 <h2><a href="#Functions">Functions</a></h2>
 <table class="function_list">
 	<tr>
-	<td class="name" nowrap><a href="#highlight_buffer">highlight_buffer ()</a></td>
-	<td class="summary">Highlight the buffer region</td>
+	<td class="name" nowrap><a href="#rehighlight">rehighlight (bufnr, options, options_local, use_local_lines)</a></td>
+	<td class="summary">Rehighlight the buffer if colorizer is active</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#is_buffer_attached">is_buffer_attached (buf)</a></td>
-	<td class="summary">Check if attached to a buffer.</td>
+	<td class="name" nowrap><a href="#is_buffer_attached">is_buffer_attached (bufnr)</a></td>
+	<td class="summary">Colorizer state</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#detach_from_buffer">detach_from_buffer (buf, ns)</a></td>
-	<td class="summary">Stop highlighting the current buffer.</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#attach_to_buffer">attach_to_buffer (buf, options, typ)</a></td>
-	<td class="summary">Attach to a buffer and continuously highlight changes.</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#setup">setup (config)</a></td>
-	<td class="summary">Easy to use function if you want the full setup without fine grained control.</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#get_buffer_options">get_buffer_options (buf)</a></td>
+	<td class="name" nowrap><a href="#get_buffer_options">get_buffer_options (bufnr)</a></td>
 	<td class="summary">Return the currently active buffer options.</td>
 	</tr>
 	<tr>
@@ -159,22 +163,27 @@ USE WITH LUA
 	<td class="summary">Reload all of the currently active highlighted buffers.</td>
 	</tr>
 	<tr>
+	<td class="name" nowrap><a href="#attach_to_buffer">attach_to_buffer (bufnr, options, bo_type)</a></td>
+	<td class="summary">Attach to a buffer and continuously highlight changes.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#detach_from_buffer">detach_from_buffer (bufnr)</a></td>
+	<td class="summary">Stop highlighting the current buffer.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#setup">setup (opts)</a></td>
+	<td class="summary">Easy to use function if you want the full setup without fine grained control.</td>
+	</tr>
+	<tr>
 	<td class="name" nowrap><a href="#clear_highlight_cache">clear_highlight_cache ()</a></td>
 	<td class="summary">Clear the highlight cache and reload all buffers.</td>
-	</tr>
-</table>
-<h2><a href="#Tables">Tables</a></h2>
-<table class="function_list">
-	<tr>
-	<td class="name" nowrap><a href="#user_default_options">user_default_options</a></td>
-	<td class="summary">defaults options.</td>
 	</tr>
 </table>
 <h2><a href="#Fields">Fields</a></h2>
 <table class="function_list">
 	<tr>
-	<td class="name" nowrap><a href="#DEFAULT_NAMESPACE">DEFAULT_NAMESPACE</a></td>
-	<td class="summary">Default namespace used in <a href="../modules/colorizer.buffer.html#highlight">colorizer.buffer.highlight</a> and <a href="../modules/colorizer.html#attach_to_buffer">attach_to_buffer</a>.</td>
+	<td class="name" nowrap><a href="#default_namespace">default_namespace</a></td>
+	<td class="summary">Default namespace used in `colorizer.buffer.highlight` and `attach_to_buffer`.</td>
 	</tr>
 </table>
 
@@ -186,34 +195,50 @@ USE WITH LUA
 
     <dl class="function">
     <dt>
-    <a name = "highlight_buffer"></a>
-    <strong>highlight_buffer ()</strong>
+    <a name = "rehighlight"></a>
+    <strong>rehighlight (bufnr, options, options_local, use_local_lines)</strong>
     </dt>
     <dd>
-    Highlight the buffer region
+    Rehighlight the buffer if colorizer is active
 
 
-
-
-
-    <h3>See also:</h3>
+    <h3>Parameters:</h3>
     <ul>
-         <a href="../modules/colorizer.buffer.html#highlight">colorizer.buffer.highlight</a>
+        <li><span class="parameter">bufnr</span>
+         number: buffer number (0 for current)
+        </li>
+        <li><span class="parameter">options</span>
+         table: Buffer options
+        </li>
+        <li><span class="parameter">options_local</span>
+         table|nil: Buffer local variables
+        </li>
+        <li><span class="parameter">use_local_lines</span>
+         boolean|nil Whether to use lines num range from options_local
+        </li>
     </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        nil|boolean|number,table
+    </ol>
+
+
 
 
 </dd>
     <dt>
     <a name = "is_buffer_attached"></a>
-    <strong>is_buffer_attached (buf)</strong>
+    <strong>is_buffer_attached (bufnr)</strong>
     </dt>
     <dd>
-    Check if attached to a buffer.
+    Colorizer state
 
 
     <h3>Parameters:</h3>
     <ul>
-        <li><span class="parameter">buf</span>
+        <li><span class="parameter">bufnr</span>
          number|nil: A value of 0 implies the current buffer.
         </li>
     </ul>
@@ -233,103 +258,8 @@ USE WITH LUA
 
 </dd>
     <dt>
-    <a name = "detach_from_buffer"></a>
-    <strong>detach_from_buffer (buf, ns)</strong>
-    </dt>
-    <dd>
-    Stop highlighting the current buffer.
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">buf</span>
-         number|nil: buf A value of 0 or nil implies the current buffer.
-        </li>
-        <li><span class="parameter">ns</span>
-         number|nil: ns the namespace id, if not given DEFAULT_NAMESPACE is used
-        </li>
-    </ul>
-
-
-
-
-
-</dd>
-    <dt>
-    <a name = "attach_to_buffer"></a>
-    <strong>attach_to_buffer (buf, options, typ)</strong>
-    </dt>
-    <dd>
-    Attach to a buffer and continuously highlight changes.
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">buf</span>
-         integer: A value of 0 implies the current buffer.
-        </li>
-        <li><span class="parameter">options</span>
-         table|nil: Configuration options as described in <a href="../modules/colorizer.html#setup">setup</a>
-        </li>
-        <li><span class="parameter">typ</span>
-         string|nil: "buf" or "file" - The type of buffer option
-        </li>
-    </ul>
-
-
-
-
-
-</dd>
-    <dt>
-    <a name = "setup"></a>
-    <strong>setup (config)</strong>
-    </dt>
-    <dd>
-    Easy to use function if you want the full setup without fine grained control.
-Setup an autocmd which enables colorizing for the filetypes and options specified.</p>
-
-<p>By default highlights all FileTypes.</p>
-
-<p>Example config:~</p>
-
-<pre>
-  { filetypes = { "css", "html" }, user_default_options = { names = true } }
-</pre>
-
-<p>Setup with all the default options:~</p>
-
-<pre>
-    require("colorizer").setup {
-      filetypes = { "*" },
-      user_default_options,
-      -- all the sub-options of filetypes apply to buftypes
-      buftypes = {},
-    }
-</pre>
-
-<p>For all user<em>default</em>options, see |user<em>default</em>options|
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">config</span>
-         table: Config containing above parameters.
-        </li>
-    </ul>
-
-
-
-
-    <h3>Usage:</h3>
-    <ul>
-        <pre class="example"><span class="backtick"><code>require&apos;colorizer&apos;.setup()</code></span></pre>
-    </ul>
-
-</dd>
-    <dt>
     <a name = "get_buffer_options"></a>
-    <strong>get_buffer_options (buf)</strong>
+    <strong>get_buffer_options (bufnr)</strong>
     </dt>
     <dd>
     Return the currently active buffer options.
@@ -337,8 +267,8 @@ Setup an autocmd which enables colorizing for the filetypes and options specifie
 
     <h3>Parameters:</h3>
     <ul>
-        <li><span class="parameter">buf</span>
-         number|nil: Buffer number
+        <li><span class="parameter">bufnr</span>
+         number|nil: buffer number (0 for current)
         </li>
     </ul>
 
@@ -367,6 +297,93 @@ Setup an autocmd which enables colorizing for the filetypes and options specifie
 
 </dd>
     <dt>
+    <a name = "attach_to_buffer"></a>
+    <strong>attach_to_buffer (bufnr, options, bo_type)</strong>
+    </dt>
+    <dd>
+    Attach to a buffer and continuously highlight changes.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">bufnr</span>
+         number|nil: buffer number (0 for current)
+        </li>
+        <li><span class="parameter">options</span>
+         table|nil: Configuration options as described in `setup`
+        </li>
+        <li><span class="parameter">bo_type</span>
+         'buftype'|'filetype'|nil: The type of buffer option
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "detach_from_buffer"></a>
+    <strong>detach_from_buffer (bufnr)</strong>
+    </dt>
+    <dd>
+    Stop highlighting the current buffer.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">bufnr</span>
+         number|nil: buffer number (0 for current)
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "setup"></a>
+    <strong>setup (opts)</strong>
+    </dt>
+    <dd>
+    Easy to use function if you want the full setup without fine grained control.
+Setup an autocmd which enables colorizing for the filetypes and options specified.
+<p>By default highlights all FileTypes.
+<p>Example config:~
+<pre>
+  { filetypes = { "css", "html" }, user_default_options = { names = true } }
+</pre>
+Setup with all the default options:~
+<pre>
+    require("colorizer").setup {
+      user_commands,
+      filetypes = { "*" },
+      user_default_options,
+      -- all the sub-options of filetypes apply to buftypes
+      buftypes = {},
+    }
+</pre>
+For all user_default_options, see |user_default_options|
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">opts</span>
+         table: Config containing above parameters.
+        </li>
+    </ul>
+
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example"><span class="backtick">`require'colorizer'.setup()`</span></pre>
+    </ul>
+
+</dd>
+    <dt>
     <a name = "clear_highlight_cache"></a>
     <strong>clear_highlight_cache ()</strong>
     </dt>
@@ -381,145 +398,29 @@ Setup an autocmd which enables colorizing for the filetypes and options specifie
 
 </dd>
 </dl>
-    <h2 class="section-header "><a name="Tables"></a>Tables</h2>
+    <h2 class="section-header "><a name="Fields"></a>Fields</h2>
 
     <dl class="function">
     <dt>
-    <a name = "user_default_options"></a>
-    <strong>user_default_options</strong>
+    <a name = "default_namespace"></a>
+    <strong>default_namespace</strong>
     </dt>
     <dd>
-
-<p>defaults options.
-In <a href="../modules/colorizer.html#user_default_options">user_default_options</a>, there are 2 types of options</p>
-
-<ol>
-    <li><p>Individual options - <code>names</code>, <code>RGB</code>, <code>RRGGBB</code>, <code>RRGGBBAA</code>, <code>hsl_fn</code>, <code>rgb_fn</code> , <code>RRGGBBAA</code>, <code>AARRGGBB</code>, <code>tailwind</code>, <code>sass</code></p></li>
-    <li><p>Alias options - <code>css</code>, <code>css_fn</code></p></li>
-</ol>
-
-<p>If <code>css_fn</code> is true, then <code>hsl_fn</code>, <code>rgb_fn</code> becomes <code>true</code></p>
-
-<p>If <code>css</code> is true, then <code>names</code>, <code>RGB</code>, <code>RRGGBB</code>, <code>RRGGBBAA</code>, <code>hsl_fn</code>, <code>rgb_fn</code> becomes <code>true</code></p>
-
-<p>These options have a priority, Individual options have the highest priority, then alias options</p>
-
-<p>For alias, <code>css_fn</code> has more priority over <code>css</code></p>
-
-<p>e.g: Here <code>RGB</code>, <code>RRGGBB</code>, <code>RRGGBBAA</code>, <code>hsl_fn</code>, <code>rgb_fn</code> is enabled but not <code>names</code></p>
+    Default namespace used in `colorizer.buffer.highlight` and `attach_to_buffer`.
 
 
-<pre>
-  require 'colorizer'.setup { user_default_options = { names = false, css = true } }
-</pre>
-
-
-<p>e.g: Here <code>names</code>, <code>RGB</code>, <code>RRGGBB</code>, <code>RRGGBBAA</code> is enabled but not <code>rgb_fn</code> and <code>hsl_fn</code></p>
-
-
-<pre>
-  require 'colorizer'.setup { user_default_options = { css_fn = false, css = true } }
-</pre>
-
-
-
-<pre>
-  user_default_options = {
-      RGB = true, -- #RGB hex codes
-      RRGGBB = true, -- #RRGGBB hex codes
-      names = true, -- "Name" codes like Blue or blue
-      RRGGBBAA = false, -- #RRGGBBAA hex codes
-      AARRGGBB = false, -- 0xAARRGGBB hex codes
-      rgb_fn = false, -- CSS rgb() and rgba() functions
-      hsl_fn = false, -- CSS hsl() and hsla() functions
-      css = false, -- Enable all CSS features: rgb_fn, hsl_fn, names, RGB, RRGGBB
-      css_fn = false, -- Enable all CSS *functions*: rgb_fn, hsl_fn
-      -- Available modes for <code>mode</code>: foreground, background,  virtualtext
-      mode = "background", -- Set the display mode.
-      -- Available methods are false / true / "normal" / "lsp" / "both"
-      -- True is same as normal
-      tailwind = false, -- Enable tailwind colors
-      -- parsers can contain values used in |user_default_options|
-      sass = { enable = false, parsers = { css }, }, -- Enable sass colors
-      virtualtext = "■",
-      -- update color values even if buffer is not focused
-      always_update = false
-  }
-</pre>
-
-
-
-
-    <h3>Fields:</h3>
     <ul>
-        <li><span class="parameter">RGB</span>
-         boolean
-        </li>
-        <li><span class="parameter">RRGGBB</span>
-         boolean
-        </li>
-        <li><span class="parameter">names</span>
-         boolean
-        </li>
-        <li><span class="parameter">RRGGBBAA</span>
-         boolean
-        </li>
-        <li><span class="parameter">AARRGGBB</span>
-         boolean
-        </li>
-        <li><span class="parameter">rgb_fn</span>
-         boolean
-        </li>
-        <li><span class="parameter">hsl_fn</span>
-         boolean
-        </li>
-        <li><span class="parameter">css</span>
-         boolean
-        </li>
-        <li><span class="parameter">css_fn</span>
-         boolean
-        </li>
-        <li><span class="parameter">mode</span>
-         string
-        </li>
-        <li><span class="parameter">tailwind</span>
-         boolean|string
-        </li>
-        <li><span class="parameter">sass</span>
-         table
-        </li>
-        <li><span class="parameter">virtualtext</span>
-         string
-        </li>
-        <li><span class="parameter">always_update</span>
-         boolean
+        <li><span class="parameter">:</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+         default_namespace
         </li>
     </ul>
 
 
 
-
-
-</dd>
-</dl>
-    <h2 class="section-header "><a name="Fields"></a>Fields</h2>
-
-    <dl class="function">
-    <dt>
-    <a name = "DEFAULT_NAMESPACE"></a>
-    <strong>DEFAULT_NAMESPACE</strong>
-    </dt>
-    <dd>
-    Default namespace used in <a href="../modules/colorizer.buffer.html#highlight">colorizer.buffer.highlight</a> and <a href="../modules/colorizer.html#attach_to_buffer">attach_to_buffer</a>.
-
-
-
-
-
     <h3>See also:</h3>
     <ul>
-         <li><a href="../modules/colorizer.buffer.html#highlight">colorizer.buffer.highlight</a></li>
-         <li><a href="../modules/colorizer.html#attach_to_buffer">attach_to_buffer</a></li>
+         <a href="../modules/colorizer.buffer.html#default_namespace">colorizer.buffer.default_namespace</a>
     </ul>
 
 
@@ -530,8 +431,8 @@ In <a href="../modules/colorizer.html#user_default_options">user_default_options
 </div> <!-- id="content" -->
 </div> <!-- id="main" -->
 <div id="about">
-<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated - February </i>
+<i>generated by <a href="http://github.com/lunarmodules/LDoc">LDoc 1.5.0</a></i>
+<i style="float:right;">Last updated - November </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>

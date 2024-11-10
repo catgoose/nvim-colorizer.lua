@@ -1,0 +1,321 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>colorizer Docs</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>colorizer</h1>
+
+
+<ul>
+  <li><a href="../index.html">Index</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Functions">Functions</a></li>
+<li><a href="#Tables">Tables</a></li>
+</ul>
+
+
+<h2>Modules</h2>
+<ul class="nowrap">
+  <li><a href="../modules/colorizer.html">colorizer</a></li>
+  <li><a href="../modules/colorizer.buffer.html">buffer</a></li>
+  <li><a href="../modules/colorizer.color.html">color</a></li>
+  <li><strong>config</strong></li>
+  <li><a href="../modules/colorizer.matcher.html">matcher</a></li>
+  <li><a href="../modules/colorizer.parser.argb_hex.html">parser.argb_hex</a></li>
+  <li><a href="../modules/colorizer.parser.hsl.html">parser.hsl</a></li>
+  <li><a href="../modules/colorizer.parser.names.html">parser.names</a></li>
+  <li><a href="../modules/colorizer.parser.rgb.html">parser.rgb</a></li>
+  <li><a href="../modules/colorizer.parser.rgba_hex.html">parser.rgba_hex</a></li>
+  <li><a href="../modules/colorizer.sass.html">sass</a></li>
+  <li><a href="../modules/colorizer.tailwind.html">tailwind</a></li>
+  <li><a href="../modules/colorizer.trie.html">trie</a></li>
+  <li><a href="../modules/colorizer.usercmds.html">usercmds</a></li>
+  <li><a href="../modules/colorizer.utils.html">utils</a></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Module <code>colorizer.config</code></h1>
+<p>defaults options.</p>
+<p>
+In `user_default_options`, there are 2 types of options
+<p>1. Individual options - `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn` , `RRGGBBAA`, `AARRGGBB`, `tailwind`, `sass`
+<p>1. Alias options - `css`, `css_fn`
+<p>If `css_fn` is true, then `hsl_fn`, `rgb_fn` becomes `true`
+<p>If `css` is true, then `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn` becomes `true`
+<p>These options have a priority, Individual options have the highest priority, then alias options
+<p>For alias, `css_fn` has more priority over `css`
+<p>e.g: Here `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn` is enabled but not `names`
+<p><pre>
+  require 'colorizer'.setup { user_default_options = { names = false, css = true } }
+</pre>
+<p>e.g: Here `names`, `RGB`, `RRGGBB`, `RRGGBBAA` is enabled but not `rgb_fn` and `hsl_fn`
+<p><pre>
+  require 'colorizer'.setup { user_default_options = { css_fn = false, css = true } }
+</pre>
+<p><pre>
+  user_commands = {
+   "ColorizerAttachToBuffer",
+   "ColorizerDetachFromBuffer",
+   "ColorizerReloadAllBuffers",
+   "ColorizerToggle",
+ }, -- List of commands to enable, set to false to disable all user commands,
+ true to enable all
+  user_default_options = {
+      RGB = true, -- #RGB hex codes
+      RRGGBB = true, -- #RRGGBB hex codes
+      names = true, -- "Name" codes like Blue or blue
+      RRGGBBAA = false, -- #RRGGBBAA hex codes
+      AARRGGBB = false, -- 0xAARRGGBB hex codes
+      rgb_fn = false, -- CSS rgb() and rgba() functions
+      hsl_fn = false, -- CSS hsl() and hsla() functions
+      css = false, -- Enable all CSS features: rgb_fn, hsl_fn, names, RGB, RRGGBB
+      css_fn = false, -- Enable all CSS *functions*: rgb_fn, hsl_fn
+      -- Available modes for `mode`: foreground, background,  virtualtext
+      mode = "background", -- Set the display mode.
+      -- Available methods are false / true / "normal" / "lsp" / "both"
+      -- True is same as normal
+      tailwind = false, -- Enable tailwind colors
+      -- parsers can contain values used in |user_default_options|
+      sass = { enable = false, parsers = { css }, }, -- Enable sass colors
+      virtualtext = "■",
+      virtualtext_inline = false, -- Show the virtualtext inline with the color
+      -- update color values even if buffer is not focused
+      always_update = false
+  }
+</pre></p>
+
+
+<h2><a href="#Functions">Functions</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#setup">setup (opts)</a></td>
+	<td class="summary">Setup function to initialize module settings based on user-provided options.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#new_buffer_options">new_buffer_options (bufnr, option_type)</a></td>
+	<td class="summary">Retrieve default options or buffer-specific options.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#get_options">get_options (bo_type, buftype, filetype)</a></td>
+	<td class="summary">Retrieve options based on buffer type and file type.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#set_bo_value">set_bo_value (bo_type, value, options)</a></td>
+	<td class="summary">Set options for a specific buffer or file type.</td>
+	</tr>
+</table>
+<h2><a href="#Tables">Tables</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#user_default_options">user_default_options</a></td>
+	<td class="summary"></td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2 class="section-header "><a name="Functions"></a>Functions</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "setup"></a>
+    <strong>setup (opts)</strong>
+    </dt>
+    <dd>
+    Setup function to initialize module settings based on user-provided options.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">opts</span>
+         table: User-provided configuration options.
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "new_buffer_options"></a>
+    <strong>new_buffer_options (bufnr, option_type)</strong>
+    </dt>
+    <dd>
+    Retrieve default options or buffer-specific options.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">bufnr</span>
+         number: The buffer number.
+        </li>
+        <li><span class="parameter">option_type</span>
+         string: The option type to retrieve.
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "get_options"></a>
+    <strong>get_options (bo_type, buftype, filetype)</strong>
+    </dt>
+    <dd>
+    Retrieve options based on buffer type and file type.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">bo_type</span>
+         'filetype' | 'buftype': Type of buffer option
+        </li>
+        <li><span class="parameter">buftype</span>
+         string: Buffer type.
+        </li>
+        <li><span class="parameter">filetype</span>
+         string: File type.
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "set_bo_value"></a>
+    <strong>set_bo_value (bo_type, value, options)</strong>
+    </dt>
+    <dd>
+    Set options for a specific buffer or file type.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">bo_type</span>
+         'filetype' | 'buftype': Type of buffer option
+        </li>
+        <li><span class="parameter">value</span>
+         string: The specific value to set.
+        </li>
+        <li><span class="parameter">options</span>
+         table: Options to associate with the value.
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header "><a name="Tables"></a>Tables</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "user_default_options"></a>
+    <strong>user_default_options</strong>
+    </dt>
+    <dd>
+
+
+
+    <h3>Fields:</h3>
+    <ul>
+        <li><span class="parameter">RGB</span>
+         boolean
+        </li>
+        <li><span class="parameter">RRGGBB</span>
+         boolean
+        </li>
+        <li><span class="parameter">names</span>
+         boolean
+        </li>
+        <li><span class="parameter">RRGGBBAA</span>
+         boolean
+        </li>
+        <li><span class="parameter">AARRGGBB</span>
+         boolean
+        </li>
+        <li><span class="parameter">rgb_fn</span>
+         boolean
+        </li>
+        <li><span class="parameter">hsl_fn</span>
+         boolean
+        </li>
+        <li><span class="parameter">css</span>
+         boolean
+        </li>
+        <li><span class="parameter">css_fn</span>
+         boolean
+        </li>
+        <li><span class="parameter">mode</span>
+         string
+        </li>
+        <li><span class="parameter">tailwind</span>
+         boolean|string
+        </li>
+        <li><span class="parameter">sass</span>
+         table
+        </li>
+        <li><span class="parameter">virtualtext</span>
+         string
+        </li>
+        <li><span class="parameter">virtualtext_inline</span>
+        ? boolean
+        </li>
+        <li><span class="parameter">always_update</span>
+         boolean
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/lunarmodules/LDoc">LDoc 1.5.0</a></i>
+<i style="float:right;">Last updated - November </i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>

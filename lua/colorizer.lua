@@ -85,22 +85,12 @@ local config = require("colorizer.config")
 local utils = require("colorizer.utils")
 
 --- State and configuration dynamic holding information table tracking
----@class colorizerState
 local colorizer_state = {
-  --- Table storing options for each buffer, keyed by buffer number
-  --- @type table<number, table>
-  buffer_options = {},
-  --- Table storing local buffer-specific configurations and resources for each buffer, keyed by buffer number
-  --- @type table<number, table>
-  buffer_local = {},
-  --- Current buffer ID being processed for colorizer updates
-  --- @type number
-  buffer_current = 0,
-  --- Autocommand group ID used for setting up and managing Colorizer's autocommands
-  --- @type number
   augroup = vim.api.nvim_create_augroup("ColorizerSetup", {}),
-  --- Buffer lines cache
+  buffer_current = 0,
   buffer_lines = {},
+  buffer_local = {},
+  buffer_options = {},
 }
 
 -- get the amount lines to highlight

@@ -42,7 +42,6 @@ function M.compile(matchers, matchers_trie)
     end
 
     -- Prefix 0x, rgba, rgb, hsla, hsl
-    ---@diagnostic disable-next-line: undefined-field
     local prefix = trie:longest_prefix(line, i)
     if prefix then
       local fn = "_" .. prefix

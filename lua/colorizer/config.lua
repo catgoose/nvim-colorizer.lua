@@ -59,6 +59,7 @@ local M = {}
 --      always_update = false
 --  }
 --</pre>
+
 -- Default options for the user
 ---@table user_default_options
 --@field RGB boolean

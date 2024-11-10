@@ -6,16 +6,12 @@ local color = require("colorizer.color")
 local make_matcher = require("colorizer.matcher").make
 local sass = require("colorizer.sass")
 local tailwind = require("colorizer.tailwind")
+local plugin_name = "colorizer"
 
---- State table holding configuration and caching information for colorizer highlighting
----@class highlightState
 local hl_state = {
-  --- Prefix used for creating unique highlight groups for colorizer
-  --- @type string
-  name_prefix = "colorizer",
-  --- Cache for storing precomputed highlight groups and settings
-  --- @type table<string, any>
+  name_prefix = plugin_name,
   cache = {},
+  hs_id = plugin_name,
 }
 
 --- Highlight mode which will be use to render the color
@@ -28,7 +24,7 @@ M.highlight_mode_names = {
 --- Default namespace used in `highlight` and `colorizer.attach_to_buffer`.
 ---@see highlight
 ---@see colorizer.attach_to_buffer
-M.default_namespace = vim.api.nvim_create_namespace("colorizer")
+M.default_namespace = vim.api.nvim_create_namespace(hl_state.hs_id)
 
 --- Clean the highlight cache
 function M.clear_hl_cache()

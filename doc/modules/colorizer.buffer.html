@@ -26,6 +26,7 @@
 <br/>
 <h1>colorizer</h1>
 
+
 <ul>
   <li><a href="../index.html">Index</a></li>
 </ul>
@@ -33,7 +34,6 @@
 <h2>Contents</h2>
 <ul>
 <li><a href="#Functions">Functions</a></li>
-<li><a href="#Tables">Tables</a></li>
 <li><a href="#Fields">Fields</a></li>
 </ul>
 
@@ -43,6 +43,7 @@
   <li><a href="../modules/colorizer.html">colorizer</a></li>
   <li><strong>buffer</strong></li>
   <li><a href="../modules/colorizer.color.html">color</a></li>
+  <li><a href="../modules/colorizer.config.html">config</a></li>
   <li><a href="../modules/colorizer.matcher.html">matcher</a></li>
   <li><a href="../modules/colorizer.parser.argb_hex.html">parser.argb_hex</a></li>
   <li><a href="../modules/colorizer.parser.hsl.html">parser.hsl</a></li>
@@ -52,6 +53,7 @@
   <li><a href="../modules/colorizer.sass.html">sass</a></li>
   <li><a href="../modules/colorizer.tailwind.html">tailwind</a></li>
   <li><a href="../modules/colorizer.trie.html">trie</a></li>
+  <li><a href="../modules/colorizer.usercmds.html">usercmds</a></li>
   <li><a href="../modules/colorizer.utils.html">utils</a></li>
 </ul>
 
@@ -60,10 +62,8 @@
 <div id="content">
 
 <h1>Module <code>colorizer.buffer</code></h1>
-<p>Helper functions to highlight buffer smartly</p>
-<p>
-
-</p>
+<p>Highlight mode which will be use to render the color</p>
+<p></p>
 
 
 <h2><a href="#Functions">Functions</a></h2>
@@ -73,35 +73,24 @@
 	<td class="summary">Clean the highlight cache</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#add_highlight">add_highlight (buf, ns, line_start, line_end, data, options)</a></td>
+	<td class="name" nowrap><a href="#add_highlight">add_highlight (bufnr, ns_id, line_start, line_end, data, options)</a></td>
 	<td class="summary">Create highlight and set highlights</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#highlight">highlight (buf, ns, line_start, line_end, options, options_local)</a></td>
+	<td class="name" nowrap><a href="#highlight">highlight (bufnr, ns_id, line_start, line_end, options, options_local)</a></td>
 	<td class="summary">Highlight the buffer region.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#parse_lines">parse_lines (buf, lines, line_start, options)</a></td>
+	<td class="name" nowrap><a href="#parse_lines">parse_lines (bufnr, lines, line_start, options)</a></td>
 	<td class="summary">Parse the given lines for colors and return a table containing
  rgb_hex and range per line</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#rehighlight">rehighlight (buf, options, options_local, use_local_lines)</a></td>
-	<td class="summary">Rehighlight the buffer if colorizer is active</td>
-	</tr>
-</table>
-<h2><a href="#Tables">Tables</a></h2>
-<table class="function_list">
-	<tr>
-	<td class="name" nowrap><a href="#highlight_mode_names">highlight_mode_names</a></td>
-	<td class="summary">Highlight mode which will be use to render the colour</td>
 	</tr>
 </table>
 <h2><a href="#Fields">Fields</a></h2>
 <table class="function_list">
 	<tr>
 	<td class="name" nowrap><a href="#default_namespace">default_namespace</a></td>
-	<td class="summary">Default namespace used in <a href="../modules/colorizer.buffer.html#highlight">highlight</a> and <a href="../modules/colorizer.html#attach_to_buffer">colorizer.attach_to_buffer</a>.</td>
+	<td class="summary">Default namespace used in `highlight` and `colorizer.attach_to_buffer`.</td>
 	</tr>
 </table>
 
@@ -128,7 +117,7 @@
 </dd>
     <dt>
     <a name = "add_highlight"></a>
-    <strong>add_highlight (buf, ns, line_start, line_end, data, options)</strong>
+    <strong>add_highlight (bufnr, ns_id, line_start, line_end, data, options)</strong>
     </dt>
     <dd>
     Create highlight and set highlights
@@ -136,10 +125,10 @@
 
     <h3>Parameters:</h3>
     <ul>
-        <li><span class="parameter">buf</span>
-         number
+        <li><span class="parameter">bufnr</span>
+         number: buffer number (0 for current)
         </li>
-        <li><span class="parameter">ns</span>
+        <li><span class="parameter">ns_id</span>
          number
         </li>
         <li><span class="parameter">line_start</span>
@@ -149,10 +138,10 @@
          number
         </li>
         <li><span class="parameter">data</span>
-         table: table output of <a href="../modules/colorizer.buffer.html#parse_lines">parse_lines</a>
+         table: table output of `parse_lines`
         </li>
         <li><span class="parameter">options</span>
-         table: Passed in setup, mainly for <code>user_default_options</code>
+         table: Passed in setup, mainly for `user_default_options`
         </li>
     </ul>
 
@@ -163,21 +152,21 @@
 </dd>
     <dt>
     <a name = "highlight"></a>
-    <strong>highlight (buf, ns, line_start, line_end, options, options_local)</strong>
+    <strong>highlight (bufnr, ns_id, line_start, line_end, options, options_local)</strong>
     </dt>
     <dd>
     Highlight the buffer region.
- Highlight starting from <code>line_start</code> (0-indexed) for each line described by <code>lines</code> in the
- buffer <code>buf</code> and attach it to the namespace <code>ns</code>.
+ Highlight starting from `line_start` (0-indexed) for each line described by `lines` in the
+ buffer id `bufnr` and attach it to the namespace id `ns_id`.
 
 
     <h3>Parameters:</h3>
     <ul>
-        <li><span class="parameter">buf</span>
-         number: buffer id
+        <li><span class="parameter">bufnr</span>
+         number: buffer number (0 for current)
         </li>
-        <li><span class="parameter">ns</span>
-         number: The namespace id. Default is DEFAULT_NAMESPACE. Create it with <code>vim.api.nvim_create_namespace</code>
+        <li><span class="parameter">ns_id</span>
+         number: namespace id.  default is "colorizer", created with vim.api.nvim_create_namespace
         </li>
         <li><span class="parameter">line_start</span>
          number: line_start should be 0-indexed
@@ -186,7 +175,7 @@
          number: Last line to highlight
         </li>
         <li><span class="parameter">options</span>
-         table: Configuration options as described in <code>setup</code>
+         table: Configuration options as described in `setup`
         </li>
         <li><span class="parameter">options_local</span>
          table: Buffer local variables
@@ -205,7 +194,7 @@
 </dd>
     <dt>
     <a name = "parse_lines"></a>
-    <strong>parse_lines (buf, lines, line_start, options)</strong>
+    <strong>parse_lines (bufnr, lines, line_start, options)</strong>
     </dt>
     <dd>
     Parse the given lines for colors and return a table containing
@@ -214,17 +203,17 @@
 
     <h3>Parameters:</h3>
     <ul>
-        <li><span class="parameter">buf</span>
-         number
+        <li><span class="parameter">bufnr</span>
+         number: buffer number (0 for current)
         </li>
         <li><span class="parameter">lines</span>
-         table
+         table: table of lines to parse
         </li>
         <li><span class="parameter">line_start</span>
          number: This is the buffer line number, from where to start highlighting
         </li>
         <li><span class="parameter">options</span>
-         table: Passed in <a href="../modules/colorizer.html#setup">colorizer.setup</a>, Only uses <code>user_default_options</code>
+         table: Passed in `colorizer.setup`, Only uses `user_default_options`
         </li>
     </ul>
 
@@ -233,76 +222,6 @@
 
         table|nil
     </ol>
-
-
-
-
-</dd>
-    <dt>
-    <a name = "rehighlight"></a>
-    <strong>rehighlight (buf, options, options_local, use_local_lines)</strong>
-    </dt>
-    <dd>
-    Rehighlight the buffer if colorizer is active
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">buf</span>
-         number: Buffer number
-        </li>
-        <li><span class="parameter">options</span>
-         table: Buffer options
-        </li>
-        <li><span class="parameter">options_local</span>
-         table|nil: Buffer local variables
-        </li>
-        <li><span class="parameter">use_local_lines</span>
-         boolean|nil Whether to use lines num range from options_local
-        </li>
-    </ul>
-
-    <h3>Returns:</h3>
-    <ol>
-
-        nil|boolean|number,table
-    </ol>
-
-
-
-
-</dd>
-</dl>
-    <h2 class="section-header "><a name="Tables"></a>Tables</h2>
-
-    <dl class="function">
-    <dt>
-    <a name = "highlight_mode_names"></a>
-    <strong>highlight_mode_names</strong>
-    </dt>
-    <dd>
-    Highlight mode which will be use to render the colour
-
-
-    <h3>Fields:</h3>
-    <ul>
-        <li><span class="parameter">background</span>
-
-
-
-        </li>
-        <li><span class="parameter">foreground</span>
-
-
-
-        </li>
-        <li><span class="parameter">virtualtext</span>
-
-
-
-        </li>
-    </ul>
-
 
 
 
@@ -317,7 +236,7 @@
     <strong>default_namespace</strong>
     </dt>
     <dd>
-    Default namespace used in <a href="../modules/colorizer.buffer.html#highlight">highlight</a> and <a href="../modules/colorizer.html#attach_to_buffer">colorizer.attach_to_buffer</a>.
+    Default namespace used in `highlight` and `colorizer.attach_to_buffer`.
 
 
 
@@ -337,8 +256,8 @@
 </div> <!-- id="content" -->
 </div> <!-- id="main" -->
 <div id="about">
-<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated - February </i>
+<i>generated by <a href="http://github.com/lunarmodules/LDoc">LDoc 1.5.0</a></i>
+<i style="float:right;">Last updated - November </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>

@@ -1,3 +1,6 @@
+--- This module provides a parser that identifies named colors from a given line of text.
+-- It supports standard color names and optional Tailwind CSS color names.
+-- The module creates a lookup table and Trie structure to efficiently match color names in text.
 --@module colorizer.parser.names
 local M = {}
 
@@ -11,6 +14,7 @@ local color_trie
 local color_name_minlen, color_name_maxlen
 local color_name_settings = { lowercase = true, strip_digits = false }
 local tailwind_enabled = false
+
 --- Grab all the color values from `vim.api.nvim_get_color_map` and create a lookup table.
 -- color_map is used to store the color values
 ---@param line string: Line to parse
@@ -27,12 +31,10 @@ function M.name_parser(line, i, opts)
         color_name_maxlen = color_name_maxlen and max(#k, color_name_maxlen) or #k
         local rgb_hex = tohex(v, 6)
         color_map[k] = rgb_hex
-        ---@diagnostic disable-next-line: undefined-field
         color_trie:insert(k)
         if color_name_settings.lowercase then
           local lowercase = k:lower()
           color_map[lowercase] = rgb_hex
-          ---@diagnostic disable-next-line: undefined-field
           color_trie:insert(lowercase)
         end
       end
@@ -47,7 +49,6 @@ function M.name_parser(line, i, opts)
             color_name_minlen = color_name_minlen and min(#name, color_name_minlen) or #name
             color_name_maxlen = color_name_maxlen and max(#name, color_name_maxlen) or #name
             color_map[name] = v
-            ---@diagnostic disable-next-line: undefined-field
             color_trie:insert(name)
           end
         end
