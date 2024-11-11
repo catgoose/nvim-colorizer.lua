@@ -2,6 +2,8 @@
 -- @module colorizer.config
 local M = {}
 
+local utils = require("colorizer.utils")
+
 --- Default user options for colorizer.
 -- This table defines individual options and alias options, allowing configuration of
 -- colorizer's behavior for different color formats (e.g., `#RGB`, `#RRGGBB`, `#AARRGGBB`, etc.).
@@ -105,7 +107,7 @@ local options_state = { buftype = {}, filetype = {} }
 -- `user_default_options`, and `user_commands`.
 -- @param opts opts User-provided configuration options.
 -- @return table Final settings after merging user and default options.
-function M.setup(opts)
+function M.get_settings(opts)
   opts = opts or {}
   local defaults = {
     filetypes = { "*" },
@@ -153,4 +155,43 @@ function M.set_bo_value(bo_type, value, options)
   options_state[bo_type][value] = options
 end
 
+--- Parse buffer Configuration and convert aliases to normal values
+---@param options table: options table
+---@return table
+function M.parse_buffer_options(options)
+  local includes = {
+    ["css"] = { "names", "RGB", "RRGGBB", "RRGGBBAA", "hsl_fn", "rgb_fn" },
+    ["css_fn"] = { "hsl_fn", "rgb_fn" },
+  }
+  local default_opts = M.user_default_options
+
+  local function handle_alias(name, opts, d_opts)
+    if not includes[name] then
+      return
+    end
+    for _, child in ipairs(includes[name]) do
+      d_opts[child] = opts[name] or false
+    end
+  end
+
+  -- https://github.com/NvChad/nvim-colorizer.lua/issues/48
+  handle_alias("css", options, default_opts)
+  handle_alias("css_fn", options, default_opts)
+
+  if options.sass then
+    if type(options.sass.parsers) == "table" then
+      for child, _ in pairs(options.sass.parsers) do
+        handle_alias(child, options.sass.parsers, default_opts.sass.parsers)
+      end
+    else
+      options.sass.parsers = {}
+      for child, _ in pairs(default_opts.sass.parsers) do
+        handle_alias(child, true, options.sass.parsers)
+      end
+    end
+  end
+
+  options = utils.merge(default_opts, options)
+  return options
+end
 return M

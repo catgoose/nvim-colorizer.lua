@@ -171,7 +171,7 @@ function M.rehighlight(bufnr, options, options_local, use_local_lines)
 end
 
 ---Check if attached to a buffer
----@param bufnr number|nil: A value of 0 implies the current buffer.
+---@param bufnr number|nil: buffer number (0 for current)
 ---@return number|nil: if attached to the buffer, false otherwise.
 ---@see colorizer.buffer.highlight
 function M.is_buffer_attached(bufnr)
@@ -195,59 +195,13 @@ function M.is_buffer_attached(bufnr)
 end
 
 --- Return the currently active buffer options.
----@param bufnr number|nil: buffer number (0 for current)
+---@param bufnr number: Buffer number (0 for current)
 ---@return table|nil
 local function get_buffer_options(bufnr)
-  bufnr = utils.bufme(bufnr)
   local _bufnr = M.is_buffer_attached(bufnr)
   if _bufnr then
     return colorizer_state.buffer_options[_bufnr]
   end
-end
-
---- Parse buffer Configuration and convert aliases to normal values
----@param options table: options table
----@return table
-local function parse_buffer_options(options)
-  local includes = {
-    ["css"] = { "names", "RGB", "RRGGBB", "RRGGBBAA", "hsl_fn", "rgb_fn" },
-    ["css_fn"] = { "hsl_fn", "rgb_fn" },
-  }
-  local default_opts = config.user_default_options
-
-  local function handle_alias(name, opts, d_opts)
-    if not includes[name] then
-      return
-    end
-    if opts == true or opts[name] == true then
-      for _, child in ipairs(includes[name]) do
-        d_opts[child] = true
-      end
-    elseif opts[name] == false then
-      for _, child in ipairs(includes[name]) do
-        d_opts[child] = false
-      end
-    end
-  end
-  -- https://github.com/NvChad/nvim-colorizer.lua/issues/48
-  handle_alias("css", options, default_opts)
-  handle_alias("css_fn", options, default_opts)
-
-  if options.sass then
-    if type(options.sass.parsers) == "table" then
-      for child, _ in pairs(options.sass.parsers) do
-        handle_alias(child, options.sass.parsers, default_opts.sass.parsers)
-      end
-    else
-      options.sass.parsers = {}
-      for child, _ in pairs(default_opts.sass.parsers) do
-        handle_alias(child, true, options.sass.parsers)
-      end
-    end
-  end
-
-  options = utils.merge(default_opts, options)
-  return options
 end
 
 --- Reload all of the currently active highlighted buffers.
@@ -270,7 +224,7 @@ function M.attach_to_buffer(bufnr, options, bo_type)
     return
   end
   -- set options by grabbing existing or creating new options, then parsing
-  options = parse_buffer_options(
+  options = config.parse_buffer_options(
     options or get_buffer_options(bufnr) or config.new_buffer_options(bufnr, bo_type)
   )
 
@@ -441,7 +395,7 @@ function M.setup(opts)
     return
   end
 
-  local conf = config.setup(opts)
+  local s = config.get_settings(opts)
 
   local function setup(bo_type)
     local filetype = vim.bo.filetype
@@ -449,7 +403,7 @@ function M.setup(opts)
     local bufnr = vim.api.nvim_get_current_buf()
     colorizer_state.buffer_local[bufnr] = colorizer_state.buffer_local[bufnr] or {}
 
-    if conf.exclusions.filetype[filetype] or conf.exclusions.buftype[buftype] then
+    if s.exclusions.filetype[filetype] or s.exclusions.buftype[buftype] then
       -- when a filetype is disabled but buftype is enabled, it can Attach in
       -- some cases, so manually detach
       if colorizer_state.buffer_options[bufnr] then
@@ -463,11 +417,11 @@ function M.setup(opts)
     -- if buffer and filetype options both are given, then prefer fileoptions
     local options = bo_type == "filetype" and fopts or (fopts and fopts or bopts)
 
-    if not options and not conf.all[bo_type] then
+    if not options and not s.all[bo_type] then
       return
     end
 
-    options = options or conf.default_options
+    options = options or s.default_options
 
     -- this should ideally be triggered one time per buffer
     -- but BufWinEnter also triggers for split formation
@@ -483,24 +437,24 @@ function M.setup(opts)
       local list = {}
       for k, v in pairs(tbl) do
         local value
-        local options = conf.default_options
+        local options = s.default_options
         if type(k) == "string" then
           value = k
           if type(v) ~= "table" then
             vim.notify(string.format("colorizer: Invalid option type for %s", value), 4)
           else
-            options = utils.merge(conf.default_options, v)
+            options = utils.merge(s.default_options, v)
           end
         else
           value = v
         end
         -- Exclude
         if value:sub(1, 1) == "!" then
-          conf.exclusions[bo_type][value:sub(2)] = true
+          s.exclusions[bo_type][value:sub(2)] = true
         else
           config.set_bo_value(bo_type, value, options)
           if value == "*" then
-            conf.all[bo_type] = true
+            s.all[bo_type] = true
           else
             table.insert(list, value)
           end
@@ -508,7 +462,7 @@ function M.setup(opts)
       end
       vim.api.nvim_create_autocmd({ aucmd[bo_type] }, {
         group = colorizer_state.augroup,
-        pattern = bo_type == "filetype" and (conf.all[bo_type] and "*" or list) or nil,
+        pattern = bo_type == "filetype" and (s.all[bo_type] and "*" or list) or nil,
         callback = function()
           setup(bo_type)
         end,
@@ -528,10 +482,10 @@ function M.setup(opts)
     end,
   })
 
-  parse_opts("filetype", conf.filetypes)
-  parse_opts("buftype", conf.buftypes)
+  parse_opts("filetype", s.filetypes)
+  parse_opts("buftype", s.buftypes)
 
-  require("colorizer.usercmds").make(conf.user_commands)
+  require("colorizer.usercmds").make(s.user_commands)
 end
 
 return M

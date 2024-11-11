@@ -132,7 +132,7 @@ is_buffer_attached({bufnr})                       *colorizer.is_buffer_attached*
     Check if attached to a buffer
 
     Parameters: ~
-	{bufnr} -  number|nil: A value of 0 implies the current buffer.
+	{bufnr} -  number|nil: buffer number (0 for current)
 
     returns:~
 	number or nil: if attached to the buffer, false otherwise.
@@ -424,7 +424,7 @@ Provides configuration options and utilities for setting up colorizer.
 LUA API                                               *colorizer.config-lua-api*
 
 Functions: ~
-    |setup| - Initializes colorizer with user-provided options.
+    |get_settings| - Initializes colorizer with user-provided options.
 
     |new_buffer_options| - Retrieve default options or buffer-specific options.
 
@@ -432,13 +432,16 @@ Functions: ~
 
     |set_bo_value| - Set options for a specific buffer or file type.
 
+    |parse_buffer_options| - Parse buffer Configuration and convert aliases to
+    normal values
+
 Tables: ~
     |user_default_options| - Default user options for colorizer.
 
     |opts| - Configuration options for the `setup` function.
 
 
-setup({opts})                                           *colorizer.config.setup*
+get_settings({opts})                             *colorizer.config.get_settings*
     Initializes colorizer with user-provided options.
 
      Merges default settings with any user-specified options, setting up
@@ -480,6 +483,17 @@ set_bo_value({bo_type}, {value}, {options})      *colorizer.config.set_bo_value*
 	{bo_type} -  'filetype' | 'buftype': Type of buffer option
 	{value} -  string: The specific value to set.
 	{options} -  table: Options to associate with the value.
+
+
+
+parse_buffer_options({options})          *colorizer.config.parse_buffer_options*
+    Parse buffer Configuration and convert aliases to normal values
+
+    Parameters: ~
+	{options} -  table: options table
+
+    returns:~
+	table
 
 
 

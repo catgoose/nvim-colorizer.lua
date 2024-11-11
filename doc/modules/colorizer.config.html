@@ -69,7 +69,7 @@
 <h2><a href="#Functions">Functions</a></h2>
 <table class="function_list">
 	<tr>
-	<td class="name" nowrap><a href="#setup">setup (opts)</a></td>
+	<td class="name" nowrap><a href="#get_settings">get_settings (opts)</a></td>
 	<td class="summary">Initializes colorizer with user-provided options.</td>
 	</tr>
 	<tr>
@@ -83,6 +83,10 @@
 	<tr>
 	<td class="name" nowrap><a href="#set_bo_value">set_bo_value (bo_type, value, options)</a></td>
 	<td class="summary">Set options for a specific buffer or file type.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#parse_buffer_options">parse_buffer_options (options)</a></td>
+	<td class="summary">Parse buffer Configuration and convert aliases to normal values</td>
 	</tr>
 </table>
 <h2><a href="#Tables">Tables</a></h2>
@@ -105,8 +109,8 @@
 
     <dl class="function">
     <dt>
-    <a name = "setup"></a>
-    <strong>setup (opts)</strong>
+    <a name = "get_settings"></a>
+    <strong>get_settings (opts)</strong>
     </dt>
     <dd>
     Initializes colorizer with user-provided options.
@@ -201,6 +205,31 @@
         </li>
     </ul>
 
+
+
+
+
+</dd>
+    <dt>
+    <a name = "parse_buffer_options"></a>
+    <strong>parse_buffer_options (options)</strong>
+    </dt>
+    <dd>
+    Parse buffer Configuration and convert aliases to normal values
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">options</span>
+         table: options table
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        table
+    </ol>
 
 
 
