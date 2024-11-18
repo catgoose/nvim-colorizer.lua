@@ -48,6 +48,7 @@ function M.argb_hex_parser(line, i)
 
   local length = j - i
 
+  local r, g, b
   if length == 10 then -- 0xAARRGGBB
     alpha = band(rshift(v, 24), 0xFF) / 255
     r = floor(band(rshift(v, 16), 0xFF) * alpha)
@@ -66,9 +67,9 @@ function M.argb_hex_parser(line, i)
   end
 
   alpha = tonumber(alpha) / 255
-  local r = floor(band(rshift(v, 16), 0xFF) * alpha)
-  local g = floor(band(rshift(v, 8), 0xFF) * alpha)
-  local b = floor(band(v, 0xFF) * alpha)
+  r = floor(band(rshift(v, 16), 0xFF) * alpha)
+  g = floor(band(rshift(v, 8), 0xFF) * alpha)
+  b = floor(band(v, 0xFF) * alpha)
   local rgb_hex = string.format("%02x%02x%02x", r, g, b)
   return length, rgb_hex
 end

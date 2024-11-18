@@ -86,10 +86,6 @@
 	<td class="summary">Parse the given lines for colors and return a table containing
  rgb_hex and range per line</td>
 	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#clear_highlight_cache">clear_highlight_cache ()</a></td>
-	<td class="summary">Clear the highlight cache and reload all buffers.</td>
-	</tr>
 </table>
 <h2><a href="#Tables">Tables</a></h2>
 <table class="function_list">
@@ -175,10 +171,10 @@
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">bufnr</span>
-         number: buffer number (0 for current)
+         number: Buffer number, 0 for current
         </li>
         <li><span class="parameter">ns_id</span>
-         number: namespace id.  default is "colorizer", created with vim.api.nvim_create_namespace
+         number: Namespace id, default is "colorizer" created with vim.api.nvim_create_namespace
         </li>
         <li><span class="parameter">line_start</span>
          number: line_start should be 0-indexed
@@ -216,10 +212,10 @@
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">bufnr</span>
-         number: buffer number (0 for current)
+         number: Buffer number (0 for current)
         </li>
         <li><span class="parameter">lines</span>
-         table: table of lines to parse
+         table: Table of lines to parse
         </li>
         <li><span class="parameter">line_start</span>
          number: This is the buffer line number, from where to start highlighting
@@ -234,20 +230,6 @@
 
         table|nil
     </ol>
-
-
-
-
-</dd>
-    <dt>
-    <a name = "clear_highlight_cache"></a>
-    <strong>clear_highlight_cache ()</strong>
-    </dt>
-    <dd>
-    Clear the highlight cache and reload all buffers.
-
-
-
 
 
 

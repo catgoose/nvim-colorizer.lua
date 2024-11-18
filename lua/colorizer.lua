@@ -478,7 +478,8 @@ function M.setup(opts)
   vim.api.nvim_create_autocmd("ColorScheme", {
     group = colorizer_state.augroup,
     callback = function()
-      buffer.clear_highlight_cache()
+      utils.clear_hl_cache()
+      vim.schedule(M.reload_all_buffers)
     end,
   })
 

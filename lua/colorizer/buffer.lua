@@ -204,10 +204,4 @@ function M.parse_lines(bufnr, lines, line_start, options)
   return data
 end
 
---- Clear the highlight cache and reload all buffers.
-function M.clear_highlight_cache()
-  utils.clear_hl_cache()
-  vim.schedule(buffer.reload_all_buffers)
-end
-
 return M

@@ -234,8 +234,6 @@ Functions: ~
     containing
  rgb_hex and range per line
 
-    |clear_highlight_cache| - Clear the highlight cache and reload all buffers.
-
 Tables: ~
     |highlight_mode_names| - Highlight mode which will be use to render the
     color
@@ -278,8 +276,8 @@ highlight({bufnr}, {ns_id}, {line_start}, {line_end}, {options},
 
 
     Parameters: ~
-	{bufnr} -  number: buffer number (0 for current)
-	{ns_id} -  number: namespace id.  default is "colorizer", created with
+	{bufnr} -  number: Buffer number, 0 for current
+	{ns_id} -  number: Namespace id, default is "colorizer" created with
 	vim.api.nvim_create_namespace
 	{line_start} -  number: line_start should be 0-indexed
 	{line_end} -  number: Last line to highlight
@@ -298,8 +296,8 @@ parse_lines({bufnr}, {lines}, {line_start}, {options})
      rgb_hex and range per line
 
     Parameters: ~
-	{bufnr} -  number: buffer number (0 for current)
-	{lines} -  table: table of lines to parse
+	{bufnr} -  number: Buffer number (0 for current)
+	{lines} -  table: Table of lines to parse
 	{line_start} -  number: This is the buffer line number, from where to
 	start highlighting
 	{options} -  table: Passed in `colorizer.setup`, Only uses
@@ -307,11 +305,6 @@ parse_lines({bufnr}, {lines}, {line_start}, {options})
 
     returns:~
 	table or nil
-
-
-
-clear_highlight_cache()                 *colorizer.buffer.clear_highlight_cache*
-    Clear the highlight cache and reload all buffers.
 
 
 
@@ -868,7 +861,7 @@ name_parser({line}, {i}, {bufnr})                   *colorizer.sass.name_parser*
     Parameters: ~
 	{line} -  string: Line to parse
 	{i} -  number: Index of line from where to start parsing
-	{bufnr} -  number
+	{bufnr} -  number: Buffer number
 
     returns:~
 	number or nil, string or nil
@@ -887,7 +880,7 @@ update_variables({bufnr}, {line_start}, {line_end}, {lines}, {color_parser},
 
 
     Parameters: ~
-	{bufnr} -  number: buffer number (0 for current)
+	{bufnr} -  number: Buffer number
 	{line_start} -  number
 	{line_end} -  number
 	{lines} -  table|nil
@@ -933,7 +926,7 @@ setup_lsp_colors({bufnr}, {options}, {options_local}, {add_highlight})
      To see these table information, see |colorizer.buffer|
 
     Parameters: ~
-	{bufnr} -  number: buffer number (0 for current)
+	{bufnr} -  number: Buffer number (0 for current)
 	{options} -  table
 	{options_local} -  table
 	{add_highlight} -  function
