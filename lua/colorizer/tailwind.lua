@@ -73,7 +73,7 @@ end
 
 --- highlight buffer using values returned by tailwindcss
 -- To see these table information, see |colorizer.buffer|
----@param bufnr number: buffer number (0 for current)
+---@param bufnr number: Buffer number (0 for current)
 ---@param options table
 ---@param options_local table
 ---@param add_highlight function

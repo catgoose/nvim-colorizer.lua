@@ -103,7 +103,7 @@ function M.hsl_function_parser(line, i, opts)
   end
 
   local r, g, b = hsl_to_rgb(h / 360, s / 100, l / 100)
-  if r == nil or g == nil or b == nil then
+  if not r or not g or not b then
     return
   end
   local rgb_hex = string.format("%02x%02x%02x", r * a, g * a, b * a)

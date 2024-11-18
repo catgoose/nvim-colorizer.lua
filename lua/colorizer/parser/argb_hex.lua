@@ -28,6 +28,7 @@ function M.argb_hex_parser(line, i)
   local n = j + 8
   local alpha
   local v = 0
+
   while j <= min(n, #line) do
     local b = line:byte(j)
     if not utils.byte_is_hex(b) then
@@ -46,7 +47,21 @@ function M.argb_hex_parser(line, i)
   end
 
   local length = j - i
-  if length ~= 10 then
+
+  if length == 10 then -- 0xAARRGGBB
+    alpha = band(rshift(v, 24), 0xFF) / 255
+    r = floor(band(rshift(v, 16), 0xFF) * alpha)
+    g = floor(band(rshift(v, 8), 0xFF) * alpha)
+    b = floor(band(v, 0xFF) * alpha)
+  elseif length == 8 then -- 0xRRGGBB
+    r = band(rshift(v, 16), 0xFF)
+    g = band(rshift(v, 8), 0xFF)
+    b = band(v, 0xFF)
+  elseif length == 5 then -- 0xRGB
+    r = band(rshift(v, 8), 0xF) * 17
+    g = band(rshift(v, 4), 0xF) * 17
+    b = band(v, 0xF) * 17
+  else
     return
   end
 

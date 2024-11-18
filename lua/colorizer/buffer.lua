@@ -125,8 +125,8 @@ end
 --- Highlight the buffer region.
 -- Highlight starting from `line_start` (0-indexed) for each line described by `lines` in the
 -- buffer id `bufnr` and attach it to the namespace id `ns_id`.
----@param bufnr number: buffer number (0 for current)
----@param ns_id number: namespace id.  default is "colorizer", created with vim.api.nvim_create_namespace
+---@param bufnr number: Buffer number, 0 for current
+---@param ns_id number: Namespace id, default is "colorizer" created with vim.api.nvim_create_namespace
 ---@param line_start number: line_start should be 0-indexed
 ---@param line_end number: Last line to highlight
 ---@param options table: Configuration options as described in `setup`
@@ -169,8 +169,8 @@ end
 
 --- Parse the given lines for colors and return a table containing
 -- rgb_hex and range per line
----@param bufnr number: buffer number (0 for current)
----@param lines table: table of lines to parse
+---@param bufnr number: Buffer number (0 for current)
+---@param lines table: Table of lines to parse
 ---@param line_start number: This is the buffer line number, from where to start highlighting
 ---@param options table: Passed in `colorizer.setup`, Only uses `user_default_options`
 ---@return table|nil

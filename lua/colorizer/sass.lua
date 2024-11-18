@@ -35,7 +35,7 @@ end
 -- check for value in state[buf].definitions_all
 ---@param line string: Line to parse
 ---@param i number: Index of line from where to start parsing
----@param bufnr number
+---@param bufnr number: Buffer number
 ---@return number|nil, string|nil
 function M.name_parser(line, i, bufnr)
   local variable_name = line:match("^%$([%w_-]+)", i)
@@ -241,7 +241,7 @@ end -- sass_parse_lines end
 --- Parse the given lines for sass variabled and add to `SASS[buf].DEFINITIONS_ALL`.
 -- which is then used in |sass_name_parser|
 -- If lines are not given, then fetch the lines with line_start and line_end
----@param bufnr number: buffer number (0 for current)
+---@param bufnr number: Buffer number
 ---@param line_start number
 ---@param line_end number
 ---@param lines table|nil

@@ -31,7 +31,7 @@ local parser = {
 local function compile(matchers, matchers_trie)
   local trie = Trie(matchers_trie)
 
-  local function parse_fn(line, i, buf)
+  local function parse_fn(line, i, bufnr)
     -- prefix #
     if matchers.rgba_hex_parser then
       if line:byte(i) == ("#"):byte() then
@@ -110,7 +110,6 @@ function M.make(options)
 
   local matchers = {}
   local matchers_prefix = {}
-  matchers.max_prefix_length = 0
 
   if enable_names then
     matchers.color_name_parser = { tailwind = options.tailwind }
@@ -136,6 +135,7 @@ function M.make(options)
     matchers.rgba_hex_parser.minlen = minlen
   end
 
+  --  TODO: 2024-11-05 - Add custom prefixes
   if enable_AARRGGBB then
     table.insert(matchers_prefix, "0x")
   end
