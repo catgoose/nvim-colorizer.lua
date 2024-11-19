@@ -4,8 +4,12 @@
 
 - [colorizer.lua](#colorizerlua)
   - [Installation and Usage](#installation-and-usage)
-    - [Use with commands](#use-with-commands)
-    - [Use from lua](#use-from-lua)
+    - [Plugin managers](#plugin-managers)
+      - [Lazy.nvim](#lazynvim)
+      - [Packer](#packer)
+      - [Manual](#manual)
+    - [User commands](#user-commands)
+    - [Lua API](#lua-api)
   - [Why another highlighter?](#why-another-highlighter)
   - [Customization](#customization)
     - [Updating color even when buffer is not focused](#updating-color-even-when-buffer-is-not-focused)
@@ -20,6 +24,9 @@
 A high-performance color highlighter for Neovim which has **no external
 dependencies**! Written in performant Luajit.
 
+As long as you have `malloc()` and `free()` on your system, this will work.
+Which includes Linux, OSX, and Windows.
+
 ![Demo.gif](https://raw.githubusercontent.com/norcalli/github-assets/master/nvim-colorizer.lua-demo-short.gif)
 
 ## Installation and Usage
@@ -30,12 +37,26 @@ unsure, [read this excellent guide](https://github.com/termstandard/colors).
 
 Use your plugin manager or clone directly into your package.
 
+### Plugin managers
+
+#### Lazy.nvim
+
+```lua
+{
+    "NvChad/nvim-colorizer.lua",
+    event = "BufReadPre",
+    opts = { -- setup opts
+    },
+}
+```
+
+#### Packer
+
 ```lua
 use("NvChad/nvim-colorizer.lua")
 ```
 
-As long as you have `malloc()` and `free()` on your system, this will work.
-Which includes Linux, OSX, and Windows.
+#### Manual
 
 One line setup. This will create an `autocmd` for `FileType *` to highlight
 every filetype.
@@ -46,7 +67,7 @@ every filetype.
 require("colorizer").setup()
 ```
 
-### Use with commands
+### User commands
 
 | Command                       | Description                                                 |
 | ----------------------------- | ----------------------------------------------------------- |
@@ -55,7 +76,7 @@ require("colorizer").setup()
 | **ColorizerReloadAllBuffers** | Reload all buffers that are being highlighted currently     |
 | **ColorizerToggle**           | Toggle highlighting of the current buffer                   |
 
-### Use from lua
+### Lua API
 
 ```lua
 -- All options that can be passed to `user_default_options` in setup() can be
@@ -298,6 +319,8 @@ Documentaion is generated using ldoc. See
 - [ ] Add more color types ( var, advanced css functions )
 - [ ] Add more display modes. E.g - sign column
 - [ ] Use a more space efficient trie implementation.
+- [ ] Support custom parsers
+- [ ] Allow custom color names
 
 ## Similar projects
 
