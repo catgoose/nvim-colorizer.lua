@@ -384,7 +384,7 @@ end
 --    }
 --</pre>
 ---Setup colorizer with user options
----@param opts table: User provided options
+---@param opts table|nil: User provided options
 ---@usage `require("colorizer").setup()`
 ---@see colorizer.config
 function M.setup(opts)

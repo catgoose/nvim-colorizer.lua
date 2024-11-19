@@ -195,7 +195,7 @@ setup({opts})                                                  *colorizer.setup*
 
 
     Parameters: ~
-	{opts} -  table: User provided options
+	{opts} -  table|nil: User provided options
 
     See also:~
 	|colorizer.config|
