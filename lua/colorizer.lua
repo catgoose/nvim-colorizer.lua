@@ -486,6 +486,7 @@ function M.setup(opts)
   require("colorizer.usercmds").make(s.user_commands)
 end
 
+--- Clears the highlight cache and reloads all buffers.
 function M.clear_highlight_cache()
   buffer.clear_hl_cache()
   vim.schedule(M.reload_all_buffers)

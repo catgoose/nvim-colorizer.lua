@@ -98,6 +98,9 @@ Functions: ~
     |setup| - Easy to use function if you want the full setup without fine
     grained control.
 
+    |clear_highlight_cache| - Clears the highlight cache and reloads all
+    buffers.
+
 Fields: ~
     |default_namespace| - Default namespace used in `colorizer.buffer.highlight`
     and `attach_to_buffer`.
@@ -199,6 +202,11 @@ setup({opts})                                                  *colorizer.setup*
 
     Usage:~
 	`require("colorizer").setup()`
+
+
+
+clear_highlight_cache()                        *colorizer.clear_highlight_cache*
+    Clears the highlight cache and reloads all buffers.
 
 
 
