@@ -61,7 +61,8 @@ use("NvChad/nvim-colorizer.lua")
 One line setup. This will create an `autocmd` for `FileType *` to highlight
 every filetype.
 
-**NOTE**: You should add this line after/below where your plugins are setup.
+> [!NOTE]
+> You should add this line after/below where your plugins are setup.
 
 ```lua
 require("colorizer").setup()
@@ -75,6 +76,9 @@ require("colorizer").setup()
 | **ColorizerDetachFromBuffer** | Stop highlighting the current buffer                        |
 | **ColorizerReloadAllBuffers** | Reload all buffers that are being highlighted currently     |
 | **ColorizerToggle**           | Toggle highlighting of the current buffer                   |
+
+> [!NOTE]
+> User commands can be enabled/disabled in setup opts
 
 ### Lua API
 
@@ -112,7 +116,8 @@ library to do custom highlighting themselves.
 
 ## Customization
 
-**Note**: These are the default options
+> [!NOTE]
+> These are the default options
 
 ```lua
   require("colorizer").setup({
