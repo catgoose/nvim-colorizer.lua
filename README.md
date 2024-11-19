@@ -282,6 +282,12 @@ Run `minimal.lua` to startup neovim:
 nvim --clean -u minimal.lua expect.txt
 ```
 
+Also there is a script that you can run from the root of the repo:
+
+```bash
+scripts/start_minimal.sh
+```
+
 ## Extras
 
 Documentaion is generated using ldoc. See
