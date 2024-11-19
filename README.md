@@ -9,8 +9,10 @@
   - [Why another highlighter?](#why-another-highlighter)
   - [Customization](#customization)
     - [Updating color even when buffer is not focused](#updating-color-even-when-buffer-is-not-focused)
+  - [Testing](#testing)
   - [Extras](#extras)
   - [TODO](#todo)
+  - [Similar projects](#similar-projects)
   <!--toc:end-->
 
 [![luadoc](https://img.shields.io/badge/luadoc-0.1-blue)](https://nvchad.com/nvim-colorizer.lua/)
@@ -267,6 +269,18 @@ require("colorizer").setup(
 For lower level interface, see
 [LuaDocs for API details](https://nvchad.com/nvim-colorizer.lua/modules/colorizer.html)
 or use `:h colorizer` once installed.
+
+## Testing
+
+To test colorization with your config, edit `test/expect.txt` to see expected
+highlights
+
+For troubleshooting use `test/minimal.lua`. Edit the file to configure colorizer.
+Run `minimal.lua` to startup neovim:
+
+```bash
+nvim --clean -u minimal.lua expect.txt
+```
 
 ## Extras
 
