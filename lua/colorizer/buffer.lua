@@ -7,7 +7,6 @@ local color = require("colorizer.color")
 local plugin_name = "colorizer"
 local sass = require("colorizer.sass")
 local tailwind = require("colorizer.tailwind")
-local utils = require("colorizer.utils")
 local make_matcher = require("colorizer.matcher").make
 
 local hl_state = {

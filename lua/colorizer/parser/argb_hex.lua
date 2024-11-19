@@ -5,11 +5,10 @@
 local M = {}
 
 local bit = require("bit")
-local utils = require("colorizer.utils")
 local floor, min = math.floor, math.min
 local band, rshift, lshift = bit.band, bit.rshift, bit.lshift
 
-local argb_minimum_length = #"0xAARRGGBB" - 1
+local utils = require("colorizer.utils")
 
 --- Parses a `0xAARRGGBB` formatted hexadecimal color and converts it to an RGB hex value.
 -- This function reads a color from a line of text, expecting it in the `0xAARRGGBB` format (common in Android apps).
@@ -20,56 +19,58 @@ local argb_minimum_length = #"0xAARRGGBB" - 1
 -- @return number|nil The end index of the parsed hex value within the line, or `nil` if parsing failed
 -- @return string|nil The RGB hexadecimal color (e.g., "ff0000" for red), or `nil` if parsing failed
 function M.argb_hex_parser(line, i)
-  if #line < i + argb_minimum_length then
+  -- Minimum length of a valid hex color (e.g., "0xRGB")
+  local minlen = #"0xRGB" - 1
+  -- Maximum length of a valid hex color (e.g., "0xAARRGGBB")
+  local maxlen = #"0xAARRGGBB" - 1
+
+  -- Ensure the line has enough characters to contain a valid hex color
+  if #line < i + minlen then
     return
   end
 
-  local j = i + 2
-  local n = j + 8
-  local alpha
-  local v = 0
+  local j = i + 2 -- Skip the "0x" prefix
+  local n = j + maxlen
+  local alpha, r, g, b
+  local v = 0 -- Holds the parsed value
 
+  -- Parse the hex characters starting from the given index
   while j <= min(n, #line) do
-    local b = line:byte(j)
-    if not utils.byte_is_hex(b) then
+    local byte = line:byte(j)
+    -- Stop parsing if the character is not a valid hex digit
+    if not utils.byte_is_hex(byte) then
       break
     end
-    if j - i <= 3 then
-      alpha = utils.parse_hex(b) + lshift(alpha or 0, 4)
-    else
-      v = utils.parse_hex(b) + lshift(v, 4)
-    end
+    -- Shift the current value left by 4 bits and add the parsed hex digit
+    v = utils.parse_hex(byte) + lshift(v, 4)
     j = j + 1
   end
 
+  -- If the next character is alphanumeric, the value is invalid
   if #line >= j and utils.byte_is_alphanumeric(line:byte(j)) then
     return
   end
 
-  local length = j - i
+  local length = j - i -- Calculate the length of the parsed hex value
 
-  local r, g, b
+  -- Parse the color components based on the detected length
   if length == 10 then -- 0xAARRGGBB
-    alpha = band(rshift(v, 24), 0xFF) / 255
-    r = floor(band(rshift(v, 16), 0xFF) * alpha)
-    g = floor(band(rshift(v, 8), 0xFF) * alpha)
-    b = floor(band(v, 0xFF) * alpha)
+    alpha = band(rshift(v, 24), 0xFF) / 255 -- Extract and normalize the alpha value
+    r = floor(band(rshift(v, 16), 0xFF) * alpha) -- Apply alpha to red
+    g = floor(band(rshift(v, 8), 0xFF) * alpha) -- Apply alpha to green
+    b = floor(band(v, 0xFF) * alpha) -- Apply alpha to blue
   elseif length == 8 then -- 0xRRGGBB
-    r = band(rshift(v, 16), 0xFF)
-    g = band(rshift(v, 8), 0xFF)
-    b = band(v, 0xFF)
+    r = band(rshift(v, 16), 0xFF) -- Extract red
+    g = band(rshift(v, 8), 0xFF) -- Extract green
+    b = band(v, 0xFF) -- Extract blue
   elseif length == 5 then -- 0xRGB
-    r = band(rshift(v, 8), 0xF) * 17
-    g = band(rshift(v, 4), 0xF) * 17
-    b = band(v, 0xF) * 17
+    r = band(rshift(v, 8), 0xF) * 17 -- Scale single hex digit to full byte
+    g = band(rshift(v, 4), 0xF) * 17 -- Scale single hex digit to full byte
+    b = band(v, 0xF) * 17 -- Scale single hex digit to full byte
   else
     return
   end
 
-  alpha = tonumber(alpha) / 255
-  r = floor(band(rshift(v, 16), 0xFF) * alpha)
-  g = floor(band(rshift(v, 8), 0xFF) * alpha)
-  b = floor(band(v, 0xFF) * alpha)
   local rgb_hex = string.format("%02x%02x%02x", r, g, b)
   return length, rgb_hex
 end
