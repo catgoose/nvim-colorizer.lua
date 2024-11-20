@@ -7,6 +7,7 @@ local color = require("colorizer.color")
 local plugin_name = "colorizer"
 local sass = require("colorizer.sass")
 local tailwind = require("colorizer.tailwind")
+local utils = require("colorizer.utils")
 local make_matcher = require("colorizer.matcher").make
 
 local hl_state = {
@@ -134,7 +135,7 @@ end
 function M.highlight(bufnr, ns_id, line_start, line_end, options, options_local)
   local returns = { detach = { ns_id = {}, functions = {} } }
   if bufnr == 0 or bufnr == nil then
-    bufnr = vim.api.nvim_get_current_buf()
+    bufnr = utils.bufme()
   end
 
   local lines = vim.api.nvim_buf_get_lines(bufnr, line_start, line_end, false)

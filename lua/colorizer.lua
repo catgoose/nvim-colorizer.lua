@@ -400,7 +400,7 @@ function M.setup(opts)
   local function setup(bo_type)
     local filetype = vim.bo.filetype
     local buftype = vim.bo.buftype
-    local bufnr = vim.api.nvim_get_current_buf()
+    local bufnr = utils.bufme()
     colorizer_state.buffer_local[bufnr] = colorizer_state.buffer_local[bufnr] or {}
 
     if s.exclusions.filetype[filetype] or s.exclusions.buftype[buftype] then
@@ -431,7 +431,7 @@ function M.setup(opts)
     end
   end
 
-  local aucmd = { buftype = "BufWinEnter", filetype = "FileType" }
+  local events = { buftype = "BufWinEnter", filetype = "FileType" }
   local function parse_opts(bo_type, tbl)
     if type(tbl) == "table" then
       local list = {}
@@ -460,7 +460,7 @@ function M.setup(opts)
           end
         end
       end
-      vim.api.nvim_create_autocmd({ aucmd[bo_type] }, {
+      vim.api.nvim_create_autocmd({ events[bo_type] }, {
         group = colorizer_state.augroup,
         pattern = bo_type == "filetype" and (s.all[bo_type] and "*" or list) or nil,
         callback = function()

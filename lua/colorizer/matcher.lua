@@ -42,7 +42,7 @@ local function compile(matchers, matchers_trie)
     -- prefix $, SASS Color names
     if matchers.sass_name_parser then
       if line:byte(i) == ("$"):byte() then
-        return sass_name_parser(line, i, buf)
+        return sass_name_parser(line, i, bufnr)
       end
     end
 
