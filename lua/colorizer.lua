@@ -225,6 +225,7 @@ function M.attach_to_buffer(bufnr, options, bo_type)
     colorizer_state.buffer_local[bufnr], colorizer_state.buffer_options[bufnr] = nil, nil
     return
   end
+
   -- set options by grabbing existing or creating new options, then parsing
   options = config.parse_buffer_options(
     options or get_buffer_options(bufnr) or config.new_buffer_options(bufnr, bo_type)

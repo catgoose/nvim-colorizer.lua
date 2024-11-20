@@ -1,10 +1,25 @@
 -- vim:ft=lua
-require("colorizer").detach_from_buffer()
-require("colorizer").attach_to_buffer(0, {
+return {
+  RGB = true,
+  RRGGBB = true,
+  names = true,
+  RRGGBBAA = true,
   AARRGGBB = true,
+  rgb_fn = true,
+  hsl_fn = true,
   css = true,
-  mode = "foreground",
-})
+  css_fn = true,
+  mode = "background",
+  tailwind = "normal",
+  sass = {
+    enable = false,
+    parsers = { "css" },
+  },
+  virtualtext = "■",
+  virtualtext_inline = false,
+  virtualtext_mode = "foreground",
+  always_update = false,
+}
 --[[ SUCCESS
 0xFf32A14B 0xFf32A14B
 0x1B29FB 0x1B29FB
