@@ -7,6 +7,7 @@ local color = require("colorizer.color")
 local plugin_name = "colorizer"
 local sass = require("colorizer.sass")
 local tailwind = require("colorizer.tailwind")
+local utils = require("colorizer.utils")
 local make_matcher = require("colorizer.matcher").make
 
 local hl_state = {
@@ -37,6 +38,9 @@ local function make_highlight_name(rgb, mode)
   return table.concat({ hl_state.name_prefix, M.highlight_mode_names[mode], rgb }, "_")
 end
 
+--- Create a highlight with the given rgb_hex and mode
+---@param rgb_hex string: RGB hex code
+---@param mode 'background'|'foreground': Mode of the highlight
 local function create_highlight(rgb_hex, mode)
   mode = mode or "background"
   -- TODO validate rgb format?
@@ -87,18 +91,17 @@ end
 function M.add_highlight(bufnr, ns_id, line_start, line_end, data, options)
   vim.api.nvim_buf_clear_namespace(bufnr, ns_id, line_start, line_end)
 
-  local mode = options.mode == "background" and "background" or "foreground"
-  if vim.tbl_contains({ "foreground", "background" }, options.mode) then
+  if vim.tbl_contains({ "background", "foreground" }, options.mode) then
     for linenr, hls in pairs(data) do
       for _, hl in ipairs(hls) do
-        local hlname = create_highlight(hl.rgb_hex, mode)
+        local hlname = create_highlight(hl.rgb_hex, options.mode)
         vim.api.nvim_buf_add_highlight(bufnr, ns_id, hlname, linenr, hl.range[1], hl.range[2])
       end
     end
   elseif options.mode == "virtualtext" then
     for linenr, hls in pairs(data) do
       for _, hl in ipairs(hls) do
-        local hlname = create_highlight(hl.rgb_hex, mode)
+        local hlname = create_highlight(hl.rgb_hex, options.virtualtext_mode)
 
         local start_col = hl.range[2]
         local opts = {
@@ -134,7 +137,7 @@ end
 function M.highlight(bufnr, ns_id, line_start, line_end, options, options_local)
   local returns = { detach = { ns_id = {}, functions = {} } }
   if bufnr == 0 or bufnr == nil then
-    bufnr = vim.api.nvim_get_current_buf()
+    bufnr = utils.bufme()
   end
 
   local lines = vim.api.nvim_buf_get_lines(bufnr, line_start, line_end, false)

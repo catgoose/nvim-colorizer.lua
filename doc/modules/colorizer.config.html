@@ -73,7 +73,7 @@
 	<td class="summary">Initializes colorizer with user-provided options.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#new_buffer_options">new_buffer_options (bufnr, option_type)</a></td>
+	<td class="name" nowrap><a href="#new_buffer_options">new_buffer_options (bufnr, bo_type)</a></td>
 	<td class="summary">Retrieve default options or buffer-specific options.</td>
 	</tr>
 	<tr>
@@ -137,7 +137,7 @@
 </dd>
     <dt>
     <a name = "new_buffer_options"></a>
-    <strong>new_buffer_options (bufnr, option_type)</strong>
+    <strong>new_buffer_options (bufnr, bo_type)</strong>
     </dt>
     <dd>
     Retrieve default options or buffer-specific options.
@@ -148,8 +148,8 @@
         <li><span class="parameter">bufnr</span>
          number: The buffer number.
         </li>
-        <li><span class="parameter">option_type</span>
-         string: The option type to retrieve.
+        <li><span class="parameter">bo_type</span>
+         'buftype'|'filetype': The type of buffer option
         </li>
     </ul>
 
@@ -169,7 +169,7 @@
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">bo_type</span>
-         'filetype' | 'buftype': Type of buffer option
+         'buftype'|'filetype': The type of buffer option
         </li>
         <li><span class="parameter">buftype</span>
          string: Buffer type.
@@ -179,6 +179,11 @@
         </li>
     </ul>
 
+    <h3>Returns:</h3>
+    <ol>
+
+        table, table
+    </ol>
 
 
 
@@ -195,7 +200,7 @@
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">bo_type</span>
-         'filetype' | 'buftype': Type of buffer option
+         'buftype'|'filetype': The type of buffer option
         </li>
         <li><span class="parameter">value</span>
          string: The specific value to set.
@@ -286,7 +291,7 @@
          boolean: Enables all CSS functions (`rgb_fn`, `hsl_fn`).
         </li>
         <li><span class="parameter">mode</span>
-         string: Display mode (e.g., "background", "foreground", "virtualtext").
+         'background'|'foreground'|'virtualtext': Display mode
         </li>
         <li><span class="parameter">tailwind</span>
          boolean|string: Enables Tailwind CSS colors (e.g., `"normal"`, `"lsp"`, `"both"`).
@@ -299,6 +304,9 @@
         </li>
         <li><span class="parameter">virtualtext_inline</span>
          boolean: Shows virtual text inline with color.
+        </li>
+        <li><span class="parameter">virtualtext_mode</span>
+         'background'|'foreground': Mode for virtual text display.
         </li>
         <li><span class="parameter">always_update</span>
          boolean: Always update color values, even if buffer is not focused.
@@ -341,6 +349,7 @@
       - `parsers` (table): A list of parsers to use, typically includes `"css"`.
    - `virtualtext` (string): Character used for virtual text display of colors (default is `"■"`).
    - `virtualtext_inline` (boolean): If true, shows the virtual text inline with the color.
+ - `virtualtext_mode` ('background'|'foreground'): Determines the display mode for virtual text.
    - `always_update` (boolean): If true, updates color values even if the buffer is not focused.
         </li>
         <li><span class="parameter">buftypes</span>

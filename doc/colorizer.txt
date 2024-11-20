@@ -458,12 +458,12 @@ get_settings({opts})                             *colorizer.config.get_settings*
 
 
 
-new_buffer_options({bufnr}, {option_type}) *colorizer.config.new_buffer_options*
+new_buffer_options({bufnr}, {bo_type})     *colorizer.config.new_buffer_options*
     Retrieve default options or buffer-specific options.
 
     Parameters: ~
 	{bufnr} -  number: The buffer number.
-	{option_type} -  string: The option type to retrieve.
+	{bo_type} -  'buftype'|'filetype': The type of buffer option
 
 
 
@@ -471,9 +471,12 @@ get_options({bo_type}, {buftype}, {filetype})     *colorizer.config.get_options*
     Retrieve options based on buffer type and file type.
 
     Parameters: ~
-	{bo_type} -  'filetype' | 'buftype': Type of buffer option
+	{bo_type} -  'buftype'|'filetype': The type of buffer option
 	{buftype} -  string: Buffer type.
 	{filetype} -  string: File type.
+
+    returns:~
+	table, table
 
 
 
@@ -481,7 +484,7 @@ set_bo_value({bo_type}, {value}, {options})      *colorizer.config.set_bo_value*
     Set options for a specific buffer or file type.
 
     Parameters: ~
-	{bo_type} -  'filetype' | 'buftype': Type of buffer option
+	{bo_type} -  'buftype'|'filetype': The type of buffer option
 	{value} -  string: The specific value to set.
 	{options} -  table: Options to associate with the value.
 
@@ -531,13 +534,14 @@ user_default_options                     *colorizer.config.user_default_options*
 	{css} -  boolean: Enables all CSS features (`rgb_fn`, `hsl_fn`, `names`,
 	`RGB`, `RRGGBB`).
 	{css_fn} -  boolean: Enables all CSS functions (`rgb_fn`, `hsl_fn`).
-	{mode} -  string: Display mode (e.g., "background", "foreground",
-	"virtualtext").
+	{mode} -  'background'|'foreground'|'virtualtext': Display mode
 	{tailwind} -  boolean|string: Enables Tailwind CSS colors (e.g.,
 	`"normal"`, `"lsp"`, `"both"`).
 	{sass} -  table: Sass color configuration (`enable` flag and `parsers`).
 	{virtualtext} -  string: Character used for virtual text display.
 	{virtualtext_inline} -  boolean: Shows virtual text inline with color.
+	{virtualtext_mode} -  'background'|'foreground': Mode for virtual text
+	display.
 	{always_update} -  boolean: Always update color values, even if buffer
 	is not focused.
 
@@ -572,6 +576,8 @@ opts                                                     *colorizer.config.opts*
      (default is `"■"`).
    - `virtualtext_inline` (boolean): If true, shows the virtual text inline with
      the color.
+ - `virtualtext_mode` ('background'|'foreground'): Determines the display mode
+   for virtual text.
    - `always_update` (boolean): If true, updates color values even if the buffer
      is not focused.
 	{buftypes} -  table|nil Optional. A list of buffer types where colorizer

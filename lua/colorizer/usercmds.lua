@@ -9,7 +9,9 @@ local M = {}
 -- @param name string The name of the command to create
 -- @param f function The function to execute when the command is run
 local wrap = function(name, f)
-  vim.api.nvim_create_user_command(name, f, {})
+  vim.api.nvim_create_user_command(name, function()
+    f()
+  end, {})
 end
 
 --- Create user commands for Colorizer based on the given command list.
@@ -24,26 +26,18 @@ function M.make(cmds)
   if not cmds then
     return
   end
+  local c = require("colorizer")
   local cmd_list = {
-    ColorizerAttachToBuffer = function()
-      wrap("ColorizerAttachToBuffer", require("colorizer").attach_to_buffer)
-    end,
-    ColorizerDetachFromBuffer = function()
-      wrap("ColorizerDetachFromBuffer", require("colorizer").detach_from_buffer)
-    end,
-    ColorizerReloadAllBuffers = function()
-      wrap("ColorizerReloadAllBuffers", require("colorizer").reload_all_buffers)
-    end,
-    ColorizerToggle = function()
-      wrap("ColorizerToggle", function()
-        local c = require("colorizer")
-        if c.is_buffer_attached() then
-          c.detach_from_buffer()
-        else
-          c.attach_to_buffer()
-        end
-      end)
-    end,
+    ColorizerAttachToBuffer = wrap("ColorizerAttachToBuffer", c.attach_to_buffer),
+    ColorizerDetachFromBuffer = wrap("ColorizerDetachFromBuffer", c.detach_from_buffer),
+    ColorizerReloadAllBuffers = wrap("ColorizerReloadAllBuffers", c.reload_all_buffers),
+    ColorizerToggle = wrap("ColorizerToggle", function()
+      if c.is_buffer_attached() then
+        c.detach_from_buffer()
+      else
+        c.attach_to_buffer()
+      end
+    end),
   }
 
   if type(cmds) == "boolean" and cmds then

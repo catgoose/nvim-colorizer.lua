@@ -4,6 +4,29 @@ local M = {}
 
 local utils = require("colorizer.utils")
 
+--- Defaults for colorizer options
+local _user_defaults = {
+  RGB = true,
+  RRGGBB = true,
+  names = true,
+  RRGGBBAA = false,
+  AARRGGBB = false,
+  rgb_fn = false,
+  hsl_fn = false,
+  css = false,
+  css_fn = false,
+  mode = "background",
+  tailwind = false,
+  sass = { enable = false, parsers = { css = true } },
+  virtualtext = "■",
+  virtualtext_inline = false,
+  virtualtext_mode = "foreground",
+  always_update = false,
+}
+local function user_defaults()
+  return vim.deepcopy(_user_defaults)
+end
+
 --- Default user options for colorizer.
 -- This table defines individual options and alias options, allowing configuration of
 -- colorizer's behavior for different color formats (e.g., `#RGB`, `#RRGGBB`, `#AARRGGBB`, etc.).
@@ -27,11 +50,12 @@ local utils = require("colorizer.utils")
 -- @field hsl_fn boolean: Enables CSS `hsl()` and `hsla()` functions.
 -- @field css boolean: Enables all CSS features (`rgb_fn`, `hsl_fn`, `names`, `RGB`, `RRGGBB`).
 -- @field css_fn boolean: Enables all CSS functions (`rgb_fn`, `hsl_fn`).
--- @field mode string: Display mode (e.g., "background", "foreground", "virtualtext").
+-- @field mode 'background'|'foreground'|'virtualtext': Display mode
 -- @field tailwind boolean|string: Enables Tailwind CSS colors (e.g., `"normal"`, `"lsp"`, `"both"`).
 -- @field sass table: Sass color configuration (`enable` flag and `parsers`).
 -- @field virtualtext string: Character used for virtual text display.
 -- @field virtualtext_inline boolean: Shows virtual text inline with color.
+-- @field virtualtext_mode 'background'|'foreground': Mode for virtual text display.
 -- @field always_update boolean: Always update color values, even if buffer is not focused.
 
 -- Default options for the user
@@ -45,34 +69,44 @@ local utils = require("colorizer.utils")
 --@field hsl_fn boolean
 --@field css boolean
 --@field css_fn boolean
---@field mode string
+--@field mode 'background'|'foreground'|'virtualtext'
 --@field tailwind boolean|string
 --@field sass table
 --@field virtualtext string
---@field virtualtext_inline? boolean
+--@field virtualtext_inline boolean
+--@field virtualtext_mode 'background'|'foreground'
 --@field always_update boolean
-M.user_default_options = {
-  RGB = true,
-  RRGGBB = true,
-  names = true,
-  RRGGBBAA = false,
-  AARRGGBB = false,
-  rgb_fn = false,
-  hsl_fn = false,
-  css = false,
-  css_fn = false,
-  mode = "background",
-  tailwind = false,
-  sass = { enable = false, parsers = { css = true } },
-  virtualtext = "■",
-  virtualtext_inline = false,
-  always_update = false,
-}
-
---  TODO: 2024-11-10 - check if setup() works
+M.user_default_options = user_defaults()
 
 -- State for managing buffer and filetype-specific options
 local options_state = { buftype = {}, filetype = {} }
+
+--  TODO: 2024-11-20 - use vim.validate?
+--- Validates user options and sets defaults if necessary.
+local function validate_opts(settings)
+  if
+    not vim.tbl_contains(
+      { "background", "foreground", "virtualtext" },
+      settings.default_options.mode
+    )
+  then
+    settings.default_options.mode = M.user_default_options.mode
+  end
+  if
+    not vim.tbl_contains({ "background", "foreground" }, settings.default_options.virtualtext_mode)
+  then
+    settings.default_options.virtualtext_mode = M.user_default_options.virtualtext_mode
+  end
+  if
+    not vim.tbl_contains(
+      { true, false, "normal", "lsp", "both" },
+      settings.default_options.tailwind
+    )
+  then
+    settings.default_options.tailwind = M.user_default_options.tailwind
+  end
+  return settings
+end
 
 --- Configuration options for the `setup` function.
 -- @table opts
@@ -94,6 +128,7 @@ local options_state = { buftype = {}, filetype = {} }
 --      - `parsers` (table): A list of parsers to use, typically includes `"css"`.
 --   - `virtualtext` (string): Character used for virtual text display of colors (default is `"■"`).
 --   - `virtualtext_inline` (boolean): If true, shows the virtual text inline with the color.
+-- - `virtualtext_mode` ('background'|'foreground'): Determines the display mode for virtual text.
 --   - `always_update` (boolean): If true, updates color values even if the buffer is not focused.
 -- @field buftypes table|nil Optional. A list of buffer types where colorizer should be enabled. Defaults to all buffer types if not provided.
 -- @field user_commands boolean|table If true, enables all user commands for colorizer. If `false`, disables user commands. Alternatively, provide a table of specific commands to enable:
@@ -109,13 +144,13 @@ local options_state = { buftype = {}, filetype = {} }
 -- @return table Final settings after merging user and default options.
 function M.get_settings(opts)
   opts = opts or {}
-  local defaults = {
+  local default_opts = {
     filetypes = { "*" },
     buftypes = nil,
     user_commands = true,
-    user_default_options = M.user_default_options,
+    user_default_options = user_defaults(),
   }
-  opts = vim.tbl_deep_extend("force", defaults, opts)
+  opts = vim.tbl_deep_extend("force", default_opts, opts)
   local settings = {
     exclusions = { buftype = {}, filetype = {} },
     all = { buftype = false, filetype = false },
@@ -128,27 +163,30 @@ function M.get_settings(opts)
     filetypes = opts.filetypes,
     buftypes = opts.buftypes,
   }
+  validate_opts(settings)
+
   return settings
 end
 
 --- Retrieve default options or buffer-specific options.
 ---@param bufnr number: The buffer number.
----@param option_type string: The option type to retrieve.
-function M.new_buffer_options(bufnr, option_type)
-  local value = vim.api.nvim_get_option_value(option_type, { buf = bufnr })
+---@param bo_type 'buftype'|'filetype': The type of buffer option
+function M.new_buffer_options(bufnr, bo_type)
+  local value = vim.api.nvim_get_option_value(bo_type, { buf = bufnr })
   return options_state.filetype[value] or M.user_default_options
 end
 
 --- Retrieve options based on buffer type and file type.
----@param bo_type 'filetype' | 'buftype': Type of buffer option
+---@param bo_type 'buftype'|'filetype': The type of buffer option
 ---@param buftype string: Buffer type.
 ---@param filetype string: File type.
+---@return table, table
 function M.get_options(bo_type, buftype, filetype)
-  return options_state[bo_type][filetype], options_state[bo_type][buftype]
+  return options_state[bo_type][buftype], options_state[bo_type][filetype]
 end
 
 --- Set options for a specific buffer or file type.
----@param bo_type 'filetype' | 'buftype': Type of buffer option
+---@param bo_type 'buftype'|'filetype': The type of buffer option
 ---@param value string: The specific value to set.
 ---@param options table: Options to associate with the value.
 function M.set_bo_value(bo_type, value, options)
