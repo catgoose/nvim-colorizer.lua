@@ -1,6 +1,6 @@
 -- Run this file as `nvim --clean -u minimal.lua`
 
-local use_remote = false
+local use_remote = true
 
 if use_remote then
   for name, url in pairs({
