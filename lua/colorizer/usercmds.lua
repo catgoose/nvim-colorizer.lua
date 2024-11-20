@@ -24,19 +24,19 @@ function M.make(cmds)
   if not cmds then
     return
   end
+  local c = require("colorizer")
   local cmd_list = {
     ColorizerAttachToBuffer = function()
-      wrap("ColorizerAttachToBuffer", require("colorizer").attach_to_buffer)
+      wrap("ColorizerAttachToBuffer", c.attach_to_buffer)
     end,
     ColorizerDetachFromBuffer = function()
-      wrap("ColorizerDetachFromBuffer", require("colorizer").detach_from_buffer)
+      wrap("ColorizerDetachFromBuffer", c.detach_from_buffer)
     end,
     ColorizerReloadAllBuffers = function()
-      wrap("ColorizerReloadAllBuffers", require("colorizer").reload_all_buffers)
+      wrap("ColorizerReloadAllBuffers", c.reload_all_buffers)
     end,
     ColorizerToggle = function()
       wrap("ColorizerToggle", function()
-        local c = require("colorizer")
         if c.is_buffer_attached() then
           c.detach_from_buffer()
         else

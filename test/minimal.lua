@@ -23,12 +23,15 @@ local opts = {
     css = true,
     css_fn = true,
     mode = "background",
-    tailwind = "lsp",
+    tailwind = "normal",
     sass = {
       enable = false,
       parsers = { "css" },
     },
     virtualtext = "■",
+    virtualtext_inline = false,
+    virtualtext_mode = "foreground",
+    always_update = false,
   },
   buftypes = { "!prompt", "!popup" },
   user_commands = true,
@@ -36,3 +39,8 @@ local opts = {
 require("colorizer").setup(opts)
 
 -- ADD INIT.LUA SETTINGS _NECESSARY_ FOR REPRODUCING THE ISSUE
+
+vim.schedule(function()
+  vim.cmd("leftabove vsplit minimal.lua")
+  vim.cmd("edit tailwind.html")
+end)

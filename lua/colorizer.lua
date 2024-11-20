@@ -218,7 +218,9 @@ end
 ---@param bo_type 'buftype'|'filetype'|nil: The type of buffer option
 function M.attach_to_buffer(bufnr, options, bo_type)
   bufnr = utils.bufme(bufnr)
-  bo_type = bo_type or "buftype"
+  if not bo_type or not vim.tbl_contains({ "buftype", "filetype" }, bo_type) then
+    bo_type = "buftype"
+  end
   if not vim.api.nvim_buf_is_valid(bufnr) then
     colorizer_state.buffer_local[bufnr], colorizer_state.buffer_options[bufnr] = nil, nil
     return
