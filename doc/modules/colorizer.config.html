@@ -73,7 +73,7 @@
 	<td class="summary">Initializes colorizer with user-provided options.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#new_buffer_options">new_buffer_options (bufnr, option_type)</a></td>
+	<td class="name" nowrap><a href="#new_buffer_options">new_buffer_options (bufnr, bo_type)</a></td>
 	<td class="summary">Retrieve default options or buffer-specific options.</td>
 	</tr>
 	<tr>
@@ -137,7 +137,7 @@
 </dd>
     <dt>
     <a name = "new_buffer_options"></a>
-    <strong>new_buffer_options (bufnr, option_type)</strong>
+    <strong>new_buffer_options (bufnr, bo_type)</strong>
     </dt>
     <dd>
     Retrieve default options or buffer-specific options.
@@ -148,8 +148,8 @@
         <li><span class="parameter">bufnr</span>
          number: The buffer number.
         </li>
-        <li><span class="parameter">option_type</span>
-         string: The option type to retrieve.
+        <li><span class="parameter">bo_type</span>
+         'buftype'|'filetype': The type of buffer option
         </li>
     </ul>
 
@@ -179,6 +179,11 @@
         </li>
     </ul>
 
+    <h3>Returns:</h3>
+    <ol>
+
+        table, table
+    </ol>
 
 
 

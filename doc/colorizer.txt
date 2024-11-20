@@ -458,12 +458,12 @@ get_settings({opts})                             *colorizer.config.get_settings*
 
 
 
-new_buffer_options({bufnr}, {option_type}) *colorizer.config.new_buffer_options*
+new_buffer_options({bufnr}, {bo_type})     *colorizer.config.new_buffer_options*
     Retrieve default options or buffer-specific options.
 
     Parameters: ~
 	{bufnr} -  number: The buffer number.
-	{option_type} -  string: The option type to retrieve.
+	{bo_type} -  'buftype'|'filetype': The type of buffer option
 
 
 
@@ -474,6 +474,9 @@ get_options({bo_type}, {buftype}, {filetype})     *colorizer.config.get_options*
 	{bo_type} -  'filetype' | 'buftype': Type of buffer option
 	{buftype} -  string: Buffer type.
 	{filetype} -  string: File type.
+
+    returns:~
+	table, table
 
 
 

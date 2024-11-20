@@ -45,7 +45,7 @@ Use your plugin manager or clone directly into your package.
 {
     "NvChad/nvim-colorizer.lua",
     event = "BufReadPre",
-    opts = { -- setup opts
+    opts = { -- set to setup table
     },
 }
 ```
