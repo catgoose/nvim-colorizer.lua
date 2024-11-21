@@ -200,7 +200,7 @@ end
 ---@param options table: options table
 ---@return table
 function M.parse_buffer_options(options)
-  local default = M.user_default_options
+  local default = vim.deepcopy(M.user_default_options)
   local includes = {
     ["css"] = { "names", "RGB", "RRGGBB", "RRGGBBAA", "hsl_fn", "rgb_fn" },
     ["css_fn"] = { "hsl_fn", "rgb_fn" },
