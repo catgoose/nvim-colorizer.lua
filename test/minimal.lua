@@ -57,9 +57,6 @@ vim.api.nvim_create_autocmd("BufWritePost", {
   end,
 })
 
-vim.cmd.edit("tailwind.html")
-vim.schedule(function()
-  vim.cmd("leftabove vsplit expect.txt")
-end)
+vim.cmd.edit("expect.txt")
 
 -- ADD INIT.LUA SETTINGS _NECESSARY_ FOR REPRODUCING THE ISSUE
