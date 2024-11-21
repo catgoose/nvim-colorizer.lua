@@ -303,7 +303,8 @@ or use `:h colorizer` once installed.
 ## Testing
 
 To test colorization with your config, edit `test/expect.txt` to see expected
-highlights
+highlights. The returned table from `text/expect.txt` can be edited and when
+saved will reattach the Colorizer with those settings.
 
 For troubleshooting use `test/minimal.lua`. Edit the file to configure colorizer.
 Run `minimal.lua` to startup neovim:

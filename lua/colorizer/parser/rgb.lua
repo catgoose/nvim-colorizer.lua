@@ -96,22 +96,15 @@ function M.rgb_function_parser(line, i, opts)
     return
   end
 
-  -- Convert percentages to 0-255 scale if applicable
+  -- clamp values to 0-255
   if unit1 == "%" then
-    r = r / 100 * 255
-    g = g / 100 * 255
-    b = b / 100 * 255
+    r = r > 100 and 255 or r / 100 * 255
+    g = g > 100 and 255 or g / 100 * 255
+    b = b > 100 and 255 or b / 100 * 255
   else
-    -- Clamp RGB values to a maximum of 255
-    if r > 255 then
-      r = 255
-    end
-    if g > 255 then
-      g = 255
-    end
-    if b > 255 then
-      b = 255
-    end
+    r = r > 255 and 255 or r
+    b = b > 255 and 255 or b
+    g = g > 255 and 255 or g
   end
 
   -- Convert to hex, applying alpha to each channel
