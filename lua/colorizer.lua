@@ -172,7 +172,7 @@ end
 
 ---Check if attached to a buffer
 ---@param bufnr number|nil: buffer number (0 for current)
----@return number|nil: if attached to the buffer, false otherwise.
+---@return number: returns bufnr if attached, otherwise -1
 ---@see colorizer.buffer.highlight
 function M.is_buffer_attached(bufnr)
   if bufnr == 0 or not bufnr then
@@ -180,7 +180,7 @@ function M.is_buffer_attached(bufnr)
   else
     if not vim.api.nvim_buf_is_valid(bufnr) then
       colorizer_state.buffer_local[bufnr], colorizer_state.buffer_options[bufnr] = nil, nil
-      return
+      return -1
     end
   end
   local au = vim.api.nvim_get_autocmds({
@@ -189,7 +189,7 @@ function M.is_buffer_attached(bufnr)
     buffer = bufnr,
   })
   if not colorizer_state.buffer_options[bufnr] or vim.tbl_isempty(au) then
-    return
+    return -1
   end
   return bufnr
 end
@@ -198,9 +198,9 @@ end
 ---@param bufnr number: Buffer number (0 for current)
 ---@return table|nil
 local function get_buffer_options(bufnr)
-  local _bufnr = M.is_buffer_attached(bufnr)
-  if _bufnr then
-    return colorizer_state.buffer_options[_bufnr]
+  local attached_bufnr = M.is_buffer_attached(bufnr)
+  if attached_bufnr > -1 then
+    return colorizer_state.buffer_options[attached_bufnr]
   end
 end
 
@@ -227,9 +227,9 @@ function M.attach_to_buffer(bufnr, options, bo_type)
   end
 
   -- set options by grabbing existing or creating new options, then parsing
-  options = config.parse_buffer_options(
-    options or get_buffer_options(bufnr) or config.new_buffer_options(bufnr, bo_type)
-  )
+  local got_options = get_buffer_options(bufnr)
+  local new_options = config.new_buffer_options(bufnr, bo_type)
+  options = config.parse_buffer_options(options or got_options or new_options)
 
   if not buffer.highlight_mode_names[options.mode] then
     if options.mode ~= nil then
@@ -344,8 +344,8 @@ end
 function M.detach_from_buffer(bufnr)
   bufnr = utils.bufme(bufnr)
   bufnr = M.is_buffer_attached(bufnr)
-  if not bufnr then
-    return
+  if bufnr < 0 then
+    return -1
   end
   vim.api.nvim_buf_clear_namespace(bufnr, buffer.default_namespace, 0, -1)
   if colorizer_state.buffer_local[bufnr] then

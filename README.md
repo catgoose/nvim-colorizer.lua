@@ -302,22 +302,19 @@ or use `:h colorizer` once installed.
 
 ## Testing
 
-To test colorization with your config, edit `test/expect.txt` to see expected
-highlights. The returned table from `text/expect.txt` can be edited and when
-saved will reattach the Colorizer with those settings.
+For troubleshooting use `test/minimal.lua`.
+Startup neovim with `nvim --clean -u minimal.lua` in the `test` directory.
 
-For troubleshooting use `test/minimal.lua`. Edit the file to configure colorizer.
-Run `minimal.lua` to startup neovim:
-
-```bash
-nvim --clean -u minimal.lua expect.txt
-```
-
-Also there is a script that you can run from the root of the repo:
+Alternatively, use the following script from root directory:
 
 ```bash
 scripts/start_minimal.sh
 ```
+
+To test colorization with your config, edit `test/expect.txt` to see expected
+highlights.
+The returned table of `user_default_options` from `text/expect.txt` will be used
+to conveniently reattach Colorizer to `test/expect.txt` on save.
 
 ## Extras
 

@@ -69,12 +69,7 @@ local function create_highlight(rgb_hex, mode)
   else
     local rr, gg, bb = rgb_hex:sub(1, 2), rgb_hex:sub(3, 4), rgb_hex:sub(5, 6)
     local r, g, b = tonumber(rr, 16), tonumber(gg, 16), tonumber(bb, 16)
-    local fg_color
-    if color.is_bright(r, g, b) then
-      fg_color = "Black"
-    else
-      fg_color = "White"
-    end
+    local fg_color = color.is_bright(r, g, b) and "Black" or "White"
     vim.api.nvim_set_hl(0, highlight_name, { fg = fg_color, bg = "#" .. rgb_hex })
   end
   hl_state.cache[cache_key] = highlight_name

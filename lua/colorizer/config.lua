@@ -5,26 +5,25 @@ local M = {}
 local utils = require("colorizer.utils")
 
 --- Defaults for colorizer options
-local _user_defaults = {
-  RGB = true,
-  RRGGBB = true,
-  names = true,
-  RRGGBBAA = false,
-  AARRGGBB = false,
-  rgb_fn = false,
-  hsl_fn = false,
-  css = false,
-  css_fn = false,
-  mode = "background",
-  tailwind = false,
-  sass = { enable = false, parsers = { css = true } },
-  virtualtext = "■",
-  virtualtext_inline = false,
-  virtualtext_mode = "foreground",
-  always_update = false,
-}
 local function user_defaults()
-  return vim.deepcopy(_user_defaults)
+  return vim.deepcopy({
+    RGB = true,
+    RRGGBB = true,
+    names = true,
+    RRGGBBAA = false,
+    AARRGGBB = false,
+    rgb_fn = false,
+    hsl_fn = false,
+    css = false,
+    css_fn = false,
+    mode = "background",
+    tailwind = false,
+    sass = { enable = false, parsers = { css = true } },
+    virtualtext = "■",
+    virtualtext_inline = false,
+    virtualtext_mode = "foreground",
+    always_update = false,
+  })
 end
 
 --- Default user options for colorizer.
@@ -58,7 +57,7 @@ end
 -- @field virtualtext_mode 'background'|'foreground': Mode for virtual text display.
 -- @field always_update boolean: Always update color values, even if buffer is not focused.
 
--- Default options for the user
+-- Configured user options
 ---@table user_default_options
 --@field RGB boolean
 --@field RRGGBB boolean
@@ -76,12 +75,15 @@ end
 --@field virtualtext_inline boolean
 --@field virtualtext_mode 'background'|'foreground'
 --@field always_update boolean
-M.user_default_options = user_defaults()
+M.user_default_options = nil
+
+--- Plugin default options cache from vim.deepcopy
+---@table default_options
+local plugin_default_options = user_defaults()
 
 -- State for managing buffer and filetype-specific options
 local options_state = { buftype = {}, filetype = {} }
 
---  TODO: 2024-11-20 - use vim.validate?
 --- Validates user options and sets defaults if necessary.
 local function validate_opts(settings)
   if
@@ -90,12 +92,12 @@ local function validate_opts(settings)
       settings.default_options.mode
     )
   then
-    settings.default_options.mode = M.user_default_options.mode
+    settings.default_options.mode = plugin_default_options.mode
   end
   if
     not vim.tbl_contains({ "background", "foreground" }, settings.default_options.virtualtext_mode)
   then
-    settings.default_options.virtualtext_mode = M.user_default_options.virtualtext_mode
+    settings.default_options.virtualtext_mode = plugin_default_options.virtualtext_mode
   end
   if
     not vim.tbl_contains(
@@ -103,7 +105,7 @@ local function validate_opts(settings)
       settings.default_options.tailwind
     )
   then
-    settings.default_options.tailwind = M.user_default_options.tailwind
+    settings.default_options.tailwind = plugin_default_options.tailwind
   end
   return settings
 end
@@ -148,15 +150,16 @@ function M.get_settings(opts)
     filetypes = { "*" },
     buftypes = nil,
     user_commands = true,
-    user_default_options = user_defaults(),
+    user_default_options = plugin_default_options,
   }
+  --  TODO: 2024-11-21 - verify that vim.tbl_deep_extend is doing what it should
   opts = vim.tbl_deep_extend("force", default_opts, opts)
   local settings = {
     exclusions = { buftype = {}, filetype = {} },
     all = { buftype = false, filetype = false },
     default_options = vim.tbl_deep_extend(
       "force",
-      M.user_default_options,
+      plugin_default_options,
       opts.user_default_options
     ),
     user_commands = opts.user_commands,
@@ -164,7 +167,7 @@ function M.get_settings(opts)
     buftypes = opts.buftypes,
   }
   validate_opts(settings)
-
+  M.user_default_options = settings.default_options
   return settings
 end
 
@@ -197,11 +200,11 @@ end
 ---@param options table: options table
 ---@return table
 function M.parse_buffer_options(options)
+  local default = vim.deepcopy(M.user_default_options)
   local includes = {
     ["css"] = { "names", "RGB", "RRGGBB", "RRGGBBAA", "hsl_fn", "rgb_fn" },
     ["css_fn"] = { "hsl_fn", "rgb_fn" },
   }
-  local default_opts = M.user_default_options
 
   local function handle_alias(name, opts, d_opts)
     if not includes[name] then
@@ -213,23 +216,23 @@ function M.parse_buffer_options(options)
   end
 
   -- https://github.com/NvChad/nvim-colorizer.lua/issues/48
-  handle_alias("css", options, default_opts)
-  handle_alias("css_fn", options, default_opts)
+  handle_alias("css", options, default)
+  handle_alias("css_fn", options, default)
 
   if options.sass then
     if type(options.sass.parsers) == "table" then
       for child, _ in pairs(options.sass.parsers) do
-        handle_alias(child, options.sass.parsers, default_opts.sass.parsers)
+        handle_alias(child, options.sass.parsers, default.sass.parsers)
       end
     else
       options.sass.parsers = {}
-      for child, _ in pairs(default_opts.sass.parsers) do
+      for child, _ in pairs(default.sass.parsers) do
         handle_alias(child, true, options.sass.parsers)
       end
     end
   end
 
-  options = utils.merge(default_opts, options)
+  options = utils.merge(default, options)
   return options
 end
 return M

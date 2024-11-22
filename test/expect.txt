@@ -12,7 +12,7 @@ return {
   css = true,
   css_fn = true,
   mode = "background",
-  tailwind = "normal",
+  tailwind = "both",
   sass = {
     enable = false,
     parsers = { "css" },
@@ -20,13 +20,20 @@ return {
   virtualtext = "■",
   virtualtext_inline = false,
   virtualtext_mode = "foreground",
-  always_update = true,
 }
 
 --[[ TEST CASES
 0xFFFFFFF1 -- why does this highlight?
 
 SUCCESS CASES:
+CSS Named Colors:
+olive -- do not remove
+cyan magenta gold chartreuse lightgreen pink violet orange
+lightcoral lightcyan lemonchiffon papayawhip peachpuff
+blue gray lightblue gray100 white gold blue
+Blue LightBlue Gray100 White
+White
+
 Hexadecimal:
 #RGB:
   #F0F
@@ -60,14 +67,6 @@ Hexadecimal:
 #FFF00F8F #F00
 #def
 #deadbeef
-
-CSS Named Colors:
-olive -- do not remove
-cyan magenta gold chartreuse lightgreen pink violet orange
-lightcoral lightcyan lemonchiffon papayawhip peachpuff
-blue gray lightblue gray100 white gold blue
-Blue LightBlue Gray100 White
-White
 
 RGB (standard and percentages):
 rgb(    201     82.90   50 /0.5) rgb(   109, 100 ,      100, 0.8)
