@@ -1,25 +1,28 @@
 -- vim:ft=lua
 
--- Configuration options
+-- Colorizer setup opts
 return {
-  RGB = true,
-  RRGGBB = true,
-  names = true,
-  RRGGBBAA = true,
-  AARRGGBB = true,
-  rgb_fn = true,
-  hsl_fn = true,
-  css = true,
-  css_fn = true,
-  mode = "background",
-  tailwind = "both",
-  sass = {
-    enable = false,
-    parsers = { "css" },
+  filetypes = { "*" },
+  buftypes = { "!prompt", "!popup" },
+  user_commands = true,
+  user_default_options = {
+    RGB = true,
+    RRGGBB = true,
+    names = true,
+    RRGGBBAA = true,
+    AARRGGBB = true,
+    rgb_fn = true,
+    hsl_fn = true,
+    css = true,
+    css_fn = true,
+    mode = "background",
+    tailwind = false,
+    sass = { enable = false, parsers = { css = true } },
+    virtualtext = "■",
+    virtualtext_inline = false,
+    virtualtext_mode = "foreground",
+    always_update = false,
   },
-  virtualtext = "■",
-  virtualtext_inline = false,
-  virtualtext_mode = "foreground",
 }
 
 --[[ TEST CASES
