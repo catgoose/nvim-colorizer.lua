@@ -9,7 +9,7 @@ return {
   buftypes = { "!prompt", "!popup" },
   user_commands = true,
   user_default_options = {
-    names = false,
+    names = true,
     RGB = false,
     RRGGBB = false,
     RRGGBBAA = false,
