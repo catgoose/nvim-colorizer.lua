@@ -77,6 +77,16 @@ end
 --@field always_update boolean
 M.user_default_options = nil
 
+--- Options for colorizer that were passed in to setup function
+---@table setup_options
+--@field exclusions table
+--@field all table
+--@field default_options table
+--@field user_commands boolean
+--@field filetypes table
+--@field buftypes table
+M.setup_options = nil
+
 --- Plugin default options cache from vim.deepcopy
 ---@table default_options
 local plugin_default_options = user_defaults()
@@ -165,8 +175,10 @@ function M.get_settings(opts)
     user_commands = opts.user_commands,
     filetypes = opts.filetypes,
     buftypes = opts.buftypes,
+    dev = opts.dev,
   }
   validate_opts(settings)
+  M.setup_options = settings
   M.user_default_options = settings.default_options
   return settings
 end

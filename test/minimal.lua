@@ -25,7 +25,7 @@ local function load_options(file_path)
   local success, opts = pcall(dofile, file_path)
   if not success or type(opts) ~= "table" then
     vim.notify("Failed to load options from " .. file_path, vim.log.levels.ERROR)
-    return nil
+    return
   end
   return opts
 end
@@ -100,24 +100,8 @@ if not ok then
 end
 lazy.setup(define_plugins())
 
--- Automatically reload colorizer configuration on `expect.txt` changes
-vim.api.nvim_create_autocmd("BufWritePost", {
-  pattern = "expect.txt",
-  callback = function(evt)
-    vim.schedule(function()
-      local opts = load_options(evt.match)
-      if opts then
-        require("colorizer").detach_from_buffer(evt.buf)
-        require("colorizer").attach_to_buffer(evt.buf, opts.user_default_options)
-        vim.notify(
-          "Colorizer reloaded with updated options from " .. evt.match,
-          vim.log.levels.INFO
-        )
-      end
-    end)
-  end,
-})
-
-vim.cmd.edit("expect.txt")
+local expect = "expect.txt"
+require("colorizer").reload_on_save(expect)
+vim.cmd.edit(expect)
 
 -- ADD INIT.LUA SETTINGS _NECESSARY_ FOR REPRODUCING THE ISSUE

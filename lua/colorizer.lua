@@ -212,6 +212,31 @@ function M.reload_all_buffers()
   end
 end
 
+--- Reload file on save; used for dev, to edit expect.txt and apply highlights from returned setup table
+---@param pattern string: pattern to match file name
+function M.reload_on_save(pattern)
+  vim.api.nvim_create_autocmd("BufWritePost", {
+    pattern = pattern,
+    callback = function(evt)
+      vim.schedule(function()
+        local success, opts = pcall(dofile, evt.match)
+        if not success or type(opts) ~= "table" then
+          vim.notify("Failed to load options from " .. evt.match, vim.log.levels.ERROR)
+          return
+        end
+        if opts then
+          require("colorizer").detach_from_buffer(evt.buf)
+          require("colorizer").attach_to_buffer(evt.buf, opts.user_default_options)
+          vim.notify(
+            "Colorizer reloaded with updated options from " .. evt.match,
+            vim.log.levels.INFO
+          )
+        end
+      end)
+    end,
+  })
+end
+
 ---Attach to a buffer and continuously highlight changes.
 ---@param bufnr number|nil: buffer number (0 for current)
 ---@param options table|nil: Configuration options as described in `setup`
@@ -337,6 +362,11 @@ function M.attach_to_buffer(bufnr, options, bo_type)
   })
   colorizer_state.buffer_local[bufnr].__autocmds = autocmds
   colorizer_state.buffer_local[bufnr].__augroup_id = colorizer_state.augroup
+
+  -- If dev, automatically reload colorizer configuration on `expect.txt` changes
+  if config.setup_options.dev then
+    M.reload_on_save("expect.txt")
+  end
 end
 
 --- Stop highlighting the current buffer.

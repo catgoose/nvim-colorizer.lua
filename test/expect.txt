@@ -2,19 +2,20 @@
 
 -- Colorizer setup opts
 return {
+  dev = true,
   filetypes = { "*" },
   buftypes = { "!prompt", "!popup" },
   user_commands = true,
   user_default_options = {
-    RGB = true,
-    RRGGBB = true,
     names = true,
-    RRGGBBAA = true,
-    AARRGGBB = true,
-    rgb_fn = true,
-    hsl_fn = true,
-    css = true,
-    css_fn = true,
+    RGB = false,
+    RRGGBB = false,
+    RRGGBBAA = false,
+    AARRGGBB = false,
+    rgb_fn = false,
+    hsl_fn = false,
+    css = false,
+    css_fn = false,
     mode = "background",
     tailwind = "both",
     sass = { enable = false, parsers = { css = true } },

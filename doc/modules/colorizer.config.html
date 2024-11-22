@@ -96,6 +96,10 @@
 	<td class="summary">Default user options for colorizer.</td>
 	</tr>
 	<tr>
+	<td class="name" nowrap><a href="#setup_options">setup_options</a></td>
+	<td class="summary">Options for colorizer that were passed in to setup function</td>
+	</tr>
+	<tr>
 	<td class="name" nowrap><a href="#default_options">default_options</a></td>
 	<td class="summary">Plugin default options cache from vim.deepcopy</td>
 	</tr>
@@ -314,6 +318,41 @@
         </li>
         <li><span class="parameter">always_update</span>
          boolean: Always update color values, even if buffer is not focused.
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "setup_options"></a>
+    <strong>setup_options</strong>
+    </dt>
+    <dd>
+    Options for colorizer that were passed in to setup function
+
+
+    <h3>Fields:</h3>
+    <ul>
+        <li><span class="parameter">exclusions</span>
+         table
+        </li>
+        <li><span class="parameter">all</span>
+         table
+        </li>
+        <li><span class="parameter">default_options</span>
+         table
+        </li>
+        <li><span class="parameter">user_commands</span>
+         boolean
+        </li>
+        <li><span class="parameter">filetypes</span>
+         table
+        </li>
+        <li><span class="parameter">buftypes</span>
+         table
         </li>
     </ul>
 

@@ -91,6 +91,9 @@ Functions: ~
     |reload_all_buffers| - Reload all of the currently active highlighted
     buffers.
 
+    |reload_on_save| - Reload file on save; used for dev, to edit expect.txt and
+    apply highlights from returned setup table
+
     |attach_to_buffer| - Attach to a buffer and continuously highlight changes.
 
     |detach_from_buffer| - Stop highlighting the current buffer.
@@ -147,6 +150,15 @@ is_buffer_attached({bufnr})                       *colorizer.is_buffer_attached*
 
 reload_all_buffers()                              *colorizer.reload_all_buffers*
     Reload all of the currently active highlighted buffers.
+
+
+
+reload_on_save({pattern})                             *colorizer.reload_on_save*
+    Reload file on save; used for dev, to edit expect.txt and apply highlights
+    from returned setup table
+
+    Parameters: ~
+	{pattern} -  string: pattern to match file name
 
 
 
@@ -439,6 +451,9 @@ Functions: ~
 Tables: ~
     |user_default_options| - Default user options for colorizer.
 
+    |setup_options| - Options for colorizer that were passed in to setup
+    function
+
     |default_options| - Plugin default options cache from vim.deepcopy
 
     |opts| - Configuration options for the `setup` function.
@@ -546,6 +561,19 @@ user_default_options                     *colorizer.config.user_default_options*
 	display.
 	{always_update} -  boolean: Always update color values, even if buffer
 	is not focused.
+
+
+
+setup_options                                   *colorizer.config.setup_options*
+    Options for colorizer that were passed in to setup function
+
+    Fields: ~
+	{exclusions} -  table
+	{all} -  table
+	{default_options} -  table
+	{user_commands} -  boolean
+	{filetypes} -  table
+	{buftypes} -  table
 
 
 
