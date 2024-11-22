@@ -16,7 +16,7 @@ return {
     css = true,
     css_fn = true,
     mode = "background",
-    tailwind = false,
+    tailwind = "both",
     sass = { enable = false, parsers = { css = true } },
     virtualtext = "■",
     virtualtext_inline = false,
