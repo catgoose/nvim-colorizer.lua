@@ -463,57 +463,64 @@ function M.setup(opts)
     end
   end
 
-  local events = { buftype = "BufWinEnter", filetype = "FileType" }
-  local function parse_opts(bo_type, tbl)
-    if type(tbl) == "table" then
-      local list = {}
-      for k, v in pairs(tbl) do
-        local value
-        local options = s.default_options
-        if type(k) == "string" then
-          value = k
-          if type(v) ~= "table" then
-            vim.notify(string.format("colorizer: Invalid option type for %s", value), 4)
-          else
-            options = utils.merge(s.default_options, v)
-          end
-        else
-          value = v
-        end
-        -- Exclude
-        if value:sub(1, 1) == "!" then
-          s.exclusions[bo_type][value:sub(2)] = true
-        else
-          config.set_bo_value(bo_type, value, options)
-          if value == "*" then
-            s.all[bo_type] = true
-          else
-            table.insert(list, value)
-          end
-        end
-      end
-      vim.api.nvim_create_autocmd({ events[bo_type] }, {
-        group = colorizer_state.augroup,
-        pattern = bo_type == "filetype" and (s.all[bo_type] and "*" or list) or nil,
-        callback = function()
-          setup(bo_type)
-        end,
-      })
-    elseif tbl then
+  local function parse_opts(bo_type, opt_type)
+    local events = { buftype = "BufWinEnter", filetype = "FileType" }
+    if type(opt_type) ~= "table" then
       vim.notify_once(
-        string.format("colorizer: Invalid type for %ss %s", bo_type, vim.inspect(tbl)),
+        string.format("colorizer: Invalid type for %ss %s", bo_type, vim.inspect(opt_type)),
         4
       )
+      return
     end
+    local list = {}
+    for k, v in pairs(opt_type) do
+      local value
+      local options = s.default_options
+      if type(k) == "string" then
+        value = k
+        if type(v) ~= "table" then
+          vim.notify(string.format("colorizer: Invalid option type for %s", value), 4)
+        else
+          options = utils.merge(s.default_options, v)
+        end
+      else
+        value = v
+      end
+      -- Exclude or set buffer options
+      if value:sub(1, 1) == "!" then
+        s.exclusions[bo_type][value:sub(2)] = true
+      else
+        config.set_bo_value(bo_type, value, options)
+        if value == "*" then
+          s.all[bo_type] = true
+        else
+          table.insert(list, value)
+        end
+      end
+    end
+    -- Set up autocommands
+    vim.api.nvim_create_autocmd({ events[bo_type] }, {
+      group = colorizer_state.augroup,
+      pattern = bo_type == "filetype" and (s.all[bo_type] and "*" or list) or nil,
+      callback = function()
+        setup(bo_type)
+      end,
+    })
+  end
+  local opt_types = {
+    filetype = s.filetypes,
+    buftype = s.buftypes,
+  }
+  -- Process each table for filetype and buftype
+  for bo_type, opt_type in pairs(opt_types) do
+    parse_opts(bo_type, opt_type)
   end
 
+  -- Clear highlight cache on colorscheme change
   vim.api.nvim_create_autocmd("ColorScheme", {
     group = colorizer_state.augroup,
     callback = M.clear_highlight_cache,
   })
-
-  parse_opts("filetype", s.filetypes)
-  parse_opts("buftype", s.buftypes)
 
   require("colorizer.usercmds").make(s.user_commands)
 end
