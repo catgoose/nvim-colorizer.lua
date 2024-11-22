@@ -225,8 +225,8 @@ function M.reload_on_save(pattern)
           return
         end
         if opts then
-          require("colorizer").detach_from_buffer(evt.buf)
-          require("colorizer").attach_to_buffer(evt.buf, opts.user_default_options)
+          M.detach_from_buffer(evt.buf)
+          M.attach_to_buffer(evt.buf, opts.user_default_options)
           vim.notify(
             "Colorizer reloaded with updated options from " .. evt.match,
             vim.log.levels.INFO
@@ -243,30 +243,34 @@ end
 ---@param bo_type 'buftype'|'filetype'|nil: The type of buffer option
 function M.attach_to_buffer(bufnr, options, bo_type)
   bufnr = utils.bufme(bufnr)
-  if not bo_type or not vim.tbl_contains({ "buftype", "filetype" }, bo_type) then
-    bo_type = "buftype"
-  end
   if not vim.api.nvim_buf_is_valid(bufnr) then
     colorizer_state.buffer_local[bufnr], colorizer_state.buffer_options[bufnr] = nil, nil
     return
   end
+  --  TODO: 2024-11-22 - When attaching using user command does this respect buffer settings?
+  options = options or config.setup_options.filetypes[vim.bo.filetype]
+  bo_type = bo_type or vim.tbl_contains({ "buftype", "filetype" }, bo_type) and bo_type or "buftype"
 
   -- set options by grabbing existing or creating new options, then parsing
-  local got_options = get_buffer_options(bufnr)
+  local cached_options = get_buffer_options(bufnr)
   local new_options = config.new_buffer_options(bufnr, bo_type)
-  options = config.parse_buffer_options(options or got_options or new_options)
+  options = config.parse_buffer_options(options or cached_options or new_options)
 
   if not buffer.highlight_mode_names[options.mode] then
+    local default = "background"
     if options.mode ~= nil then
       local mode = options.mode
       vim.defer_fn(function()
-        -- just notify the user once
         vim.notify_once(
-          string.format("Warning: Invalid mode given to colorizer setup [ %s ]", mode)
+          string.format(
+            "Warning: Invalid mode given to colorizer setup [ %s ], setting to '%s'",
+            mode,
+            default
+          )
         )
       end, 0)
     end
-    options.mode = "background"
+    options.mode = default
   end
 
   colorizer_state.buffer_options[bufnr] = options
@@ -446,9 +450,9 @@ function M.setup(opts)
       return
     end
 
-    local fopts, bopts = config.get_options(bo_type, buftype, filetype)
-    -- if buffer and filetype options both are given, then prefer fileoptions
-    local options = bo_type == "filetype" and fopts or (fopts and fopts or bopts)
+    local bopts, fopts = config.get_options(bo_type, buftype, filetype)
+    -- prefer filetype options if available, otherwise fall back to buftype options
+    local options = fopts or bopts
 
     if not options and not s.all[bo_type] then
       return
