@@ -3,7 +3,7 @@
 -- ADD ANY ADDITIONAL PLUGINS TO `plugins` TABLE IN `define_plugins` FUNCTION
 
 local settings = {
-  use_remote = false, -- Use colorizer master or local git directory
+  use_remote = true, -- Use colorizer master or local git directory
   base_dir = "colorizer_repro", -- Directory to clone lazy.nvim
   local_plugin_dir = os.getenv("HOME") .. "/git/nvim-colorizer.lua", -- Local git directory for colorizer.  Used if use_remote is false
 }
