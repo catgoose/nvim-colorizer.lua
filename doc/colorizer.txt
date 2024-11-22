@@ -486,6 +486,8 @@ new_buffer_options({bufnr}, {bo_type})     *colorizer.config.new_buffer_options*
 
 get_options({bo_type}, {buftype}, {filetype})     *colorizer.config.get_options*
     Retrieve options based on buffer type and file type.
+      Prefer filetype.
+
 
     Parameters: ~
 	{bo_type} -  'buftype'|'filetype': The type of buffer option
@@ -493,7 +495,7 @@ get_options({bo_type}, {buftype}, {filetype})     *colorizer.config.get_options*
 	{filetype} -  string: File type.
 
     returns:~
-	table, table
+	table
 
 
 

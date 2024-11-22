@@ -249,12 +249,16 @@ function M.attach_to_buffer(bufnr, options, bo_type)
   end
   --  TODO: 2024-11-22 - When attaching using user command does this respect buffer settings?
   options = options or config.setup_options.filetypes[vim.bo.filetype]
-  bo_type = bo_type or vim.tbl_contains({ "buftype", "filetype" }, bo_type) and bo_type or "buftype"
+  --  TODO: 2024-11-22 - Why default to "buftype"?
+  bo_type = vim.tbl_contains({ "buftype", "filetype" }, bo_type) and bo_type or "buftype"
 
-  -- set options by grabbing existing or creating new options, then parsing
-  local cached_options = get_buffer_options(bufnr)
-  local new_options = config.new_buffer_options(bufnr, bo_type)
-  options = config.parse_buffer_options(options or cached_options or new_options)
+  -- check if options is empty table
+  options = next(options) and options
+    -- cached buffer options
+    or get_buffer_options(bufnr)
+    -- new buffer options
+    or config.new_buffer_options(bufnr, bo_type)
+  options = config.parse_buffer_options(options)
 
   if not buffer.highlight_mode_names[options.mode] then
     local default = "background"
@@ -366,11 +370,6 @@ function M.attach_to_buffer(bufnr, options, bo_type)
   })
   colorizer_state.buffer_local[bufnr].__autocmds = autocmds
   colorizer_state.buffer_local[bufnr].__augroup_id = colorizer_state.augroup
-
-  -- If dev, automatically reload colorizer configuration on `expect.txt` changes
-  if config.setup_options.dev then
-    M.reload_on_save("expect.txt")
-  end
 end
 
 --- Stop highlighting the current buffer.
@@ -450,14 +449,10 @@ function M.setup(opts)
       return
     end
 
-    local bopts, fopts = config.get_options(bo_type, buftype, filetype)
-    -- prefer filetype options if available, otherwise fall back to buftype options
-    local options = fopts or bopts
-
+    local options = config.get_options(bo_type, buftype, filetype)
     if not options and not s.all[bo_type] then
       return
     end
-
     options = options or s.default_options
 
     -- this should ideally be triggered one time per buffer

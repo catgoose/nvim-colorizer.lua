@@ -175,7 +175,6 @@ function M.get_settings(opts)
     user_commands = opts.user_commands,
     filetypes = opts.filetypes,
     buftypes = opts.buftypes,
-    dev = opts.dev,
   }
   validate_opts(settings)
   M.setup_options = settings
@@ -191,13 +190,13 @@ function M.new_buffer_options(bufnr, bo_type)
   return options_state.filetype[value] or M.user_default_options
 end
 
---- Retrieve options based on buffer type and file type.
+--- Retrieve options based on buffer type and file type.  Prefer filetype.
 ---@param bo_type 'buftype'|'filetype': The type of buffer option
 ---@param buftype string: Buffer type.
 ---@param filetype string: File type.
----@return table, table
+---@return table
 function M.get_options(bo_type, buftype, filetype)
-  return options_state[bo_type][buftype], options_state[bo_type][filetype]
+  return options_state[bo_type][filetype] or options_state[bo_type][buftype]
 end
 
 --- Set options for a specific buffer or file type.
