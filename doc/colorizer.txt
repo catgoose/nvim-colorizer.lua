@@ -138,7 +138,7 @@ is_buffer_attached({bufnr})                       *colorizer.is_buffer_attached*
 	{bufnr} -  number|nil: buffer number (0 for current)
 
     returns:~
-	number or nil: if attached to the buffer, false otherwise.
+	number: returns bufnr if attached, otherwise -1
 
     See also:~
 	|colorizer.buffer.highlight|
@@ -439,6 +439,8 @@ Functions: ~
 Tables: ~
     |user_default_options| - Default user options for colorizer.
 
+    |default_options| - Plugin default options cache from vim.deepcopy
+
     |opts| - Configuration options for the `setup` function.
 
 
@@ -544,6 +546,11 @@ user_default_options                     *colorizer.config.user_default_options*
 	display.
 	{always_update} -  boolean: Always update color values, even if buffer
 	is not focused.
+
+
+
+default_options                               *colorizer.config.default_options*
+    Plugin default options cache from vim.deepcopy
 
 
 

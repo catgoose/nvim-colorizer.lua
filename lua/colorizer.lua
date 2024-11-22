@@ -172,7 +172,7 @@ end
 
 ---Check if attached to a buffer
 ---@param bufnr number|nil: buffer number (0 for current)
----@return number: if attached to the buffer, false otherwise.
+---@return number: returns bufnr if attached, otherwise -1
 ---@see colorizer.buffer.highlight
 function M.is_buffer_attached(bufnr)
   if bufnr == 0 or not bufnr then
