@@ -1055,8 +1055,6 @@ Functions: ~
 
     |get_last_modified| - Get last modified time of a file
 
-    |merge| - Merge two tables.
-
     |parse_hex| - Parses a hexadecimal byte.
 
     |watch_file| - Watch a file for changes and execute callback
@@ -1118,20 +1116,6 @@ get_last_modified({path})                    *colorizer.utils.get_last_modified*
 
     returns:~
 	number or nil: modified time
-
-
-
-merge({...})                                             *colorizer.utils.merge*
-    Merge two tables.
-
-     todo: Remove this and use `vim.tbl_deep_extend`
-
-
-    Parameters: ~
-	{...} -
-
-    returns:~
-	table
 
 
 

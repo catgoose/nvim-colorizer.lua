@@ -225,7 +225,9 @@ function M.parse_buffer_options(options)
       return
     end
     for _, child in ipairs(includes[name]) do
-      d_opts[child] = opts[name] or false
+      if opts[name] ~= nil then
+        d_opts[child] = opts[name]
+      end
     end
   end
 
@@ -246,7 +248,7 @@ function M.parse_buffer_options(options)
     end
   end
 
-  options = utils.merge(default, options)
+  options = vim.tbl_deep_extend("force", default, options)
   return options
 end
 return M
