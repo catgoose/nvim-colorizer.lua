@@ -71,7 +71,7 @@
 <table class="function_list">
 	<tr>
 	<td class="name" nowrap><a href="#name_parser">name_parser (line, i, opts)</a></td>
-	<td class="summary">Grab all the color values from `vim.api.nvim_get_color_map` and create a lookup table.</td>
+	<td class="summary">Parse a line to find color names</td>
 	</tr>
 </table>
 
@@ -87,8 +87,7 @@
     <strong>name_parser (line, i, opts)</strong>
     </dt>
     <dd>
-    Grab all the color values from `vim.api.nvim_get_color_map` and create a lookup table.
- color_map is used to store the color values
+    Parse a line to find color names
 
 
     <h3>Parameters:</h3>
@@ -100,10 +99,15 @@
          number: Index of line from where to start parsing
         </li>
         <li><span class="parameter">opts</span>
-         table: Currently contains whether tailwind is enabled or not
+         table: Parsing options
         </li>
     </ul>
 
+    <h3>Returns:</h3>
+    <ol>
+
+        number|nil, string|nil: Length of match and hex value if found
+    </ol>
 
 
 
