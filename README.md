@@ -123,9 +123,9 @@ library to do custom highlighting themselves.
   require("colorizer").setup({
     filetypes = { "*" },
     user_default_options = {
+      names = true, -- "Name" codes like Blue or blue
       RGB = true, -- #RGB hex codes
       RRGGBB = true, -- #RRGGBB hex codes
-      names = true, -- "Name" codes like Blue or blue
       RRGGBBAA = false, -- #RRGGBBAA hex codes
       AARRGGBB = false, -- 0xAARRGGBB hex codes
       rgb_fn = false, -- CSS rgb() and rgba() functions

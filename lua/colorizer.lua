@@ -91,6 +91,7 @@ local colorizer_state = {
   buffer_lines = {},
   buffer_local = {},
   buffer_options = {},
+  buffer_reload = {},
 }
 
 --- Highlight the buffer region.
@@ -215,7 +216,14 @@ end
 --- Reload file on save; used for dev, to edit expect.txt and apply highlights from returned setup table
 ---@param pattern string: pattern to match file name
 function M.reload_on_save(pattern)
+  local bufnr = utils.bufme()
+  if colorizer_state.buffer_reload[bufnr] then
+    return
+  else
+    colorizer_state.buffer_reload[bufnr] = true
+  end
   vim.api.nvim_create_autocmd("BufWritePost", {
+    group = vim.api.nvim_create_augroup("ColorizerReload", {}),
     pattern = pattern,
     callback = function(evt)
       vim.schedule(function()
@@ -225,8 +233,11 @@ function M.reload_on_save(pattern)
           return
         end
         if opts then
-          M.detach_from_buffer(evt.buf)
-          M.attach_to_buffer(evt.buf, opts.user_default_options)
+          local buffer_reload = vim.deepcopy(colorizer_state.buffer_reload)
+          M.setup(opts)
+          -- restore buffer reload state after setup
+          colorizer_state.buffer_reload = buffer_reload
+          M.attach_to_buffer()
           vim.notify(
             "Colorizer reloaded with updated options from " .. evt.match,
             vim.log.levels.INFO
@@ -248,7 +259,7 @@ function M.attach_to_buffer(bufnr, options, bo_type)
     return
   end
   --  TODO: 2024-11-22 - When attaching using user command does this respect buffer settings?
-  options = options or config.setup_options.filetypes[vim.bo.filetype]
+  options = options or config.setup_options.filetypes[vim.bo.filetype] or {}
   --  TODO: 2024-11-22 - Why default to "buftype"?
   bo_type = vim.tbl_contains({ "buftype", "filetype" }, bo_type) and bo_type or "buftype"
 
@@ -432,6 +443,14 @@ function M.setup(opts)
   end
 
   local s = config.get_settings(opts)
+  colorizer_state = {
+    augroup = vim.api.nvim_create_augroup("ColorizerSetup", { clear = true }),
+    buffer_current = 0,
+    buffer_lines = {},
+    buffer_local = {},
+    buffer_options = {},
+    buffer_reload = {},
+  }
 
   -- Setup the buffer with the correct options
   local function setup(bo_type)
@@ -516,6 +535,7 @@ function M.setup(opts)
     callback = M.clear_highlight_cache,
   })
 
+  --  TODO: 2024-11-23 - Delete user commands first
   require("colorizer.usercmds").make(s.user_commands)
 end
 

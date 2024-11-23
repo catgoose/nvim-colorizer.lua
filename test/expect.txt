@@ -1,16 +1,16 @@
 -- vim:ft=lua
 
---  TODO: 2024-11-22 - Reloading test is reloading recursively on save
-
 -- Colorizer setup opts
 return {
-  dev = true,
-  filetypes = { "*" },
+  filetypes = {
+    "*",
+    lua = { names = true },
+  },
   buftypes = { "!prompt", "!popup" },
   user_commands = true,
   user_default_options = {
     names = true,
-    RGB = false,
+    RGB = true,
     RRGGBB = false,
     RRGGBBAA = false,
     AARRGGBB = false,

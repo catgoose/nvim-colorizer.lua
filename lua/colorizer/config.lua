@@ -7,9 +7,9 @@ local utils = require("colorizer.utils")
 --- Defaults for colorizer options
 local function user_defaults()
   return vim.deepcopy({
+    names = true,
     RGB = true,
     RRGGBB = true,
-    names = true,
     RRGGBBAA = false,
     AARRGGBB = false,
     rgb_fn = false,
@@ -92,7 +92,7 @@ M.setup_options = nil
 local plugin_default_options = user_defaults()
 
 -- State for managing buffer and filetype-specific options
-local options_state = { buftype = {}, filetype = {} }
+local options_state
 
 --- Validates user options and sets defaults if necessary.
 local function validate_opts(settings)
@@ -155,6 +155,7 @@ end
 -- @param opts opts User-provided configuration options.
 -- @return table Final settings after merging user and default options.
 function M.get_settings(opts)
+  options_state = { buftype = {}, filetype = {} }
   opts = opts or {}
   local default_opts = {
     filetypes = { "*" },
