@@ -546,6 +546,7 @@ user_default_options                     *colorizer.config.user_default_options*
 	{RGB} -  boolean: Enables `#RGB` hex codes.
 	{RRGGBB} -  boolean: Enables `#RRGGBB` hex codes.
 	{names} -  boolean: Enables named colors (e.g., "Blue").
+	{extra_names} -  boolean|table|function|nil: Enables extra named colors
 	{RRGGBBAA} -  boolean: Enables `#RRGGBBAA` hex codes.
 	{AARRGGBB} -  boolean: Enables `0xAARRGGBB` hex codes.
 	{rgb_fn} -  boolean: Enables CSS `rgb()` and `rgba()` functions.
@@ -721,21 +722,19 @@ text.
 LUA API                                         *colorizer.parser.names-lua-api*
 
 Functions: ~
-    |name_parser| - Grab all the color values from `vim.api.nvim_get_color_map`
-    and create a lookup table.
+    |name_parser| - Parse a line to find color names
 
 
 name_parser({line}, {i}, {opts})            *colorizer.parser.names.name_parser*
-    Grab all the color values from `vim.api.nvim_get_color_map` and create a
-    lookup table.
-
-     color_map is used to store the color values
-
+    Parse a line to find color names
 
     Parameters: ~
 	{line} -  string: Line to parse
 	{i} -  number: Index of line from where to start parsing
-	{opts} -  table: Currently contains whether tailwind is enabled or not
+	{opts} -  table: Parsing options
+
+    returns:~
+	number or nil, string or nil: Length of match and hex value if found
 
 
 
