@@ -8,6 +8,7 @@ local utils = require("colorizer.utils")
 local function user_defaults()
   return vim.deepcopy({
     names = true,
+    extra_names = false,
     RGB = true,
     RRGGBB = true,
     RRGGBBAA = false,
@@ -43,6 +44,7 @@ end
 -- @field RGB boolean: Enables `#RGB` hex codes.
 -- @field RRGGBB boolean: Enables `#RRGGBB` hex codes.
 -- @field names boolean: Enables named colors (e.g., "Blue").
+-- @field extra_names boolean|table|function|nil: Enables extra named colors
 -- @field RRGGBBAA boolean: Enables `#RRGGBBAA` hex codes.
 -- @field AARRGGBB boolean: Enables `0xAARRGGBB` hex codes.
 -- @field rgb_fn boolean: Enables CSS `rgb()` and `rgba()` functions.
