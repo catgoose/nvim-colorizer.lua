@@ -124,6 +124,8 @@ library to do custom highlighting themselves.
     filetypes = { "*" },
     user_default_options = {
       names = true, -- "Name" codes like Blue or blue
+      -- Expects a table of color name, rgb value pairs.  # is optional
+      -- Example: { cool = "#107dac", ["notcool"] = "ee9240" }
       extra_names = false, -- Extra names to be highlighted: boolean|table|function|nil
       RGB = true, -- #RGB hex codes
       RRGGBB = true, -- #RRGGBB hex codes
