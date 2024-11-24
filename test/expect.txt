@@ -32,12 +32,12 @@ return {
     RRGGBB = true,
     RRGGBBAA = true,
     AARRGGBB = true,
-    rgb_fn = false,
-    hsl_fn = false,
-    css = false,
-    css_fn = false,
+    rgb_fn = true,
+    hsl_fn = true,
+    css = true,
+    css_fn = true,
     mode = "background",
-    tailwind = false,
+    tailwind = "both",
     sass = { enable = true, parsers = { css = true } },
     virtualtext = "■",
     virtualtext_inline = false,
@@ -130,6 +130,8 @@ hsla(0, 100%, 90%, 1) hsla(120, 100%, 85%, 0.8) hsla(240, 100%, 85%, 0.7)
 hsla(300, 80%, 75%, 0.6) hsla(180, 100%, 80%, 0.9) hsla(90, 100%, 85%, 0.4)
 hsl(255, 100%, 100%, 1)
 hsl(255000, 100000%, 100000%, 1000)
+
+################################################################################
 
 FAIL CASES:
 matcher#add

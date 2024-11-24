@@ -113,14 +113,13 @@ function M.make(options)
   local matchers = {}
   local matchers_prefix = {}
 
-  if enable_names or enable_extra_names or enable_tailwind then
-    matchers.color_name_parser = {
-      color_names = options.names,
-      extra_names = options.extra_names,
-      tailwind = options.tailwind,
-    }
+  if enable_names or enable_extra_names then
+    matchers.color_name_parser = { color_names = enable_names, extra_names = enable_extra_names }
   end
-
+  if enable_tailwind then
+    matchers.color_name_parser = matchers.color_name_parser or {}
+    matchers.color_name_parser.tailwind = enable_tailwind
+  end
   if enable_sass then
     matchers.sass_name_parser = true
   end
