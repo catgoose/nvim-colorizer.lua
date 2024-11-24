@@ -53,8 +53,20 @@ local function handle_extra_names(extra_names)
   -- Normalize hex values and add to the color map
   for k, v in pairs(extra_data) do
     if type(v) == "string" then
-      local normalized_hex = v:gsub("^#", "") -- Remove leading #
-      add_color(k, normalized_hex)
+      -- Remove leading # and trim spaces
+      local normalized_hex = v:gsub("^#", ""):gsub("%s", "")
+      -- Check for valid hex (6 characters, alphanumeric)
+      if normalized_hex:match(string.format("^%s$", ("%x"):rep(6))) then
+        add_color(k, normalized_hex)
+      else
+        vim.api.nvim_err_writeln(
+          "Invalid hex code for color name '"
+            .. k
+            .. "': Expected a 6-character hexadecimal string, got '"
+            .. normalized_hex
+            .. "'"
+        )
+      end
     else
       vim.api.nvim_err_writeln(
         "Invalid value for color name '" .. k .. "': Expected a string, got " .. type(v)
