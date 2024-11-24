@@ -2,8 +2,6 @@
 -- @module colorizer.config
 local M = {}
 
-local utils = require("colorizer.utils")
-
 --- Defaults for colorizer options
 local function user_defaults()
   return vim.deepcopy({
@@ -166,7 +164,6 @@ function M.get_settings(opts)
     user_commands = true,
     user_default_options = plugin_default_options,
   }
-  --  TODO: 2024-11-21 - verify that vim.tbl_deep_extend is doing what it should
   opts = vim.tbl_deep_extend("force", default_opts, opts)
   local settings = {
     exclusions = { buftype = {}, filetype = {} },
