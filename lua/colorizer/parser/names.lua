@@ -4,6 +4,8 @@
 --@module colorizer.parser.names
 local M = {}
 
+--  BUG: 2024-11-23 - 'red' and 'green' are matched in 'red_green'
+
 local Trie = require("colorizer.trie")
 local utils = require("colorizer.utils")
 local tohex = require("bit").tohex
@@ -92,8 +94,6 @@ local function populate_colors(opts)
   end
   tailwind_enabled = opts.tailwind
 
-  --  BUG: 2024-11-23 - `names` color is matching `extra_names`
-  -- Handle extra names
   if opts.extra_names then
     handle_extra_names(opts.extra_names)
   end

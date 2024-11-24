@@ -53,8 +53,8 @@ local function trie_destroy(trie)
 end
 
 local total_char = 255
-local INDEX_LOOKUP_TABLE = ffi.new("uint8_t[?]", total_char)
-local CHAR_LOOKUP_TABLE = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-"
+local index_lookup = ffi.new("uint8_t[?]", total_char)
+local char_lookup = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-"
 do
   local b = string.byte
   local extra_char = {
@@ -70,14 +70,14 @@ do
   }
   for i = 0, total_char do
     if i >= byte["0"] and i <= byte["9"] then
-      INDEX_LOOKUP_TABLE[i] = i - byte["0"]
+      index_lookup[i] = i - byte["0"]
     elseif i >= byte["A"] and i <= byte["Z"] then
-      INDEX_LOOKUP_TABLE[i] = i - byte["A"] + 10
+      index_lookup[i] = i - byte["A"] + 10
     elseif i >= byte["a"] and i <= byte["z"] then
-      INDEX_LOOKUP_TABLE[i] = i - byte["a"] + 10 + 26
+      index_lookup[i] = i - byte["a"] + 10 + 26
     elseif extra_char[i] then
     else
-      INDEX_LOOKUP_TABLE[i] = total_char
+      index_lookup[i] = total_char
     end
   end
 end
@@ -88,7 +88,7 @@ local function trie_insert(trie, value)
   end
   local node = trie
   for i = 1, #value do
-    local index = INDEX_LOOKUP_TABLE[value:byte(i)]
+    local index = index_lookup[value:byte(i)]
     if index == total_char then
       return false
     end
@@ -107,7 +107,7 @@ local function trie_search(trie, value, start)
   end
   local node = trie
   for i = (start or 1), #value do
-    local index = INDEX_LOOKUP_TABLE[value:byte(i)]
+    local index = index_lookup[value:byte(i)]
     if index == total_char then
       return
     end
@@ -124,13 +124,11 @@ local function trie_longest_prefix(trie, value, start, exact)
   if trie == nil then
     return false
   end
-  -- insensitive = insensitive and 0x20 or 0
   start = start or 1
   local node = trie
   local last_i = nil
   for i = start, #value do
-    local index = INDEX_LOOKUP_TABLE[value:byte(i)]
-    --		local index = INDEX_LOOKUP_TABLE[bor(insensitive, value:byte(i))]
+    local index = index_lookup[value:byte(i)]
     if index == total_char then
       break
     end
@@ -168,7 +166,7 @@ local function index_to_char(index)
   if index < 0 or index > 61 then
     return
   end
-  return CHAR_LOOKUP_TABLE:sub(index + 1, index + 1)
+  return char_lookup:sub(index + 1, index + 1)
 end
 
 local function trie_as_table(trie)

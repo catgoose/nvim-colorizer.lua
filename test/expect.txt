@@ -10,7 +10,12 @@ return {
       extra_names = { -- extra names in filetype are not being applied
         -- names = "#1F4770",
         names = "#791497",
-        lua = "#1F7047",
+        cool = "#1F7047",
+        lua = "#107dac",
+        ["notcool"] = "#ee9240",
+        red_green = "#970000",
+        -- red_green
+        -- lua
       },
     },
   },
