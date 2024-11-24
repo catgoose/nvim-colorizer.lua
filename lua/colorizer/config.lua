@@ -45,6 +45,7 @@ end
 -- @field RRGGBB boolean: Enables `#RRGGBB` hex codes.
 -- @field names boolean: Enables named colors (e.g., "Blue").
 -- @field extra_names boolean|table|function|nil: Enables extra named colors
+-- should return a table of color names to RGB value pairs
 -- @field RRGGBBAA boolean: Enables `#RRGGBBAA` hex codes.
 -- @field AARRGGBB boolean: Enables `0xAARRGGBB` hex codes.
 -- @field rgb_fn boolean: Enables CSS `rgb()` and `rgba()` functions.
