@@ -224,6 +224,24 @@ require("colorizer").setup({
 require("colorizer").setup({
   user_commands = { "ColorizerToggle", "ColorizerReloadAllBuffers" },
 })
+
+-- Apply extra_names from theme
+require("colorizer").setup({
+  names = true,
+  extra_names = function()
+    local colors = require("kanagawa.colors").setup({ theme = "dragon" })
+    return colors.palette
+  end,
+  filetypes = {
+    "*",
+    lua = { -- use different theme for lua filetype
+      extra_names = function()
+        local colors = require("kanagawa.colors").setup({ theme = "wave" })
+        return colors.palette
+      end,
+    },
+  },
+})
 ```
 
 In `user_default_options`, there are 2 types of options
