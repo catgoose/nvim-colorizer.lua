@@ -1,36 +1,42 @@
 --- This module provides a parser that identifies named colors from a given line of text.
 -- It supports standard color names and optional Tailwind CSS color names.
--- The module creates a lookup table and Trie structure to efficiently match color names in text.
---@module colorizer.parser.names
+-- The module uses a Trie structure for efficient matching of color names in text.
+-- @module colorizer.parser.names
 local M = {}
-
---  BUG: 2024-11-23 - 'red' and 'green' are matched in 'red_green'
 
 local Trie = require("colorizer.trie")
 local utils = require("colorizer.utils")
 local tohex = require("bit").tohex
 local min, max = math.min, math.max
 
-local color_map = {}
-local color_trie = Trie()
-local color_name_minlen, color_name_maxlen
-local color_name_settings = { lowercase = true, strip_digits = false }
-local tailwind_enabled = false
+-- Internal state encapsulation
+local names_state = {
+  color_map = {},
+  color_trie = nil,
+  color_name_minlen = nil,
+  color_name_maxlen = nil,
+  color_name_settings = { lowercase = true, strip_digits = false },
+  tailwind_enabled = false,
+}
 
---- Internal function to add colors to the trie and color map
----@param name string: The color name
----@param value string: The color value in hex
+--- Internal function to add a color to the Trie and map.
+-- @param name string The color name.
+-- @param value string The color value in hex format.
 local function add_color(name, value)
-  color_name_minlen = color_name_minlen and min(#name, color_name_minlen) or #name
-  color_name_maxlen = color_name_maxlen and max(#name, color_name_maxlen) or #name
-  color_map[name] = value
-  color_trie:insert(name)
+  names_state.color_name_minlen = names_state.color_name_minlen
+      and min(#name, names_state.color_name_minlen)
+    or #name
+  names_state.color_name_maxlen = names_state.color_name_maxlen
+      and max(#name, names_state.color_name_maxlen)
+    or #name
+  names_state.color_map[name] = value
+  names_state.color_trie:insert(name)
 end
 
---- Add extra names to the color map
----@param extra_names boolean|table|function|nil: Additional color names to process
+--- Handles additional color names provided as a table or function.
+-- @param extra_names table|function|nil Additional color names to add.
 local function handle_extra_names(extra_names)
-  if not extra_names or extra_names == false then
+  if not extra_names then
     return
   end
 
@@ -50,91 +56,83 @@ local function handle_extra_names(extra_names)
     end
   end
 
-  -- Normalize hex values and add to the color map
-  for k, v in pairs(extra_data) do
-    if type(v) == "string" then
-      -- Remove leading # and trim spaces
-      local normalized_hex = v:gsub("^#", ""):gsub("%s", "")
-      -- Check for valid hex (6 characters, alphanumeric)
-      if normalized_hex:match(string.format("^%s$", ("%x"):rep(6))) then
-        add_color(k, normalized_hex)
+  for name, hex in pairs(extra_data) do
+    if type(hex) == "string" then
+      local normalized_hex = hex:gsub("^#", ""):gsub("%s", "")
+      if normalized_hex:match("^%x%x%x%x%x%x$") then
+        add_color(name, normalized_hex)
       else
-        vim.api.nvim_err_writeln(
-          "Invalid hex code for color name '"
-            .. k
-            .. "': Expected a 6-character hexadecimal string, got '"
-            .. normalized_hex
-            .. "'"
-        )
+        vim.api.nvim_err_writeln("Invalid hex code for '" .. name .. "': " .. normalized_hex)
       end
     else
       vim.api.nvim_err_writeln(
-        "Invalid value for color name '" .. k .. "': Expected a string, got " .. type(v)
+        "Invalid value for '" .. name .. "': Expected string, got " .. type(hex)
       )
     end
   end
 end
 
---- Populate colors from the provided sources
----@param opts table: Options for tailwind and extra names
+--- Populates the Trie and map with colors based on options.
+-- @param opts table Configuration options for color names and Tailwind CSS.
 local function populate_colors(opts)
-  color_map = {}
-  color_trie = Trie()
-  color_name_minlen, color_name_maxlen = nil, nil
+  names_state.color_map = {}
+  names_state.color_trie = Trie()
+  names_state.color_name_minlen, names_state.color_name_maxlen = nil, nil
 
-  -- Add colors from Vim's color map
+  -- Add Vim's color map
   if opts.color_names then
-    for k, v in pairs(vim.api.nvim_get_color_map()) do
-      if not (color_name_settings.strip_digits and k:match("%d+$")) then
-        local rgb_hex = tohex(v, 6)
-        add_color(k, rgb_hex)
-        if color_name_settings.lowercase then
-          add_color(k:lower(), rgb_hex)
+    for name, value in pairs(vim.api.nvim_get_color_map()) do
+      if not (names_state.color_name_settings.strip_digits and name:match("%d+$")) then
+        local rgb_hex = tohex(value, 6)
+        add_color(name, rgb_hex)
+        if names_state.color_name_settings.lowercase then
+          add_color(name:lower(), rgb_hex)
         end
       end
     end
   end
 
-  -- Add Tailwind colors if enabled
+  -- Add Tailwind colors
   if opts.tailwind then
     local tailwind = require("colorizer.tailwind_colors")
-    for k, v in pairs(tailwind.colors) do
-      for _, pre in ipairs(tailwind.prefixes) do
-        add_color(pre .. "-" .. k, v)
+    for name, hex in pairs(tailwind.colors) do
+      for _, prefix in ipairs(tailwind.prefixes) do
+        add_color(prefix .. "-" .. name, hex)
       end
     end
   end
-  tailwind_enabled = opts.tailwind
+  names_state.tailwind_enabled = opts.tailwind
 
+  -- Add extra names
   if opts.extra_names then
     handle_extra_names(opts.extra_names)
   end
 end
 
---- Parse a line to find color names
----@param line string: Line to parse
----@param i number: Index of line from where to start parsing
----@param opts table: Parsing options
----@return number|nil, string|nil: Length of match and hex value if found
+--- Parses a line to identify color names.
+-- @param line string The text line to parse.
+-- @param i number The index to start parsing from.
+-- @param opts table Parsing options.
+-- @return number|nil, string|nil Length of match and hex value if found.
 function M.name_parser(line, i, opts)
-  if not color_trie or opts.tailwind ~= tailwind_enabled then
+  if not names_state.color_trie or opts.tailwind ~= names_state.tailwind_enabled then
     populate_colors(opts)
   end
 
   if
-    #line < i + (color_name_minlen or 0) - 1
+    #line < i + (names_state.color_name_minlen or 0) - 1
     or (i > 1 and utils.byte_is_valid_colorchar(line:byte(i - 1)))
   then
     return
   end
 
-  local prefix = color_trie:longest_prefix(line, i)
+  local prefix = names_state.color_trie:longest_prefix(line, i)
   if prefix then
     local next_byte_index = i + #prefix
     if #line >= next_byte_index and utils.byte_is_valid_colorchar(line:byte(next_byte_index)) then
       return
     end
-    return #prefix, color_map[prefix]
+    return #prefix, names_state.color_map[prefix]
   end
 end
 
