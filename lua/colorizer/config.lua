@@ -95,6 +95,7 @@ local plugin_default_options = user_defaults()
 -- State for managing buffer and filetype-specific options
 local options_state
 
+--  TODO: 2024-11-26 - background is being validated in colorizer.attach_to_buffer
 --- Validates user options and sets defaults if necessary.
 local function validate_opts(settings)
   if
@@ -165,7 +166,7 @@ function M.get_settings(opts)
     user_default_options = plugin_default_options,
   }
   opts = vim.tbl_deep_extend("force", default_opts, opts)
-  local settings = {
+  M.setup_options = {
     exclusions = { buftype = {}, filetype = {} },
     all = { buftype = false, filetype = false },
     default_options = vim.tbl_deep_extend(
@@ -177,10 +178,9 @@ function M.get_settings(opts)
     filetypes = opts.filetypes,
     buftypes = opts.buftypes,
   }
-  validate_opts(settings)
-  M.setup_options = settings
-  M.user_default_options = settings.default_options
-  return settings
+  validate_opts(M.setup_options)
+  M.user_default_options = M.setup_options.default_options
+  return M.setup_options
 end
 
 --- Retrieve default options or buffer-specific options.
@@ -197,7 +197,8 @@ end
 ---@param filetype string: File type.
 ---@return table
 function M.get_options(bo_type, buftype, filetype)
-  return options_state[bo_type][filetype] or options_state[bo_type][buftype]
+  local fo, bo = options_state[bo_type][filetype], options_state[bo_type][buftype]
+  return fo or bo
 end
 
 --- Set options for a specific buffer or file type.

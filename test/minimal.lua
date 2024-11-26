@@ -6,6 +6,7 @@ local settings = {
   use_remote = true, -- Use colorizer master or local git directory
   base_dir = "colorizer_repro", -- Directory to clone lazy.nvim
   local_plugin_dir = os.getenv("HOME") .. "/git/nvim-colorizer.lua", -- Local git directory for colorizer.  Used if use_remote is false
+  expect = "expect.txt",
 }
 
 if not vim.loop.fs_stat(settings.base_dir) then
@@ -33,11 +34,14 @@ end
 -- Configure colorizer plugin
 local function configure_colorizer()
   vim.opt.termguicolors = true
-  local opts = load_options("expect.txt")
+  local opts = load_options(settings.expect)
   if opts then
     require("colorizer").setup(opts)
   else
-    vim.notify("Could not load colorizer options from expect.txt", vim.log.levels.WARN)
+    vim.notify(
+      string.format("Could not load colorizer options from %s", settings.expect),
+      vim.log.levels.WARN
+    )
   end
 end
 
@@ -100,8 +104,7 @@ if not ok then
 end
 lazy.setup(define_plugins())
 
-local expect = "expect.txt"
-require("colorizer").reload_on_save(expect)
-vim.cmd.edit(expect)
+require("colorizer").reload_on_save(settings.expect)
+vim.cmd.edit(settings.expect)
 
 -- ADD INIT.LUA SETTINGS _NECESSARY_ FOR REPRODUCING THE ISSUE

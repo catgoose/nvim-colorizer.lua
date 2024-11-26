@@ -99,7 +99,7 @@ function M.make(options)
     + ((enable_tailwind == true or enable_tailwind == "normal") and 256 or 0)
     + (enable_tailwind == "lsp" and 512 or 0)
     + (enable_tailwind == "both" and 1024 or 0)
-    + (enable_sass and 2096 or 0)
+    + (enable_sass and 2048 or 0)
 
   if matcher_key == 0 then
     return false
@@ -113,8 +113,13 @@ function M.make(options)
   local matchers = {}
   local matchers_prefix = {}
 
-  if enable_names or enable_extra_names then
-    matchers.color_name_parser = { color_names = enable_names, extra_names = enable_extra_names }
+  if enable_names then
+    matchers.color_name_parser = matchers.color_name_parser or {}
+    matchers.color_name_parser.color_names = enable_names
+  end
+  if enable_extra_names then
+    matchers.color_name_parser = matchers.color_name_parser or {}
+    matchers.color_name_parser.extra_names = enable_extra_names
   end
   if enable_tailwind then
     matchers.color_name_parser = matchers.color_name_parser or {}

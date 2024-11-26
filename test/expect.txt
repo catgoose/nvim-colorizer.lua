@@ -1,25 +1,26 @@
--- vim:ft=lua
+--- vim:ft=lua
+--- Filetype is set to lua, buf event BufWinEnter triggers before filetype is set
+--- Change filetypes.lua to filetypes.text to reload settings on save
 
 -- Colorizer setup opts
 return {
   filetypes = {
     "*",
+    "!dashboard",
     lua = {
-      names = true,
-      always_update = true,
+      names = false,
       extra_names = { -- extra names in filetype are not being applied
         -- names = "#1F4770",
         names = "#791497",
         cool = "#1F7047",
         lua = "#107dac",
         ["notcool"] = "#ee9240",
-        red_green = "#970000",
-        -- red_green
+        redgreen = "#970000",
         -- lua
       },
     },
   },
-  buftypes = { "!prompt", "!popup" },
+  buftypes = { "*", "!prompt", "!popup" },
   user_commands = true,
   user_default_options = {
     extra_names = {
@@ -37,7 +38,7 @@ return {
     css = true,
     css_fn = true,
     mode = "background",
-    tailwind = "both",
+    tailwind = false,
     sass = { enable = true, parsers = { css = true } },
     virtualtext = "■",
     virtualtext_inline = false,
