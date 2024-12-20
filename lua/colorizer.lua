@@ -86,7 +86,7 @@ local utils = require("colorizer.utils")
 
 --- State and configuration dynamic holding information table tracking
 local colorizer_state = {
-  augroup = vim.api.nvim_create_augroup("ColorizerSetup", {}),
+  augroup = vim.api.nvim_create_augroup("ColorizerSetup", { clear = true }),
   buffer_current = 0,
   buffer_lines = {},
   buffer_local = {},
@@ -106,16 +106,16 @@ M.default_namespace = buffer.default_namespace
 
 --- Get the row range of the current window
 ---@param bufnr number: Buffer number
-local function getrow(bufnr)
+local function row_range(bufnr)
   colorizer_state.buffer_lines[bufnr] = colorizer_state.buffer_lines[bufnr] or {}
-  local a = vim.api.nvim_buf_call(bufnr, function()
+  local range = vim.api.nvim_buf_call(bufnr, function()
     return {
       vim.fn.line("w0"),
       vim.fn.line("w$"),
     }
   end)
   local min, max
-  local new_min, new_max = a[1] - 1, a[2]
+  local new_min, new_max = range[1] - 1, range[2]
   local old_min, old_max =
     colorizer_state.buffer_lines[bufnr]["min"], colorizer_state.buffer_lines[bufnr]["max"]
   if old_min and old_max then
@@ -151,7 +151,7 @@ end
 ---@param options table: Buffer options
 ---@param options_local table|nil: Buffer local variables
 ---@param use_local_lines boolean|nil Whether to use lines num range from options_local
----@return nil|boolean|number,table
+---@return table
 function M.rehighlight(bufnr, options, options_local, use_local_lines)
   bufnr = utils.bufme(bufnr)
   local ns_id = M.default_namespace
@@ -160,15 +160,15 @@ function M.rehighlight(bufnr, options, options_local, use_local_lines)
   if use_local_lines and options_local then
     min, max = options_local.__startline or 0, options_local.__endline or -1
   else
-    min, max = getrow(bufnr)
+    min, max = row_range(bufnr)
   end
 
-  local bool, returns = M.highlight_buffer(bufnr, ns_id, min, max, options, options_local or {})
+  local returns = M.highlight_buffer(bufnr, ns_id, min, max, options, options_local or {})
   table.insert(returns.detach.functions, function()
     colorizer_state.buffer_lines[bufnr] = nil
   end)
 
-  return bool, returns
+  return returns
 end
 
 ---Check if attached to a buffer
@@ -232,16 +232,20 @@ function M.reload_on_save(pattern)
           vim.notify("Failed to load options from " .. evt.match, vim.log.levels.ERROR)
           return
         end
+
         if opts then
           local buffer_reload = vim.deepcopy(colorizer_state.buffer_reload)
           M.setup(opts)
           -- restore buffer reload state after setup
           colorizer_state.buffer_reload = buffer_reload
-          M.attach_to_buffer()
-          vim.notify(
-            "Colorizer reloaded with updated options from " .. evt.match,
-            vim.log.levels.INFO
-          )
+
+          vim.schedule(function()
+            M.attach_to_buffer()
+            vim.notify(
+              "Colorizer reloaded with updated options from " .. evt.match,
+              vim.log.levels.INFO
+            )
+          end)
         end
       end)
     end,
@@ -291,11 +295,7 @@ function M.attach_to_buffer(bufnr, options, bo_type)
 
   colorizer_state.buffer_options[bufnr] = options
   colorizer_state.buffer_local[bufnr] = colorizer_state.buffer_local[bufnr] or {}
-  local highlighted, returns = M.rehighlight(bufnr, options)
-
-  if not highlighted then
-    return
-  end
+  local returns = M.rehighlight(bufnr, options)
 
   colorizer_state.buffer_local[bufnr].__detach = colorizer_state.buffer_local[bufnr].__detach
     or returns.detach
@@ -443,7 +443,6 @@ function M.setup(opts)
     return
   end
 
-  local s = config.get_settings(opts)
   colorizer_state = {
     augroup = vim.api.nvim_create_augroup("ColorizerSetup", { clear = true }),
     buffer_current = 0,
@@ -452,6 +451,8 @@ function M.setup(opts)
     buffer_options = {},
     buffer_reload = {},
   }
+  require("colorizer.matcher").reset()
+  local s = config.get_settings(opts)
 
   -- Setup the buffer with the correct options
   local function setup(bo_type)

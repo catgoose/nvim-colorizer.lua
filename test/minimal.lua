@@ -60,8 +60,8 @@ local function add_colorizer_plugin(plugins)
     table.insert(
       plugins,
       vim.tbl_extend("force", base_config, {
-        "NvChad/nvim-colorizer.lua",
-        url = "https://github.com/NvChad/nvim-colorizer.lua",
+        "catgoose/nvim-colorizer.lua",
+        url = "https://github.com/catgoose/nvim-colorizer.lua",
       })
     )
   else
