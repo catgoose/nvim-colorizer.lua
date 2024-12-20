@@ -130,7 +130,7 @@ rehighlight({bufnr}, {options}, {options_local}, {use_local_lines})
 	options_local
 
     returns:~
-	nil or boolean or number,table
+	table
 
 
 
@@ -305,7 +305,7 @@ highlight({bufnr}, {ns_id}, {line_start}, {line_end}, {options},
 	{options_local} -  table: Buffer local variables
 
     returns:~
-	nil or boolean or number,table
+	table
 
 
 
@@ -716,26 +716,25 @@ This module provides a parser that identifies named colors from a given line of
 text.
 
  It supports standard color names and optional Tailwind CSS color names.
- The module creates a lookup table and Trie structure to efficiently match color
- names in text.
+ The module uses a Trie structure for efficient matching of color names in text.
 
 ==============================================================================
 LUA API                                         *colorizer.parser.names-lua-api*
 
 Functions: ~
-    |name_parser| - Parse a line to find color names
+    |name_parser| - Parses a line to identify color names.
 
 
 name_parser({line}, {i}, {opts})            *colorizer.parser.names.name_parser*
-    Parse a line to find color names
+    Parses a line to identify color names.
 
     Parameters: ~
-	{line} -  string: Line to parse
-	{i} -  number: Index of line from where to start parsing
-	{opts} -  table: Parsing options
+	{line} -  string The text line to parse.
+	{i} -  number The index to start parsing from.
+	{opts} -  table Parsing options.
 
     returns:~
-	number or nil, string or nil: Length of match and hex value if found
+	number or nil, string or nil Length of match and hex value if found.
 
 
 
