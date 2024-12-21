@@ -78,7 +78,7 @@ function M.make(options)
   end
 
   local enable_names = options.names
-  local enable_extra_names = options.extra_names
+  local enable_names_extra = options.names_extra
   local enable_sass = options.sass and options.sass.enable
   local enable_tailwind = options.tailwind
   local enable_RGB = options.RGB
@@ -92,7 +92,7 @@ function M.make(options)
   -- create unique bitmask
   local matcher_key = 0
     + (enable_names and 1 or 0)
-    + (enable_extra_names and 2 or 0)
+    + (enable_names_extra and 2 or 0)
     + (enable_RGB and 4 or 0)
     + (enable_RRGGBB and 8 or 0)
     + (enable_RRGGBBAA and 16 or 0)
@@ -120,9 +120,9 @@ function M.make(options)
     matchers.color_name_parser = matchers.color_name_parser or {}
     matchers.color_name_parser.color_names = enable_names
   end
-  if enable_extra_names then
+  if enable_names_extra then
     matchers.color_name_parser = matchers.color_name_parser or {}
-    matchers.color_name_parser.extra_names = enable_extra_names
+    matchers.color_name_parser.names_extra = enable_names_extra
   end
   if enable_tailwind then
     matchers.color_name_parser = matchers.color_name_parser or {}

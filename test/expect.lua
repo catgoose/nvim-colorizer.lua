@@ -5,7 +5,7 @@ local opts = {
     "!dashboard",
     lua = {
       names = true,
-      extra_names = {
+      names_extra = {
         -- names = "#1F4770",
         names = "#791497",
         cool = "#3F3347",
@@ -16,7 +16,7 @@ local opts = {
         eeee = "#112238",
         -- lua
       },
-      -- extra_names = function()
+      -- names_extra = function()
       --   local colors = require("kanagawa.colors").setup()
       --   return colors.palette
       -- end,
@@ -25,7 +25,7 @@ local opts = {
   buftypes = { "*", "!prompt", "!popup" },
   user_commands = true,
   user_default_options = {
-    extra_names = {
+    names_extra = {
       -- names = "#1F4770",
       names = "#1740F7",
       lua = "#7407F1",

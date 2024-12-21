@@ -126,7 +126,7 @@ library to do custom highlighting themselves.
       names = true, -- "Name" codes like Blue or blue
       -- Expects a table of color name to rgb value pairs.  # is optional
       -- Example: { cool = "#107dac", ["notcool"] = "ee9240" }
-      extra_names = false, -- Extra names to be highlighted: boolean|table|function|nil
+      names_extra = nil, -- Extra names to be highlighted: table|function|nil
       RGB = true, -- #RGB hex codes
       RRGGBB = true, -- #RRGGBB hex codes
       RRGGBBAA = false, -- #RRGGBBAA hex codes
@@ -225,17 +225,17 @@ require("colorizer").setup({
   user_commands = { "ColorizerToggle", "ColorizerReloadAllBuffers" },
 })
 
--- Apply extra_names from theme
+-- Apply names_extra from theme
 require("colorizer").setup({
   names = true,
-  extra_names = function()
+  names_extra = function()
     local colors = require("kanagawa.colors").setup({ theme = "dragon" })
     return colors.palette
   end,
   filetypes = {
     "*",
     lua = { -- use different theme for lua filetype
-      extra_names = function()
+      names_extra = function()
         local colors = require("kanagawa.colors").setup({ theme = "wave" })
         return colors.palette
       end,
