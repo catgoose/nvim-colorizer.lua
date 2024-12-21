@@ -646,6 +646,9 @@ LUA API                                              *colorizer.matcher-lua-api*
 Functions: ~
     |make| - Parse the given options and return a function with enabled parsers.
 
+    |reset| - Reset the cache of matchers
+Called from colorizer.setup
+
 
 make({options})                                         *colorizer.matcher.make*
     Parse the given options and return a function with enabled parsers.
@@ -660,6 +663,12 @@ make({options})                                         *colorizer.matcher.make*
     returns:~
 	function or boolean: function which will just parse the line for enabled
 	parsers
+
+
+
+reset()                                                *colorizer.matcher.reset*
+    Reset the cache of matchers
+    Called from colorizer.setup
 
 
 
@@ -722,10 +731,12 @@ text.
 LUA API                                         *colorizer.parser.names-lua-api*
 
 Functions: ~
-    |name_parser| - Parses a line to identify color names.
+    |parser| - Parses a line to identify color names.
+
+    |reset_cache| - Resets the color names cache.
 
 
-name_parser({line}, {i}, {opts})            *colorizer.parser.names.name_parser*
+parser({line}, {i}, {opts})                      *colorizer.parser.names.parser*
     Parses a line to identify color names.
 
     Parameters: ~
@@ -735,6 +746,14 @@ name_parser({line}, {i}, {opts})            *colorizer.parser.names.name_parser*
 
     returns:~
 	number or nil, string or nil Length of match and hex value if found.
+
+
+
+reset_cache()                               *colorizer.parser.names.reset_cache*
+    Resets the color names cache.
+
+    Called from colorizer.setup
+
 
 
 
@@ -753,11 +772,11 @@ hexadecimal color values to RGB hexadecimal format.
 LUA API                                      *colorizer.parser.rgba_hex-lua-api*
 
 Functions: ~
-    |rgba_hex_parser| - Parses `#RRGGBBAA` hexadecimal colors and converts them
-    to RGB hex format.
+    |parser| - Parses `#RRGGBBAA` hexadecimal colors and converts them to RGB
+    hex format.
 
 
-rgba_hex_parser({line}, {i}, {opts}) *colorizer.parser.rgba_hex.rgba_hex_parser*
+parser({line}, {i}, {opts})                   *colorizer.parser.rgba_hex.parser*
     Parses `#RRGGBBAA` hexadecimal colors and converts them to RGB hex format.
 
      This function matches `#RRGGBBAA` format colors within a line, handling
@@ -798,11 +817,11 @@ values and converting them to RGB hex.
 LUA API                                       *colorizer.parser.rgb_hex-lua-api*
 
 Functions: ~
-    |argb_hex_parser| - Parses a `0xAARRGGBB` formatted hexadecimal color and
-    converts it to an RGB hex value.
+    |parser| - Parses a `0xAARRGGBB` formatted hexadecimal color and converts it
+    to an RGB hex value.
 
 
-argb_hex_parser({line}, {i})          *colorizer.parser.rgb_hex.argb_hex_parser*
+parser({line}, {i})                            *colorizer.parser.rgb_hex.parser*
     Parses a `0xAARRGGBB` formatted hexadecimal color and converts it to an RGB
     hex value.
 

@@ -176,6 +176,8 @@ function M.make(options)
   return loop_parse_fn
 end
 
+---Reset the cache of matchers
+---Called from colorizer.setup
 function M.reset()
   matcher_cache = {}
 end

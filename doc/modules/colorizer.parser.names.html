@@ -70,8 +70,12 @@
 <h2><a href="#Functions">Functions</a></h2>
 <table class="function_list">
 	<tr>
-	<td class="name" nowrap><a href="#name_parser">name_parser (line, i, opts)</a></td>
+	<td class="name" nowrap><a href="#parser">parser (line, i, opts)</a></td>
 	<td class="summary">Parses a line to identify color names.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#reset_cache">reset_cache ()</a></td>
+	<td class="summary">Resets the color names cache.</td>
 	</tr>
 </table>
 
@@ -83,8 +87,8 @@
 
     <dl class="function">
     <dt>
-    <a name = "name_parser"></a>
-    <strong>name_parser (line, i, opts)</strong>
+    <a name = "parser"></a>
+    <strong>parser (line, i, opts)</strong>
     </dt>
     <dd>
     Parses a line to identify color names.
@@ -108,6 +112,21 @@
 
         number|nil, string|nil Length of match and hex value if found.
     </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "reset_cache"></a>
+    <strong>reset_cache ()</strong>
+    </dt>
+    <dd>
+    Resets the color names cache.
+Called from colorizer.setup
+
+
+
 
 
 
