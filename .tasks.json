@@ -1,0 +1,14 @@
+{
+  "tasks": [
+    {
+      "name": "generate luadoc",
+      "cmd": "scripts/gen_docs.sh",
+      "tags": ["luadoc", "gen", "script"],
+      "window": {
+        "name": "luadoc",
+        "close": true,
+        "keep_current": true
+      }
+    }
+  ]
+}

@@ -97,23 +97,6 @@ function M.get_last_modified(path)
   end
 end
 
----Merge two tables.
--- todo: Remove this and use `vim.tbl_deep_extend`
----@return table
-function M.merge(...)
-  local res = {}
-  for i = 1, select("#", ...) do
-    local o = select(i, ...)
-    if type(o) ~= "table" then
-      return {}
-    end
-    for k, v in pairs(o) do
-      res[k] = v
-    end
-  end
-  return res
-end
-
 --- Parses a hexadecimal byte.
 ---@param byte number The byte to parse.
 ---@return number The parsed hexadecimal value of the byte.

@@ -130,7 +130,7 @@ rehighlight({bufnr}, {options}, {options_local}, {use_local_lines})
 	options_local
 
     returns:~
-	nil or boolean or number,table
+	table
 
 
 
@@ -305,7 +305,7 @@ highlight({bufnr}, {ns_id}, {line_start}, {line_end}, {options},
 	{options_local} -  table: Buffer local variables
 
     returns:~
-	nil or boolean or number,table
+	table
 
 
 
@@ -546,6 +546,9 @@ user_default_options                     *colorizer.config.user_default_options*
 	{RGB} -  boolean: Enables `#RGB` hex codes.
 	{RRGGBB} -  boolean: Enables `#RRGGBB` hex codes.
 	{names} -  boolean: Enables named colors (e.g., "Blue").
+	{names_custom} -  table|function|nil: Extra color name to RGB value
+	mappings
+ should return a table of color names to RGB value pairs
 	{RRGGBBAA} -  boolean: Enables `#RRGGBBAA` hex codes.
 	{AARRGGBB} -  boolean: Enables `0xAARRGGBB` hex codes.
 	{rgb_fn} -  boolean: Enables CSS `rgb()` and `rgba()` functions.
@@ -594,6 +597,7 @@ opts                                                     *colorizer.config.opts*
    - `RGB` (boolean): Enables support for `#RGB` hex codes.
    - `RRGGBB` (boolean): Enables support for `#RRGGBB` hex codes.
    - `names` (boolean): Enables named color codes like `"Blue"`.
+   - `names_custom` (table|function): Extra color name to RGB value mappings
    - `RRGGBBAA` (boolean): Enables support for `#RRGGBBAA` hex codes.
    - `AARRGGBB` (boolean): Enables support for `0xAARRGGBB` hex codes.
    - `rgb_fn` (boolean): Enables CSS `rgb()` and `rgba()` functions.
@@ -644,6 +648,9 @@ LUA API                                              *colorizer.matcher-lua-api*
 Functions: ~
     |make| - Parse the given options and return a function with enabled parsers.
 
+    |reset_cache| - Reset the cache of matchers
+Called from colorizer.setup
+
 
 make({options})                                         *colorizer.matcher.make*
     Parse the given options and return a function with enabled parsers.
@@ -658,6 +665,12 @@ make({options})                                         *colorizer.matcher.make*
     returns:~
 	function or boolean: function which will just parse the line for enabled
 	parsers
+
+
+
+reset_cache()                                    *colorizer.matcher.reset_cache*
+    Reset the cache of matchers
+    Called from colorizer.setup
 
 
 
@@ -714,28 +727,35 @@ This module provides a parser that identifies named colors from a given line of
 text.
 
  It supports standard color names and optional Tailwind CSS color names.
- The module creates a lookup table and Trie structure to efficiently match color
- names in text.
+ The module uses a Trie structure for efficient matching of color names in text.
 
 ==============================================================================
 LUA API                                         *colorizer.parser.names-lua-api*
 
 Functions: ~
-    |name_parser| - Grab all the color values from `vim.api.nvim_get_color_map`
-    and create a lookup table.
+    |parser| - Parses a line to identify color names.
+
+    |reset_cache| - Resets the color names cache.
 
 
-name_parser({line}, {i}, {opts})            *colorizer.parser.names.name_parser*
-    Grab all the color values from `vim.api.nvim_get_color_map` and create a
-    lookup table.
-
-     color_map is used to store the color values
-
+parser({line}, {i}, {opts})                      *colorizer.parser.names.parser*
+    Parses a line to identify color names.
 
     Parameters: ~
-	{line} -  string: Line to parse
-	{i} -  number: Index of line from where to start parsing
-	{opts} -  table: Currently contains whether tailwind is enabled or not
+	{line} -  string The text line to parse.
+	{i} -  number The index to start parsing from.
+	{opts} -  table Parsing options.
+
+    returns:~
+	number or nil, string or nil Length of match and hex value if found.
+
+
+
+reset_cache()                               *colorizer.parser.names.reset_cache*
+    Resets the color names cache.
+
+    Called from colorizer.setup
+
 
 
 
@@ -754,11 +774,11 @@ hexadecimal color values to RGB hexadecimal format.
 LUA API                                      *colorizer.parser.rgba_hex-lua-api*
 
 Functions: ~
-    |rgba_hex_parser| - Parses `#RRGGBBAA` hexadecimal colors and converts them
-    to RGB hex format.
+    |parser| - Parses `#RRGGBBAA` hexadecimal colors and converts them to RGB
+    hex format.
 
 
-rgba_hex_parser({line}, {i}, {opts}) *colorizer.parser.rgba_hex.rgba_hex_parser*
+parser({line}, {i}, {opts})                   *colorizer.parser.rgba_hex.parser*
     Parses `#RRGGBBAA` hexadecimal colors and converts them to RGB hex format.
 
      This function matches `#RRGGBBAA` format colors within a line, handling
@@ -799,11 +819,11 @@ values and converting them to RGB hex.
 LUA API                                       *colorizer.parser.rgb_hex-lua-api*
 
 Functions: ~
-    |argb_hex_parser| - Parses a `0xAARRGGBB` formatted hexadecimal color and
-    converts it to an RGB hex value.
+    |parser| - Parses a `0xAARRGGBB` formatted hexadecimal color and converts it
+    to an RGB hex value.
 
 
-argb_hex_parser({line}, {i})          *colorizer.parser.rgb_hex.argb_hex_parser*
+parser({line}, {i})                            *colorizer.parser.rgb_hex.parser*
     Parses a `0xAARRGGBB` formatted hexadecimal color and converts it to an RGB
     hex value.
 
@@ -1056,8 +1076,6 @@ Functions: ~
 
     |get_last_modified| - Get last modified time of a file
 
-    |merge| - Merge two tables.
-
     |parse_hex| - Parses a hexadecimal byte.
 
     |watch_file| - Watch a file for changes and execute callback
@@ -1119,20 +1137,6 @@ get_last_modified({path})                    *colorizer.utils.get_last_modified*
 
     returns:~
 	number or nil: modified time
-
-
-
-merge({...})                                             *colorizer.utils.merge*
-    Merge two tables.
-
-     todo: Remove this and use `vim.tbl_deep_extend`
-
-
-    Parameters: ~
-	{...} -
-
-    returns:~
-	table
 
 
 

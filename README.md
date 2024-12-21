@@ -19,7 +19,7 @@
   - [Similar projects](#similar-projects)
   <!--toc:end-->
 
-[![luadoc](https://img.shields.io/badge/luadoc-0.1-blue)](https://nvchad.com/nvim-colorizer.lua/)
+[![luadoc](https://img.shields.io/badge/luadoc-0.1-blue)](https://catgoose.github.io/nvim-colorizer.lua/)
 
 A high-performance color highlighter for Neovim which has **no external
 dependencies**! Written in performant Luajit.
@@ -43,7 +43,7 @@ Use your plugin manager or clone directly into your package.
 
 ```lua
 {
-    "NvChad/nvim-colorizer.lua",
+    "catgoose/nvim-colorizer.lua",
     event = "BufReadPre",
     opts = { -- set to setup table
     },
@@ -53,7 +53,7 @@ Use your plugin manager or clone directly into your package.
 #### Packer
 
 ```lua
-use("NvChad/nvim-colorizer.lua")
+use("catgoose/nvim-colorizer.lua")
 ```
 
 #### Manual
@@ -124,6 +124,9 @@ library to do custom highlighting themselves.
     filetypes = { "*" },
     user_default_options = {
       names = true, -- "Name" codes like Blue or blue
+      -- Expects a table of color name to rgb value pairs.  # is optional
+      -- Example: { cool = "#107dac", ["notcool"] = "ee9240" }
+      names_custom = nil, -- Extra names to be highlighted: table|function|nil
       RGB = true, -- #RGB hex codes
       RRGGBB = true, -- #RRGGBB hex codes
       RRGGBBAA = false, -- #RRGGBBAA hex codes
@@ -221,6 +224,24 @@ require("colorizer").setup({
 require("colorizer").setup({
   user_commands = { "ColorizerToggle", "ColorizerReloadAllBuffers" },
 })
+
+-- Apply names_custom from theme
+require("colorizer").setup({
+  names = true,
+  names_custom = function()
+    local colors = require("kanagawa.colors").setup({ theme = "dragon" })
+    return colors.palette
+  end,
+  filetypes = {
+    "*",
+    lua = { -- use different theme for lua filetype
+      names_custom = function()
+        local colors = require("kanagawa.colors").setup({ theme = "wave" })
+        return colors.palette
+      end,
+    },
+  },
+})
 ```
 
 In `user_default_options`, there are 2 types of options
@@ -297,7 +318,7 @@ require("colorizer").setup(
 ```
 
 For lower level interface, see
-[LuaDocs for API details](https://nvchad.com/nvim-colorizer.lua/modules/colorizer.html)
+[LuaDocs for API details](https://catgoose.github.io/nvim-colorizer.lua/modules/colorizer.html)
 or use `:h colorizer` once installed.
 
 ## Testing
@@ -319,7 +340,7 @@ to conveniently reattach Colorizer to `test/expect.txt` on save.
 ## Extras
 
 Documentaion is generated using ldoc. See
-[scripts/gen_docs.sh](https://github.com/NvChad/nvim-colorizer.lua/blob/master/scripts/gen_docs.sh)
+[scripts/gen_docs.sh](https://github.com/colorizer/nvim-colorizer.lua/blob/master/scripts/gen_docs.sh)
 
 ## TODO
 

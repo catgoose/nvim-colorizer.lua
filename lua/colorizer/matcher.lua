@@ -9,19 +9,21 @@ local M = {}
 local Trie = require("colorizer.trie")
 local min, max = math.min, math.max
 
-local argb_hex_parser = require("colorizer.parser.argb_hex")
-local color_name_parser = require("colorizer.parser.names")
-local hsl_function_parser = require("colorizer.parser.hsl")
-local rgb_function_parser = require("colorizer.parser.rgb")
-local rgba_hex_parser = require("colorizer.parser.rgba_hex")
-local sass_name_parser = require("colorizer.sass").name_parser
+local parsers = {
+  argb_hex = require("colorizer.parser.argb_hex").parser,
+  color_name = require("colorizer.parser.names").parser,
+  hsl_function = require("colorizer.parser.hsl").parser,
+  rgb_function = require("colorizer.parser.rgb").parser,
+  rgba_hex = require("colorizer.parser.rgba_hex").parser,
+  sass_name = require("colorizer.sass").parser,
+}
 
-local parser = {
-  ["_0x"] = argb_hex_parser,
-  ["_rgb"] = rgb_function_parser,
-  ["_rgba"] = rgb_function_parser,
-  ["_hsl"] = hsl_function_parser,
-  ["_hsla"] = hsl_function_parser,
+parsers.prefix = {
+  ["_0x"] = parsers.argb_hex,
+  ["_rgb"] = parsers.rgb_function,
+  ["_rgba"] = parsers.rgb_function,
+  ["_hsl"] = parsers.hsl_function,
+  ["_hsla"] = parsers.hsl_function,
 }
 
 ---Form a trie stuct with the given prefixes
@@ -35,14 +37,14 @@ local function compile(matchers, matchers_trie)
     -- prefix #
     if matchers.rgba_hex_parser then
       if line:byte(i) == ("#"):byte() then
-        return rgba_hex_parser(line, i, matchers.rgba_hex_parser)
+        return parsers.rgba_hex(line, i, matchers.rgba_hex_parser)
       end
     end
 
     -- prefix $, SASS Color names
     if matchers.sass_name_parser then
       if line:byte(i) == ("$"):byte() then
-        return sass_name_parser(line, i, bufnr)
+        return parsers.sass_name(line, i, bufnr)
       end
     end
 
@@ -50,16 +52,17 @@ local function compile(matchers, matchers_trie)
     local prefix = trie:longest_prefix(line, i)
     if prefix then
       local fn = "_" .. prefix
-      if parser[fn] then
-        return parser[fn](line, i, matchers[prefix])
+      if parsers.prefix[fn] then
+        return parsers.prefix[fn](line, i, matchers[prefix])
       end
     end
 
     -- Color names
     if matchers.color_name_parser then
-      return color_name_parser(line, i, matchers.color_name_parser)
+      return parsers.color_name(line, i, matchers.color_name_parser)
     end
   end
+
   return parse_fn
 end
 
@@ -75,6 +78,7 @@ function M.make(options)
   end
 
   local enable_names = options.names
+  local enable_names_custom = options.names_custom
   local enable_sass = options.sass and options.sass.enable
   local enable_tailwind = options.tailwind
   local enable_RGB = options.RGB
@@ -88,16 +92,17 @@ function M.make(options)
   -- create unique bitmask
   local matcher_key = 0
     + (enable_names and 1 or 0)
-    + (enable_RGB and 2 or 0)
-    + (enable_RRGGBB and 4 or 0)
-    + (enable_RRGGBBAA and 8 or 0)
-    + (enable_AARRGGBB and 16 or 0)
-    + (enable_rgb and 32 or 0)
-    + (enable_hsl and 64 or 0)
-    + ((enable_tailwind == true or enable_tailwind == "normal") and 128 or 0)
-    + (enable_tailwind == "lsp" and 256 or 0)
-    + (enable_tailwind == "both" and 512 or 0)
-    + (enable_sass and 1024 or 0)
+    + (enable_names_custom and 2 or 0)
+    + (enable_RGB and 4 or 0)
+    + (enable_RRGGBB and 8 or 0)
+    + (enable_RRGGBBAA and 16 or 0)
+    + (enable_AARRGGBB and 32 or 0)
+    + (enable_rgb and 64 or 0)
+    + (enable_hsl and 128 or 0)
+    + ((enable_tailwind == true or enable_tailwind == "normal") and 256 or 0)
+    + (enable_tailwind == "lsp" and 512 or 0)
+    + (enable_tailwind == "both" and 1024 or 0)
+    + (enable_sass and 2048 or 0)
 
   if matcher_key == 0 then
     return false
@@ -112,9 +117,17 @@ function M.make(options)
   local matchers_prefix = {}
 
   if enable_names then
-    matchers.color_name_parser = { tailwind = options.tailwind }
+    matchers.color_name_parser = matchers.color_name_parser or {}
+    matchers.color_name_parser.color_names = enable_names
   end
-
+  if enable_names_custom then
+    matchers.color_name_parser = matchers.color_name_parser or {}
+    matchers.color_name_parser.names_custom = enable_names_custom
+  end
+  if enable_tailwind then
+    matchers.color_name_parser = matchers.color_name_parser or {}
+    matchers.color_name_parser.tailwind = enable_tailwind
+  end
   if enable_sass then
     matchers.sass_name_parser = true
   end
@@ -161,6 +174,12 @@ function M.make(options)
   matcher_cache[matcher_key] = loop_parse_fn
 
   return loop_parse_fn
+end
+
+---Reset the cache of matchers
+---Called from colorizer.setup
+function M.reset_cache()
+  matcher_cache = {}
 end
 
 return M

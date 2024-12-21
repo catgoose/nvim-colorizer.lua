@@ -1,26 +1,47 @@
--- vim:ft=lua
-
 -- Colorizer setup opts
-return {
+local opts = {
   filetypes = {
     "*",
-    lua = { names = true },
+    "!dashboard",
+    lua = {
+      names = true,
+      names_custom = {
+        -- names = "#1F4770",
+        names = "#791497",
+        cool = "#3F3347",
+        lua = "#107d3c",
+        ["notcool"] = "#ee9240",
+        redgreen = "#970000",
+        asdf = "#234311",
+        eeee = "#112238",
+        -- lua
+      },
+      -- names_custom = function()
+      --   local colors = require("kanagawa.colors").setup()
+      --   return colors.palette
+      -- end,
+    },
   },
-  buftypes = { "!prompt", "!popup" },
+  buftypes = { "*", "!prompt", "!popup" },
   user_commands = true,
   user_default_options = {
-    names = true,
+    names_custom = {
+      -- names = "#1F4770",
+      names = "#1740F7",
+      lua = "#7407F1",
+    },
+    names = false,
     RGB = true,
-    RRGGBB = false,
-    RRGGBBAA = false,
-    AARRGGBB = false,
-    rgb_fn = false,
-    hsl_fn = false,
-    css = false,
-    css_fn = false,
+    RRGGBB = true,
+    RRGGBBAA = true,
+    AARRGGBB = true,
+    rgb_fn = true,
+    hsl_fn = true,
+    css = true,
+    css_fn = true,
     mode = "background",
-    tailwind = "both",
-    sass = { enable = false, parsers = { css = true } },
+    tailwind = true,
+    sass = { enable = true, parsers = { css = true } },
     virtualtext = "■",
     virtualtext_inline = false,
     virtualtext_mode = "foreground",
@@ -28,7 +49,11 @@ return {
   },
 }
 
+return opts
+
 --[[ TEST CASES
+
+
 0xFFFFFFF1 -- why does this highlight?
 
 SUCCESS CASES:
@@ -39,6 +64,10 @@ lightcoral lightcyan lemonchiffon papayawhip peachpuff
 blue gray lightblue gray100 white gold blue
 Blue LightBlue Gray100 White
 White
+
+Extra names:
+oniViolet oniViolet2 crystalBlue springViolet1 springViolet2 springBlue
+lightBlue waveAqua2
 
 Hexadecimal:
 #RGB:
@@ -112,6 +141,8 @@ hsla(0, 100%, 90%, 1) hsla(120, 100%, 85%, 0.8) hsla(240, 100%, 85%, 0.7)
 hsla(300, 80%, 75%, 0.6) hsla(180, 100%, 80%, 0.9) hsla(90, 100%, 85%, 0.4)
 hsl(255, 100%, 100%, 1)
 hsl(255000, 100000%, 100000%, 1000)
+
+################################################################################
 
 FAIL CASES:
 matcher#add

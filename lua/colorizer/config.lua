@@ -2,12 +2,11 @@
 -- @module colorizer.config
 local M = {}
 
-local utils = require("colorizer.utils")
-
 --- Defaults for colorizer options
 local function user_defaults()
   return vim.deepcopy({
     names = true,
+    names_custom = nil,
     RGB = true,
     RRGGBB = true,
     RRGGBBAA = false,
@@ -43,6 +42,8 @@ end
 -- @field RGB boolean: Enables `#RGB` hex codes.
 -- @field RRGGBB boolean: Enables `#RRGGBB` hex codes.
 -- @field names boolean: Enables named colors (e.g., "Blue").
+-- @field names_custom table|function|nil: Extra color name to RGB value mappings
+-- should return a table of color names to RGB value pairs
 -- @field RRGGBBAA boolean: Enables `#RRGGBBAA` hex codes.
 -- @field AARRGGBB boolean: Enables `0xAARRGGBB` hex codes.
 -- @field rgb_fn boolean: Enables CSS `rgb()` and `rgba()` functions.
@@ -62,6 +63,7 @@ end
 --@field RGB boolean
 --@field RRGGBB boolean
 --@field names boolean
+--@field names_custom nil
 --@field RRGGBBAA boolean
 --@field AARRGGBB boolean
 --@field rgb_fn boolean
@@ -94,6 +96,7 @@ local plugin_default_options = user_defaults()
 -- State for managing buffer and filetype-specific options
 local options_state
 
+--  TODO: 2024-11-26 - background is being validated in colorizer.attach_to_buffer
 --- Validates user options and sets defaults if necessary.
 local function validate_opts(settings)
   if
@@ -127,6 +130,7 @@ end
 --   - `RGB` (boolean): Enables support for `#RGB` hex codes.
 --   - `RRGGBB` (boolean): Enables support for `#RRGGBB` hex codes.
 --   - `names` (boolean): Enables named color codes like `"Blue"`.
+--   - `names_custom` (table|function): Extra color name to RGB value mappings
 --   - `RRGGBBAA` (boolean): Enables support for `#RRGGBBAA` hex codes.
 --   - `AARRGGBB` (boolean): Enables support for `0xAARRGGBB` hex codes.
 --   - `rgb_fn` (boolean): Enables CSS `rgb()` and `rgba()` functions.
@@ -163,9 +167,8 @@ function M.get_settings(opts)
     user_commands = true,
     user_default_options = plugin_default_options,
   }
-  --  TODO: 2024-11-21 - verify that vim.tbl_deep_extend is doing what it should
   opts = vim.tbl_deep_extend("force", default_opts, opts)
-  local settings = {
+  M.setup_options = {
     exclusions = { buftype = {}, filetype = {} },
     all = { buftype = false, filetype = false },
     default_options = vim.tbl_deep_extend(
@@ -177,10 +180,9 @@ function M.get_settings(opts)
     filetypes = opts.filetypes,
     buftypes = opts.buftypes,
   }
-  validate_opts(settings)
-  M.setup_options = settings
-  M.user_default_options = settings.default_options
-  return settings
+  validate_opts(M.setup_options)
+  M.user_default_options = M.setup_options.default_options
+  return M.setup_options
 end
 
 --- Retrieve default options or buffer-specific options.
@@ -197,7 +199,8 @@ end
 ---@param filetype string: File type.
 ---@return table
 function M.get_options(bo_type, buftype, filetype)
-  return options_state[bo_type][filetype] or options_state[bo_type][buftype]
+  local fo, bo = options_state[bo_type][filetype], options_state[bo_type][buftype]
+  return fo or bo
 end
 
 --- Set options for a specific buffer or file type.
@@ -213,6 +216,7 @@ end
 ---@return table
 function M.parse_buffer_options(options)
   local default = vim.deepcopy(M.user_default_options)
+  --  TODO: 2024-12-20 - verify that these are actually being set correctly
   local includes = {
     ["css"] = { "names", "RGB", "RRGGBB", "RRGGBBAA", "hsl_fn", "rgb_fn" },
     ["css_fn"] = { "hsl_fn", "rgb_fn" },
@@ -223,7 +227,9 @@ function M.parse_buffer_options(options)
       return
     end
     for _, child in ipairs(includes[name]) do
-      d_opts[child] = opts[name] or false
+      if opts[name] ~= nil then
+        d_opts[child] = opts[name]
+      end
     end
   end
 
@@ -244,7 +250,7 @@ function M.parse_buffer_options(options)
     end
   end
 
-  options = utils.merge(default, options)
+  options = vim.tbl_deep_extend("force", default, options)
   return options
 end
 return M
