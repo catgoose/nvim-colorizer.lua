@@ -35,23 +35,23 @@ local function add_color(name, value)
 end
 
 --- Handles additional color names provided as a table or function.
--- @param names_extra table|function|nil Additional color names to add.
-local function handle_names_extra(names_extra)
-  if not names_extra then
+-- @param names_custom table|function|nil Additional color names to add.
+local function handle_names_custom(names_custom)
+  if not names_custom then
     return
   end
 
   local extra_data = {}
 
-  if type(names_extra) == "table" then
-    extra_data = names_extra
-  elseif type(names_extra) == "function" then
-    local status, result = pcall(names_extra)
+  if type(names_custom) == "table" then
+    extra_data = names_custom
+  elseif type(names_custom) == "function" then
+    local status, result = pcall(names_custom)
     if status and type(result) == "table" then
       extra_data = result
     else
       vim.api.nvim_err_writeln(
-        "Error in names_extra function: " .. (result or "Invalid return value")
+        "Error in names_custom function: " .. (result or "Invalid return value")
       )
       return
     end
@@ -105,8 +105,8 @@ local function populate_colors(opts)
   names_cache.tailwind_enabled = opts.tailwind
 
   -- Add extra names
-  if opts.names_extra then
-    handle_names_extra(opts.names_extra)
+  if opts.names_custom then
+    handle_names_custom(opts.names_custom)
   end
 end
 

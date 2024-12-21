@@ -6,7 +6,7 @@ local M = {}
 local function user_defaults()
   return vim.deepcopy({
     names = true,
-    names_extra = nil,
+    names_custom = nil,
     RGB = true,
     RRGGBB = true,
     RRGGBBAA = false,
@@ -42,7 +42,7 @@ end
 -- @field RGB boolean: Enables `#RGB` hex codes.
 -- @field RRGGBB boolean: Enables `#RRGGBB` hex codes.
 -- @field names boolean: Enables named colors (e.g., "Blue").
--- @field names_extra table|function|nil: Extra color name to RGB value mappings
+-- @field names_custom table|function|nil: Extra color name to RGB value mappings
 -- should return a table of color names to RGB value pairs
 -- @field RRGGBBAA boolean: Enables `#RRGGBBAA` hex codes.
 -- @field AARRGGBB boolean: Enables `0xAARRGGBB` hex codes.
@@ -63,7 +63,7 @@ end
 --@field RGB boolean
 --@field RRGGBB boolean
 --@field names boolean
---@field names_extra nil
+--@field names_custom nil
 --@field RRGGBBAA boolean
 --@field AARRGGBB boolean
 --@field rgb_fn boolean
@@ -130,7 +130,7 @@ end
 --   - `RGB` (boolean): Enables support for `#RGB` hex codes.
 --   - `RRGGBB` (boolean): Enables support for `#RRGGBB` hex codes.
 --   - `names` (boolean): Enables named color codes like `"Blue"`.
---   - `names_extra` (table|function): Extra color name to RGB value mappings
+--   - `names_custom` (table|function): Extra color name to RGB value mappings
 --   - `RRGGBBAA` (boolean): Enables support for `#RRGGBBAA` hex codes.
 --   - `AARRGGBB` (boolean): Enables support for `0xAARRGGBB` hex codes.
 --   - `rgb_fn` (boolean): Enables CSS `rgb()` and `rgba()` functions.
