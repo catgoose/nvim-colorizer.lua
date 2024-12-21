@@ -6,7 +6,7 @@
       "tags": ["luadoc", "gen", "script"],
       "window": {
         "name": "luadoc",
-        "close": false,
+        "close": true,
         "keep_current": true
       }
     }

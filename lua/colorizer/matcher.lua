@@ -178,7 +178,7 @@ end
 
 ---Reset the cache of matchers
 ---Called from colorizer.setup
-function M.reset()
+function M.reset_cache()
   matcher_cache = {}
 end
 

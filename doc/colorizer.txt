@@ -646,7 +646,7 @@ LUA API                                              *colorizer.matcher-lua-api*
 Functions: ~
     |make| - Parse the given options and return a function with enabled parsers.
 
-    |reset| - Reset the cache of matchers
+    |reset_cache| - Reset the cache of matchers
 Called from colorizer.setup
 
 
@@ -666,7 +666,7 @@ make({options})                                         *colorizer.matcher.make*
 
 
 
-reset()                                                *colorizer.matcher.reset*
+reset_cache()                                    *colorizer.matcher.reset_cache*
     Reset the cache of matchers
     Called from colorizer.setup
 

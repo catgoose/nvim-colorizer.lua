@@ -451,8 +451,8 @@ function M.setup(opts)
     buffer_options = {},
     buffer_reload = {},
   }
-  require("colorizer.matcher").reset()
-  require("colorizer.parser.names").reset()
+  require("colorizer.matcher").reset_cache()
+  require("colorizer.parser.names").reset_cache()
   local s = config.get_settings(opts)
 
   -- Setup the buffer with the correct options
