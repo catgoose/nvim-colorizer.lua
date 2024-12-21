@@ -1,12 +1,19 @@
 -- Run this file as `nvim --clean -u minimal.lua`
 
--- ADD ANY ADDITIONAL PLUGINS TO `plugins` TABLE IN `define_plugins` FUNCTION
-
 local settings = {
   use_remote = true, -- Use colorizer master or local git directory
   base_dir = "colorizer_repro", -- Directory to clone lazy.nvim
   local_plugin_dir = os.getenv("HOME") .. "/git/nvim-colorizer.lua", -- Local git directory for colorizer.  Used if use_remote is false
   expect = "expect.lua",
+  plugins = { -- add any additional plugins
+    {
+      "rebelot/kanagawa.nvim",
+      url = "https://github.com/rebelot/kanagawa.nvim",
+      config = function()
+        vim.cmd.colorscheme("kanagawa")
+      end,
+    },
+  },
 }
 
 if not vim.loop.fs_stat(settings.base_dir) then
@@ -45,7 +52,7 @@ local function configure_colorizer()
   end
 end
 
-local function add_colorizer_plugin(plugins)
+local function add_colorizer()
   local base_config = {
     event = "BufReadPre",
     cmd = {
@@ -58,7 +65,7 @@ local function add_colorizer_plugin(plugins)
   }
   if settings.use_remote then
     table.insert(
-      plugins,
+      settings.plugins,
       vim.tbl_extend("force", base_config, {
         "catgoose/nvim-colorizer.lua",
         url = "https://github.com/catgoose/nvim-colorizer.lua",
@@ -69,7 +76,7 @@ local function add_colorizer_plugin(plugins)
     if vim.fn.isdirectory(local_dir) == 1 then
       vim.opt.rtp:append(local_dir)
       table.insert(
-        plugins,
+        settings.plugins,
         vim.tbl_extend("force", base_config, {
           dir = local_dir,
           lazy = false,
@@ -81,29 +88,17 @@ local function add_colorizer_plugin(plugins)
   end
 end
 
--- Define additional plugins
-local function define_plugins()
-  local plugins = {
-    {
-      "rebelot/kanagawa.nvim",
-      url = "https://github.com/rebelot/kanagawa.nvim",
-      config = function()
-        vim.cmd.colorscheme("kanagawa")
-      end,
-    },
-  }
-  add_colorizer_plugin(plugins)
-  return plugins
-end
-
 -- Initialize and setup lazy.nvim
 local ok, lazy = pcall(require, "lazy")
 if not ok then
   vim.notify("Failed to require lazy.nvim", vim.log.levels.ERROR)
   return
 end
-lazy.setup(define_plugins())
+
+add_colorizer()
+lazy.setup(settings.plugins)
 
 require("colorizer").reload_on_save(settings.expect)
 vim.cmd.edit(settings.expect)
+
 -- ADD INIT.LUA SETTINGS _NECESSARY_ FOR REPRODUCING THE ISSUE

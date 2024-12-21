@@ -4,7 +4,7 @@ local opts = {
     "*",
     "!dashboard",
     lua = {
-      names = false,
+      names = true,
       extra_names = {
         -- names = "#1F4770",
         names = "#791497",
@@ -30,7 +30,7 @@ local opts = {
       names = "#1740F7",
       lua = "#7407F1",
     },
-    names = true,
+    names = false,
     RGB = true,
     RRGGBB = true,
     RRGGBBAA = true,
