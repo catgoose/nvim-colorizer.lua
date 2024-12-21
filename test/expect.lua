@@ -1,24 +1,25 @@
---- vim:ft=lua
---- Filetype is set to lua above, but event BufWinEnter can trigger before filetype is set.
---- This is usually an issue with running minimal.lua.
---- Change filetypes.lua to filetypes.text to reload settings on save
-
 -- Colorizer setup opts
-return {
+local opts = {
   filetypes = {
     "*",
     "!dashboard",
     lua = {
       names = false,
-      extra_names = { -- extra names in filetype are not being applied
+      extra_names = {
         -- names = "#1F4770",
         names = "#791497",
-        cool = "#1F7047",
-        lua = "#107dac",
+        cool = "#3F3347",
+        lua = "#107d3c",
         ["notcool"] = "#ee9240",
         redgreen = "#970000",
+        asdf = "#234311",
+        eeee = "#112238",
         -- lua
       },
+      -- extra_names = function()
+      --   local colors = require("kanagawa.colors").setup()
+      --   return colors.palette
+      -- end,
     },
   },
   buftypes = { "*", "!prompt", "!popup" },
@@ -39,7 +40,7 @@ return {
     css = true,
     css_fn = true,
     mode = "background",
-    tailwind = false,
+    tailwind = true,
     sass = { enable = true, parsers = { css = true } },
     virtualtext = "■",
     virtualtext_inline = false,
@@ -48,7 +49,11 @@ return {
   },
 }
 
+return opts
+
 --[[ TEST CASES
+
+
 0xFFFFFFF1 -- why does this highlight?
 
 SUCCESS CASES:
@@ -59,6 +64,10 @@ lightcoral lightcyan lemonchiffon papayawhip peachpuff
 blue gray lightblue gray100 white gold blue
 Blue LightBlue Gray100 White
 White
+
+Extra names:
+oniViolet oniViolet2 crystalBlue springViolet1 springViolet2 springBlue
+lightBlue waveAqua2
 
 Hexadecimal:
 #RGB:
