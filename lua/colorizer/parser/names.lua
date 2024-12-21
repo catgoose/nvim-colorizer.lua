@@ -15,6 +15,7 @@ local names_state = {
   color_trie = nil,
   color_name_minlen = nil,
   color_name_maxlen = nil,
+  --  TODO: 2024-12-20 - Should these be configurable in settings opts?
   color_name_settings = { lowercase = true, strip_digits = false },
   tailwind_enabled = false,
 }
@@ -114,7 +115,7 @@ end
 -- @param i number The index to start parsing from.
 -- @param opts table Parsing options.
 -- @return number|nil, string|nil Length of match and hex value if found.
-function M.name_parser(line, i, opts)
+function M.parser(line, i, opts)
   if not names_state.color_trie or opts.tailwind ~= names_state.tailwind_enabled then
     populate_colors(opts)
   end
@@ -136,4 +137,15 @@ function M.name_parser(line, i, opts)
   end
 end
 
-return M.name_parser
+function M.reset()
+  names_state = {
+    color_map = {},
+    color_trie = nil,
+    color_name_minlen = nil,
+    color_name_maxlen = nil,
+    color_name_settings = { lowercase = true, strip_digits = false },
+    tailwind_enabled = false,
+  }
+end
+
+return M

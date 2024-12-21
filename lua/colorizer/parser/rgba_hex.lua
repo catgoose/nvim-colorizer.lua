@@ -22,7 +22,7 @@ local utils = require("colorizer.utils")
 --   - `valid_lengths` (table): Set of valid lengths (e.g., `{4, 7, 9}`)
 -- @return number|nil The end index of the parsed hex color within the line, or `nil` if parsing failed
 -- @return string|nil The RGB hexadecimal color (e.g., "ff0000" for red), or `nil` if parsing failed
-function M.rgba_hex_parser(line, i, opts)
+function M.parser(line, i, opts)
   local minlen, maxlen, valid_lengths = opts.minlen, opts.maxlen, opts.valid_lengths
   local j = i + 1
   if #line < j + minlen - 1 then
@@ -70,4 +70,4 @@ function M.rgba_hex_parser(line, i, opts)
   return (valid_lengths[length - 1] and length), line:sub(i + 1, i + length - 1)
 end
 
-return M.rgba_hex_parser
+return M

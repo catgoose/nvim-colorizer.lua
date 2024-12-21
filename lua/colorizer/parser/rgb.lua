@@ -112,4 +112,4 @@ function M.rgb_function_parser(line, i, opts)
   return match_end - 1, rgb_hex
 end
 
-return M.rgb_function_parser
+return M

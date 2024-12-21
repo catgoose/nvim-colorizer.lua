@@ -44,7 +44,7 @@ end
 ---@param mode 'background'|'foreground': Mode of the highlight
 local function create_highlight(rgb_hex, mode)
   mode = mode or "background"
-  -- TODO validate rgb format?
+  --  TODO: 2024-12-20 - validate rgb format
   rgb_hex = rgb_hex:lower()
   local cache_key = table.concat({ M.highlight_mode_names[mode], rgb_hex }, "_")
   local highlight_name = hl_state.cache[cache_key]
@@ -132,9 +132,7 @@ end
 ---@return table
 function M.highlight(bufnr, ns_id, line_start, line_end, options, options_local)
   local returns = { detach = { ns_id = {}, functions = {} } }
-  if bufnr == 0 or bufnr == nil then
-    bufnr = utils.bufme()
-  end
+  bufnr = utils.bufme(bufnr)
 
   local lines = vim.api.nvim_buf_get_lines(bufnr, line_start, line_end, false)
 
@@ -183,7 +181,6 @@ function M.parse_lines(bufnr, lines, line_start, options)
     current_linenum = current_linenum - 1 + line_start
     data[current_linenum] = data[current_linenum] or {}
 
-    -- Upvalues are options and current_linenum
     local i = 1
     while i < #line do
       local length, rgb_hex = loop_parse_fn(line, i, bufnr)

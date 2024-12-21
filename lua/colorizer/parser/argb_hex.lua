@@ -18,7 +18,7 @@ local utils = require("colorizer.utils")
 -- @param i number The starting index within the line where parsing should begin
 -- @return number|nil The end index of the parsed hex value within the line, or `nil` if parsing failed
 -- @return string|nil The RGB hexadecimal color (e.g., "ff0000" for red), or `nil` if parsing failed
-function M.argb_hex_parser(line, i)
+function M.parser(line, i)
   -- Minimum length of a valid hex color (e.g., "0xRGB")
   local minlen = #"0xRGB" - 1
   -- Maximum length of a valid hex color (e.g., "0xAARRGGBB")
@@ -75,4 +75,4 @@ function M.argb_hex_parser(line, i)
   return length, rgb_hex
 end
 
-return M.argb_hex_parser
+return M

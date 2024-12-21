@@ -9,19 +9,21 @@ local M = {}
 local Trie = require("colorizer.trie")
 local min, max = math.min, math.max
 
-local argb_hex_parser = require("colorizer.parser.argb_hex")
-local color_name_parser = require("colorizer.parser.names")
-local hsl_function_parser = require("colorizer.parser.hsl")
-local rgb_function_parser = require("colorizer.parser.rgb")
-local rgba_hex_parser = require("colorizer.parser.rgba_hex")
-local sass_name_parser = require("colorizer.sass").name_parser
+local parsers = {
+  argb_hex = require("colorizer.parser.argb_hex").parser,
+  color_name = require("colorizer.parser.names").parser,
+  hsl_function = require("colorizer.parser.hsl").parser,
+  rgb_function = require("colorizer.parser.rgb").parser,
+  rgba_hex = require("colorizer.parser.rgba_hex").parser,
+  sass_name = require("colorizer.sass").parser,
+}
 
-local parser = {
-  ["_0x"] = argb_hex_parser,
-  ["_rgb"] = rgb_function_parser,
-  ["_rgba"] = rgb_function_parser,
-  ["_hsl"] = hsl_function_parser,
-  ["_hsla"] = hsl_function_parser,
+parsers.prefix = {
+  ["_0x"] = parsers.argb_hex,
+  ["_rgb"] = parsers.rgb_function,
+  ["_rgba"] = parsers.rgb_function,
+  ["_hsl"] = parsers.hsl_function,
+  ["_hsla"] = parsers.hsl_function,
 }
 
 ---Form a trie stuct with the given prefixes
@@ -35,14 +37,14 @@ local function compile(matchers, matchers_trie)
     -- prefix #
     if matchers.rgba_hex_parser then
       if line:byte(i) == ("#"):byte() then
-        return rgba_hex_parser(line, i, matchers.rgba_hex_parser)
+        return parsers.rgba_hex(line, i, matchers.rgba_hex_parser)
       end
     end
 
     -- prefix $, SASS Color names
     if matchers.sass_name_parser then
       if line:byte(i) == ("$"):byte() then
-        return sass_name_parser(line, i, bufnr)
+        return parsers.sass_name(line, i, bufnr)
       end
     end
 
@@ -50,16 +52,17 @@ local function compile(matchers, matchers_trie)
     local prefix = trie:longest_prefix(line, i)
     if prefix then
       local fn = "_" .. prefix
-      if parser[fn] then
-        return parser[fn](line, i, matchers[prefix])
+      if parsers.prefix[fn] then
+        return parsers.prefix[fn](line, i, matchers[prefix])
       end
     end
 
     -- Color names
     if matchers.color_name_parser then
-      return color_name_parser(line, i, matchers.color_name_parser)
+      return parsers.color_name(line, i, matchers.color_name_parser)
     end
   end
+
   return parse_fn
 end
 
@@ -171,6 +174,10 @@ function M.make(options)
   matcher_cache[matcher_key] = loop_parse_fn
 
   return loop_parse_fn
+end
+
+function M.reset()
+  matcher_cache = {}
 end
 
 return M

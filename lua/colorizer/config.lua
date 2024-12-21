@@ -214,6 +214,7 @@ end
 ---@return table
 function M.parse_buffer_options(options)
   local default = vim.deepcopy(M.user_default_options)
+  --  TODO: 2024-12-20 - verify that these are actually being set correctly
   local includes = {
     ["css"] = { "names", "RGB", "RRGGBB", "RRGGBBAA", "hsl_fn", "rgb_fn" },
     ["css_fn"] = { "hsl_fn", "rgb_fn" },
