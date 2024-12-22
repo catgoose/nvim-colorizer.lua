@@ -54,12 +54,9 @@ end
 
 local total_char = 255
 local index_lookup = ffi.new("uint8_t[?]", total_char)
-local char_lookup = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-"
+local char_lookup = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 do
   local b = string.byte
-  local extra_char = {
-    [b("-")] = true,
-  }
   local byte = {
     ["0"] = b("0"),
     ["9"] = b("9"),
@@ -75,7 +72,6 @@ do
       index_lookup[i] = i - byte["A"] + 10
     elseif i >= byte["a"] and i <= byte["z"] then
       index_lookup[i] = i - byte["a"] + 10 + 26
-    elseif extra_char[i] then
     else
       index_lookup[i] = total_char
     end
@@ -247,6 +243,20 @@ local function trie_to_string(trie)
   return table.concat(print_trie_table(as_table), "\n")
 end
 
+local function trie_additional_chars(trie, chars)
+  if trie == nil or type(chars) ~= "string" then
+    return
+  end
+  for i = 1, #chars do
+    local char = chars:sub(i, i)
+    local char_byte = string.byte(char)
+    if index_lookup[char_byte] == total_char then
+      char_lookup = char_lookup .. char
+      index_lookup[char_byte] = total_char + 1
+    end
+  end
+end
+
 local Trie_mt = {
   __new = function(_, init)
     local trie = trie_create()
@@ -261,6 +271,7 @@ local Trie_mt = {
     longest_prefix = trie_longest_prefix,
     extend = trie_extend,
     destroy = trie_destroy,
+    additional_chars = trie_additional_chars,
   },
   __tostring = trie_to_string,
   __gc = trie_destroy,

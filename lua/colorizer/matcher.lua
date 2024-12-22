@@ -15,6 +15,7 @@ local parsers = {
   hsl_function = require("colorizer.parser.hsl").parser,
   rgb_function = require("colorizer.parser.rgb").parser,
   rgba_hex = require("colorizer.parser.rgba_hex").parser,
+  --  TODO: 2024-12-21 - Should this be moved into parsers module?
   sass_name = require("colorizer.sass").parser,
 }
 

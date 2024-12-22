@@ -233,7 +233,7 @@ function M.parse_buffer_options(options)
     end
   end
 
-  -- https://github.com/NvChad/nvim-colorizer.lua/issues/48
+  -- https://github.com/catgoose/nvim-colorizer.lua/issues/48
   handle_alias("css", options, default)
   handle_alias("css_fn", options, default)
 
