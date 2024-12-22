@@ -73,7 +73,7 @@ local function handle_names_custom(names_custom)
   end
 
   -- Add additional characters found in names_custom keys
-  local additonal_chars = extract_non_alphanum_keys(names_custom)
+  local additonal_chars = extract_non_alphanum_keys(extra_data)
   names_cache.color_trie:additional_chars(additonal_chars)
 
   for name, hex in pairs(extra_data) do
