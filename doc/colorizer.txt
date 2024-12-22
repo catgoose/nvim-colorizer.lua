@@ -910,7 +910,7 @@ LUA API                                                 *colorizer.sass-lua-api*
 Functions: ~
     |cleanup| - Cleanup sass variables and watch handlers
 
-    |name_parser| - Parse the given line for sass color names
+    |parser| - Parse the given line for sass color names
  check for value in state[buf].definitions_all
 
     |update_variables| - Parse the given lines for sass variabled and add to
@@ -925,7 +925,7 @@ cleanup({bufnr})                                        *colorizer.sass.cleanup*
 
 
 
-name_parser({line}, {i}, {bufnr})                   *colorizer.sass.name_parser*
+parser({line}, {i}, {bufnr})                             *colorizer.sass.parser*
     Parse the given line for sass color names
      check for value in state[buf].definitions_all
 

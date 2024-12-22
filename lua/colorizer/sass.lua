@@ -37,7 +37,7 @@ end
 ---@param i number: Index of line from where to start parsing
 ---@param bufnr number: Buffer number
 ---@return number|nil, string|nil
-function M.name_parser(line, i, bufnr)
+function M.parser(line, i, bufnr)
   local variable_name = line:match("^%$([%w_-]+)", i)
   if variable_name then
     local rgb_hex = state[bufnr].definitions_all[variable_name]
