@@ -18,7 +18,7 @@ local hsl_to_rgb = require("colorizer.color").hsl_to_rgb
 --   - `prefix` (string): "hsl" or "hsla" to specify the CSS function type.
 -- @return number|nil The end index of the parsed `hsl/hsla` function within the line, or `nil` if no match was found.
 -- @return string|nil The RGB hexadecimal color (e.g., "ff0000" for red), or `nil` if parsing failed
-function M.hsl_function_parser(line, i, opts)
+function M.parser(line, i, opts)
   local min_len = #"hsla(0,0%,0%)" - 1
   local min_commas, min_spaces = 2, 2
   local pattern = "^"
