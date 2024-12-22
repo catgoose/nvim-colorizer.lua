@@ -64,11 +64,11 @@ function M.byte_is_hex(byte)
   return band(byte_category[byte], category_hex) ~= 0
 end
 
---  TODO: 2024-12-21 - Is this check required?
 --- Checks if a byte is valid as a color character (alphanumeric or `-` for Tailwind colors).
 ---@param byte number The byte to check.
 ---@return boolean `true` if the byte is valid, otherwise `false`.
 function M.byte_is_valid_colorchar(byte)
+  --  TODO: 2024-12-21 - Is this check required?
   return M.byte_is_alphanumeric(byte) or byte == ("-"):byte()
 end
 
