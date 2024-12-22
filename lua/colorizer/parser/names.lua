@@ -117,6 +117,7 @@ end
 -- @return number|nil, string|nil Length of match and hex value if found.
 function M.parser(line, i, opts)
   if not names_cache.color_trie or opts.tailwind ~= names_cache.tailwind_enabled then
+    --  TODO: 2024-12-21 - Ensure that this is not being called too many times
     populate_colors(opts)
   end
 

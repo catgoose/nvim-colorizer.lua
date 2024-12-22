@@ -6,15 +6,10 @@ local opts = {
     lua = {
       names = true,
       names_custom = {
-        -- names = "#1F4770",
-        names = "#791497",
-        cool = "#3F3347",
-        lua = "#107d3c",
-        ["notcool"] = "#ee9240",
-        redgreen = "#970000",
-        asdf = "#234311",
-        eeee = "#112238",
-        -- lua
+        red_purple = "#107dac",
+        redpurple = "#107dac",
+        green_blue = "#ee9240",
+        greenblue = "#ee9240",
       },
       -- names_custom = function()
       --   local colors = require("kanagawa.colors").setup()
@@ -25,11 +20,6 @@ local opts = {
   buftypes = { "*", "!prompt", "!popup" },
   user_commands = true,
   user_default_options = {
-    names_custom = {
-      -- names = "#1F4770",
-      names = "#1740F7",
-      lua = "#7407F1",
-    },
     names = false,
     RGB = true,
     RRGGBB = true,
@@ -68,6 +58,12 @@ White
 Extra names:
 oniViolet oniViolet2 crystalBlue springViolet1 springViolet2 springBlue
 lightBlue waveAqua2
+
+Checking for underscore:
+-- red_purple
+-- redpurple
+-- green_blue
+-- greenblue
 
 Hexadecimal:
 #RGB:
