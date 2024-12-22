@@ -34,6 +34,22 @@ local function add_color(name, value)
   names_cache.color_trie:insert(name)
 end
 
+--- Extract non-alphanumeric characters to add as a valid index in the Trie
+-- @param tbl table The table to extract non-alphanumeric characters from.
+local function extract_non_alphanum_keys(tbl)
+  local non_alphanum_chars = {}
+  for key, _ in pairs(tbl) do
+    for char in key:gmatch("[^%w]") do
+      non_alphanum_chars[char] = true
+    end
+  end
+  local result = ""
+  for char in pairs(non_alphanum_chars) do
+    result = result .. char
+  end
+  return result
+end
+
 --- Handles additional color names provided as a table or function.
 -- @param names_custom table|function|nil Additional color names to add.
 local function handle_names_custom(names_custom)
@@ -42,7 +58,6 @@ local function handle_names_custom(names_custom)
   end
 
   local extra_data = {}
-
   if type(names_custom) == "table" then
     extra_data = names_custom
   elseif type(names_custom) == "function" then
@@ -56,6 +71,10 @@ local function handle_names_custom(names_custom)
       return
     end
   end
+
+  -- Add additional characters found in names_custom keys
+  local additonal_chars = extract_non_alphanum_keys(names_custom)
+  names_cache.color_trie:additional_chars(additonal_chars)
 
   for name, hex in pairs(extra_data) do
     if type(hex) == "string" then
@@ -73,6 +92,30 @@ local function handle_names_custom(names_custom)
   end
 end
 
+--- Handles Tailwind CSS colors and adds them to the Trie and map.
+local function handle_tailwind()
+  names_cache.color_trie:additional_chars("-")
+  local tailwind = require("colorizer.tailwind_colors")
+  for name, hex in pairs(tailwind.colors) do
+    for _, prefix in ipairs(tailwind.prefixes) do
+      add_color(prefix .. "-" .. name, hex)
+    end
+  end
+end
+
+--- Handles Vim's color map and adds colors to the Trie and map.
+local function handle_names()
+  for name, value in pairs(vim.api.nvim_get_color_map()) do
+    if not (names_cache.color_name_settings.strip_digits and name:match("%d+$")) then
+      local rgb_hex = tohex(value, 6)
+      add_color(name, rgb_hex)
+      if names_cache.color_name_settings.lowercase then
+        add_color(name:lower(), rgb_hex)
+      end
+    end
+  end
+end
+
 --- Populates the Trie and map with colors based on options.
 -- @param opts table Configuration options for color names and Tailwind CSS.
 local function populate_colors(opts)
@@ -82,25 +125,12 @@ local function populate_colors(opts)
 
   -- Add Vim's color map
   if opts.color_names then
-    for name, value in pairs(vim.api.nvim_get_color_map()) do
-      if not (names_cache.color_name_settings.strip_digits and name:match("%d+$")) then
-        local rgb_hex = tohex(value, 6)
-        add_color(name, rgb_hex)
-        if names_cache.color_name_settings.lowercase then
-          add_color(name:lower(), rgb_hex)
-        end
-      end
-    end
+    handle_names()
   end
 
   -- Add Tailwind colors
   if opts.tailwind then
-    local tailwind = require("colorizer.tailwind_colors")
-    for name, hex in pairs(tailwind.colors) do
-      for _, prefix in ipairs(tailwind.prefixes) do
-        add_color(prefix .. "-" .. name, hex)
-      end
-    end
+    handle_tailwind()
   end
   names_cache.tailwind_enabled = opts.tailwind
 

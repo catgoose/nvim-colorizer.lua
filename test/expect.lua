@@ -6,10 +6,11 @@ local opts = {
     lua = {
       names = true,
       names_custom = {
-        red_purple = "#107dac",
-        redpurple = "#107dac",
-        green_blue = "#ee9240",
-        greenblue = "#ee9240",
+        red_purple = "#017dac",
+        ["red=green"] = "#3700c2",
+        ["green@blue"] = "#e9e240",
+        ["green!blue"] = "#a9e042",
+        ["green!!blue"] = "#09e392",
       },
       -- names_custom = function()
       --   local colors = require("kanagawa.colors").setup()
@@ -59,11 +60,8 @@ Extra names:
 oniViolet oniViolet2 crystalBlue springViolet1 springViolet2 springBlue
 lightBlue waveAqua2
 
-Checking for underscore:
--- red_purple
--- redpurple
--- green_blue
--- greenblue
+Additional names with non-alphanumeric characters
+red_purple red=green green@blue green!blue green!!blue
 
 Hexadecimal:
 #RGB:
