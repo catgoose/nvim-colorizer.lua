@@ -91,7 +91,7 @@ M.setup_options = nil
 
 --- Plugin default options cache from vim.deepcopy
 ---@table default_options
-local plugin_default_options = user_defaults()
+local plugin_user_default_options = user_defaults()
 
 -- State for managing buffer and filetype-specific options
 local options_cache = { buftype = {}, filetype = {} }
@@ -105,12 +105,12 @@ local function validate_opts(settings)
       settings.default_options.mode
     )
   then
-    settings.default_options.mode = plugin_default_options.mode
+    settings.default_options.mode = plugin_user_default_options.mode
   end
   if
     not vim.tbl_contains({ "background", "foreground" }, settings.default_options.virtualtext_mode)
   then
-    settings.default_options.virtualtext_mode = plugin_default_options.virtualtext_mode
+    settings.default_options.virtualtext_mode = plugin_user_default_options.virtualtext_mode
   end
   if
     not vim.tbl_contains(
@@ -118,9 +118,8 @@ local function validate_opts(settings)
       settings.default_options.tailwind
     )
   then
-    settings.default_options.tailwind = plugin_default_options.tailwind
+    settings.default_options.tailwind = plugin_user_default_options.tailwind
   end
-  return settings
 end
 
 --- Set options for a specific buffer or file type.
@@ -132,9 +131,9 @@ function M.set_bo_value(bo_type, value, options)
 end
 
 --- Parse and apply alias options to the user options.
----@param options table: options table
+---@param options table: user_default_options
 ---@return table
-function M.parse_alias_options(options)
+function M.apply_alias_options(options)
   local aliases = {
     ["css"] = { "names", "RGB", "RRGGBB", "RRGGBBAA", "hsl_fn", "rgb_fn" },
     ["css_fn"] = { "hsl_fn", "rgb_fn" },
@@ -145,7 +144,7 @@ function M.parse_alias_options(options)
     end
     for _, option in ipairs(aliases[name]) do
       if opts[option] == nil then
-        opts[option] = true
+        opts[option] = options[name]
       end
     end
   end
@@ -204,18 +203,15 @@ function M.get_setup_options(opts)
     filetypes = { "*" },
     buftypes = {},
     user_commands = true,
-    user_default_options = M.parse_alias_options(opts.user_default_options),
+    user_default_options = plugin_user_default_options,
   }
+  opts.user_default_options = M.apply_alias_options(opts.user_default_options)
   opts = vim.tbl_deep_extend("force", default_opts, opts)
 
   M.setup_options = {
     exclusions = { buftype = {}, filetype = {} },
     all = { buftype = false, filetype = false },
-    default_options = vim.tbl_deep_extend(
-      "force",
-      plugin_default_options,
-      opts.user_default_options
-    ),
+    default_options = opts.user_default_options,
     user_commands = opts.user_commands,
     filetypes = opts.filetypes,
     buftypes = opts.buftypes,

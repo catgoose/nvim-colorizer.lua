@@ -270,7 +270,7 @@ function M.attach_to_buffer(bufnr, options, bo_type)
     or get_attached_buffer_options(bufnr)
     -- new buffer options
     or config.new_buffer_options(bufnr, bo_type)
-  options = config.parse_alias_options(options)
+  options = config.apply_alias_options(options)
 
   --  TODO: 2024-11-26 - This seems to be validated in config.validate_opts
   if not buffer.highlight_mode_names[options.mode] then
