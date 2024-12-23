@@ -195,10 +195,10 @@ function M.is_buffer_attached(bufnr)
   return bufnr
 end
 
---- Return the currently active buffer options.
+--- Return buffer options if buffer is attached to colorizer.
 ---@param bufnr number: Buffer number (0 for current)
 ---@return table|nil
-local function get_buffer_options(bufnr)
+local function get_attached_buffer_options(bufnr)
   local attached_bufnr = M.is_buffer_attached(bufnr)
   if attached_bufnr > -1 then
     return colorizer_state.buffer_options[attached_bufnr]
@@ -209,7 +209,7 @@ end
 function M.reload_all_buffers()
   for bufnr, _ in pairs(colorizer_state.buffer_options) do
     bufnr = utils.bufme(bufnr)
-    M.attach_to_buffer(bufnr, get_buffer_options(bufnr), "buftype")
+    M.attach_to_buffer(bufnr, get_attached_buffer_options(bufnr), "buftype")
   end
 end
 
@@ -262,18 +262,15 @@ function M.attach_to_buffer(bufnr, options, bo_type)
     colorizer_state.buffer_local[bufnr], colorizer_state.buffer_options[bufnr] = nil, nil
     return
   end
-  --  TODO: 2024-11-22 - When attaching using user command (args to attach_to_buffer are all nil) does this respect buffer settings?
-  options = options or config.setup_options.filetypes[vim.bo.filetype] or {}
-  --  TODO: 2024-11-22 - Why default to "buftype"?
   bo_type = vim.tbl_contains({ "buftype", "filetype" }, bo_type) and bo_type or "buftype"
 
-  -- check if options is empty table
-  options = next(options) and options
+  -- options for filetype
+  options = config.setup_options.filetypes[vim.bo.filetype]
     -- cached buffer options
-    or get_buffer_options(bufnr)
+    or get_attached_buffer_options(bufnr)
     -- new buffer options
     or config.new_buffer_options(bufnr, bo_type)
-  options = config.parse_buffer_options(options)
+  options = config.parse_alias_options(options)
 
   --  TODO: 2024-11-26 - This seems to be validated in config.validate_opts
   if not buffer.highlight_mode_names[options.mode] then
@@ -453,7 +450,8 @@ function M.setup(opts)
   }
   require("colorizer.matcher").reset_cache()
   require("colorizer.parser.names").reset_cache()
-  local s = config.get_settings(opts)
+  require("colorizer.config").reset_cache()
+  local s = config.get_setup_options(opts)
 
   -- Setup the buffer with the correct options
   local function setup(bo_type)
