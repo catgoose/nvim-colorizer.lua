@@ -437,16 +437,16 @@ Provides configuration options and utilities for setting up colorizer.
 LUA API                                               *colorizer.config-lua-api*
 
 Functions: ~
-    |get_settings| - Initializes colorizer with user-provided options.
-
-    |new_buffer_options| - Retrieve default options or buffer-specific options.
-
-    |get_options| - Retrieve options based on buffer type and file type.
-
     |set_bo_value| - Set options for a specific buffer or file type.
 
-    |parse_buffer_options| - Parse buffer Configuration and convert aliases to
-    normal values
+    |apply_alias_options| - Parse and apply alias options to the user options.
+
+    |get_setup_options| - Initializes colorizer with user-provided options.
+
+    |new_buffer_options| - Retrieve buffer-specific options or
+    user_default_options defined when setup() was called.
+
+    |get_options| - Retrieve options based on buffer type and file type.
 
 Tables: ~
     |user_default_options| - Default user options for colorizer.
@@ -459,7 +459,28 @@ Tables: ~
     |opts| - Configuration options for the `setup` function.
 
 
-get_settings({opts})                             *colorizer.config.get_settings*
+set_bo_value({bo_type}, {value}, {options})      *colorizer.config.set_bo_value*
+    Set options for a specific buffer or file type.
+
+    Parameters: ~
+	{bo_type} -  'buftype'|'filetype': The type of buffer option
+	{value} -  string: The specific value to set.
+	{options} -  table: Options to associate with the value.
+
+
+
+apply_alias_options({options})            *colorizer.config.apply_alias_options*
+    Parse and apply alias options to the user options.
+
+    Parameters: ~
+	{options} -  table: user_default_options
+
+    returns:~
+	table
+
+
+
+get_setup_options({opts})                   *colorizer.config.get_setup_options*
     Initializes colorizer with user-provided options.
 
      Merges default settings with any user-specified options, setting up
@@ -476,7 +497,8 @@ get_settings({opts})                             *colorizer.config.get_settings*
 
 
 new_buffer_options({bufnr}, {bo_type})     *colorizer.config.new_buffer_options*
-    Retrieve default options or buffer-specific options.
+    Retrieve buffer-specific options or user_default_options defined when
+    setup() was called.
 
     Parameters: ~
 	{bufnr} -  number: The buffer number.
@@ -493,27 +515,6 @@ get_options({bo_type}, {buftype}, {filetype})     *colorizer.config.get_options*
 	{bo_type} -  'buftype'|'filetype': The type of buffer option
 	{buftype} -  string: Buffer type.
 	{filetype} -  string: File type.
-
-    returns:~
-	table
-
-
-
-set_bo_value({bo_type}, {value}, {options})      *colorizer.config.set_bo_value*
-    Set options for a specific buffer or file type.
-
-    Parameters: ~
-	{bo_type} -  'buftype'|'filetype': The type of buffer option
-	{value} -  string: The specific value to set.
-	{options} -  table: Options to associate with the value.
-
-
-
-parse_buffer_options({options})          *colorizer.config.parse_buffer_options*
-    Parse buffer Configuration and convert aliases to normal values
-
-    Parameters: ~
-	{options} -  table: options table
 
     returns:~
 	table
@@ -689,13 +690,11 @@ This module provides a parser for identifying and converting `hsl()` and
 LUA API                                           *colorizer.parser.hsl-lua-api*
 
 Functions: ~
-    |hsl_function_parser| - Parses `hsl()` and `hsla()` CSS functions and
-    converts them to RGB hexadecimal format.
+    |parser| - Parses `hsl()` and `hsla()` CSS functions and converts them to
+    RGB hexadecimal format.
 
 
-
-				      *colorizer.parser.hsl.hsl_function_parser*
-hsl_function_parser({line}, {i}, {opts})
+parser({line}, {i}, {opts})                        *colorizer.parser.hsl.parser*
     Parses `hsl()` and `hsla()` CSS functions and converts them to RGB
     hexadecimal format.
 
@@ -862,13 +861,11 @@ This module provides a parser for identifying and converting `rgb()` and
 LUA API                                           *colorizer.parser.rgb-lua-api*
 
 Functions: ~
-    |rgb_function_parser| - Parses `rgb()` and `rgba()` CSS functions and
-    converts them to RGB hexadecimal format.
+    |parser| - Parses `rgb()` and `rgba()` CSS functions and converts them to
+    RGB hexadecimal format.
 
 
-
-				      *colorizer.parser.rgb.rgb_function_parser*
-rgb_function_parser({line}, {i}, {opts})
+parser({line}, {i}, {opts})                        *colorizer.parser.rgb.parser*
     Parses `rgb()` and `rgba()` CSS functions and converts them to RGB
     hexadecimal format.
 
