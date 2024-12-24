@@ -265,7 +265,7 @@ function M.attach_to_buffer(bufnr, options, bo_type)
   bo_type = vim.tbl_contains({ "buftype", "filetype" }, bo_type) and bo_type or "buftype"
 
   -- options for filetype
-  options = config.setup_options.filetypes[vim.bo.filetype]
+  options = config.options.filetypes[vim.bo.filetype]
     -- cached buffer options
     or get_attached_buffer_options(bufnr)
     -- new buffer options
@@ -481,6 +481,7 @@ function M.setup(opts)
     end
   end
 
+  --  TODO: 2024-12-24 - refactor this
   -- Setup highlighting autocmds for filetypes and buftypes
   local bo_type_ac = {
     filetype = "FileType",
@@ -500,7 +501,7 @@ function M.setup(opts)
       local list = {}
       for k, v in pairs(bo_type_option) do
         local value
-        local options = s.default_options
+        local options = s.user_default_options
         if type(k) == "string" then
           value = k
           if type(v) ~= "table" then

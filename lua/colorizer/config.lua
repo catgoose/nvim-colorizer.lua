@@ -3,31 +3,25 @@
 local M = {}
 
 --- Defaults for colorizer options
-local function user_defaults()
-  return vim.deepcopy({
-    names = true,
-    names_custom = nil,
-    RGB = true,
-    RRGGBB = true,
-    RRGGBBAA = false,
-    AARRGGBB = false,
-    rgb_fn = false,
-    hsl_fn = false,
-    css = false,
-    css_fn = false,
-    mode = "background",
-    tailwind = false,
-    sass = { enable = false, parsers = { css = true } },
-    virtualtext = "■",
-    virtualtext_inline = false,
-    virtualtext_mode = "foreground",
-    always_update = false,
-  })
-end
-
---- Plugin default options cache from vim.deepcopy
----@table default_options
-local plugin_user_default_options = user_defaults()
+local plugin_user_default_options = {
+  names = true,
+  names_custom = nil,
+  RGB = true,
+  RRGGBB = true,
+  RRGGBBAA = false,
+  AARRGGBB = false,
+  rgb_fn = false,
+  hsl_fn = false,
+  css = false,
+  css_fn = false,
+  mode = "background",
+  tailwind = false,
+  sass = { enable = false, parsers = { css = true } },
+  virtualtext = "■",
+  virtualtext_inline = false,
+  virtualtext_mode = "foreground",
+  always_update = false,
+}
 
 --- Default user options for colorizer.
 -- This table defines individual options and alias options, allowing configuration of
@@ -70,7 +64,7 @@ local plugin_user_default_options = user_defaults()
 ---@boolean user_commands
 ---@table filetypes
 ---@table buftypes
-M.setup_options = {
+M.options = {
   -- setup options
   filetypes = { "*" },
   buftypes = {},
@@ -134,7 +128,7 @@ function M.apply_alias_options(options)
   --   end
   -- end
 
-  options = vim.tbl_deep_extend("force", M.setup_options.user_default_options, options)
+  options = vim.tbl_deep_extend("force", M.options.user_default_options, options)
   return options
 end
 
@@ -176,8 +170,8 @@ end
 function M.get_setup_options(opts)
   opts = opts or {}
   opts.user_default_options = M.apply_alias_options(opts.user_default_options)
-  M.setup_options = vim.tbl_deep_extend("force", M.setup_options, opts)
-  return M.setup_options
+  M.options = vim.tbl_deep_extend("force", M.options, opts)
+  return M.options
 end
 
 --- Retrieve buffer-specific options or user_default_options defined when setup() was called.
@@ -185,7 +179,7 @@ end
 ---@param bo_type 'buftype'|'filetype': The type of buffer option
 function M.new_buffer_options(bufnr, bo_type)
   local value = vim.api.nvim_get_option_value(bo_type, { buf = bufnr })
-  return options_cache.filetype[value] or M.setup_options.user_default_options
+  return options_cache.filetype[value] or M.options.user_default_options
 end
 
 --- Retrieve options based on buffer type and file type.  Prefer filetype.
