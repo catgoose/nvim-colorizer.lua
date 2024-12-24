@@ -269,7 +269,7 @@ function M.attach_to_buffer(bufnr, options, bo_type)
     -- cached buffer options
     or get_attached_buffer_options(bufnr)
     -- new buffer options
-    or config.new_buffer_options(bufnr, bo_type)
+    or config.new_options(bufnr, bo_type)
   options = config.apply_alias_options(options)
 
   --  TODO: 2024-11-26 - This seems to be validated in config.validate_opts

@@ -81,11 +81,11 @@
 	<td class="summary">Initializes colorizer with user-provided options.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#new_buffer_options">new_buffer_options (bufnr, bo_type)</a></td>
+	<td class="name" nowrap><a href="#new_bo_options">new_bo_options (bufnr, bo_type)</a></td>
 	<td class="summary">Retrieve buffer-specific options or user_default_options defined when setup() was called.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#get_options">get_options (bo_type, buftype, filetype)</a></td>
+	<td class="name" nowrap><a href="#get_bo_options">get_bo_options (bo_type, buftype, filetype)</a></td>
 	<td class="summary">Retrieve options based on buffer type and file type.</td>
 	</tr>
 </table>
@@ -191,8 +191,8 @@
 
 </dd>
     <dt>
-    <a name = "new_buffer_options"></a>
-    <strong>new_buffer_options (bufnr, bo_type)</strong>
+    <a name = "new_bo_options"></a>
+    <strong>new_bo_options (bufnr, bo_type)</strong>
     </dt>
     <dd>
     Retrieve buffer-specific options or user_default_options defined when setup() was called.
@@ -214,8 +214,8 @@
 
 </dd>
     <dt>
-    <a name = "get_options"></a>
-    <strong>get_options (bo_type, buftype, filetype)</strong>
+    <a name = "get_bo_options"></a>
+    <strong>get_bo_options (bo_type, buftype, filetype)</strong>
     </dt>
     <dd>
     Retrieve options based on buffer type and file type.   Prefer filetype.

@@ -443,10 +443,10 @@ Functions: ~
 
     |get_setup_options| - Initializes colorizer with user-provided options.
 
-    |new_buffer_options| - Retrieve buffer-specific options or
-    user_default_options defined when setup() was called.
+    |new_bo_options| - Retrieve buffer-specific options or user_default_options
+    defined when setup() was called.
 
-    |get_options| - Retrieve options based on buffer type and file type.
+    |get_bo_options| - Retrieve options based on buffer type and file type.
 
 Tables: ~
     |user_default_options| - Default user options for colorizer.
@@ -493,7 +493,7 @@ get_setup_options({opts})                   *colorizer.config.get_setup_options*
 
 
 
-new_buffer_options({bufnr}, {bo_type})     *colorizer.config.new_buffer_options*
+new_bo_options({bufnr}, {bo_type})             *colorizer.config.new_bo_options*
     Retrieve buffer-specific options or user_default_options defined when
     setup() was called.
 
@@ -503,7 +503,9 @@ new_buffer_options({bufnr}, {bo_type})     *colorizer.config.new_buffer_options*
 
 
 
-get_options({bo_type}, {buftype}, {filetype})     *colorizer.config.get_options*
+
+					       *colorizer.config.get_bo_options*
+get_bo_options({bo_type}, {buftype}, {filetype})
     Retrieve options based on buffer type and file type.
       Prefer filetype.
 

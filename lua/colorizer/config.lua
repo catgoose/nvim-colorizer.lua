@@ -168,7 +168,7 @@ end
 --- Retrieve buffer-specific options or user_default_options defined when setup() was called.
 ---@param bufnr number: The buffer number.
 ---@param bo_type 'buftype'|'filetype': The type of buffer option
-function M.new_buffer_options(bufnr, bo_type)
+function M.new_bo_options(bufnr, bo_type)
   local value = vim.api.nvim_get_option_value(bo_type, { buf = bufnr })
   return options_cache.filetype[value] or M.options.user_default_options
 end
@@ -178,7 +178,7 @@ end
 ---@param buftype string: Buffer type.
 ---@param filetype string: File type.
 ---@return table
-function M.get_options(bo_type, buftype, filetype)
+function M.get_bo_options(bo_type, buftype, filetype)
   local fo, bo = options_cache[bo_type][filetype], options_cache[bo_type][buftype]
   return fo or bo
 end
