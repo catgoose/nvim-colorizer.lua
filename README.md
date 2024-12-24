@@ -126,8 +126,7 @@ library to do custom highlighting themselves.
       names = true, -- "Name" codes like Blue or blue
       -- Expects a table of color name to rgb value pairs.  # is optional
       -- Example: { cool = "#107dac", ["notcool"] = "ee9240" }
-      -- filetype or buffer names_custom does not merge with user_default_options.names_custom
-      names_custom = nil, -- Provide function or table of custom names to be highlighted: table|function|nil
+      names_custom = nil, -- Custom names to be highlighted: table|function|nil
       RGB = true, -- #RGB hex codes
       RRGGBB = true, -- #RRGGBB hex codes
       RRGGBBAA = false, -- #RRGGBBAA hex codes
@@ -347,7 +346,6 @@ Documentaion is generated using ldoc. See
 - [ ] Add more display modes. E.g - sign column
 - [ ] Use a more space efficient trie implementation.
 - [ ] Support custom parsers
-- [ ] Allow custom color names
 
 ## Similar projects
 
