@@ -5,7 +5,7 @@ local M = {}
 --- Defaults for colorizer options
 local plugin_user_default_options = {
   names = true,
-  names_custom = nil,
+  names_custom = false,
   RGB = true,
   RRGGBB = true,
   RRGGBBAA = false,
@@ -57,13 +57,13 @@ local plugin_user_default_options = {
 -- @field always_update boolean: Always update color values, even if buffer is not focused.
 
 --- Options for colorizer that were passed in to setup function
----@table setup_options
----@table exclusions
----@table all
----@table default_options
----@boolean user_commands
----@table filetypes
----@table buftypes
+--@field setup_options
+--@field exclusions
+--@field all
+--@field default_options
+--@field user_commands
+--@field filetypes
+--@field buftypes
 M.options = {}
 
 local function init_options()
@@ -129,7 +129,7 @@ end
 --   - `RGB` (boolean): Enables support for `#RGB` hex codes.
 --   - `RRGGBB` (boolean): Enables support for `#RRGGBB` hex codes.
 --   - `names` (boolean): Enables named color codes like `"Blue"`.
---   - `names_custom` (table|function): Extra color name to RGB value mappings
+--   - `names_custom` (table|function|nil): Extra color name to RGB value mappings
 --   - `RRGGBBAA` (boolean): Enables support for `#RRGGBBAA` hex codes.
 --   - `AARRGGBB` (boolean): Enables support for `0xAARRGGBB` hex codes.
 --   - `rgb_fn` (boolean): Enables CSS `rgb()` and `rgba()` functions.

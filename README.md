@@ -126,7 +126,8 @@ library to do custom highlighting themselves.
       names = true, -- "Name" codes like Blue or blue
       -- Expects a table of color name to rgb value pairs.  # is optional
       -- Example: { cool = "#107dac", ["notcool"] = "ee9240" }
-      names_custom = nil, -- Custom names to be highlighted: table|function|nil
+      -- Set to false|nil to disable
+      names_custom = false, -- Custom names to be highlighted: table|function|false|nil
       RGB = true, -- #RGB hex codes
       RRGGBB = true, -- #RRGGBB hex codes
       RRGGBBAA = false, -- #RRGGBBAA hex codes

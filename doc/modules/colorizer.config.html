@@ -96,12 +96,8 @@
 	<td class="summary">Default user options for colorizer.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#setup_options">setup_options</a></td>
+	<td class="name" nowrap><a href="#options">options</a></td>
 	<td class="summary">Options for colorizer that were passed in to setup function</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#default_options">default_options</a></td>
-	<td class="summary">Plugin default options cache from vim.deepcopy</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#opts">opts</a></td>
@@ -180,7 +176,7 @@
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">opts</span>
-         opts User-provided configuration options.
+         table: Configuration options for colorizer.
         </li>
     </ul>
 
@@ -331,8 +327,8 @@
 
 </dd>
     <dt>
-    <a name = "setup_options"></a>
-    <strong>setup_options</strong>
+    <a name = "options"></a>
+    <strong>options</strong>
     </dt>
     <dd>
     Options for colorizer that were passed in to setup function
@@ -340,39 +336,28 @@
 
     <h3>Fields:</h3>
     <ul>
+        <li><span class="parameter">setup_options</span>
+
+        </li>
         <li><span class="parameter">exclusions</span>
-         table
+
         </li>
         <li><span class="parameter">all</span>
-         table
+
         </li>
         <li><span class="parameter">default_options</span>
-         table
+
         </li>
         <li><span class="parameter">user_commands</span>
-         boolean
+
         </li>
         <li><span class="parameter">filetypes</span>
-         table
+
         </li>
         <li><span class="parameter">buftypes</span>
-         table
+
         </li>
     </ul>
-
-
-
-
-
-</dd>
-    <dt>
-    <a name = "default_options"></a>
-    <strong>default_options</strong>
-    </dt>
-    <dd>
-    Plugin default options cache from vim.deepcopy
-
-
 
 
 
@@ -397,7 +382,7 @@
    - `RGB` (boolean): Enables support for `#RGB` hex codes.
    - `RRGGBB` (boolean): Enables support for `#RRGGBB` hex codes.
    - `names` (boolean): Enables named color codes like `"Blue"`.
-   - `names_custom` (table|function): Extra color name to RGB value mappings
+   - `names_custom` (table|function|nil): Extra color name to RGB value mappings
    - `RRGGBBAA` (boolean): Enables support for `#RRGGBBAA` hex codes.
    - `AARRGGBB` (boolean): Enables support for `0xAARRGGBB` hex codes.
    - `rgb_fn` (boolean): Enables CSS `rgb()` and `rgba()` functions.

@@ -451,10 +451,7 @@ Functions: ~
 Tables: ~
     |user_default_options| - Default user options for colorizer.
 
-    |setup_options| - Options for colorizer that were passed in to setup
-    function
-
-    |default_options| - Plugin default options cache from vim.deepcopy
+    |options| - Options for colorizer that were passed in to setup function
 
     |opts| - Configuration options for the `setup` function.
 
@@ -489,7 +486,7 @@ get_setup_options({opts})                   *colorizer.config.get_setup_options*
 
 
     Parameters: ~
-	{opts} -  opts User-provided configuration options.
+	{opts} -  table: Configuration options for colorizer.
 
     returns:~
 	table Final settings after merging user and default options.
@@ -570,21 +567,17 @@ user_default_options                     *colorizer.config.user_default_options*
 
 
 
-setup_options                                   *colorizer.config.setup_options*
+options                                               *colorizer.config.options*
     Options for colorizer that were passed in to setup function
 
     Fields: ~
-	{exclusions} -  table
-	{all} -  table
-	{default_options} -  table
-	{user_commands} -  boolean
-	{filetypes} -  table
-	{buftypes} -  table
-
-
-
-default_options                               *colorizer.config.default_options*
-    Plugin default options cache from vim.deepcopy
+	{setup_options} -
+	{exclusions} -
+	{all} -
+	{default_options} -
+	{user_commands} -
+	{filetypes} -
+	{buftypes} -
 
 
 
@@ -598,7 +591,7 @@ opts                                                     *colorizer.config.opts*
    - `RGB` (boolean): Enables support for `#RGB` hex codes.
    - `RRGGBB` (boolean): Enables support for `#RRGGBB` hex codes.
    - `names` (boolean): Enables named color codes like `"Blue"`.
-   - `names_custom` (table|function): Extra color name to RGB value mappings
+   - `names_custom` (table|function|nil): Extra color name to RGB value mappings
    - `RRGGBBAA` (boolean): Enables support for `#RRGGBBAA` hex codes.
    - `AARRGGBB` (boolean): Enables support for `0xAARRGGBB` hex codes.
    - `rgb_fn` (boolean): Enables CSS `rgb()` and `rgba()` functions.
