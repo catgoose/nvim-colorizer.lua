@@ -79,6 +79,7 @@ function M.make(options)
   end
 
   local enable_names = options.names
+  --  TODO: 2024-12-24 - setting filetype.names_custom = {} should disable names_custom for buffer
   local enable_names_custom = options.names_custom
   local enable_sass = options.sass and options.sass.enable
   local enable_tailwind = options.tailwind

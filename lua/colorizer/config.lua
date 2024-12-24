@@ -64,16 +64,20 @@ local plugin_user_default_options = {
 ---@boolean user_commands
 ---@table filetypes
 ---@table buftypes
-M.options = {
-  -- setup options
-  filetypes = { "*" },
-  buftypes = {},
-  user_commands = true,
-  user_default_options = plugin_user_default_options,
-  -- shortcuts for filetype, buftype inclusion, exclusion settings
-  exclusions = { buftype = {}, filetype = {} },
-  all = { buftype = false, filetype = false },
-}
+M.options = {}
+
+local function init_options()
+  M.options = {
+    -- setup options
+    filetypes = { "*" },
+    buftypes = {},
+    user_commands = true,
+    user_default_options = plugin_user_default_options,
+    -- shortcuts for filetype, buftype inclusion, exclusion settings
+    exclusions = { buftype = {}, filetype = {} },
+    all = { buftype = false, filetype = false },
+  }
+end
 
 -- State for managing buffer and filetype-specific options
 local options_cache = { buftype = {}, filetype = {} }
@@ -168,6 +172,7 @@ end
 -- @param opts table: Configuration options for colorizer.
 -- @return table Final settings after merging user and default options.
 function M.get_setup_options(opts)
+  init_options()
   opts = opts or {}
   opts.user_default_options = M.apply_alias_options(opts.user_default_options)
   M.options = vim.tbl_deep_extend("force", M.options, opts)
