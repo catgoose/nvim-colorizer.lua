@@ -506,7 +506,7 @@ function M.setup(opts)
           if type(v) ~= "table" then
             vim.notify(string.format("colorizer: Invalid option type for %s", value), 4)
           else
-            options = vim.tbl_extend("force", s.default_options, v)
+            options = vim.tbl_extend("force", options, v)
           end
         else
           value = v

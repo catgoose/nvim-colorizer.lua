@@ -9,13 +9,11 @@ local utils = require("colorizer.utils")
 local tohex = require("bit").tohex
 local min, max = math.min, math.max
 
--- Internal state encapsulation
 local names_cache = {
   color_map = {},
   color_trie = nil,
   color_name_minlen = nil,
   color_name_maxlen = nil,
-  --  TODO: 2024-12-20 - Should these be configurable in settings opts?
   color_name_settings = { lowercase = true, strip_digits = false },
   tailwind_enabled = false,
 }
