@@ -126,7 +126,8 @@ library to do custom highlighting themselves.
       names = true, -- "Name" codes like Blue or blue
       -- Expects a table of color name to rgb value pairs.  # is optional
       -- Example: { cool = "#107dac", ["notcool"] = "ee9240" }
-      names_custom = nil, -- Extra names to be highlighted: table|function|nil
+      -- Set to false|nil to disable
+      names_custom = false, -- Custom names to be highlighted: table|function|false|nil
       RGB = true, -- #RGB hex codes
       RRGGBB = true, -- #RRGGBB hex codes
       RRGGBBAA = false, -- #RRGGBBAA hex codes
@@ -167,10 +168,10 @@ MODES:
 For basic setup, you can use a command like the following.
 
 ```lua
--- Attaches to every FileType mode
+-- Attaches to every FileType with default options
 require("colorizer").setup()
 
--- Attach to certain Filetypes, add special configuration for `html`
+-- Attach to certain Filetypes, add special `mode` configuration for `html`
 -- Use `background` for everything else.
 require("colorizer").setup({
   filetypes = {
@@ -180,8 +181,8 @@ require("colorizer").setup({
   },
 })
 
--- Use the `default_options` as the second parameter, which uses
--- `foreground` for every mode. This is the inverse of the previous
+-- Use `user_default_options` as the second parameter, which uses
+-- `background` for every mode. This is the inverse of the previous
 -- setup configuration.
 require("colorizer").setup({
   filetypes = {
@@ -192,9 +193,7 @@ require("colorizer").setup({
   user_default_options = { mode = "background" },
 })
 
--- Use the `default_options` as the second parameter, which uses
--- `foreground` for every mode. This is the inverse of the previous
--- setup configuration.
+-- Use default for all filetypes with overrides for css and html
 require("colorizer").setup({
   filetypes = {
     "*", -- Highlight all files, but customize some others.
@@ -208,7 +207,7 @@ require("colorizer").setup({
   filetypes = {
     "*", -- Highlight all files, but customize some others.
     "!vim", -- Exclude vim from highlighting.
-    -- Exclusion Only makes sense if '*' is specified!
+    -- Exclusion Only makes sense if '*' is specified first!
   },
 })
 
@@ -332,10 +331,10 @@ Alternatively, use the following script from root directory:
 scripts/start_minimal.sh
 ```
 
-To test colorization with your config, edit `test/expect.txt` to see expected
+To test colorization with your config, edit `test/expect.lua` to see expected
 highlights.
-The returned table of `user_default_options` from `text/expect.txt` will be used
-to conveniently reattach Colorizer to `test/expect.txt` on save.
+The returned table of `user_default_options` from `text/expect.lua` will be used
+to conveniently reattach Colorizer to `test/expect.lua` on save.
 
 ## Extras
 
@@ -348,7 +347,6 @@ Documentaion is generated using ldoc. See
 - [ ] Add more display modes. E.g - sign column
 - [ ] Use a more space efficient trie implementation.
 - [ ] Support custom parsers
-- [ ] Allow custom color names
 
 ## Similar projects
 

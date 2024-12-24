@@ -69,24 +69,24 @@
 <h2><a href="#Functions">Functions</a></h2>
 <table class="function_list">
 	<tr>
-	<td class="name" nowrap><a href="#get_settings">get_settings (opts)</a></td>
-	<td class="summary">Initializes colorizer with user-provided options.</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#new_buffer_options">new_buffer_options (bufnr, bo_type)</a></td>
-	<td class="summary">Retrieve default options or buffer-specific options.</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#get_options">get_options (bo_type, buftype, filetype)</a></td>
-	<td class="summary">Retrieve options based on buffer type and file type.</td>
-	</tr>
-	<tr>
 	<td class="name" nowrap><a href="#set_bo_value">set_bo_value (bo_type, value, options)</a></td>
 	<td class="summary">Set options for a specific buffer or file type.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#parse_buffer_options">parse_buffer_options (options)</a></td>
-	<td class="summary">Parse buffer Configuration and convert aliases to normal values</td>
+	<td class="name" nowrap><a href="#apply_alias_options">apply_alias_options (options)</a></td>
+	<td class="summary">Parse and apply alias options to the user options.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#get_setup_options">get_setup_options (opts)</a></td>
+	<td class="summary">Initializes colorizer with user-provided options.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#new_bo_options">new_bo_options (bufnr, bo_type)</a></td>
+	<td class="summary">Retrieve buffer-specific options or user_default_options defined when setup() was called.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#get_bo_options">get_bo_options (bo_type, buftype, filetype)</a></td>
+	<td class="summary">Retrieve options based on buffer type and file type.</td>
 	</tr>
 </table>
 <h2><a href="#Tables">Tables</a></h2>
@@ -96,12 +96,8 @@
 	<td class="summary">Default user options for colorizer.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#setup_options">setup_options</a></td>
+	<td class="name" nowrap><a href="#options">options</a></td>
 	<td class="summary">Options for colorizer that were passed in to setup function</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#default_options">default_options</a></td>
-	<td class="summary">Plugin default options cache from vim.deepcopy</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#opts">opts</a></td>
@@ -116,87 +112,6 @@
     <h2 class="section-header "><a name="Functions"></a>Functions</h2>
 
     <dl class="function">
-    <dt>
-    <a name = "get_settings"></a>
-    <strong>get_settings (opts)</strong>
-    </dt>
-    <dd>
-    Initializes colorizer with user-provided options.
- Merges default settings with any user-specified options, setting up `filetypes`,
- `user_default_options`, and `user_commands`.
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">opts</span>
-         opts User-provided configuration options.
-        </li>
-    </ul>
-
-    <h3>Returns:</h3>
-    <ol>
-
-        table Final settings after merging user and default options.
-    </ol>
-
-
-
-
-</dd>
-    <dt>
-    <a name = "new_buffer_options"></a>
-    <strong>new_buffer_options (bufnr, bo_type)</strong>
-    </dt>
-    <dd>
-    Retrieve default options or buffer-specific options.
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">bufnr</span>
-         number: The buffer number.
-        </li>
-        <li><span class="parameter">bo_type</span>
-         'buftype'|'filetype': The type of buffer option
-        </li>
-    </ul>
-
-
-
-
-
-</dd>
-    <dt>
-    <a name = "get_options"></a>
-    <strong>get_options (bo_type, buftype, filetype)</strong>
-    </dt>
-    <dd>
-    Retrieve options based on buffer type and file type.   Prefer filetype.
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">bo_type</span>
-         'buftype'|'filetype': The type of buffer option
-        </li>
-        <li><span class="parameter">buftype</span>
-         string: Buffer type.
-        </li>
-        <li><span class="parameter">filetype</span>
-         string: File type.
-        </li>
-    </ul>
-
-    <h3>Returns:</h3>
-    <ol>
-
-        table
-    </ol>
-
-
-
-
-</dd>
     <dt>
     <a name = "set_bo_value"></a>
     <strong>set_bo_value (bo_type, value, options)</strong>
@@ -224,17 +139,98 @@
 
 </dd>
     <dt>
-    <a name = "parse_buffer_options"></a>
-    <strong>parse_buffer_options (options)</strong>
+    <a name = "apply_alias_options"></a>
+    <strong>apply_alias_options (options)</strong>
     </dt>
     <dd>
-    Parse buffer Configuration and convert aliases to normal values
+    Parse and apply alias options to the user options.
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">options</span>
-         table: options table
+         table: user_default_options
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        table
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "get_setup_options"></a>
+    <strong>get_setup_options (opts)</strong>
+    </dt>
+    <dd>
+    Initializes colorizer with user-provided options.
+ Merges default settings with any user-specified options, setting up `filetypes`,
+ `user_default_options`, and `user_commands`.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">opts</span>
+         table: Configuration options for colorizer.
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        table Final settings after merging user and default options.
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "new_bo_options"></a>
+    <strong>new_bo_options (bufnr, bo_type)</strong>
+    </dt>
+    <dd>
+    Retrieve buffer-specific options or user_default_options defined when setup() was called.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">bufnr</span>
+         number: The buffer number.
+        </li>
+        <li><span class="parameter">bo_type</span>
+         'buftype'|'filetype': The type of buffer option
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "get_bo_options"></a>
+    <strong>get_bo_options (bo_type, buftype, filetype)</strong>
+    </dt>
+    <dd>
+    Retrieve options based on buffer type and file type.   Prefer filetype.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">bo_type</span>
+         'buftype'|'filetype': The type of buffer option
+        </li>
+        <li><span class="parameter">buftype</span>
+         string: Buffer type.
+        </li>
+        <li><span class="parameter">filetype</span>
+         string: File type.
         </li>
     </ul>
 
@@ -331,8 +327,8 @@
 
 </dd>
     <dt>
-    <a name = "setup_options"></a>
-    <strong>setup_options</strong>
+    <a name = "options"></a>
+    <strong>options</strong>
     </dt>
     <dd>
     Options for colorizer that were passed in to setup function
@@ -340,39 +336,28 @@
 
     <h3>Fields:</h3>
     <ul>
+        <li><span class="parameter">setup_options</span>
+
+        </li>
         <li><span class="parameter">exclusions</span>
-         table
+
         </li>
         <li><span class="parameter">all</span>
-         table
+
         </li>
         <li><span class="parameter">default_options</span>
-         table
+
         </li>
         <li><span class="parameter">user_commands</span>
-         boolean
+
         </li>
         <li><span class="parameter">filetypes</span>
-         table
+
         </li>
         <li><span class="parameter">buftypes</span>
-         table
+
         </li>
     </ul>
-
-
-
-
-
-</dd>
-    <dt>
-    <a name = "default_options"></a>
-    <strong>default_options</strong>
-    </dt>
-    <dd>
-    Plugin default options cache from vim.deepcopy
-
-
 
 
 
@@ -397,7 +382,7 @@
    - `RGB` (boolean): Enables support for `#RGB` hex codes.
    - `RRGGBB` (boolean): Enables support for `#RRGGBB` hex codes.
    - `names` (boolean): Enables named color codes like `"Blue"`.
-   - `names_custom` (table|function): Extra color name to RGB value mappings
+   - `names_custom` (table|function|nil): Extra color name to RGB value mappings
    - `RRGGBBAA` (boolean): Enables support for `#RRGGBBAA` hex codes.
    - `AARRGGBB` (boolean): Enables support for `0xAARRGGBB` hex codes.
    - `rgb_fn` (boolean): Enables CSS `rgb()` and `rgba()` functions.

@@ -9,13 +9,11 @@ local utils = require("colorizer.utils")
 local tohex = require("bit").tohex
 local min, max = math.min, math.max
 
--- Internal state encapsulation
 local names_cache = {
   color_map = {},
   color_trie = nil,
   color_name_minlen = nil,
   color_name_maxlen = nil,
-  --  TODO: 2024-12-20 - Should these be configurable in settings opts?
   color_name_settings = { lowercase = true, strip_digits = false },
   tailwind_enabled = false,
 }
@@ -57,13 +55,13 @@ local function handle_names_custom(names_custom)
     return
   end
 
-  local extra_data = {}
+  local names = {}
   if type(names_custom) == "table" then
-    extra_data = names_custom
+    names = names_custom
   elseif type(names_custom) == "function" then
     local status, result = pcall(names_custom)
     if status and type(result) == "table" then
-      extra_data = result
+      names = result
     else
       vim.api.nvim_err_writeln(
         "Error in names_custom function: " .. (result or "Invalid return value")
@@ -73,10 +71,10 @@ local function handle_names_custom(names_custom)
   end
 
   -- Add additional characters found in names_custom keys
-  local additonal_chars = extract_non_alphanum_keys(extra_data)
-  names_cache.color_trie:additional_chars(additonal_chars)
+  local chars = extract_non_alphanum_keys(names)
+  names_cache.color_trie:additional_chars(chars)
 
-  for name, hex in pairs(extra_data) do
+  for name, hex in pairs(names) do
     if type(hex) == "string" then
       local normalized_hex = hex:gsub("^#", ""):gsub("%s", "")
       if normalized_hex:match("^%x%x%x%x%x%x$") then

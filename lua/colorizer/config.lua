@@ -3,27 +3,25 @@
 local M = {}
 
 --- Defaults for colorizer options
-local function user_defaults()
-  return vim.deepcopy({
-    names = true,
-    names_custom = nil,
-    RGB = true,
-    RRGGBB = true,
-    RRGGBBAA = false,
-    AARRGGBB = false,
-    rgb_fn = false,
-    hsl_fn = false,
-    css = false,
-    css_fn = false,
-    mode = "background",
-    tailwind = false,
-    sass = { enable = false, parsers = { css = true } },
-    virtualtext = "■",
-    virtualtext_inline = false,
-    virtualtext_mode = "foreground",
-    always_update = false,
-  })
-end
+local plugin_user_default_options = {
+  names = true,
+  names_custom = false,
+  RGB = true,
+  RRGGBB = true,
+  RRGGBBAA = false,
+  AARRGGBB = false,
+  rgb_fn = false,
+  hsl_fn = false,
+  css = false,
+  css_fn = false,
+  mode = "background",
+  tailwind = false,
+  sass = { enable = false, parsers = { css = true } },
+  virtualtext = "■",
+  virtualtext_inline = false,
+  virtualtext_mode = "foreground",
+  always_update = false,
+}
 
 --- Default user options for colorizer.
 -- This table defines individual options and alias options, allowing configuration of
@@ -58,69 +56,70 @@ end
 -- @field virtualtext_mode 'background'|'foreground': Mode for virtual text display.
 -- @field always_update boolean: Always update color values, even if buffer is not focused.
 
--- Configured user options
----@table user_default_options
---@field RGB boolean
---@field RRGGBB boolean
---@field names boolean
---@field names_custom nil
---@field RRGGBBAA boolean
---@field AARRGGBB boolean
---@field rgb_fn boolean
---@field hsl_fn boolean
---@field css boolean
---@field css_fn boolean
---@field mode 'background'|'foreground'|'virtualtext'
---@field tailwind boolean|string
---@field sass table
---@field virtualtext string
---@field virtualtext_inline boolean
---@field virtualtext_mode 'background'|'foreground'
---@field always_update boolean
-M.user_default_options = nil
-
 --- Options for colorizer that were passed in to setup function
----@table setup_options
---@field exclusions table
---@field all table
---@field default_options table
---@field user_commands boolean
---@field filetypes table
---@field buftypes table
-M.setup_options = nil
+--@field setup_options
+--@field exclusions
+--@field all
+--@field default_options
+--@field user_commands
+--@field filetypes
+--@field buftypes
+M.options = {}
 
---- Plugin default options cache from vim.deepcopy
----@table default_options
-local plugin_default_options = user_defaults()
+local function init_options()
+  M.options = {
+    -- setup options
+    filetypes = { "*" },
+    buftypes = {},
+    user_commands = true,
+    user_default_options = plugin_user_default_options,
+    -- shortcuts for filetype, buftype inclusion, exclusion settings
+    exclusions = { buftype = {}, filetype = {} },
+    all = { buftype = false, filetype = false },
+  }
+end
 
 -- State for managing buffer and filetype-specific options
-local options_state
+local options_cache = { buftype = {}, filetype = {} }
 
---  TODO: 2024-11-26 - background is being validated in colorizer.attach_to_buffer
---- Validates user options and sets defaults if necessary.
-local function validate_opts(settings)
-  if
-    not vim.tbl_contains(
-      { "background", "foreground", "virtualtext" },
-      settings.default_options.mode
-    )
-  then
-    settings.default_options.mode = plugin_default_options.mode
+--- Set options for a specific buffer or file type.
+---@param bo_type 'buftype'|'filetype': The type of buffer option
+---@param value string: The specific value to set.
+---@param options table: Options to associate with the value.
+function M.set_bo_value(bo_type, value, options)
+  options_cache[bo_type][value] = options
+end
+
+--- Parse and apply alias options to the user options.
+---@param options table: user_default_options
+---@return table
+function M.apply_alias_options(options)
+  local aliases = {
+    ["css"] = { "names", "RGB", "RRGGBB", "RRGGBBAA", "hsl_fn", "rgb_fn" },
+    ["css_fn"] = { "hsl_fn", "rgb_fn" },
+  }
+  local function handle_alias(name, opts)
+    if not aliases[name] then
+      return
+    end
+    for _, option in ipairs(aliases[name]) do
+      if opts[option] == nil then
+        opts[option] = options[name]
+      end
+    end
   end
-  if
-    not vim.tbl_contains({ "background", "foreground" }, settings.default_options.virtualtext_mode)
-  then
-    settings.default_options.virtualtext_mode = plugin_default_options.virtualtext_mode
+
+  for alias, _ in pairs(aliases) do
+    handle_alias(alias, options)
   end
-  if
-    not vim.tbl_contains(
-      { true, false, "normal", "lsp", "both" },
-      settings.default_options.tailwind
-    )
-  then
-    settings.default_options.tailwind = plugin_default_options.tailwind
+  if options.sass and options.sass.enable then
+    for child, _ in pairs(options.sass.parsers) do
+      handle_alias(child, options.sass.parsers)
+    end
   end
-  return settings
+
+  options = vim.tbl_deep_extend("force", M.options.user_default_options, options)
+  return options
 end
 
 --- Configuration options for the `setup` function.
@@ -130,7 +129,7 @@ end
 --   - `RGB` (boolean): Enables support for `#RGB` hex codes.
 --   - `RRGGBB` (boolean): Enables support for `#RRGGBB` hex codes.
 --   - `names` (boolean): Enables named color codes like `"Blue"`.
---   - `names_custom` (table|function): Extra color name to RGB value mappings
+--   - `names_custom` (table|function|nil): Extra color name to RGB value mappings
 --   - `RRGGBBAA` (boolean): Enables support for `#RRGGBBAA` hex codes.
 --   - `AARRGGBB` (boolean): Enables support for `0xAARRGGBB` hex codes.
 --   - `rgb_fn` (boolean): Enables CSS `rgb()` and `rgba()` functions.
@@ -156,41 +155,22 @@ end
 --- Initializes colorizer with user-provided options.
 -- Merges default settings with any user-specified options, setting up `filetypes`,
 -- `user_default_options`, and `user_commands`.
--- @param opts opts User-provided configuration options.
+-- @param opts table: Configuration options for colorizer.
 -- @return table Final settings after merging user and default options.
-function M.get_settings(opts)
-  options_state = { buftype = {}, filetype = {} }
+function M.get_setup_options(opts)
+  init_options()
   opts = opts or {}
-  local default_opts = {
-    filetypes = { "*" },
-    buftypes = nil,
-    user_commands = true,
-    user_default_options = plugin_default_options,
-  }
-  opts = vim.tbl_deep_extend("force", default_opts, opts)
-  M.setup_options = {
-    exclusions = { buftype = {}, filetype = {} },
-    all = { buftype = false, filetype = false },
-    default_options = vim.tbl_deep_extend(
-      "force",
-      plugin_default_options,
-      opts.user_default_options
-    ),
-    user_commands = opts.user_commands,
-    filetypes = opts.filetypes,
-    buftypes = opts.buftypes,
-  }
-  validate_opts(M.setup_options)
-  M.user_default_options = M.setup_options.default_options
-  return M.setup_options
+  opts.user_default_options = M.apply_alias_options(opts.user_default_options)
+  M.options = vim.tbl_deep_extend("force", M.options, opts)
+  return M.options
 end
 
---- Retrieve default options or buffer-specific options.
+--- Retrieve buffer-specific options or user_default_options defined when setup() was called.
 ---@param bufnr number: The buffer number.
 ---@param bo_type 'buftype'|'filetype': The type of buffer option
-function M.new_buffer_options(bufnr, bo_type)
+function M.new_bo_options(bufnr, bo_type)
   local value = vim.api.nvim_get_option_value(bo_type, { buf = bufnr })
-  return options_state.filetype[value] or M.user_default_options
+  return options_cache.filetype[value] or M.options.user_default_options
 end
 
 --- Retrieve options based on buffer type and file type.  Prefer filetype.
@@ -198,59 +178,13 @@ end
 ---@param buftype string: Buffer type.
 ---@param filetype string: File type.
 ---@return table
-function M.get_options(bo_type, buftype, filetype)
-  local fo, bo = options_state[bo_type][filetype], options_state[bo_type][buftype]
+function M.get_bo_options(bo_type, buftype, filetype)
+  local fo, bo = options_cache[bo_type][filetype], options_cache[bo_type][buftype]
   return fo or bo
 end
 
---- Set options for a specific buffer or file type.
----@param bo_type 'buftype'|'filetype': The type of buffer option
----@param value string: The specific value to set.
----@param options table: Options to associate with the value.
-function M.set_bo_value(bo_type, value, options)
-  options_state[bo_type][value] = options
+function M.reset_cache()
+  options_cache = { buftype = {}, filetype = {} }
 end
 
---- Parse buffer Configuration and convert aliases to normal values
----@param options table: options table
----@return table
-function M.parse_buffer_options(options)
-  local default = vim.deepcopy(M.user_default_options)
-  --  TODO: 2024-12-20 - verify that these are actually being set correctly
-  local includes = {
-    ["css"] = { "names", "RGB", "RRGGBB", "RRGGBBAA", "hsl_fn", "rgb_fn" },
-    ["css_fn"] = { "hsl_fn", "rgb_fn" },
-  }
-
-  local function handle_alias(name, opts, d_opts)
-    if not includes[name] then
-      return
-    end
-    for _, child in ipairs(includes[name]) do
-      if opts[name] ~= nil then
-        d_opts[child] = opts[name]
-      end
-    end
-  end
-
-  -- https://github.com/catgoose/nvim-colorizer.lua/issues/48
-  handle_alias("css", options, default)
-  handle_alias("css_fn", options, default)
-
-  if options.sass then
-    if type(options.sass.parsers) == "table" then
-      for child, _ in pairs(options.sass.parsers) do
-        handle_alias(child, options.sass.parsers, default.sass.parsers)
-      end
-    else
-      options.sass.parsers = {}
-      for child, _ in pairs(default.sass.parsers) do
-        handle_alias(child, true, options.sass.parsers)
-      end
-    end
-  end
-
-  options = vim.tbl_deep_extend("force", default, options)
-  return options
-end
 return M
