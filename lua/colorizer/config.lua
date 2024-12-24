@@ -114,23 +114,9 @@ function M.apply_alias_options(options)
   end
   if options.sass and options.sass.enable then
     for child, _ in pairs(options.sass.parsers) do
-      --  TODO: 2024-12-23 - This is probably not correct ;o
       handle_alias(child, options.sass.parsers)
     end
   end
-
-  -- if options.sass then
-  --   if type(options.sass.parsers) == "table" then
-  --     for child, _ in pairs(options.sass.parsers) do
-  --       handle_alias(child, options.sass.parsers, default.sass.parsers)
-  --     end
-  --   else
-  --     options.sass.parsers = {}
-  --     for child, _ in pairs(default.sass.parsers) do
-  --       handle_alias(child, true, options.sass.parsers)
-  --     end
-  --   end
-  -- end
 
   options = vim.tbl_deep_extend("force", M.options.user_default_options, options)
   return options
