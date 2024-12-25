@@ -1,21 +1,20 @@
 ---
 name: Bug
 about: Create a bug report
-title: 'Bug:'
+title: "Bug:"
 labels: bug
-assignees: akianonymus
-
+assignees: catgoose
 ---
 
 **Describe the bug**
-A clear and concise description of what the bug is.
+A description of what the bug is.
 
 **To Reproduce**
-Your configuration and/or a small reproducible test, and/or the steps required to reproduce.
-Use `test/minimal.lua` to produce a minimal config.
+Provide your config and steps to reproduce.
+You can use `test/minimal.lua` to produce a minimal config.
 
 **Expected behavior**
-A clear and concise description of what you expected to happen.
+A description of what you expected to happen.
 
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
@@ -24,12 +23,7 @@ If applicable, add screenshots to help explain your problem.
 e.g. Ubuntu 16.04
 
 **Neovim Version:**
-e.g. 0.4.2
-
-**Colorizer Version:**
-Paste the output of 
-
-`find ~/.config/nvim/ -type d -name 'nvim-colorizer.lua' -exec git rev-parse HEAD \;`
+e.g. 0.9.0
 
 **Additional context**
 Add any other context about the problem here.
