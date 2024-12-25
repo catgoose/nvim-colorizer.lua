@@ -269,7 +269,7 @@ function M.attach_to_buffer(bufnr, options, bo_type)
     -- cached buffer options
     or get_attached_buffer_options(bufnr)
     -- new buffer options
-    or config.new_options(bufnr, bo_type)
+    or config.new_bo_options(bufnr, bo_type)
   options = config.apply_alias_options(options)
 
   --  TODO: 2024-11-26 - This seems to be validated in config.validate_opts
@@ -469,7 +469,7 @@ function M.setup(opts)
       return
     end
     -- get cached options
-    local options = config.get_options(bo_type, buftype, filetype)
+    local options = config.get_bo_options(bo_type, buftype, filetype)
     if not options and not s.all[bo_type] then
       return
     end
