@@ -6,22 +6,22 @@ local opts = {
     lua = {
       names = true,
       names_custom = {
-        red_purple = "#017dac",
-        ["red=green"] = "#3700c2",
-        ["green@blue"] = "#e9e240",
-        ["green!blue"] = "#a9e042",
-        ["green!!blue"] = "#09e392",
+        one_two = "#017dac",
+        ["three=four"] = "#3700c2",
+        ["five@six"] = "#e9e240",
+        ["seven!eight"] = "#a9e042",
+        ["nine!!ten"] = "#09e392",
       },
-      -- names_custom = function()
-      --   local colors = require("kanagawa.colors").setup()
-      --   return colors.palette
-      -- end,
     },
   },
   buftypes = { "*", "!prompt", "!popup" },
   user_commands = true,
   user_default_options = {
     names = false,
+    names_custom = function()
+      local colors = require("kanagawa.colors").setup()
+      return colors.palette
+    end,
     RGB = true,
     RRGGBB = true,
     RRGGBBAA = true,
@@ -61,7 +61,7 @@ oniViolet oniViolet2 crystalBlue springViolet1 springViolet2 springBlue
 lightBlue waveAqua2
 
 Additional names with non-alphanumeric characters
-red_purple red=green green@blue green!blue green!!blue
+one_two three=four five@six seven!eight nine!!ten
 
 Hexadecimal:
 #RGB:

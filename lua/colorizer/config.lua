@@ -160,6 +160,7 @@ end
 function M.get_setup_options(opts)
   init_options()
   opts = opts or {}
+  opts.user_default_options = opts.user_default_options or plugin_user_default_options
   opts.user_default_options = M.apply_alias_options(opts.user_default_options)
   M.options = vim.tbl_deep_extend("force", M.options, opts)
   return M.options
