@@ -167,7 +167,7 @@ end
 -- rgb_hex and range per line
 ---@param bufnr number: Buffer number (0 for current)
 ---@param lines table: Table of lines to parse
----@param line_start number: This is the buffer line number, from where to start highlighting
+---@param line_start number: Buffer line number to start highlighting
 ---@param options table: Passed in `colorizer.setup`, Only uses `user_default_options`
 ---@return table|nil
 function M.parse_lines(bufnr, lines, line_start, options)
@@ -177,18 +177,15 @@ function M.parse_lines(bufnr, lines, line_start, options)
   end
 
   local data = {}
-  for current_linenum, line in ipairs(lines) do
-    current_linenum = current_linenum - 1 + line_start
-    data[current_linenum] = data[current_linenum] or {}
+  for line_nr, line in ipairs(lines) do
+    line_nr = line_nr - 1 + line_start
+    data[line_nr] = data[line_nr] or {}
 
     local i = 1
     while i < #line do
       local length, rgb_hex = loop_parse_fn(line, i, bufnr)
       if length and rgb_hex then
-        table.insert(
-          data[current_linenum],
-          { rgb_hex = rgb_hex, range = { i - 1, i + length - 1 } }
-        )
+        table.insert(data[line_nr], { rgb_hex = rgb_hex, range = { i - 1, i + length - 1 } })
         i = i + length
       else
         i = i + 1

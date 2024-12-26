@@ -7,9 +7,31 @@ local M = {}
 
 local bit = require("bit")
 local floor, min = math.floor, math.min
-local band, rshift, lshift = bit.band, bit.rshift, bit.lshift
+local lshift = bit.lshift
 
 local utils = require("colorizer.utils")
+
+local parse_opts = {
+  [4] = { multiplier = 17, alpha_divisor = 1 }, -- #RGB
+  [5] = { multiplier = 17, alpha_divisor = 15 }, -- #RGBA
+  [9] = { multiplier = 1, alpha_divisor = 255 }, -- #RRGGBBAA
+}
+local function parse_color(line, i, length)
+  local opts = parse_opts[length]
+  if not opts then
+    return
+  end
+  local r = utils.parse_hex(line:byte(i + 1)) * opts.multiplier
+  local g = utils.parse_hex(line:byte(i + 2)) * opts.multiplier
+  local b = utils.parse_hex(line:byte(i + 3)) * opts.multiplier
+  if length > 4 then
+    -- Handle transparency (RGBA or RRGGBBAA)
+    local alpha = utils.parse_hex(line:byte(i + 4)) / opts.alpha_divisor
+    r, g, b = floor(r * alpha), floor(g * alpha), floor(b * alpha)
+  end
+  local rgb_hex = utils.rgb_to_hex(r, g, b)
+  return length, rgb_hex
+end
 
 --- Parses `#RRGGBBAA` hexadecimal colors and converts them to RGB hex format.
 -- This function matches `#RRGGBBAA` format colors within a line, handling alpha transparency if specified.
@@ -19,7 +41,7 @@ local utils = require("colorizer.utils")
 -- @param opts table Options containing:
 --   - `minlen` (number): Minimum length of the color string
 --   - `maxlen` (number): Maximum length of the color string
---   - `valid_lengths` (table): Set of valid lengths (e.g., `{4, 7, 9}`)
+--   - `valid_lengths` (table): Set of valid lengths (e.g., `{3, 4, 6, 8}`)
 -- @return number|nil The end index of the parsed hex color within the line, or `nil` if parsing failed
 -- @return string|nil The RGB hexadecimal color (e.g., "ff0000" for red), or `nil` if parsing failed
 function M.parser(line, i, opts)
@@ -55,18 +77,14 @@ function M.parser(line, i, opts)
   end
 
   local length = j - i
-  if length ~= 4 and length ~= 7 and length ~= 9 then
+  if not valid_lengths[length - 1] then
     return
   end
 
-  if alpha then
-    alpha = tonumber(alpha) / 255
-    local r = floor(band(rshift(v, 16), 0xFF) * alpha)
-    local g = floor(band(rshift(v, 8), 0xFF) * alpha)
-    local b = floor(band(v, 0xFF) * alpha)
-    local rgb_hex = string.format("%02x%02x%02x", r, g, b)
-    return 9, rgb_hex
+  if parse_opts[length] then
+    return parse_color(line, i, length)
   end
+
   return (valid_lengths[length - 1] and length), line:sub(i + 1, i + length - 1)
 end
 

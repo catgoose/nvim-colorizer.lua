@@ -7,6 +7,7 @@ local plugin_user_default_options = {
   names = true,
   names_custom = false,
   RGB = true,
+  RGBA = true,
   RRGGBB = true,
   RRGGBBAA = false,
   AARRGGBB = false,
@@ -95,7 +96,8 @@ end
 ---@return table
 function M.apply_alias_options(options)
   local aliases = {
-    ["css"] = { "names", "RGB", "RRGGBB", "RRGGBBAA", "hsl_fn", "rgb_fn" },
+    --  TODO: 2024-12-24 - Should aliases be configurable?
+    ["css"] = { "names", "RGB", "RGBA", "RRGGBB", "RRGGBBAA", "hsl_fn", "rgb_fn" },
     ["css_fn"] = { "hsl_fn", "rgb_fn" },
   }
   local function handle_alias(name, opts)
