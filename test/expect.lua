@@ -23,6 +23,7 @@ local opts = {
       return colors.palette
     end,
     RGB = true,
+    RGBA = true,
     RRGGBB = true,
     RRGGBBAA = true,
     AARRGGBB = true,
