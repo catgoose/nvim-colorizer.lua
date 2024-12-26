@@ -8,6 +8,7 @@ local M = {}
 local count = require("colorizer.utils").count
 local floor = math.floor
 local hsl_to_rgb = require("colorizer.color").hsl_to_rgb
+local utils = require("colorizer.utils")
 
 --- Parses `hsl()` and `hsla()` CSS functions and converts them to RGB hexadecimal format.
 -- This function matches `hsl()` or `hsla()` functions within a line of text, extracting and converting the hue, saturation, and luminance
@@ -106,7 +107,8 @@ function M.parser(line, i, opts)
   if not r or not g or not b then
     return
   end
-  local rgb_hex = string.format("%02x%02x%02x", r * a, g * a, b * a)
+
+  local rgb_hex = utils.rgb_to_hex(r, g, b)
   return match_end - 1, rgb_hex
 end
 

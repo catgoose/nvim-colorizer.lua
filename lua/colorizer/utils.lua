@@ -49,6 +49,11 @@ do
   end
 end
 
+function M.rgb_to_hex(r, g, b)
+  local rgb_hex = string.format("%02x%02x%02x", r, g, b)
+  return rgb_hex
+end
+
 --- Checks if a byte represents an alphanumeric character.
 ---@param byte number The byte to check.
 ---@return boolean `true` if the byte is alphanumeric, otherwise `false`.
