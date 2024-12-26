@@ -6,7 +6,7 @@
 local M = {}
 
 local bit = require("bit")
-local floor, min = math.floor, math.min
+local floor = math.floor
 local band, rshift, lshift = bit.band, bit.rshift, bit.lshift
 
 local utils = require("colorizer.utils")
