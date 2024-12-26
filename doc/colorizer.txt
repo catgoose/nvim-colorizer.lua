@@ -318,8 +318,7 @@ parse_lines({bufnr}, {lines}, {line_start}, {options})
     Parameters: ~
 	{bufnr} -  number: Buffer number (0 for current)
 	{lines} -  table: Table of lines to parse
-	{line_start} -  number: This is the buffer line number, from where to
-	start highlighting
+	{line_start} -  number: Buffer line number to start highlighting
 	{options} -  table: Passed in `colorizer.setup`, Only uses
 	`user_default_options`
 
@@ -788,7 +787,7 @@ parser({line}, {i}, {opts})                   *colorizer.parser.rgba_hex.parser*
 	{opts} -  table Options containing:
    - `minlen` (number): Minimum length of the color string
    - `maxlen` (number): Maximum length of the color string
-   - `valid_lengths` (table): Set of valid lengths (e.g., `{4, 7, 9}`)
+   - `valid_lengths` (table): Set of valid lengths (e.g., `{3, 4, 6, 8}`)
 
     returns:~
 	number or nil The end index of the parsed hex color within the line, or
