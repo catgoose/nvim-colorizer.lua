@@ -49,6 +49,10 @@ do
   end
 end
 
+--- Returns HEX format from RGB values
+---@param r number: Red value
+---@param g number: Green value
+---@param b number: Blue value
 function M.rgb_to_hex(r, g, b)
   local rgb_hex = string.format("%02x%02x%02x", r, g, b)
   return rgb_hex

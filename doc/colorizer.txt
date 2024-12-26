@@ -1055,6 +1055,8 @@ Provides utility functions for color handling and file operations.
 LUA API                                                *colorizer.utils-lua-api*
 
 Functions: ~
+    |rgb_to_hex| - Returns HEX format from RGB values
+
     |byte_is_alphanumeric| - Checks if a byte represents an alphanumeric
     character.
 
@@ -1072,6 +1074,16 @@ Functions: ~
     |watch_file| - Watch a file for changes and execute callback
 
     |bufme| - Validates and returns a buffer number.
+
+
+rgb_to_hex({r}, {g}, {b})                           *colorizer.utils.rgb_to_hex*
+    Returns HEX format from RGB values
+
+    Parameters: ~
+	{r} -  number: Red value
+	{g} -  number: Green value
+	{b} -  number: Blue value
+
 
 
 byte_is_alphanumeric({byte})              *colorizer.utils.byte_is_alphanumeric*

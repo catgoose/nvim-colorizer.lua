@@ -7,31 +7,11 @@ local M = {}
 
 local bit = require("bit")
 local floor, min = math.floor, math.min
-local lshift = bit.lshift
+local band, rshift, lshift = bit.band, bit.rshift, bit.lshift
 
 local utils = require("colorizer.utils")
 
-local parse_opts = {
-  [4] = { multiplier = 17, alpha_divisor = 1 }, -- #RGB
-  [5] = { multiplier = 17, alpha_divisor = 15 }, -- #RGBA
-  [9] = { multiplier = 1, alpha_divisor = 255 }, -- #RRGGBBAA
-}
-local function parse_color(line, i, length)
-  local opts = parse_opts[length]
-  if not opts then
-    return
-  end
-  local r = utils.parse_hex(line:byte(i + 1)) * opts.multiplier
-  local g = utils.parse_hex(line:byte(i + 2)) * opts.multiplier
-  local b = utils.parse_hex(line:byte(i + 3)) * opts.multiplier
-  if length > 4 then
-    -- Handle transparency (RGBA or RRGGBBAA)
-    local alpha = utils.parse_hex(line:byte(i + 4)) / opts.alpha_divisor
-    r, g, b = floor(r * alpha), floor(g * alpha), floor(b * alpha)
-  end
-  local rgb_hex = utils.rgb_to_hex(r, g, b)
-  return length, rgb_hex
-end
+local function rgb_double(r, g, b) end
 
 --- Parses `#RRGGBBAA` hexadecimal colors and converts them to RGB hex format.
 -- This function matches `#RRGGBBAA` format colors within a line, handling alpha transparency if specified.
@@ -81,8 +61,30 @@ function M.parser(line, i, opts)
     return
   end
 
-  if parse_opts[length] then
-    return parse_color(line, i, length)
+  if length == 4 then
+    -- Handle #RGB
+    local r = utils.parse_hex(line:byte(i + 1)) * 17
+    local g = utils.parse_hex(line:byte(i + 2)) * 17
+    local b = utils.parse_hex(line:byte(i + 3)) * 17
+    local rgb_hex = utils.rgb_to_hex(r, g, b)
+    return 4, rgb_hex
+  elseif length == 5 then
+    -- Handle #RGBA
+    local r = utils.parse_hex(line:byte(i + 1)) * 17
+    local g = utils.parse_hex(line:byte(i + 2)) * 17
+    local b = utils.parse_hex(line:byte(i + 3)) * 17
+    alpha = utils.parse_hex(line:byte(i + 4)) / 15
+    r, g, b = floor(r * alpha), floor(g * alpha), floor(b * alpha)
+    local rgb_hex = utils.rgb_to_hex(r, g, b)
+    return 5, rgb_hex
+  elseif length == 9 then
+    -- Handle #RRGGBBAA
+    alpha = tonumber(alpha) / 255
+    local r = floor(band(rshift(v, 16), 0xFF) * alpha)
+    local g = floor(band(rshift(v, 8), 0xFF) * alpha)
+    local b = floor(band(v, 0xFF) * alpha)
+    local rgb_hex = utils.rgb_to_hex(r, g, b)
+    return 9, rgb_hex
   end
 
   return (valid_lengths[length - 1] and length), line:sub(i + 1, i + length - 1)
