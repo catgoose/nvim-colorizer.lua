@@ -83,6 +83,7 @@ function M.make(options)
   local enable_sass = options.sass and options.sass.enable
   local enable_tailwind = options.tailwind
   local enable_RGB = options.RGB
+  local enable_RGBA = options.RGBA
   local enable_RRGGBB = options.RRGGBB
   local enable_RRGGBBAA = options.RRGGBBAA
   local enable_AARRGGBB = options.AARRGGBB
@@ -95,15 +96,16 @@ function M.make(options)
     + (enable_names and 1 or 0)
     + (enable_names_custom and 2 or 0)
     + (enable_RGB and 4 or 0)
-    + (enable_RRGGBB and 8 or 0)
-    + (enable_RRGGBBAA and 16 or 0)
-    + (enable_AARRGGBB and 32 or 0)
-    + (enable_rgb and 64 or 0)
-    + (enable_hsl and 128 or 0)
-    + ((enable_tailwind == true or enable_tailwind == "normal") and 256 or 0)
-    + (enable_tailwind == "lsp" and 512 or 0)
-    + (enable_tailwind == "both" and 1024 or 0)
-    + (enable_sass and 2048 or 0)
+    + (enable_RGBA and 8 or 0)
+    + (enable_RRGGBB and 16 or 0)
+    + (enable_RRGGBBAA and 32 or 0)
+    + (enable_AARRGGBB and 64 or 0)
+    + (enable_rgb and 128 or 0)
+    + (enable_hsl and 256 or 0)
+    + ((enable_tailwind == true or enable_tailwind == "normal") and 512 or 0)
+    + (enable_tailwind == "lsp" and 1024 or 0)
+    + (enable_tailwind == "both" and 2048 or 0)
+    + (enable_sass and 4096 or 0)
 
   if matcher_key == 0 then
     return false
@@ -133,7 +135,8 @@ function M.make(options)
     matchers.sass_name_parser = true
   end
 
-  local valid_lengths = { [3] = enable_RGB, [6] = enable_RRGGBB, [8] = enable_RRGGBBAA }
+  local valid_lengths =
+    { [3] = enable_RGB, [4] = enable_RGBA, [6] = enable_RRGGBB, [8] = enable_RRGGBBAA }
   local minlen, maxlen
   for k, v in pairs(valid_lengths) do
     if v then
@@ -143,10 +146,11 @@ function M.make(options)
   end
 
   if minlen then
-    matchers.rgba_hex_parser = {}
-    matchers.rgba_hex_parser.valid_lengths = valid_lengths
-    matchers.rgba_hex_parser.maxlen = maxlen
-    matchers.rgba_hex_parser.minlen = minlen
+    matchers.rgba_hex_parser = {
+      valid_lengths = valid_lengths,
+      minlen = minlen,
+      maxlen = maxlen,
+    }
   end
 
   --  TODO: 2024-11-05 - Add custom prefixes

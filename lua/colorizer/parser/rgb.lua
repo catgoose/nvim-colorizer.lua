@@ -5,7 +5,7 @@
 
 local M = {}
 
-local count = require("colorizer.utils").count
+local utils = require("colorizer.utils")
 
 --- Parses `rgb()` and `rgba()` CSS functions and converts them to RGB hexadecimal format.
 -- This function matches `rgb()` or `rgba()` functions in a line of text, extracting RGB and optional alpha values.
@@ -45,7 +45,7 @@ function M.parser(line, i, opts)
 
   local units = ("%s%s%s"):format(unit1, unit2, unit3)
   if units:match("%%") then
-    if not ((count(units, "%%")) == min_percent) then
+    if not ((utils.count(units, "%%")) == min_percent) then
       return
     end
   end
@@ -54,11 +54,11 @@ function M.parser(line, i, opts)
   local s_seps = ("%s%s"):format(ssep1, ssep2)
   -- Comma separator syntax
   if c_seps:match(",") then
-    if not (count(c_seps, ",") == min_commas) then
+    if not (utils.count(c_seps, ",") == min_commas) then
       return
     end
     -- Space separator syntax with decimal or percentage alpha
-  elseif count(s_seps, "%s") >= min_spaces then
+  elseif utils.count(s_seps, "%s") >= min_spaces then
     if a then
       if not (c_seps == "/") then
         return
@@ -108,7 +108,7 @@ function M.parser(line, i, opts)
   end
 
   -- Convert to hex, applying alpha to each channel
-  local rgb_hex = string.format("%02x%02x%02x", r * a, g * a, b * a)
+  local rgb_hex = utils.rgb_to_hex(r, g, b)
   return match_end - 1, rgb_hex
 end
 

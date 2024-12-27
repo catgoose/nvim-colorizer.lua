@@ -318,8 +318,7 @@ parse_lines({bufnr}, {lines}, {line_start}, {options})
     Parameters: ~
 	{bufnr} -  number: Buffer number (0 for current)
 	{lines} -  table: Table of lines to parse
-	{line_start} -  number: This is the buffer line number, from where to
-	start highlighting
+	{line_start} -  number: Buffer line number to start highlighting
 	{options} -  table: Passed in `colorizer.setup`, Only uses
 	`user_default_options`
 
@@ -788,7 +787,7 @@ parser({line}, {i}, {opts})                   *colorizer.parser.rgba_hex.parser*
 	{opts} -  table Options containing:
    - `minlen` (number): Minimum length of the color string
    - `maxlen` (number): Maximum length of the color string
-   - `valid_lengths` (table): Set of valid lengths (e.g., `{4, 7, 9}`)
+   - `valid_lengths` (table): Set of valid lengths (e.g., `{3, 4, 6, 8}`)
 
     returns:~
 	number or nil The end index of the parsed hex color within the line, or
@@ -1056,6 +1055,8 @@ Provides utility functions for color handling and file operations.
 LUA API                                                *colorizer.utils-lua-api*
 
 Functions: ~
+    |rgb_to_hex| - Returns HEX format from RGB values
+
     |byte_is_alphanumeric| - Checks if a byte represents an alphanumeric
     character.
 
@@ -1075,6 +1076,16 @@ Functions: ~
     |bufme| - Validates and returns a buffer number.
 
 
+rgb_to_hex({r}, {g}, {b})                           *colorizer.utils.rgb_to_hex*
+    Returns HEX format from RGB values
+
+    Parameters: ~
+	{r} -  number: Red value
+	{g} -  number: Green value
+	{b} -  number: Blue value
+
+
+
 byte_is_alphanumeric({byte})              *colorizer.utils.byte_is_alphanumeric*
     Checks if a byte represents an alphanumeric character.
 
@@ -1082,7 +1093,7 @@ byte_is_alphanumeric({byte})              *colorizer.utils.byte_is_alphanumeric*
 	{byte} -  number The byte to check.
 
     returns:~
-	boolean `true` if the byte is alphanumeric, otherwise `false`.
+	boolean: `true` if the byte is alphanumeric, otherwise `false`.
 
 
 
@@ -1093,7 +1104,7 @@ byte_is_hex({byte})                                *colorizer.utils.byte_is_hex*
 	{byte} -  number The byte to check.
 
     returns:~
-	boolean `true` if the byte is hexadecimal, otherwise `false`.
+	boolean: `true` if the byte is hexadecimal, otherwise `false`.
 
 
 
@@ -1105,7 +1116,7 @@ byte_is_valid_colorchar({byte})        *colorizer.utils.byte_is_valid_colorchar*
 	{byte} -  number The byte to check.
 
     returns:~
-	boolean `true` if the byte is valid, otherwise `false`.
+	boolean: `true` if the byte is valid, otherwise `false`.
 
 
 
@@ -1139,7 +1150,7 @@ parse_hex({byte})                                    *colorizer.utils.parse_hex*
 	{byte} -  number The byte to parse.
 
     returns:~
-	number The parsed hexadecimal value of the byte.
+	number: The parsed hexadecimal value of the byte.
 
 
 
@@ -1166,7 +1177,7 @@ bufme({bufnr})                                           *colorizer.utils.bufme*
 	{bufnr} -  number|nil: The buffer number to validate.
 
     returns:~
-	number The validated buffer number.
+	number: The validated buffer number.
 
 
 

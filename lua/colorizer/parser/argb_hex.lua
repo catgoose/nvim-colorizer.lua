@@ -71,7 +71,7 @@ function M.parser(line, i)
     return
   end
 
-  local rgb_hex = string.format("%02x%02x%02x", r, g, b)
+  local rgb_hex = utils.rgb_to_hex(r, g, b)
   return length, rgb_hex
 end
 

@@ -129,6 +129,7 @@ library to do custom highlighting themselves.
       -- Set to false|nil to disable
       names_custom = false, -- Custom names to be highlighted: table|function|false|nil
       RGB = true, -- #RGB hex codes
+      RGBA = true, -- #RGBA hex codes
       RRGGBB = true, -- #RRGGBB hex codes
       RRGGBBAA = false, -- #RRGGBBAA hex codes
       AARRGGBB = false, -- 0xAARRGGBB hex codes

@@ -49,9 +49,18 @@ do
   end
 end
 
+--- Returns HEX format from RGB values
+---@param r number: Red value
+---@param g number: Green value
+---@param b number: Blue value
+function M.rgb_to_hex(r, g, b)
+  local rgb_hex = string.format("%02x%02x%02x", r, g, b)
+  return rgb_hex
+end
+
 --- Checks if a byte represents an alphanumeric character.
 ---@param byte number The byte to check.
----@return boolean `true` if the byte is alphanumeric, otherwise `false`.
+---@return boolean: `true` if the byte is alphanumeric, otherwise `false`.
 function M.byte_is_alphanumeric(byte)
   local category = byte_category[byte]
   return band(category, category_alphanum) ~= 0
@@ -59,14 +68,14 @@ end
 
 --- Checks if a byte represents a hexadecimal character.
 ---@param byte number The byte to check.
----@return boolean `true` if the byte is hexadecimal, otherwise `false`.
+---@return boolean: `true` if the byte is hexadecimal, otherwise `false`.
 function M.byte_is_hex(byte)
   return band(byte_category[byte], category_hex) ~= 0
 end
 
 --- Checks if a byte is valid as a color character (alphanumeric or `-` for Tailwind colors).
 ---@param byte number The byte to check.
----@return boolean `true` if the byte is valid, otherwise `false`.
+---@return boolean: `true` if the byte is valid, otherwise `false`.
 function M.byte_is_valid_colorchar(byte)
   --  TODO: 2024-12-21 - Is this check required?
   return M.byte_is_alphanumeric(byte) or byte == ("-"):byte()
@@ -100,7 +109,7 @@ end
 
 --- Parses a hexadecimal byte.
 ---@param byte number The byte to parse.
----@return number The parsed hexadecimal value of the byte.
+---@return number: The parsed hexadecimal value of the byte.
 function M.parse_hex(byte)
   return rshift(byte_category[byte], 4)
 end
@@ -155,7 +164,7 @@ end
 --- Validates and returns a buffer number.
 -- If the provided buffer number is invalid, defaults to the current buffer.
 ---@param bufnr number|nil: The buffer number to validate.
----@return number The validated buffer number.
+---@return number: The validated buffer number.
 function M.bufme(bufnr)
   return bufnr and bufnr ~= 0 and vim.api.nvim_buf_is_valid(bufnr) and bufnr
     or vim.api.nvim_get_current_buf()

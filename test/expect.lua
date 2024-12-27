@@ -23,6 +23,7 @@ local opts = {
       return colors.palette
     end,
     RGB = true,
+    RGBA = true,
     RRGGBB = true,
     RRGGBBAA = true,
     AARRGGBB = true,
@@ -44,7 +45,6 @@ return opts
 
 --[[ TEST CASES
 
-
 0xFFFFFFF1 -- why does this highlight?
 
 SUCCESS CASES:
@@ -60,13 +60,16 @@ Extra names:
 oniViolet oniViolet2 crystalBlue springViolet1 springViolet2 springBlue
 lightBlue waveAqua2
 
-Additional names with non-alphanumeric characters
+Custom names with non-alphanumeric characters
 one_two three=four five@six seven!eight nine!!ten
 
 Hexadecimal:
 #RGB:
   #F0F
   #FFF #FFA #F0F #0FF #FF0
+#RGBA:
+  #F0F5
+  #FFF5 #FFA5 #F0F5 #0FF5 #FF05
 #RRGGBB:
   #FFFF00
   #FFFFFF #FFAA00 #FF00FF #00FFFF #FFFF99
@@ -149,12 +152,10 @@ Invalid Hexadecimal:
 0x0F 0x0F
 0x3B67CDE 0xF12D9A5 0xE43F2 0x4E8D3 0x3A 0xCD
 #---
-#F0FF
 #F0FFF
 #F0FFF0F
 #F0FFF0FFF
 #define
-#def0
 
 Invalid CSS Named Colors:
 ceruleanblue goldenrodlight brightcyan darkmagentapurple
