@@ -45,7 +45,6 @@ return opts
 
 --[[ TEST CASES
 
-
 0xFFFFFFF1 -- why does this highlight?
 
 SUCCESS CASES:
@@ -153,12 +152,10 @@ Invalid Hexadecimal:
 0x0F 0x0F
 0x3B67CDE 0xF12D9A5 0xE43F2 0x4E8D3 0x3A 0xCD
 #---
-#F0FF
 #F0FFF
 #F0FFF0F
 #F0FFF0FFF
 #define
-#def0
 
 Invalid CSS Named Colors:
 ceruleanblue goldenrodlight brightcyan darkmagentapurple
