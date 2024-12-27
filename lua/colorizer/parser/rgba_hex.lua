@@ -24,9 +24,9 @@ local utils = require("colorizer.utils")
 -- @return string|nil The RGB hexadecimal color (e.g., "ff0000" for red), or `nil` if parsing failed
 function M.parser(line, i, opts)
   local minlen, maxlen, valid_lengths = opts.minlen, opts.maxlen, opts.valid_lengths
-  local length = #line
+  local line_length = #line
 
-  if length < i + minlen - 1 then
+  if line_length < i + minlen - 1 then
     return
   end
 
@@ -39,7 +39,7 @@ function M.parser(line, i, opts)
   local v, alpha = 0, 0
 
   -- Parse valid hex characters
-  while j <= math.min(i + maxlen, length) do
+  while j <= math.min(i + maxlen, line_length) do
     local b = line:byte(j)
     if not utils.byte_is_hex(b) then
       break
@@ -55,7 +55,7 @@ function M.parser(line, i, opts)
   end
 
   -- Ensure the succeeding character is not alphanumeric
-  if j <= length and utils.byte_is_alphanumeric(line:byte(j)) then
+  if j <= line_length and utils.byte_is_alphanumeric(line:byte(j)) then
     return
   end
 
