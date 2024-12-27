@@ -67,7 +67,16 @@ local function compile(matchers, matchers_trie)
   return parse_fn
 end
 
-local matcher_cache = {}
+local matcher_cache
+---Reset matcher cache
+-- Called from colorizer.setup
+function M.reset_cache()
+  matcher_cache = {}
+end
+do
+  M.reset_cache()
+end
+
 ---Parse the given options and return a function with enabled parsers.
 --if no parsers enabled then return false
 --Do not try make the function again if it is present in the cache
@@ -179,12 +188,6 @@ function M.make(options)
   matcher_cache[matcher_key] = loop_parse_fn
 
   return loop_parse_fn
-end
-
----Reset the cache of matchers
----Called from colorizer.setup
-function M.reset_cache()
-  matcher_cache = {}
 end
 
 return M

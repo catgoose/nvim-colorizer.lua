@@ -71,13 +71,13 @@
 <h2><a href="#Functions">Functions</a></h2>
 <table class="function_list">
 	<tr>
-	<td class="name" nowrap><a href="#make">make (options)</a></td>
-	<td class="summary">Parse the given options and return a function with enabled parsers.</td>
+	<td class="name" nowrap><a href="#reset_cache">reset_cache ()</a></td>
+	<td class="summary">Reset matcher cache
+ Called from colorizer.setup</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#reset_cache">reset_cache ()</a></td>
-	<td class="summary">Reset the cache of matchers
-Called from colorizer.setup</td>
+	<td class="name" nowrap><a href="#make">make (options)</a></td>
+	<td class="summary">Parse the given options and return a function with enabled parsers.</td>
 	</tr>
 </table>
 
@@ -88,6 +88,21 @@ Called from colorizer.setup</td>
     <h2 class="section-header "><a name="Functions"></a>Functions</h2>
 
     <dl class="function">
+    <dt>
+    <a name = "reset_cache"></a>
+    <strong>reset_cache ()</strong>
+    </dt>
+    <dd>
+    Reset matcher cache
+ Called from colorizer.setup
+
+
+
+
+
+
+
+</dd>
     <dt>
     <a name = "make"></a>
     <strong>make (options)</strong>
@@ -110,21 +125,6 @@ Do not try make the function again if it is present in the cache
 
         function|boolean: function which will just parse the line for enabled parsers
     </ol>
-
-
-
-
-</dd>
-    <dt>
-    <a name = "reset_cache"></a>
-    <strong>reset_cache ()</strong>
-    </dt>
-    <dd>
-    Reset the cache of matchers
-Called from colorizer.setup
-
-
-
 
 
 

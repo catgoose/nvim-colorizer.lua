@@ -453,6 +453,8 @@ Provides configuration options and utilities for setting up colorizer.
 LUA API                                               *colorizer.config-lua-api*
 
 Functions: ~
+    |reset_cache| - Reset the cache for buffer options.
+
     |set_bo_value| - Set options for a specific buffer or file type.
 
     |apply_alias_options| - Parse and apply alias options to the user options.
@@ -470,6 +472,14 @@ Tables: ~
     |options| - Options for colorizer that were passed in to setup function
 
     |opts| - Configuration options for the `setup` function.
+
+
+reset_cache()                                     *colorizer.config.reset_cache*
+    Reset the cache for buffer options.
+
+     Called from colorizer.setup
+
+
 
 
 set_bo_value({bo_type}, {value}, {options})      *colorizer.config.set_bo_value*
@@ -560,6 +570,7 @@ user_default_options                     *colorizer.config.user_default_options*
 
     Fields: ~
 	{RGB} -  boolean: Enables `#RGB` hex codes.
+	{RGBA} -  boolean: Enables `#RGBA` hex codes.
 	{RRGGBB} -  boolean: Enables `#RRGGBB` hex codes.
 	{names} -  boolean: Enables named colors (e.g., "Blue").
 	{names_custom} -  table|function|nil: Extra color name to RGB value
@@ -607,6 +618,7 @@ opts                                                     *colorizer.config.opts*
 	enabled. Use `"*"` for all file types.
 	{user_default_options} -  table Default options for color handling.
    - `RGB` (boolean): Enables support for `#RGB` hex codes.
+   - `RGBA` (boolean): Enables support for `#RGBA` hex codes.
    - `RRGGBB` (boolean): Enables support for `#RRGGBB` hex codes.
    - `names` (boolean): Enables named color codes like `"Blue"`.
    - `names_custom` (table|function|nil): Extra color name to RGB value mappings
@@ -658,10 +670,16 @@ Manages matching and parsing of color patterns in buffers.
 LUA API                                              *colorizer.matcher-lua-api*
 
 Functions: ~
+    |reset_cache| - Reset matcher cache
+ Called from colorizer.setup
+
     |make| - Parse the given options and return a function with enabled parsers.
 
-    |reset_cache| - Reset the cache of matchers
-Called from colorizer.setup
+
+reset_cache()                                    *colorizer.matcher.reset_cache*
+    Reset matcher cache
+     Called from colorizer.setup
+
 
 
 make({options})                                         *colorizer.matcher.make*
@@ -677,12 +695,6 @@ make({options})                                         *colorizer.matcher.make*
     returns:~
 	function or boolean: function which will just parse the line for enabled
 	parsers
-
-
-
-reset_cache()                                    *colorizer.matcher.reset_cache*
-    Reset the cache of matchers
-    Called from colorizer.setup
 
 
 
@@ -743,9 +755,17 @@ text.
 LUA API                                         *colorizer.parser.names-lua-api*
 
 Functions: ~
+    |reset_cache| - Reset the color names cache.
+
     |parser| - Parses a line to identify color names.
 
-    |reset_cache| - Resets the color names cache.
+
+reset_cache()                               *colorizer.parser.names.reset_cache*
+    Reset the color names cache.
+
+     Called from colorizer.setup
+
+
 
 
 parser({line}, {i}, {opts})                      *colorizer.parser.names.parser*
@@ -758,14 +778,6 @@ parser({line}, {i}, {opts})                      *colorizer.parser.names.parser*
 
     returns:~
 	number or nil, string or nil Length of match and hex value if found.
-
-
-
-reset_cache()                               *colorizer.parser.names.reset_cache*
-    Resets the color names cache.
-
-    Called from colorizer.setup
-
 
 
 

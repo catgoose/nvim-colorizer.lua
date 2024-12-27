@@ -39,6 +39,7 @@ local plugin_user_default_options = {
 -- If both `css` and `css_fn` are true, `css_fn` has more priority over `css`.
 -- @table user_default_options
 -- @field RGB boolean: Enables `#RGB` hex codes.
+-- @field RGBA boolean: Enables `#RGBA` hex codes.
 -- @field RRGGBB boolean: Enables `#RRGGBB` hex codes.
 -- @field names boolean: Enables named colors (e.g., "Blue").
 -- @field names_custom table|function|nil: Extra color name to RGB value mappings
@@ -66,7 +67,6 @@ local plugin_user_default_options = {
 --@field filetypes
 --@field buftypes
 M.options = {}
-
 local function init_options()
   M.options = {
     -- setup options
@@ -80,8 +80,15 @@ local function init_options()
   }
 end
 
--- State for managing buffer and filetype-specific options
-local options_cache = { buftype = {}, filetype = {} }
+local options_cache
+--- Reset the cache for buffer options.
+-- Called from colorizer.setup
+function M.reset_cache()
+  options_cache = { buftype = {}, filetype = {} }
+end
+do
+  M.reset_cache()
+end
 
 --- Set options for a specific buffer or file type.
 ---@param bo_type 'buftype'|'filetype': The type of buffer option
@@ -129,6 +136,7 @@ end
 -- @field filetypes table A list of file types where colorizer should be enabled. Use `"*"` for all file types.
 -- @field user_default_options table Default options for color handling.
 --   - `RGB` (boolean): Enables support for `#RGB` hex codes.
+--   - `RGBA` (boolean): Enables support for `#RGBA` hex codes.
 --   - `RRGGBB` (boolean): Enables support for `#RRGGBB` hex codes.
 --   - `names` (boolean): Enables named color codes like `"Blue"`.
 --   - `names_custom` (table|function|nil): Extra color name to RGB value mappings
@@ -184,10 +192,6 @@ end
 function M.get_bo_options(bo_type, buftype, filetype)
   local fo, bo = options_cache[bo_type][filetype], options_cache[bo_type][buftype]
   return fo or bo
-end
-
-function M.reset_cache()
-  options_cache = { buftype = {}, filetype = {} }
 end
 
 return M

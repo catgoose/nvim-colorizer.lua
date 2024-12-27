@@ -9,14 +9,22 @@ local utils = require("colorizer.utils")
 local tohex = require("bit").tohex
 local min, max = math.min, math.max
 
-local names_cache = {
-  color_map = {},
-  color_trie = nil,
-  color_name_minlen = nil,
-  color_name_maxlen = nil,
-  color_name_settings = { lowercase = true, strip_digits = false },
-  tailwind_enabled = false,
-}
+local names_cache
+---Reset the color names cache.
+-- Called from colorizer.setup
+function M.reset_cache()
+  names_cache = {
+    color_map = {},
+    color_trie = nil,
+    color_name_minlen = nil,
+    color_name_maxlen = nil,
+    color_name_settings = { lowercase = true, strip_digits = true },
+    tailwind_enabled = false,
+  }
+end
+do
+  M.reset_cache()
+end
 
 --- Internal function to add a color to the Trie and map.
 -- @param name string The color name.
@@ -103,6 +111,7 @@ end
 
 --- Handles Vim's color map and adds colors to the Trie and map.
 local function handle_names()
+  vim.print("names")
   for name, value in pairs(vim.api.nvim_get_color_map()) do
     if not (names_cache.color_name_settings.strip_digits and name:match("%d+$")) then
       local rgb_hex = tohex(value, 6)
@@ -164,19 +173,6 @@ function M.parser(line, i, opts)
     end
     return #prefix, names_cache.color_map[prefix]
   end
-end
-
----Resets the color names cache.
----Called from colorizer.setup
-function M.reset_cache()
-  names_cache = {
-    color_map = {},
-    color_trie = nil,
-    color_name_minlen = nil,
-    color_name_maxlen = nil,
-    color_name_settings = { lowercase = true, strip_digits = false },
-    tailwind_enabled = false,
-  }
 end
 
 return M
