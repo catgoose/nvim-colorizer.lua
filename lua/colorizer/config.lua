@@ -44,12 +44,13 @@ local plugin_user_default_options = {
 -- **Option Priority**: Individual options have higher priority than aliases.
 -- If both `css` and `css_fn` are true, `css_fn` has more priority over `css`.
 -- @table user_default_options
+-- @field names boolean: Enables named colors (e.g., "Blue").
+-- @field names_opts table: Names options for customizing casing, digit stripping, etc
+-- @field names_custom table|function|false|nil: Custom color name to RGB value mappings
+-- should return a table of color names to RGB value pairs
 -- @field RGB boolean: Enables `#RGB` hex codes.
 -- @field RGBA boolean: Enables `#RGBA` hex codes.
 -- @field RRGGBB boolean: Enables `#RRGGBB` hex codes.
--- @field names boolean: Enables named colors (e.g., "Blue").
--- @field names_custom table|function|false|nil: Custom color name to RGB value mappings
--- should return a table of color names to RGB value pairs
 -- @field RRGGBBAA boolean: Enables `#RRGGBBAA` hex codes.
 -- @field AARRGGBB boolean: Enables `0xAARRGGBB` hex codes.
 -- @field rgb_fn boolean: Enables CSS `rgb()` and `rgba()` functions.
@@ -141,11 +142,12 @@ end
 -- @table opts
 -- @field filetypes table A list of file types where colorizer should be enabled. Use `"*"` for all file types.
 -- @field user_default_options table Default options for color handling.
+--   - `names` (boolean): Enables named color codes like `"Blue"`.
+--   - `names_opts` (table): Names options for customizing casing, digit stripping, etc
+--   - `names_custom` (table|function|false|nil): Custom color name to RGB value mappings
 --   - `RGB` (boolean): Enables support for `#RGB` hex codes.
 --   - `RGBA` (boolean): Enables support for `#RGBA` hex codes.
 --   - `RRGGBB` (boolean): Enables support for `#RRGGBB` hex codes.
---   - `names` (boolean): Enables named color codes like `"Blue"`.
---   - `names_custom` (table|function|false|nil): Custom color name to RGB value mappings
 --   - `RRGGBBAA` (boolean): Enables support for `#RRGGBBAA` hex codes.
 --   - `AARRGGBB` (boolean): Enables support for `0xAARRGGBB` hex codes.
 --   - `rgb_fn` (boolean): Enables CSS `rgb()` and `rgba()` functions.

@@ -286,6 +286,16 @@
 
     <h3>Fields:</h3>
     <ul>
+        <li><span class="parameter">names</span>
+         boolean: Enables named colors (e.g., "Blue").
+        </li>
+        <li><span class="parameter">names_opts</span>
+         table: Names options for customizing casing, digit stripping, etc
+        </li>
+        <li><span class="parameter">names_custom</span>
+         table|function|false|nil: Custom color name to RGB value mappings
+ should return a table of color names to RGB value pairs
+        </li>
         <li><span class="parameter">RGB</span>
          boolean: Enables `#RGB` hex codes.
         </li>
@@ -294,13 +304,6 @@
         </li>
         <li><span class="parameter">RRGGBB</span>
          boolean: Enables `#RRGGBB` hex codes.
-        </li>
-        <li><span class="parameter">names</span>
-         boolean: Enables named colors (e.g., "Blue").
-        </li>
-        <li><span class="parameter">names_custom</span>
-         table|function|nil: Extra color name to RGB value mappings
- should return a table of color names to RGB value pairs
         </li>
         <li><span class="parameter">RRGGBBAA</span>
          boolean: Enables `#RRGGBBAA` hex codes.
@@ -401,11 +404,12 @@
         </li>
         <li><span class="parameter">user_default_options</span>
          table Default options for color handling.
+   - `names` (boolean): Enables named color codes like `"Blue"`.
+   - `names_opts` (table): Names options for customizing casing, digit stripping, etc
+   - `names_custom` (table|function|false|nil): Custom color name to RGB value mappings
    - `RGB` (boolean): Enables support for `#RGB` hex codes.
    - `RGBA` (boolean): Enables support for `#RGBA` hex codes.
    - `RRGGBB` (boolean): Enables support for `#RRGGBB` hex codes.
-   - `names` (boolean): Enables named color codes like `"Blue"`.
-   - `names_custom` (table|function|nil): Extra color name to RGB value mappings
    - `RRGGBBAA` (boolean): Enables support for `#RRGGBBAA` hex codes.
    - `AARRGGBB` (boolean): Enables support for `0xAARRGGBB` hex codes.
    - `rgb_fn` (boolean): Enables CSS `rgb()` and `rgba()` functions.

@@ -569,13 +569,15 @@ user_default_options                     *colorizer.config.user_default_options*
 
 
     Fields: ~
+	{names} -  boolean: Enables named colors (e.g., "Blue").
+	{names_opts} -  table: Names options for customizing casing, digit
+	stripping, etc
+	{names_custom} -  table|function|false|nil: Custom color name to RGB
+	value mappings
+ should return a table of color names to RGB value pairs
 	{RGB} -  boolean: Enables `#RGB` hex codes.
 	{RGBA} -  boolean: Enables `#RGBA` hex codes.
 	{RRGGBB} -  boolean: Enables `#RRGGBB` hex codes.
-	{names} -  boolean: Enables named colors (e.g., "Blue").
-	{names_custom} -  table|function|nil: Extra color name to RGB value
-	mappings
- should return a table of color names to RGB value pairs
 	{RRGGBBAA} -  boolean: Enables `#RRGGBBAA` hex codes.
 	{AARRGGBB} -  boolean: Enables `0xAARRGGBB` hex codes.
 	{rgb_fn} -  boolean: Enables CSS `rgb()` and `rgba()` functions.
@@ -617,11 +619,14 @@ opts                                                     *colorizer.config.opts*
 	{filetypes} -  table A list of file types where colorizer should be
 	enabled. Use `"*"` for all file types.
 	{user_default_options} -  table Default options for color handling.
+   - `names` (boolean): Enables named color codes like `"Blue"`.
+   - `names_opts` (table): Names options for customizing casing, digit
+     stripping, etc
+   - `names_custom` (table|function|false|nil): Custom color name to RGB value
+     mappings
    - `RGB` (boolean): Enables support for `#RGB` hex codes.
    - `RGBA` (boolean): Enables support for `#RGBA` hex codes.
    - `RRGGBB` (boolean): Enables support for `#RRGGBB` hex codes.
-   - `names` (boolean): Enables named color codes like `"Blue"`.
-   - `names_custom` (table|function|nil): Extra color name to RGB value mappings
    - `RRGGBBAA` (boolean): Enables support for `#RRGGBBAA` hex codes.
    - `AARRGGBB` (boolean): Enables support for `0xAARRGGBB` hex codes.
    - `rgb_fn` (boolean): Enables CSS `rgb()` and `rgba()` functions.
@@ -682,7 +687,7 @@ reset_cache()                                    *colorizer.matcher.reset_cache*
 
 
 
-make({options})                                         *colorizer.matcher.make*
+make({opts})                                            *colorizer.matcher.make*
     Parse the given options and return a function with enabled parsers.
 
     if no parsers enabled then return false
@@ -690,7 +695,7 @@ make({options})                                         *colorizer.matcher.make*
 
 
     Parameters: ~
-	{options} -  table: options created in `colorizer.setup`
+	{opts} -  table: options created in `colorizer.setup`
 
     returns:~
 	function or boolean: function which will just parse the line for enabled
@@ -772,12 +777,12 @@ parser({line}, {i}, {opts})                      *colorizer.parser.names.parser*
     Parses a line to identify color names.
 
     Parameters: ~
-	{line} -  string The text line to parse.
-	{i} -  number The index to start parsing from.
-	{opts} -  table Parsing options.
+	{line} -  string: The text line to parse.
+	{i} -  number: The index to start parsing from.
+	{opts} -  table: Parsing options.
 
     returns:~
-	number or nil, string or nil Length of match and hex value if found.
+	number or nil, string or nil: Length of match and hex value if found.
 
 
 

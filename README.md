@@ -123,8 +123,15 @@ library to do custom highlighting themselves.
   require("colorizer").setup({
     filetypes = { "*" },
     user_default_options = {
-      names = true, -- "Name" codes like Blue or blue
-      -- Expects a table of color name to rgb value pairs.  # is optional
+      names = true, -- "Name" codes like Blue or red
+      names_opts = { -- options for mutating/filtering names from `vim.api.nvim_get_color_map()`
+        lowercase = true, -- name:lower(), highlight `blue` and `red`
+        camelcase = true, -- name, highlight `Blue` and `Red`
+        uppercase = false, -- name:upper(), highlight `BLUE` and `RED`
+        strip_digits = false, -- ignore names with digits,
+        -- highlight `blue` and `red`, but not `blue3` and `red4`
+      },
+      -- Expects a table of color name to #RRGGBB value pairs.  # is optional
       -- Example: { cool = "#107dac", ["notcool"] = "ee9240" }
       -- Set to false|nil to disable
       names_custom = false, -- Custom names to be highlighted: table|function|false|nil
@@ -246,14 +253,15 @@ require("colorizer").setup({
 
 In `user_default_options`, there are 2 types of options
 
-1. Individual options - `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn`,
-   `RRGGBBAA`, `AARRGGBB`, `tailwind`, `sass`
+1. Individual options - `names`, `names_opts`, `names_custom`, `RGB`, `RGBA`,
+   `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn`, `RRGGBBAA`, `AARRGGBB`, `tailwind`,
+   `sass`
 
 1. Alias options - `css`, `css_fn`
 
 If `css_fn` is true, then `hsl_fn`, `rgb_fn` becomes `true`
 
-If `css` is true, then `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn`
+If `css` is true, then `names`, `RGB`, `RGBA`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn`
 becomes `true`
 
 These options have a priority, Individual options have the highest priority,
@@ -261,7 +269,8 @@ then alias options
 
 For alias, `css_fn` has more priority over `css`
 
-e.g: Here `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn` is enabled but not `names`
+e.g: Here `RGB`, `RGBA`, `RRGGBB`, `RRGGBBAA`, `AARRGGBB`, `hsl_fn`, `rgb_fn` is
+enabled but not `names`
 
 ```lua
 require("colorizer").setup({
@@ -272,7 +281,8 @@ require("colorizer").setup({
 })
 ```
 
-e.g: Here `names`, `RGB`, `RRGGBB`, `RRGGBBAA` is enabled but not `rgb_fn` and `hsl_fn`
+e.g: Here `names`, `RGB`, `RGBA`, `RRGGBB`, `RRGGBBAA`, `AARRGGBB` is enabled but
+not `rgb_fn` and `hsl_fn`
 
 ```lua
 require("colorizer").setup({
