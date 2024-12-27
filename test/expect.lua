@@ -6,7 +6,7 @@ local opts = {
     lua = {
       names = true,
       names_opts = {
-        strip_digits = false,
+        -- strip_digits = false,
       },
       names_custom = {
         one_two = "#017dac",
@@ -24,8 +24,8 @@ local opts = {
     names_opts = {
       lowercase = true,
       camelcase = true,
-      uppercase = true,
-      strip_digits = true,
+      uppercase = false,
+      strip_digits = false,
     },
     names_custom = function()
       local colors = require("kanagawa.colors").setup()
