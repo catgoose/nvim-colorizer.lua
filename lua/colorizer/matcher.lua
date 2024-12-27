@@ -67,45 +67,62 @@ local function compile(matchers, matchers_trie)
   return parse_fn
 end
 
-local matcher_cache = {}
+local matcher_cache
+---Reset matcher cache
+-- Called from colorizer.setup
+function M.reset_cache()
+  matcher_cache = {}
+end
+do
+  M.reset_cache()
+end
+
 ---Parse the given options and return a function with enabled parsers.
 --if no parsers enabled then return false
 --Do not try make the function again if it is present in the cache
----@param options table: options created in `colorizer.setup`
+---@param opts table: options created in `colorizer.setup`
 ---@return function|boolean: function which will just parse the line for enabled parsers
-function M.make(options)
-  if not options then
+function M.make(opts)
+  if not opts then
     return false
   end
 
-  local enable_names = options.names
-  local enable_names_custom = options.names_custom
-  local enable_sass = options.sass and options.sass.enable
-  local enable_tailwind = options.tailwind
-  local enable_RGB = options.RGB
-  local enable_RGBA = options.RGBA
-  local enable_RRGGBB = options.RRGGBB
-  local enable_RRGGBBAA = options.RRGGBBAA
-  local enable_AARRGGBB = options.AARRGGBB
-  local enable_rgb = options.rgb_fn
-  local enable_hsl = options.hsl_fn
+  local enable_names = opts.names
+  local enable_names_lowercase = opts.names_opts and opts.names_opts.lowercase
+  local enable_names_camelcase = opts.names_opts and opts.names_opts.camelcase
+  local enable_names_uppercase = opts.names_opts and opts.names_opts.uppercase
+  local enable_names_strip_digits = opts.names_opts and opts.names_opts.strip_digits
+  local enable_names_custom = opts.names_custom
+  local enable_sass = opts.sass and opts.sass.enable
+  local enable_tailwind = opts.tailwind
+  local enable_RGB = opts.RGB
+  local enable_RGBA = opts.RGBA
+  local enable_RRGGBB = opts.RRGGBB
+  local enable_RRGGBBAA = opts.RRGGBBAA
+  local enable_AARRGGBB = opts.AARRGGBB
+  local enable_rgb = opts.rgb_fn
+  local enable_hsl = opts.hsl_fn
 
   -- Rather than use bit.lshift or calculate 2^x, use precalculated values to
   -- create unique bitmask
   local matcher_key = 0
     + (enable_names and 1 or 0)
-    + (enable_names_custom and 2 or 0)
-    + (enable_RGB and 4 or 0)
-    + (enable_RGBA and 8 or 0)
-    + (enable_RRGGBB and 16 or 0)
-    + (enable_RRGGBBAA and 32 or 0)
-    + (enable_AARRGGBB and 64 or 0)
-    + (enable_rgb and 128 or 0)
-    + (enable_hsl and 256 or 0)
-    + ((enable_tailwind == true or enable_tailwind == "normal") and 512 or 0)
-    + (enable_tailwind == "lsp" and 1024 or 0)
-    + (enable_tailwind == "both" and 2048 or 0)
-    + (enable_sass and 4096 or 0)
+    + (enable_names_lowercase and 2 or 0)
+    + (enable_names_camelcase and 4 or 0)
+    + (enable_names_uppercase and 8 or 0)
+    + (enable_names_strip_digits and 16 or 0)
+    + (enable_names_custom and 32 or 0)
+    + (enable_RGB and 64 or 0)
+    + (enable_RGBA and 128 or 0)
+    + (enable_RRGGBB and 256 or 0)
+    + (enable_RRGGBBAA and 512 or 0)
+    + (enable_AARRGGBB and 1024 or 0)
+    + (enable_rgb and 2048 or 0)
+    + (enable_hsl and 4096 or 0)
+    + ((enable_tailwind == true or enable_tailwind == "normal") and 8192 or 0)
+    + (enable_tailwind == "lsp" and 16384 or 0)
+    + (enable_tailwind == "both" and 32768 or 0)
+    + (enable_sass and 65536 or 0)
 
   if matcher_key == 0 then
     return false
@@ -119,18 +136,25 @@ function M.make(options)
   local matchers = {}
   local matchers_prefix = {}
 
-  if enable_names then
+  if enable_names or enable_names_custom or enable_tailwind then
     matchers.color_name_parser = matchers.color_name_parser or {}
-    matchers.color_name_parser.color_names = enable_names
+    if enable_names then
+      matchers.color_name_parser.color_names = enable_names
+      matchers.color_name_parser.color_names_opts = {
+        lowercase = enable_names_lowercase,
+        camelcase = enable_names_camelcase,
+        uppercase = enable_names_uppercase,
+        strip_digits = enable_names_strip_digits,
+      }
+    end
+    if enable_names_custom then
+      matchers.color_name_parser.names_custom = enable_names_custom
+    end
+    if enable_tailwind then
+      matchers.color_name_parser.tailwind = enable_tailwind
+    end
   end
-  if enable_names_custom then
-    matchers.color_name_parser = matchers.color_name_parser or {}
-    matchers.color_name_parser.names_custom = enable_names_custom
-  end
-  if enable_tailwind then
-    matchers.color_name_parser = matchers.color_name_parser or {}
-    matchers.color_name_parser.tailwind = enable_tailwind
-  end
+
   if enable_sass then
     matchers.sass_name_parser = true
   end
@@ -179,12 +203,6 @@ function M.make(options)
   matcher_cache[matcher_key] = loop_parse_fn
 
   return loop_parse_fn
-end
-
----Reset the cache of matchers
----Called from colorizer.setup
-function M.reset_cache()
-  matcher_cache = {}
 end
 
 return M

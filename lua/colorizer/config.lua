@@ -5,6 +5,12 @@ local M = {}
 --- Defaults for colorizer options
 local plugin_user_default_options = {
   names = true,
+  names_opts = {
+    lowercase = true,
+    camelcase = true,
+    uppercase = false,
+    strip_digits = false,
+  },
   names_custom = false,
   RGB = true,
   RGBA = true,
@@ -38,11 +44,13 @@ local plugin_user_default_options = {
 -- **Option Priority**: Individual options have higher priority than aliases.
 -- If both `css` and `css_fn` are true, `css_fn` has more priority over `css`.
 -- @table user_default_options
--- @field RGB boolean: Enables `#RGB` hex codes.
--- @field RRGGBB boolean: Enables `#RRGGBB` hex codes.
 -- @field names boolean: Enables named colors (e.g., "Blue").
--- @field names_custom table|function|nil: Extra color name to RGB value mappings
+-- @field names_opts table: Names options for customizing casing, digit stripping, etc
+-- @field names_custom table|function|false|nil: Custom color name to RGB value mappings
 -- should return a table of color names to RGB value pairs
+-- @field RGB boolean: Enables `#RGB` hex codes.
+-- @field RGBA boolean: Enables `#RGBA` hex codes.
+-- @field RRGGBB boolean: Enables `#RRGGBB` hex codes.
 -- @field RRGGBBAA boolean: Enables `#RRGGBBAA` hex codes.
 -- @field AARRGGBB boolean: Enables `0xAARRGGBB` hex codes.
 -- @field rgb_fn boolean: Enables CSS `rgb()` and `rgba()` functions.
@@ -66,7 +74,6 @@ local plugin_user_default_options = {
 --@field filetypes
 --@field buftypes
 M.options = {}
-
 local function init_options()
   M.options = {
     -- setup options
@@ -80,8 +87,15 @@ local function init_options()
   }
 end
 
--- State for managing buffer and filetype-specific options
-local options_cache = { buftype = {}, filetype = {} }
+local options_cache
+--- Reset the cache for buffer options.
+-- Called from colorizer.setup
+function M.reset_cache()
+  options_cache = { buftype = {}, filetype = {} }
+end
+do
+  M.reset_cache()
+end
 
 --- Set options for a specific buffer or file type.
 ---@param bo_type 'buftype'|'filetype': The type of buffer option
@@ -128,10 +142,12 @@ end
 -- @table opts
 -- @field filetypes table A list of file types where colorizer should be enabled. Use `"*"` for all file types.
 -- @field user_default_options table Default options for color handling.
---   - `RGB` (boolean): Enables support for `#RGB` hex codes.
---   - `RRGGBB` (boolean): Enables support for `#RRGGBB` hex codes.
 --   - `names` (boolean): Enables named color codes like `"Blue"`.
---   - `names_custom` (table|function|nil): Extra color name to RGB value mappings
+--   - `names_opts` (table): Names options for customizing casing, digit stripping, etc
+--   - `names_custom` (table|function|false|nil): Custom color name to RGB value mappings
+--   - `RGB` (boolean): Enables support for `#RGB` hex codes.
+--   - `RGBA` (boolean): Enables support for `#RGBA` hex codes.
+--   - `RRGGBB` (boolean): Enables support for `#RRGGBB` hex codes.
 --   - `RRGGBBAA` (boolean): Enables support for `#RRGGBBAA` hex codes.
 --   - `AARRGGBB` (boolean): Enables support for `0xAARRGGBB` hex codes.
 --   - `rgb_fn` (boolean): Enables CSS `rgb()` and `rgba()` functions.
@@ -184,10 +200,6 @@ end
 function M.get_bo_options(bo_type, buftype, filetype)
   local fo, bo = options_cache[bo_type][filetype], options_cache[bo_type][buftype]
   return fo or bo
-end
-
-function M.reset_cache()
-  options_cache = { buftype = {}, filetype = {} }
 end
 
 return M

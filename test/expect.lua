@@ -5,6 +5,9 @@ local opts = {
     "!dashboard",
     lua = {
       names = true,
+      names_opts = {
+        -- strip_digits = false,
+      },
       names_custom = {
         one_two = "#017dac",
         ["three=four"] = "#3700c2",
@@ -18,6 +21,12 @@ local opts = {
   user_commands = true,
   user_default_options = {
     names = false,
+    names_opts = {
+      lowercase = true,
+      camelcase = true,
+      uppercase = false,
+      strip_digits = false,
+    },
     names_custom = function()
       local colors = require("kanagawa.colors").setup()
       return colors.palette
@@ -55,6 +64,11 @@ lightcoral lightcyan lemonchiffon papayawhip peachpuff
 blue gray lightblue gray100 white gold blue
 Blue LightBlue Gray100 White
 White
+
+Names options: casing, strip digits
+deepskyblue deepskyblue1
+DeepSkyBlue DeepSkyBlue2
+DEEPSKYBLUE DEEPSKYBLUE3
 
 Extra names:
 oniViolet oniViolet2 crystalBlue springViolet1 springViolet2 springBlue

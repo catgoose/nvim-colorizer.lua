@@ -69,6 +69,10 @@
 <h2><a href="#Functions">Functions</a></h2>
 <table class="function_list">
 	<tr>
+	<td class="name" nowrap><a href="#reset_cache">reset_cache ()</a></td>
+	<td class="summary">Reset the cache for buffer options.</td>
+	</tr>
+	<tr>
 	<td class="name" nowrap><a href="#set_bo_value">set_bo_value (bo_type, value, options)</a></td>
 	<td class="summary">Set options for a specific buffer or file type.</td>
 	</tr>
@@ -112,6 +116,21 @@
     <h2 class="section-header "><a name="Functions"></a>Functions</h2>
 
     <dl class="function">
+    <dt>
+    <a name = "reset_cache"></a>
+    <strong>reset_cache ()</strong>
+    </dt>
+    <dd>
+    Reset the cache for buffer options.
+ Called from colorizer.setup
+
+
+
+
+
+
+
+</dd>
     <dt>
     <a name = "set_bo_value"></a>
     <strong>set_bo_value (bo_type, value, options)</strong>
@@ -267,18 +286,24 @@
 
     <h3>Fields:</h3>
     <ul>
-        <li><span class="parameter">RGB</span>
-         boolean: Enables `#RGB` hex codes.
-        </li>
-        <li><span class="parameter">RRGGBB</span>
-         boolean: Enables `#RRGGBB` hex codes.
-        </li>
         <li><span class="parameter">names</span>
          boolean: Enables named colors (e.g., "Blue").
         </li>
+        <li><span class="parameter">names_opts</span>
+         table: Names options for customizing casing, digit stripping, etc
+        </li>
         <li><span class="parameter">names_custom</span>
-         table|function|nil: Extra color name to RGB value mappings
+         table|function|false|nil: Custom color name to RGB value mappings
  should return a table of color names to RGB value pairs
+        </li>
+        <li><span class="parameter">RGB</span>
+         boolean: Enables `#RGB` hex codes.
+        </li>
+        <li><span class="parameter">RGBA</span>
+         boolean: Enables `#RGBA` hex codes.
+        </li>
+        <li><span class="parameter">RRGGBB</span>
+         boolean: Enables `#RRGGBB` hex codes.
         </li>
         <li><span class="parameter">RRGGBBAA</span>
          boolean: Enables `#RRGGBBAA` hex codes.
@@ -379,10 +404,12 @@
         </li>
         <li><span class="parameter">user_default_options</span>
          table Default options for color handling.
-   - `RGB` (boolean): Enables support for `#RGB` hex codes.
-   - `RRGGBB` (boolean): Enables support for `#RRGGBB` hex codes.
    - `names` (boolean): Enables named color codes like `"Blue"`.
-   - `names_custom` (table|function|nil): Extra color name to RGB value mappings
+   - `names_opts` (table): Names options for customizing casing, digit stripping, etc
+   - `names_custom` (table|function|false|nil): Custom color name to RGB value mappings
+   - `RGB` (boolean): Enables support for `#RGB` hex codes.
+   - `RGBA` (boolean): Enables support for `#RGBA` hex codes.
+   - `RRGGBB` (boolean): Enables support for `#RRGGBB` hex codes.
    - `RRGGBBAA` (boolean): Enables support for `#RRGGBBAA` hex codes.
    - `AARRGGBB` (boolean): Enables support for `0xAARRGGBB` hex codes.
    - `rgb_fn` (boolean): Enables CSS `rgb()` and `rgba()` functions.

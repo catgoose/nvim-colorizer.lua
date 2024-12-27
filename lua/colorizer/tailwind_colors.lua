@@ -1,6 +1,5 @@
 -- Tailwind colors
 return {
-  -- https://github.com/tailwindlabs/tailwindcss/raw/master/src/corePlugins.js
   prefixes = {
     "accent",
     "bg",
@@ -24,7 +23,6 @@ return {
     "ring",
     "ring-offset",
   },
-  -- Generated using https://github.com/tailwindlabs/tailwindcss/raw/master/src/public/colors.js
   colors = {
     ["black"] = "000",
     ["white"] = "fff",

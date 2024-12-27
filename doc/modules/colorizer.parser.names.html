@@ -70,12 +70,12 @@
 <h2><a href="#Functions">Functions</a></h2>
 <table class="function_list">
 	<tr>
-	<td class="name" nowrap><a href="#parser">parser (line, i, opts)</a></td>
-	<td class="summary">Parses a line to identify color names.</td>
+	<td class="name" nowrap><a href="#reset_cache">reset_cache ()</a></td>
+	<td class="summary">Reset the color names cache.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#reset_cache">reset_cache ()</a></td>
-	<td class="summary">Resets the color names cache.</td>
+	<td class="name" nowrap><a href="#parser">parser (line, i, opts)</a></td>
+	<td class="summary">Parses a line to identify color names.</td>
 	</tr>
 </table>
 
@@ -87,6 +87,21 @@
 
     <dl class="function">
     <dt>
+    <a name = "reset_cache"></a>
+    <strong>reset_cache ()</strong>
+    </dt>
+    <dd>
+    Reset the color names cache.
+ Called from colorizer.setup
+
+
+
+
+
+
+
+</dd>
+    <dt>
     <a name = "parser"></a>
     <strong>parser (line, i, opts)</strong>
     </dt>
@@ -97,36 +112,21 @@
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">line</span>
-         string The text line to parse.
+         string: The text line to parse.
         </li>
         <li><span class="parameter">i</span>
-         number The index to start parsing from.
+         number: The index to start parsing from.
         </li>
         <li><span class="parameter">opts</span>
-         table Parsing options.
+         table: Parsing options.
         </li>
     </ul>
 
     <h3>Returns:</h3>
     <ol>
 
-        number|nil, string|nil Length of match and hex value if found.
+        number|nil, string|nil: Length of match and hex value if found.
     </ol>
-
-
-
-
-</dd>
-    <dt>
-    <a name = "reset_cache"></a>
-    <strong>reset_cache ()</strong>
-    </dt>
-    <dd>
-    Resets the color names cache.
-Called from colorizer.setup
-
-
-
 
 
 

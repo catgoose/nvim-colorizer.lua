@@ -9,14 +9,21 @@ local utils = require("colorizer.utils")
 local tohex = require("bit").tohex
 local min, max = math.min, math.max
 
-local names_cache = {
-  color_map = {},
-  color_trie = nil,
-  color_name_minlen = nil,
-  color_name_maxlen = nil,
-  color_name_settings = { lowercase = true, strip_digits = false },
-  tailwind_enabled = false,
-}
+local names_cache
+---Reset the color names cache.
+-- Called from colorizer.setup
+function M.reset_cache()
+  names_cache = {
+    color_map = {},
+    color_trie = nil,
+    color_name_minlen = nil,
+    color_name_maxlen = nil,
+    tailwind_enabled = false,
+  }
+end
+do
+  M.reset_cache()
+end
 
 --- Internal function to add a color to the Trie and map.
 -- @param name string The color name.
@@ -102,13 +109,18 @@ local function handle_tailwind()
 end
 
 --- Handles Vim's color map and adds colors to the Trie and map.
-local function handle_names()
+local function handle_names(opts)
   for name, value in pairs(vim.api.nvim_get_color_map()) do
-    if not (names_cache.color_name_settings.strip_digits and name:match("%d+$")) then
+    if not (opts.strip_digits and name:match("%d+$")) then
       local rgb_hex = tohex(value, 6)
-      add_color(name, rgb_hex)
-      if names_cache.color_name_settings.lowercase then
+      if opts.lowercase then
         add_color(name:lower(), rgb_hex)
+      end
+      if opts.camelcase then
+        add_color(name, rgb_hex)
+      end
+      if opts.uppercase then
+        add_color(name:upper(), rgb_hex)
       end
     end
   end
@@ -123,7 +135,7 @@ local function populate_colors(opts)
 
   -- Add Vim's color map
   if opts.color_names then
-    handle_names()
+    handle_names(opts.color_names_opts)
   end
 
   -- Add Tailwind colors
@@ -139,10 +151,10 @@ local function populate_colors(opts)
 end
 
 --- Parses a line to identify color names.
--- @param line string The text line to parse.
--- @param i number The index to start parsing from.
--- @param opts table Parsing options.
--- @return number|nil, string|nil Length of match and hex value if found.
+-- @param line string: The text line to parse.
+-- @param i number: The index to start parsing from.
+-- @param opts table: Parsing options.
+-- @return number|nil, string|nil: Length of match and hex value if found.
 function M.parser(line, i, opts)
   if not names_cache.color_trie or opts.tailwind ~= names_cache.tailwind_enabled then
     --  TODO: 2024-12-21 - Ensure that this is not being called too many times
@@ -164,19 +176,6 @@ function M.parser(line, i, opts)
     end
     return #prefix, names_cache.color_map[prefix]
   end
-end
-
----Resets the color names cache.
----Called from colorizer.setup
-function M.reset_cache()
-  names_cache = {
-    color_map = {},
-    color_trie = nil,
-    color_name_minlen = nil,
-    color_name_maxlen = nil,
-    color_name_settings = { lowercase = true, strip_digits = false },
-    tailwind_enabled = false,
-  }
 end
 
 return M
