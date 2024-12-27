@@ -5,6 +5,12 @@ local M = {}
 --- Defaults for colorizer options
 local plugin_user_default_options = {
   names = true,
+  names_opts = {
+    lowercase = true,
+    camelcase = true,
+    uppercase = false,
+    strip_digits = false,
+  },
   names_custom = false,
   RGB = true,
   RGBA = true,
@@ -42,7 +48,7 @@ local plugin_user_default_options = {
 -- @field RGBA boolean: Enables `#RGBA` hex codes.
 -- @field RRGGBB boolean: Enables `#RRGGBB` hex codes.
 -- @field names boolean: Enables named colors (e.g., "Blue").
--- @field names_custom table|function|nil: Extra color name to RGB value mappings
+-- @field names_custom table|function|false|nil: Custom color name to RGB value mappings
 -- should return a table of color names to RGB value pairs
 -- @field RRGGBBAA boolean: Enables `#RRGGBBAA` hex codes.
 -- @field AARRGGBB boolean: Enables `0xAARRGGBB` hex codes.
@@ -139,7 +145,7 @@ end
 --   - `RGBA` (boolean): Enables support for `#RGBA` hex codes.
 --   - `RRGGBB` (boolean): Enables support for `#RRGGBB` hex codes.
 --   - `names` (boolean): Enables named color codes like `"Blue"`.
---   - `names_custom` (table|function|nil): Extra color name to RGB value mappings
+--   - `names_custom` (table|function|false|nil): Custom color name to RGB value mappings
 --   - `RRGGBBAA` (boolean): Enables support for `#RRGGBBAA` hex codes.
 --   - `AARRGGBB` (boolean): Enables support for `0xAARRGGBB` hex codes.
 --   - `rgb_fn` (boolean): Enables CSS `rgb()` and `rgba()` functions.

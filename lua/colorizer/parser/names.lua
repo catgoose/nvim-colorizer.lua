@@ -18,7 +18,6 @@ function M.reset_cache()
     color_trie = nil,
     color_name_minlen = nil,
     color_name_maxlen = nil,
-    color_name_settings = { lowercase = true, strip_digits = true },
     tailwind_enabled = false,
   }
 end
@@ -110,14 +109,18 @@ local function handle_tailwind()
 end
 
 --- Handles Vim's color map and adds colors to the Trie and map.
-local function handle_names()
-  vim.print("names")
+local function handle_names(opts)
   for name, value in pairs(vim.api.nvim_get_color_map()) do
-    if not (names_cache.color_name_settings.strip_digits and name:match("%d+$")) then
+    if not (opts.strip_digits and name:match("%d+$")) then
       local rgb_hex = tohex(value, 6)
-      add_color(name, rgb_hex)
-      if names_cache.color_name_settings.lowercase then
+      if opts.lowercase then
         add_color(name:lower(), rgb_hex)
+      end
+      if opts.camelcase then
+        add_color(name, rgb_hex)
+      end
+      if opts.uppercase then
+        add_color(name:upper(), rgb_hex)
       end
     end
   end
@@ -132,7 +135,7 @@ local function populate_colors(opts)
 
   -- Add Vim's color map
   if opts.color_names then
-    handle_names()
+    handle_names(opts.color_names_opts)
   end
 
   -- Add Tailwind colors
