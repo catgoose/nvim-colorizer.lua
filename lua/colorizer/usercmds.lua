@@ -32,7 +32,7 @@ function M.make(cmds)
     ColorizerDetachFromBuffer = wrap("ColorizerDetachFromBuffer", c.detach_from_buffer),
     ColorizerReloadAllBuffers = wrap("ColorizerReloadAllBuffers", c.reload_all_buffers),
     ColorizerToggle = wrap("ColorizerToggle", function()
-      if c.is_buffer_attached() < 0 then
+      if not c.is_buffer_attached() then
         c.attach_to_buffer()
       else
         c.detach_from_buffer()

@@ -86,7 +86,9 @@ Functions: ~
 
     |rehighlight| - Rehighlight the buffer if colorizer is active
 
-    |is_buffer_attached| - Check if attached to a buffer
+    |get_attached_bufnr| - Get attached bufnr
+
+    |is_buffer_attached| - Check if buffer is attached to colorizer
 
     |reload_all_buffers| - Reload all of the currently active highlighted
     buffers.
@@ -134,17 +136,29 @@ rehighlight({bufnr}, {options}, {options_local}, {use_local_lines})
 
 
 
-is_buffer_attached({bufnr})                       *colorizer.is_buffer_attached*
-    Check if attached to a buffer
+get_attached_bufnr({bufnr})                       *colorizer.get_attached_bufnr*
+    Get attached bufnr
 
     Parameters: ~
 	{bufnr} -  number|nil: buffer number (0 for current)
 
     returns:~
-	number: returns bufnr if attached, otherwise -1
+	number: Returns attached bufnr. Returns -1 if buffer is not attached to
+	colorizer.
 
     See also:~
 	|colorizer.buffer.highlight|
+
+
+
+is_buffer_attached({bufnr})                       *colorizer.is_buffer_attached*
+    Check if buffer is attached to colorizer
+
+    Parameters: ~
+	{bufnr} -  number|nil: buffer number (0 for current)
+
+    returns:~
+	boolean: Returns `true` if buffer is attached to colorizer.
 
 
 
@@ -177,6 +191,9 @@ detach_from_buffer({bufnr})                       *colorizer.detach_from_buffer*
 
     Parameters: ~
 	{bufnr} -  number|nil: buffer number (0 for current)
+
+    returns:~
+	number: returns -1 if buffer is not attached, otherwise returns bufnr
 
 
 
