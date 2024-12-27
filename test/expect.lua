@@ -60,7 +60,7 @@ Extra names:
 oniViolet oniViolet2 crystalBlue springViolet1 springViolet2 springBlue
 lightBlue waveAqua2
 
-Additional names with non-alphanumeric characters
+Custom names with non-alphanumeric characters
 one_two three=four five@six seven!eight nine!!ten
 
 Hexadecimal:
