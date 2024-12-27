@@ -171,11 +171,11 @@ function M.rehighlight(bufnr, options, options_local, use_local_lines)
   return returns
 end
 
----Check if attached to a buffer
+---Get attached bufnr
 ---@param bufnr number|nil: buffer number (0 for current)
----@return number: returns bufnr if attached, otherwise -1
+---@return number: Returns attached bufnr. Returns -1 if buffer is not attached to colorizer.
 ---@see colorizer.buffer.highlight
-function M.is_buffer_attached(bufnr)
+function M.get_attached_bufnr(bufnr)
   if bufnr == 0 or not bufnr then
     bufnr = utils.bufme(bufnr)
   else
@@ -195,11 +195,18 @@ function M.is_buffer_attached(bufnr)
   return bufnr
 end
 
+---Check if buffer is attached to colorizer
+---@param bufnr number|nil: buffer number (0 for current)
+---@return boolean: Returns `true` if buffer is attached to colorizer.
+function M.is_buffer_attached(bufnr)
+  return M.get_attached_bufnr(bufnr) > -1
+end
+
 --- Return buffer options if buffer is attached to colorizer.
 ---@param bufnr number: Buffer number (0 for current)
 ---@return table|nil
 local function get_attached_buffer_options(bufnr)
-  local attached_bufnr = M.is_buffer_attached(bufnr)
+  local attached_bufnr = M.get_attached_bufnr(bufnr)
   if attached_bufnr > -1 then
     return colorizer_state.buffer_options[attached_bufnr]
   end
@@ -383,9 +390,10 @@ end
 
 --- Stop highlighting the current buffer.
 ---@param bufnr number|nil: buffer number (0 for current)
+---@return number: returns -1 if buffer is not attached, otherwise returns bufnr
 function M.detach_from_buffer(bufnr)
   bufnr = utils.bufme(bufnr)
-  bufnr = M.is_buffer_attached(bufnr)
+  bufnr = M.get_attached_bufnr(bufnr)
   if bufnr < 0 then
     return -1
   end
@@ -407,6 +415,7 @@ function M.detach_from_buffer(bufnr)
   end
   -- because now the buffer is not visible, so delete its information
   colorizer_state.buffer_options[bufnr] = nil
+  return bufnr
 end
 
 ---Easy to use function if you want the full setup without fine grained control.

@@ -155,8 +155,12 @@ Detach
 	<td class="summary">Rehighlight the buffer if colorizer is active</td>
 	</tr>
 	<tr>
+	<td class="name" nowrap><a href="#get_attached_bufnr">get_attached_bufnr (bufnr)</a></td>
+	<td class="summary">Get attached bufnr</td>
+	</tr>
+	<tr>
 	<td class="name" nowrap><a href="#is_buffer_attached">is_buffer_attached (bufnr)</a></td>
-	<td class="summary">Check if attached to a buffer</td>
+	<td class="summary">Check if buffer is attached to colorizer</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#reload_all_buffers">reload_all_buffers ()</a></td>
@@ -251,11 +255,11 @@ Detach
 
 </dd>
     <dt>
-    <a name = "is_buffer_attached"></a>
-    <strong>is_buffer_attached (bufnr)</strong>
+    <a name = "get_attached_bufnr"></a>
+    <strong>get_attached_bufnr (bufnr)</strong>
     </dt>
     <dd>
-    Check if attached to a buffer
+    Get attached bufnr
 
 
     <h3>Parameters:</h3>
@@ -268,7 +272,7 @@ Detach
     <h3>Returns:</h3>
     <ol>
 
-        number: returns bufnr if attached, otherwise -1
+        number: Returns attached bufnr. Returns -1 if buffer is not attached to colorizer.
     </ol>
 
 
@@ -276,6 +280,31 @@ Detach
     <ul>
          <a href="../modules/colorizer.buffer.html#highlight">colorizer.buffer.highlight</a>
     </ul>
+
+
+</dd>
+    <dt>
+    <a name = "is_buffer_attached"></a>
+    <strong>is_buffer_attached (bufnr)</strong>
+    </dt>
+    <dd>
+    Check if buffer is attached to colorizer
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">bufnr</span>
+         number|nil: buffer number (0 for current)
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        boolean: Returns `true` if buffer is attached to colorizer.
+    </ol>
+
+
 
 
 </dd>
@@ -354,6 +383,11 @@ Detach
         </li>
     </ul>
 
+    <h3>Returns:</h3>
+    <ol>
+
+        number: returns -1 if buffer is not attached, otherwise returns bufnr
+    </ol>
 
 
 
