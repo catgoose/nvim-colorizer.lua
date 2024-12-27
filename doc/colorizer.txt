@@ -1093,7 +1093,7 @@ byte_is_alphanumeric({byte})              *colorizer.utils.byte_is_alphanumeric*
 	{byte} -  number The byte to check.
 
     returns:~
-	boolean `true` if the byte is alphanumeric, otherwise `false`.
+	boolean: `true` if the byte is alphanumeric, otherwise `false`.
 
 
 
@@ -1104,7 +1104,7 @@ byte_is_hex({byte})                                *colorizer.utils.byte_is_hex*
 	{byte} -  number The byte to check.
 
     returns:~
-	boolean `true` if the byte is hexadecimal, otherwise `false`.
+	boolean: `true` if the byte is hexadecimal, otherwise `false`.
 
 
 
@@ -1116,7 +1116,7 @@ byte_is_valid_colorchar({byte})        *colorizer.utils.byte_is_valid_colorchar*
 	{byte} -  number The byte to check.
 
     returns:~
-	boolean `true` if the byte is valid, otherwise `false`.
+	boolean: `true` if the byte is valid, otherwise `false`.
 
 
 
@@ -1150,7 +1150,7 @@ parse_hex({byte})                                    *colorizer.utils.parse_hex*
 	{byte} -  number The byte to parse.
 
     returns:~
-	number The parsed hexadecimal value of the byte.
+	number: The parsed hexadecimal value of the byte.
 
 
 
@@ -1177,7 +1177,7 @@ bufme({bufnr})                                           *colorizer.utils.bufme*
 	{bufnr} -  number|nil: The buffer number to validate.
 
     returns:~
-	number The validated buffer number.
+	number: The validated buffer number.
 
 
 

@@ -54,6 +54,7 @@ function M.parser(line, i, opts)
     j = j + 1
   end
 
+  -- Ensure the succeeding character is not alphanumeric
   if j <= length and utils.byte_is_alphanumeric(line:byte(j)) then
     return
   end
