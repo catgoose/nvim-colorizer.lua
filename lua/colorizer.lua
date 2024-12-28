@@ -151,7 +151,7 @@ end
 ---@param options table: Buffer options
 ---@param options_local table|nil: Buffer local variables
 ---@param use_local_lines boolean|nil Whether to use lines num range from options_local
----@return table: { ns_id, functions } used when detaching from buffer
+---@return table: Detach settings table { ns_id = {}, functions = {} }
 function M.rehighlight(bufnr, options, options_local, use_local_lines)
   bufnr = utils.bufme(bufnr)
   local ns_id = M.default_namespace

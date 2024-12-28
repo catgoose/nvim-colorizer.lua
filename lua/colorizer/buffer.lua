@@ -129,12 +129,12 @@ end
 ---@param line_end number: Last line to highlight
 ---@param options table: Configuration options as described in `setup`
 ---@param options_local table: Buffer local variables
----@return table: { ns_id, functions } used when detaching from buffer
+---@return table: Detach settings table { ns_id = {}, functions = {} }
 function M.highlight(bufnr, ns_id, line_start, line_end, options, options_local)
-  local detach = { ns_id = {}, functions = {} }
-  bufnr = utils.bufme(bufnr)
-  local lines = vim.api.nvim_buf_get_lines(bufnr, line_start, line_end, false)
   ns_id = ns_id or M.default_namespace
+  bufnr = utils.bufme(bufnr)
+  local detach = { ns_id = {}, functions = {} }
+  local lines = vim.api.nvim_buf_get_lines(bufnr, line_start, line_end, false)
 
   -- only update sass varibles when text is changed
   if options_local.__event ~= "WinScrolled" and options.sass and options.sass.enable then
