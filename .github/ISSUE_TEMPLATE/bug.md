@@ -1,9 +1,10 @@
 ---
 name: Bug
 about: Create a bug report
-title: "Bug:"
+title: 'Bug: '
 labels: bug
 assignees: catgoose
+
 ---
 
 **Describe the bug**
@@ -24,6 +25,3 @@ e.g. Ubuntu 16.04
 
 **Neovim Version:**
 e.g. 0.9.0
-
-**Additional context**
-Add any other context about the problem here.
