@@ -151,7 +151,7 @@ function M.make(opts)
       matchers.color_name_parser.names_custom = enable_names_custom
     end
     if enable_tailwind then
-      matchers.color_name_parser.tailwind = enable_tailwind
+      matchers.color_name_parser.tailwind = enable_tailwind ~= "lsp"
     end
   end
 

@@ -132,17 +132,17 @@ local function populate_colors(opts)
   names_cache.color_map = {}
   names_cache.color_trie = Trie()
   names_cache.color_name_minlen, names_cache.color_name_maxlen = nil, nil
+  names_cache.tailwind_enabled = opts.tailwind
 
   -- Add Vim's color map
   if opts.color_names then
     handle_names(opts.color_names_opts)
   end
 
-  -- Add Tailwind colors
+  -- Add Tailwind color names
   if opts.tailwind then
     handle_tailwind()
   end
-  names_cache.tailwind_enabled = opts.tailwind
 
   -- Add extra names
   if opts.names_custom then
