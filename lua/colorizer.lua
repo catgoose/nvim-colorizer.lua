@@ -151,7 +151,7 @@ end
 ---@param options table: Buffer options
 ---@param options_local table|nil: Buffer local variables
 ---@param use_local_lines boolean|nil Whether to use lines num range from options_local
----@return table
+---@return table: { ns_id, functions } used when detaching from buffer
 function M.rehighlight(bufnr, options, options_local, use_local_lines)
   bufnr = utils.bufme(bufnr)
   local ns_id = M.default_namespace
@@ -163,12 +163,12 @@ function M.rehighlight(bufnr, options, options_local, use_local_lines)
     min, max = row_range(bufnr)
   end
 
-  local returns = M.highlight_buffer(bufnr, ns_id, min, max, options, options_local or {})
-  table.insert(returns.detach.functions, function()
+  local detach = M.highlight_buffer(bufnr, ns_id, min, max, options, options_local or {})
+  table.insert(detach.functions, function()
     colorizer_state.buffer_lines[bufnr] = nil
   end)
 
-  return returns
+  return detach
 end
 
 ---Get attached bufnr
@@ -299,10 +299,10 @@ function M.attach_to_buffer(bufnr, options, bo_type)
 
   colorizer_state.buffer_options[bufnr] = options
   colorizer_state.buffer_local[bufnr] = colorizer_state.buffer_local[bufnr] or {}
-  local returns = M.rehighlight(bufnr, options)
+  local detach = M.rehighlight(bufnr, options)
 
   colorizer_state.buffer_local[bufnr].__detach = colorizer_state.buffer_local[bufnr].__detach
-    or returns.detach
+    or detach
   colorizer_state.buffer_local[bufnr].__init = true
 
   if colorizer_state.buffer_local[bufnr].__autocmds then

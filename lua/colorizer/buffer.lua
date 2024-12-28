@@ -129,18 +129,16 @@ end
 ---@param line_end number: Last line to highlight
 ---@param options table: Configuration options as described in `setup`
 ---@param options_local table: Buffer local variables
----@return table
+---@return table: { ns_id, functions } used when detaching from buffer
 function M.highlight(bufnr, ns_id, line_start, line_end, options, options_local)
-  local returns = { detach = { ns_id = {}, functions = {} } }
+  local detach = { ns_id = {}, functions = {} }
   bufnr = utils.bufme(bufnr)
-
   local lines = vim.api.nvim_buf_get_lines(bufnr, line_start, line_end, false)
-
   ns_id = ns_id or M.default_namespace
 
   -- only update sass varibles when text is changed
   if options_local.__event ~= "WinScrolled" and options.sass and options.sass.enable then
-    table.insert(returns.detach.functions, sass.cleanup)
+    table.insert(detach.functions, sass.cleanup)
     sass.update_variables(
       bufnr,
       0,
@@ -157,10 +155,10 @@ function M.highlight(bufnr, ns_id, line_start, line_end, options, options_local)
 
   if options.tailwind == "lsp" or options.tailwind == "both" then
     tailwind.setup_lsp_colors(bufnr, options, options_local, M.add_highlight)
-    table.insert(returns.detach.functions, tailwind.cleanup)
+    table.insert(detach.functions, tailwind.cleanup)
   end
 
-  return returns
+  return detach
 end
 
 --- Parse the given lines for colors and return a table containing
