@@ -34,8 +34,8 @@ local function highlight_tailwind(bufnr, ns, options, add_highlight)
     state[bufnr].client.request("textDocument/documentColor", opts, function(err, results, _, _)
       if err == nil and results ~= nil then
         local data, line_start, line_end = {}, nil, nil
-        for _, color in pairs(results) do
-          local cur_line = color.range.start.line
+        for _, result in pairs(results) do
+          local cur_line = result.range.start.line
           if line_start then
             if cur_line < line_start then
               line_start = cur_line
@@ -44,7 +44,7 @@ local function highlight_tailwind(bufnr, ns, options, add_highlight)
             line_start = cur_line
           end
 
-          local end_line = color.range["end"].line
+          local end_line = result.range["end"].line
           if line_end then
             if end_line > line_end then
               line_end = end_line
@@ -54,13 +54,13 @@ local function highlight_tailwind(bufnr, ns, options, add_highlight)
           end
 
           local r, g, b, a =
-            color.color.red or 0,
-            color.color.green or 0,
-            color.color.blue or 0,
-            color.color.alpha or 0
+            result.color.red or 0,
+            result.color.green or 0,
+            result.color.blue or 0,
+            result.color.alpha or 0
           local rgb_hex = string.format("%02x%02x%02x", r * a * 255, g * a * 255, b * a * 255)
-          local first_col = color.range.start.character
-          local end_col = color.range["end"].character
+          local first_col = result.range.start.character
+          local end_col = result.range["end"].character
 
           data[cur_line] = data[cur_line] or {}
           table.insert(data[cur_line], { rgb_hex = rgb_hex, range = { first_col, end_col } })
@@ -77,7 +77,8 @@ end
 ---@param options table
 ---@param options_local table
 ---@param add_highlight function
-function M.setup_lsp_colors(bufnr, options, options_local, add_highlight)
+---@param on_detach function
+function M.setup_lsp_colors(bufnr, options, options_local, add_highlight, on_detach)
   state[bufnr] = state[bufnr] or {}
   state[bufnr].au_id = state[bufnr].au_id or {}
 
@@ -110,7 +111,7 @@ function M.setup_lsp_colors(bufnr, options, options_local, add_highlight)
           group = options_local.__augroup_id,
           buffer = bufnr,
           callback = function()
-            M.cleanup(bufnr)
+            on_detach(bufnr)
           end,
         })
         state[bufnr].au_created = true

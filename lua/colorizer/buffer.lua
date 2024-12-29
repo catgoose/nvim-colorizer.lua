@@ -154,7 +154,7 @@ function M.highlight(bufnr, ns_id, line_start, line_end, options, options_local)
   M.add_highlight(bufnr, ns_id, line_start, line_end, data, options)
 
   if options.tailwind == "lsp" or options.tailwind == "both" then
-    tailwind.setup_lsp_colors(bufnr, options, options_local, M.add_highlight)
+    tailwind.setup_lsp_colors(bufnr, options, options_local, M.add_highlight, tailwind.cleanup)
     table.insert(detach.functions, tailwind.cleanup)
   end
 
@@ -177,13 +177,13 @@ function M.parse_lines(bufnr, lines, line_start, options)
   local data = {}
   for line_nr, line in ipairs(lines) do
     line_nr = line_nr - 1 + line_start
-    data[line_nr] = data[line_nr] or {}
 
     local i = 1
     while i < #line do
       local length, rgb_hex = loop_parse_fn(line, i, bufnr)
       if length and rgb_hex then
-        table.insert(data[line_nr], { rgb_hex = rgb_hex, range = { i - 1, i + length - 1 } })
+        data[line_nr] = data[line_nr] or {}
+        table.insert(data[line_nr] or {}, { rgb_hex = rgb_hex, range = { i - 1, i + length - 1 } })
         i = i + length
       else
         i = i + 1

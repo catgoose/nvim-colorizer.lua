@@ -1017,7 +1017,8 @@ cleanup({bufnr})                                    *colorizer.tailwind.cleanup*
 
 
 					   *colorizer.tailwind.setup_lsp_colors*
-setup_lsp_colors({bufnr}, {options}, {options_local}, {add_highlight})
+setup_lsp_colors({bufnr}, {options}, {options_local}, {add_highlight},
+{on_detach})
     highlight buffer using values returned by tailwindcss
      To see these table information, see |colorizer.buffer|
 
@@ -1026,6 +1027,7 @@ setup_lsp_colors({bufnr}, {options}, {options_local}, {add_highlight})
 	{options} -  table
 	{options_local} -  table
 	{add_highlight} -  function
+	{on_detach} -  function
 
 
 

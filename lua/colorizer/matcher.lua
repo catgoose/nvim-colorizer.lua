@@ -151,6 +151,7 @@ function M.make(opts)
       matchers.color_name_parser.names_custom = enable_names_custom
     end
     if enable_tailwind then
+      --  TODO: 2024-12-28 - How can cmp_menu use lsp to highlight colors?
       matchers.color_name_parser.tailwind = enable_tailwind ~= "lsp"
     end
   end
