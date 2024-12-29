@@ -83,33 +83,35 @@ end
 ---@param line_start number: line_start should be 0-indexed
 ---@param line_end number: Last line to highlight
 ---@param data table: table output of `parse_lines`
----@param options table: Passed in setup, mainly for `user_default_options`
-function M.add_highlight(bufnr, ns_id, line_start, line_end, data, options)
+---@param ud_opts table: `user_default_options`
+function M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts)
   vim.api.nvim_buf_clear_namespace(bufnr, ns_id, line_start, line_end)
 
-  if vim.tbl_contains({ "background", "foreground" }, options.mode) then
+  --  TODO: 2024-12-29 - check if extmark exists for text range, i.e. tailwind lsp colors shouldn't be overwritten
+
+  if vim.tbl_contains({ "background", "foreground" }, ud_opts.mode) then
     for linenr, hls in pairs(data) do
       for _, hl in ipairs(hls) do
-        local hlname = create_highlight(hl.rgb_hex, options.mode)
+        local hlname = create_highlight(hl.rgb_hex, ud_opts.mode)
         vim.api.nvim_buf_add_highlight(bufnr, ns_id, hlname, linenr, hl.range[1], hl.range[2])
       end
     end
-  elseif options.mode == "virtualtext" then
+  elseif ud_opts.mode == "virtualtext" then
     for linenr, hls in pairs(data) do
       for _, hl in ipairs(hls) do
-        local hlname = create_highlight(hl.rgb_hex, options.virtualtext_mode)
+        local hlname = create_highlight(hl.rgb_hex, ud_opts.virtualtext_mode)
 
         local start_col = hl.range[2]
         local opts = {
-          virt_text = { { options.virtualtext or "■", hlname } },
+          virt_text = { { ud_opts.virtualtext or "■", hlname } },
           hl_mode = "combine",
           priority = 0,
         }
 
-        if options.virtualtext_inline then
+        if ud_opts.virtualtext_inline then
           start_col = hl.range[1]
           opts.virt_text_pos = "inline"
-          opts.virt_text = { { (options.virtualtext or "■") .. " ", hlname } }
+          opts.virt_text = { { (ud_opts.virtualtext or "■") .. " ", hlname } }
         end
 
         opts.end_col = start_col
@@ -127,34 +129,35 @@ end
 ---@param ns_id number: Namespace id, default is "colorizer" created with vim.api.nvim_create_namespace
 ---@param line_start number: line_start should be 0-indexed
 ---@param line_end number: Last line to highlight
----@param options table: Configuration options as described in `setup`
+---@param ud_opts table: `user_default_options`
 ---@param options_local table: Buffer local variables
 ---@return table: Detach settings table { ns_id = {}, functions = {} }
-function M.highlight(bufnr, ns_id, line_start, line_end, options, options_local)
+function M.highlight(bufnr, ns_id, line_start, line_end, ud_opts, options_local)
   ns_id = ns_id or M.default_namespace
   bufnr = utils.bufme(bufnr)
   local detach = { ns_id = {}, functions = {} }
   local lines = vim.api.nvim_buf_get_lines(bufnr, line_start, line_end, false)
 
   -- only update sass varibles when text is changed
-  if options_local.__event ~= "WinScrolled" and options.sass and options.sass.enable then
+  if options_local.__event ~= "WinScrolled" and ud_opts.sass and ud_opts.sass.enable then
     table.insert(detach.functions, sass.cleanup)
     sass.update_variables(
       bufnr,
       0,
       -1,
       nil,
-      make_matcher(options.sass.parsers),
-      options,
+      make_matcher(ud_opts.sass.parsers),
+      ud_opts,
       options_local
     )
   end
 
-  local data = M.parse_lines(bufnr, lines, line_start, options) or {}
-  M.add_highlight(bufnr, ns_id, line_start, line_end, data, options)
+  local data = M.parse_lines(bufnr, lines, line_start, ud_opts) or {}
 
-  if options.tailwind == "lsp" or options.tailwind == "both" then
-    tailwind.setup_lsp_colors(bufnr, options, options_local, M.add_highlight, tailwind.cleanup)
+  M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts)
+
+  if ud_opts.tailwind == "lsp" or ud_opts.tailwind == "both" then
+    tailwind.setup_lsp_colors(bufnr, ud_opts, options_local, M.add_highlight, tailwind.cleanup)
     table.insert(detach.functions, tailwind.cleanup)
   end
 
@@ -166,7 +169,7 @@ end
 ---@param bufnr number: Buffer number (0 for current)
 ---@param lines table: Table of lines to parse
 ---@param line_start number: Buffer line number to start highlighting
----@param options table: Passed in `colorizer.setup`, Only uses `user_default_options`
+---@param options table: `user_default_options`
 ---@return table|nil
 function M.parse_lines(bufnr, lines, line_start, options)
   local loop_parse_fn = make_matcher(options)

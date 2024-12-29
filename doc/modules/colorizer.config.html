@@ -73,11 +73,11 @@
 	<td class="summary">Reset the cache for buffer options.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#set_bo_value">set_bo_value (bo_type, value, options)</a></td>
+	<td class="name" nowrap><a href="#set_bo_value">set_bo_value (bo_type, val, ud_opts)</a></td>
 	<td class="summary">Set options for a specific buffer or file type.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#apply_alias_options">apply_alias_options (options)</a></td>
+	<td class="name" nowrap><a href="#apply_alias_options">apply_alias_options (ud_opts)</a></td>
 	<td class="summary">Parse and apply alias options to the user options.</td>
 	</tr>
 	<tr>
@@ -133,7 +133,7 @@
 </dd>
     <dt>
     <a name = "set_bo_value"></a>
-    <strong>set_bo_value (bo_type, value, options)</strong>
+    <strong>set_bo_value (bo_type, val, ud_opts)</strong>
     </dt>
     <dd>
     Set options for a specific buffer or file type.
@@ -144,11 +144,11 @@
         <li><span class="parameter">bo_type</span>
          'buftype'|'filetype': The type of buffer option
         </li>
-        <li><span class="parameter">value</span>
+        <li><span class="parameter">val</span>
          string: The specific value to set.
         </li>
-        <li><span class="parameter">options</span>
-         table: Options to associate with the value.
+        <li><span class="parameter">ud_opts</span>
+         table: `user_default_options`
         </li>
     </ul>
 
@@ -159,7 +159,7 @@
 </dd>
     <dt>
     <a name = "apply_alias_options"></a>
-    <strong>apply_alias_options (options)</strong>
+    <strong>apply_alias_options (ud_opts)</strong>
     </dt>
     <dd>
     Parse and apply alias options to the user options.
@@ -167,7 +167,7 @@
 
     <h3>Parameters:</h3>
     <ul>
-        <li><span class="parameter">options</span>
+        <li><span class="parameter">ud_opts</span>
          table: user_default_options
         </li>
     </ul>
@@ -202,7 +202,7 @@
     <h3>Returns:</h3>
     <ol>
 
-        table Final settings after merging user and default options.
+        table: Final settings after merging user and default options.
     </ol>
 
 
@@ -361,25 +361,22 @@
 
     <h3>Fields:</h3>
     <ul>
-        <li><span class="parameter">setup_options</span>
+        <li><span class="parameter">filetypes</span>
+
+        </li>
+        <li><span class="parameter">buftypes</span>
+
+        </li>
+        <li><span class="parameter">user_commands</span>
+
+        </li>
+        <li><span class="parameter">user_default_options</span>
 
         </li>
         <li><span class="parameter">exclusions</span>
 
         </li>
         <li><span class="parameter">all</span>
-
-        </li>
-        <li><span class="parameter">default_options</span>
-
-        </li>
-        <li><span class="parameter">user_commands</span>
-
-        </li>
-        <li><span class="parameter">filetypes</span>
-
-        </li>
-        <li><span class="parameter">buftypes</span>
 
         </li>
     </ul>

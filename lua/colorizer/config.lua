@@ -66,13 +66,12 @@ local plugin_user_default_options = {
 -- @field always_update boolean: Always update color values, even if buffer is not focused.
 
 --- Options for colorizer that were passed in to setup function
---@field setup_options
---@field exclusions
---@field all
---@field default_options
---@field user_commands
 --@field filetypes
 --@field buftypes
+--@field user_commands
+--@field user_default_options
+--@field exclusions
+--@field all
 M.options = {}
 local function init_options()
   M.options = {
@@ -99,16 +98,16 @@ end
 
 --- Set options for a specific buffer or file type.
 ---@param bo_type 'buftype'|'filetype': The type of buffer option
----@param value string: The specific value to set.
----@param options table: Options to associate with the value.
-function M.set_bo_value(bo_type, value, options)
-  options_cache[bo_type][value] = options
+---@param val string: The specific value to set.
+---@param ud_opts table: `user_default_options`
+function M.set_bo_value(bo_type, val, ud_opts)
+  options_cache[bo_type][val] = ud_opts
 end
 
 --- Parse and apply alias options to the user options.
----@param options table: user_default_options
+---@param ud_opts table: user_default_options
 ---@return table
-function M.apply_alias_options(options)
+function M.apply_alias_options(ud_opts)
   local aliases = {
     --  TODO: 2024-12-24 - Should aliases be configurable?
     ["css"] = { "names", "RGB", "RGBA", "RRGGBB", "RRGGBBAA", "hsl_fn", "rgb_fn" },
@@ -120,22 +119,22 @@ function M.apply_alias_options(options)
     end
     for _, option in ipairs(aliases[name]) do
       if opts[option] == nil then
-        opts[option] = options[name]
+        opts[option] = ud_opts[name]
       end
     end
   end
 
   for alias, _ in pairs(aliases) do
-    handle_alias(alias, options)
+    handle_alias(alias, ud_opts)
   end
-  if options.sass and options.sass.enable then
-    for child, _ in pairs(options.sass.parsers) do
-      handle_alias(child, options.sass.parsers)
+  if ud_opts.sass and ud_opts.sass.enable then
+    for child, _ in pairs(ud_opts.sass.parsers) do
+      handle_alias(child, ud_opts.sass.parsers)
     end
   end
 
-  options = vim.tbl_deep_extend("force", M.options.user_default_options, options)
-  return options
+  ud_opts = vim.tbl_deep_extend("force", M.options.user_default_options, ud_opts)
+  return ud_opts
 end
 
 --- Configuration options for the `setup` function.
@@ -173,8 +172,8 @@ end
 --- Initializes colorizer with user-provided options.
 -- Merges default settings with any user-specified options, setting up `filetypes`,
 -- `user_default_options`, and `user_commands`.
--- @param opts table: Configuration options for colorizer.
--- @return table Final settings after merging user and default options.
+---@param opts table: Configuration options for colorizer.
+---@return table: Final settings after merging user and default options.
 function M.get_setup_options(opts)
   init_options()
   opts = opts or {}

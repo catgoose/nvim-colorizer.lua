@@ -246,7 +246,7 @@ end -- sass_parse_lines end
 ---@param line_end number
 ---@param lines table|nil
 ---@param color_parser function|boolean
----@param options table: Buffer options
+---@param ud_opts table: `user_default_options`
 ---@param options_local table|nil: Buffer local variables
 function M.update_variables(
   bufnr,
@@ -254,7 +254,7 @@ function M.update_variables(
   line_end,
   lines,
   color_parser,
-  options,
+  ud_opts,
   options_local
 )
   lines = lines or vim.api.nvim_buf_get_lines(bufnr, line_start, line_end, false)
@@ -267,7 +267,7 @@ function M.update_variables(
       watch_imports = {},
       current_imports = {},
       definitions_linewise = {},
-      options = options,
+      options = ud_opts,
       local_options = options_local,
     }
   end

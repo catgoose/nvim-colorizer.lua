@@ -75,9 +75,8 @@
 	<td class="summary">Cleanup tailwind variables and autocmd</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#setup_lsp_colors">setup_lsp_colors (bufnr, options, options_local, add_highlight, on_detach)</a></td>
-	<td class="summary">highlight buffer using values returned by tailwindcss
- To see these table information, see |colorizer.buffer|</td>
+	<td class="name" nowrap><a href="#setup_lsp_colors">setup_lsp_colors (bufnr, ud_opts, options_local, add_highlight, on_detach)</a></td>
+	<td class="summary">Highlight buffer using values returned by tailwindcss</td>
 	</tr>
 </table>
 
@@ -110,11 +109,10 @@
 </dd>
     <dt>
     <a name = "setup_lsp_colors"></a>
-    <strong>setup_lsp_colors (bufnr, options, options_local, add_highlight, on_detach)</strong>
+    <strong>setup_lsp_colors (bufnr, ud_opts, options_local, add_highlight, on_detach)</strong>
     </dt>
     <dd>
-    highlight buffer using values returned by tailwindcss
- To see these table information, see |colorizer.buffer|
+    Highlight buffer using values returned by tailwindcss
 
 
     <h3>Parameters:</h3>
@@ -122,8 +120,8 @@
         <li><span class="parameter">bufnr</span>
          number: Buffer number (0 for current)
         </li>
-        <li><span class="parameter">options</span>
-         table
+        <li><span class="parameter">ud_opts</span>
+         table: `user_default_options`
         </li>
         <li><span class="parameter">options_local</span>
          table

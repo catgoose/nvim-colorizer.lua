@@ -80,7 +80,7 @@
  check for value in state[buf].definitions_all</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#update_variables">update_variables (bufnr, line_start, line_end, lines, color_parser, options, options_local)</a></td>
+	<td class="name" nowrap><a href="#update_variables">update_variables (bufnr, line_start, line_end, lines, color_parser, ud_opts, options_local)</a></td>
 	<td class="summary">Parse the given lines for sass variabled and add to `SASS[buf].DEFINITIONS_ALL`.</td>
 	</tr>
 </table>
@@ -146,7 +146,7 @@
 </dd>
     <dt>
     <a name = "update_variables"></a>
-    <strong>update_variables (bufnr, line_start, line_end, lines, color_parser, options, options_local)</strong>
+    <strong>update_variables (bufnr, line_start, line_end, lines, color_parser, ud_opts, options_local)</strong>
     </dt>
     <dd>
     Parse the given lines for sass variabled and add to `SASS[buf].DEFINITIONS_ALL`.
@@ -171,8 +171,8 @@
         <li><span class="parameter">color_parser</span>
          function|boolean
         </li>
-        <li><span class="parameter">options</span>
-         table: Buffer options
+        <li><span class="parameter">ud_opts</span>
+         table: `user_default_options`
         </li>
         <li><span class="parameter">options_local</span>
          table|nil: Buffer local variables

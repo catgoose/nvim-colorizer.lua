@@ -65,20 +65,21 @@ local function highlight_tailwind(bufnr, ns, options, add_highlight)
           data[cur_line] = data[cur_line] or {}
           table.insert(data[cur_line], { rgb_hex = rgb_hex, range = { first_col, end_col } })
         end
-        add_highlight(bufnr, ns, line_start or 0, line_end and (line_end + 2) or -1, data, options)
+        line_start = line_start or 0
+        line_end = line_end and (line_end + 2) or -1
+        add_highlight(bufnr, ns, line_start, line_end, data, options)
       end
     end)
   end, 10)
 end
 
---- highlight buffer using values returned by tailwindcss
--- To see these table information, see |colorizer.buffer|
+--- Highlight buffer using values returned by tailwindcss
 ---@param bufnr number: Buffer number (0 for current)
----@param options table
+---@param ud_opts table: `user_default_options`
 ---@param options_local table
 ---@param add_highlight function
 ---@param on_detach function
-function M.setup_lsp_colors(bufnr, options, options_local, add_highlight, on_detach)
+function M.setup_lsp_colors(bufnr, ud_opts, options_local, add_highlight, on_detach)
   state[bufnr] = state[bufnr] or {}
   state[bufnr].au_id = state[bufnr].au_id or {}
 
@@ -100,7 +101,7 @@ function M.setup_lsp_colors(bufnr, options, options_local, add_highlight, on_det
                 -- wait 100 ms for the first request
                 state[bufnr].client = client
                 vim.defer_fn(function()
-                  highlight_tailwind(bufnr, namespace, options, add_highlight)
+                  highlight_tailwind(bufnr, namespace, ud_opts, add_highlight)
                 end, 100)
               end
             end
@@ -154,7 +155,7 @@ function M.setup_lsp_colors(bufnr, options, options_local, add_highlight, on_det
 
     -- wait 500 ms for the first request
     vim.defer_fn(function()
-      highlight_tailwind(bufnr, namespace, options, add_highlight)
+      highlight_tailwind(bufnr, namespace, ud_opts, add_highlight)
     end, 1000)
 
     return true
@@ -162,7 +163,7 @@ function M.setup_lsp_colors(bufnr, options, options_local, add_highlight, on_det
 
   -- only try to do tailwindcss highlight if lsp is attached
   if state[bufnr].client then
-    highlight_tailwind(bufnr, namespace, options, add_highlight)
+    highlight_tailwind(bufnr, namespace, ud_opts, add_highlight)
   end
 end
 

@@ -26,21 +26,21 @@ do
 end
 
 --- Internal function to add a color to the Trie and map.
--- @param name string The color name.
--- @param value string The color value in hex format.
-local function add_color(name, value)
+---@param name string: The color name.
+---@param val string: The color value in hex format.
+local function add_color(name, val)
   names_cache.color_name_minlen = names_cache.color_name_minlen
       and min(#name, names_cache.color_name_minlen)
     or #name
   names_cache.color_name_maxlen = names_cache.color_name_maxlen
       and max(#name, names_cache.color_name_maxlen)
     or #name
-  names_cache.color_map[name] = value
+  names_cache.color_map[name] = val
   names_cache.color_trie:insert(name)
 end
 
 --- Extract non-alphanumeric characters to add as a valid index in the Trie
--- @param tbl table The table to extract non-alphanumeric characters from.
+---@param tbl table: The table to extract non-alphanumeric characters from.
 local function extract_non_alphanum_keys(tbl)
   local non_alphanum_chars = {}
   for key, _ in pairs(tbl) do
@@ -56,7 +56,7 @@ local function extract_non_alphanum_keys(tbl)
 end
 
 --- Handles additional color names provided as a table or function.
--- @param names_custom table|function|nil Additional color names to add.
+---@param names_custom table|function|nil: Additional color names to add.
 local function handle_names_custom(names_custom)
   if not names_custom then
     return
@@ -127,7 +127,7 @@ local function handle_names(opts)
 end
 
 --- Populates the Trie and map with colors based on options.
--- @param opts table Configuration options for color names and Tailwind CSS.
+---@param opts table Configuration options for color names and Tailwind CSS.
 local function populate_colors(opts)
   names_cache.color_map = {}
   names_cache.color_trie = Trie()
@@ -151,10 +151,10 @@ local function populate_colors(opts)
 end
 
 --- Parses a line to identify color names.
--- @param line string: The text line to parse.
--- @param i number: The index to start parsing from.
--- @param opts table: Parsing options.
--- @return number|nil, string|nil: Length of match and hex value if found.
+---@param line string: The text line to parse.
+---@param i number: The index to start parsing from.
+---@param opts table: Parsing options.
+---@return number|nil, string|nil: Length of match and hex value if found.
 function M.parser(line, i, opts)
   if not names_cache.color_trie or opts.tailwind ~= names_cache.tailwind_enabled then
     --  TODO: 2024-12-21 - Ensure that this is not being called too many times

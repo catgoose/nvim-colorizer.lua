@@ -151,7 +151,7 @@ Detach
 	<td class="summary">Highlight the buffer region.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#rehighlight">rehighlight (bufnr, options, options_local, use_local_lines)</a></td>
+	<td class="name" nowrap><a href="#rehighlight">rehighlight (bufnr, ud_opts, options_local, use_local_lines)</a></td>
 	<td class="summary">Rehighlight the buffer if colorizer is active</td>
 	</tr>
 	<tr>
@@ -171,7 +171,7 @@ Detach
 	<td class="summary">Reload file on save; used for dev, to edit expect.txt and apply highlights from returned setup table</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#attach_to_buffer">attach_to_buffer (bufnr, options, bo_type)</a></td>
+	<td class="name" nowrap><a href="#attach_to_buffer">attach_to_buffer (bufnr, ud_opts, bo_type)</a></td>
 	<td class="summary">Attach to a buffer and continuously highlight changes.</td>
 	</tr>
 	<tr>
@@ -222,7 +222,7 @@ Detach
 </dd>
     <dt>
     <a name = "rehighlight"></a>
-    <strong>rehighlight (bufnr, options, options_local, use_local_lines)</strong>
+    <strong>rehighlight (bufnr, ud_opts, options_local, use_local_lines)</strong>
     </dt>
     <dd>
     Rehighlight the buffer if colorizer is active
@@ -231,10 +231,10 @@ Detach
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">bufnr</span>
-         number: buffer number (0 for current)
+         number: Buffer number (0 for current)
         </li>
-        <li><span class="parameter">options</span>
-         table: Buffer options
+        <li><span class="parameter">ud_opts</span>
+         table: `user_default_options`
         </li>
         <li><span class="parameter">options_local</span>
          table|nil: Buffer local variables
@@ -344,7 +344,7 @@ Detach
 </dd>
     <dt>
     <a name = "attach_to_buffer"></a>
-    <strong>attach_to_buffer (bufnr, options, bo_type)</strong>
+    <strong>attach_to_buffer (bufnr, ud_opts, bo_type)</strong>
     </dt>
     <dd>
     Attach to a buffer and continuously highlight changes.
@@ -355,8 +355,8 @@ Detach
         <li><span class="parameter">bufnr</span>
          number|nil: buffer number (0 for current)
         </li>
-        <li><span class="parameter">options</span>
-         table|nil: Configuration options as described in `setup`
+        <li><span class="parameter">ud_opts</span>
+         table|nil: `user_default_options`
         </li>
         <li><span class="parameter">bo_type</span>
          'buftype'|'filetype'|nil: The type of buffer option
