@@ -1,6 +1,5 @@
 --- This module provides a parser that identifies named colors from a given line of text.
--- It supports standard color names and optional Tailwind CSS color names.
--- The module uses a Trie structure for efficient matching of color names in text.
+-- The module uses a Trie structure for efficient matching of color names to #rrggbb values
 -- @module colorizer.parser.names
 local M = {}
 
@@ -18,7 +17,6 @@ function M.reset_cache()
     color_trie = nil,
     color_name_minlen = nil,
     color_name_maxlen = nil,
-    tailwind_enabled = false,
   }
 end
 do
@@ -97,17 +95,6 @@ local function handle_names_custom(names_custom)
   end
 end
 
---- Handles Tailwind CSS colors and adds them to the Trie and map.
-local function handle_tailwind()
-  names_cache.color_trie:additional_chars("-")
-  local tailwind = require("colorizer.tailwind_colors")
-  for name, hex in pairs(tailwind.colors) do
-    for _, prefix in ipairs(tailwind.prefixes) do
-      add_color(prefix .. "-" .. name, hex)
-    end
-  end
-end
-
 --- Handles Vim's color map and adds colors to the Trie and map.
 local function handle_names(opts)
   for name, value in pairs(vim.api.nvim_get_color_map()) do
@@ -127,21 +114,15 @@ local function handle_names(opts)
 end
 
 --- Populates the Trie and map with colors based on options.
----@param opts table Configuration options for color names and Tailwind CSS.
+---@param opts table Configuration options for color names.
 local function populate_colors(opts)
   names_cache.color_map = {}
   names_cache.color_trie = Trie()
   names_cache.color_name_minlen, names_cache.color_name_maxlen = nil, nil
-  names_cache.tailwind_enabled = opts.tailwind
 
   -- Add Vim's color map
   if opts.color_names then
     handle_names(opts.color_names_opts)
-  end
-
-  -- Add Tailwind color names
-  if opts.tailwind then
-    handle_tailwind()
   end
 
   -- Add extra names
@@ -156,7 +137,7 @@ end
 ---@param opts table: Parsing options.
 ---@return number|nil, string|nil: Length of match and hex value if found.
 function M.parser(line, i, opts)
-  if not names_cache.color_trie or opts.tailwind ~= names_cache.tailwind_enabled then
+  if not names_cache.color_trie then
     --  TODO: 2024-12-21 - Ensure that this is not being called too many times
     populate_colors(opts)
   end

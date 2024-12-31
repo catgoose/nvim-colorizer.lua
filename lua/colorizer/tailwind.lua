@@ -30,6 +30,7 @@ function M.cleanup(bufnr)
   clear_ns(bufnr)
 end
 
+--  TODO: 2024-12-31 - Cache lsp response and only rehighlight if diff
 local function highlight_tailwind(bufnr, ud_opts, add_highlight)
   -- it can take some time to actually fetch the results
   -- on top of that, tailwindcss is quite slow in neovim
@@ -48,7 +49,6 @@ local function highlight_tailwind(bufnr, ud_opts, add_highlight)
           vim.api.nvim_err_writeln("tailwind.highlight_tailwindError: " .. err)
         end
         if err == nil and results ~= nil then
-          -- vim.print(string.format("results[1]: %s", vim.inspect(results[1])))
           local data, line_start, line_end = {}, nil, nil
           for _, result in pairs(results) do
             local cur_line = result.range.start.line
@@ -89,7 +89,7 @@ local function highlight_tailwind(bufnr, ud_opts, add_highlight)
         end
       end
     )
-  end, 10)
+  end, 1000)
 end
 
 --- Highlight buffer using values returned by tailwindcss
@@ -144,7 +144,7 @@ function M.setup_lsp_colors(bufnr, ud_opts, buf_local_opts, add_highlight, on_de
     local ok, client = pcall(function()
       local clients = vim.lsp.get_clients({ bufnr = bufnr, name = "tailwindcss" })
       local client = clients[1]
-      if client and client:supports_method("textDocument/documentColor") then
+      if client and client.supports_method("textDocument/documentColor") then
         return client
       end
     end)

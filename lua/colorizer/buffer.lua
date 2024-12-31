@@ -86,7 +86,7 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts, hl_o
         -- Beware that with something like `class="red blue dark:ring-sky-600"`, `red` and `blue` will
         -- become unhighlighted.  Not sure how to account for this case or if it is even an issue
         if ud_opts.tailwind == "both" and hl_opts.tailwind_lsp then
-          vim.api.nvim_buf_clear_namespace(bufnr, const.namespace.default, linenr, linenr + 1)
+          -- vim.api.nvim_buf_clear_namespace(bufnr, const.namespace.default, linenr, linenr + 1)
         end
         local hlname = create_highlight(hl.rgb_hex, ud_opts.mode)
         vim.api.nvim_buf_add_highlight(bufnr, ns_id, hlname, linenr, hl.range[1], hl.range[2])
@@ -151,9 +151,15 @@ function M.highlight(bufnr, ns_id, line_start, line_end, ud_opts, buf_local_opts
   local data = M.parse_lines(bufnr, lines, line_start, ud_opts) or {}
   M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts)
 
+  --  TODO: 2024-12-31 - Simplifiy checking tailwind opts
   if ud_opts.tailwind == "lsp" or ud_opts.tailwind == "both" then
     tailwind.setup_lsp_colors(bufnr, ud_opts, buf_local_opts, M.add_highlight, tailwind.cleanup)
     table.insert(detach.functions, tailwind.cleanup)
+  end
+  --  TODO: 2024-12-31 - Simplify this if statement
+  if ud_opts.tailwind == true or ud_opts.tailwind == "normal" or ud_opts.tailwind == "both" then
+    local tw_data = M.parse_lines(bufnr, lines, line_start, ud_opts, { tailwind = true }) or {}
+    M.add_highlight(bufnr, const.namespace.tailwind, line_start, line_end, tw_data, ud_opts)
   end
 
   return detach
@@ -165,9 +171,20 @@ end
 ---@param lines table: Table of lines to parse
 ---@param line_start number: Buffer line number to start highlighting
 ---@param ud_opts table: `user_default_options`
+---@param parse_opts table|nil: Parsing options
+--- - tailwind boolean|nil: use tailwind_names parser
 ---@return table|nil
-function M.parse_lines(bufnr, lines, line_start, ud_opts)
-  local loop_parse_fn = make_matcher(ud_opts)
+function M.parse_lines(bufnr, lines, line_start, ud_opts, parse_opts)
+  parse_opts = parse_opts or {}
+  local loop_parse_fn
+  local use_tailwind = parse_opts.tailwind == true and ud_opts.tailwind ~= "lsp"
+  if use_tailwind then
+    loop_parse_fn = function(line, i, _bufnr)
+      return require("colorizer.parser.tailwind_names").parser(line, i)
+    end
+  else
+    loop_parse_fn = make_matcher(ud_opts)
+  end
   if not loop_parse_fn then
     return
   end

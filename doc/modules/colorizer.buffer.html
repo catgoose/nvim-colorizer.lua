@@ -50,6 +50,7 @@
   <li><a href="../modules/colorizer.parser.names.html">parser.names</a></li>
   <li><a href="../modules/colorizer.parser.rgb.html">parser.rgb</a></li>
   <li><a href="../modules/colorizer.parser.rgba_hex.html">parser.rgba_hex</a></li>
+  <li><a href="../modules/colorizer.parser.tailwind_names.html">parser.tailwind_names</a></li>
   <li><a href="../modules/colorizer.sass.html">sass</a></li>
   <li><a href="../modules/colorizer.tailwind.html">tailwind</a></li>
   <li><a href="../modules/colorizer.trie.html">trie</a></li>
@@ -81,7 +82,7 @@
 	<td class="summary">Highlight the buffer region.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#parse_lines">parse_lines (bufnr, lines, line_start, ud_opts)</a></td>
+	<td class="name" nowrap><a href="#parse_lines">parse_lines (bufnr, lines, line_start, ud_opts, parse_opts)</a></td>
 	<td class="summary">Parse the given lines for colors and return a table containing
  rgb_hex and range per line</td>
 	</tr>
@@ -191,7 +192,7 @@
 </dd>
     <dt>
     <a name = "parse_lines"></a>
-    <strong>parse_lines (bufnr, lines, line_start, ud_opts)</strong>
+    <strong>parse_lines (bufnr, lines, line_start, ud_opts, parse_opts)</strong>
     </dt>
     <dd>
     Parse the given lines for colors and return a table containing
@@ -211,6 +212,10 @@
         </li>
         <li><span class="parameter">ud_opts</span>
          table: `user_default_options`
+        </li>
+        <li><span class="parameter">parse_opts</span>
+         table|nil: Parsing options
+ - tailwind boolean|nil: use tailwind_names parser
         </li>
     </ul>
 
