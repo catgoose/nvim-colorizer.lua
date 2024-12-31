@@ -172,7 +172,7 @@ end
 --- Initializes colorizer with user-provided options.
 -- Merges default settings with any user-specified options, setting up `filetypes`,
 -- `user_default_options`, and `user_commands`.
----@param opts table: Configuration options for colorizer.
+---@param opts table|nil: Configuration options for colorizer.
 ---@return table: Final settings after merging user and default options.
 function M.get_setup_options(opts)
   init_options()

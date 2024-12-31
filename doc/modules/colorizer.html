@@ -44,6 +44,7 @@
   <li><a href="../modules/colorizer.buffer.html">buffer</a></li>
   <li><a href="../modules/colorizer.color.html">color</a></li>
   <li><a href="../modules/colorizer.config.html">config</a></li>
+  <li><a href="../modules/colorizer.constants.html">constants</a></li>
   <li><a href="../modules/colorizer.matcher.html">matcher</a></li>
   <li><a href="../modules/colorizer.parser.rgb_hex.html">parser.rgb_hex</a></li>
   <li><a href="../modules/colorizer.parser.hsl.html">parser.hsl</a></li>
@@ -151,7 +152,7 @@ Detach
 	<td class="summary">Highlight the buffer region.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#rehighlight">rehighlight (bufnr, ud_opts, options_local, use_local_lines)</a></td>
+	<td class="name" nowrap><a href="#rehighlight">rehighlight (bufnr, ud_opts, buf_local_opts, use_local_lines)</a></td>
 	<td class="summary">Rehighlight the buffer if colorizer is active</td>
 	</tr>
 	<tr>
@@ -222,7 +223,7 @@ Detach
 </dd>
     <dt>
     <a name = "rehighlight"></a>
-    <strong>rehighlight (bufnr, ud_opts, options_local, use_local_lines)</strong>
+    <strong>rehighlight (bufnr, ud_opts, buf_local_opts, use_local_lines)</strong>
     </dt>
     <dd>
     Rehighlight the buffer if colorizer is active
@@ -236,8 +237,8 @@ Detach
         <li><span class="parameter">ud_opts</span>
          table: `user_default_options`
         </li>
-        <li><span class="parameter">options_local</span>
-         table|nil: Buffer local variables
+        <li><span class="parameter">buf_local_opts</span>
+         table|nil: Buffer local options
         </li>
         <li><span class="parameter">use_local_lines</span>
          boolean|nil Whether to use lines num range from options_local
@@ -473,10 +474,6 @@ Setup colorizer with user options
 
 
 
-    <h3>See also:</h3>
-    <ul>
-         <a href="../modules/colorizer.buffer.html#default_namespace">colorizer.buffer.default_namespace</a>
-    </ul>
 
 
 </dd>

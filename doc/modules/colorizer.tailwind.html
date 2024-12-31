@@ -43,6 +43,7 @@
   <li><a href="../modules/colorizer.buffer.html">buffer</a></li>
   <li><a href="../modules/colorizer.color.html">color</a></li>
   <li><a href="../modules/colorizer.config.html">config</a></li>
+  <li><a href="../modules/colorizer.constants.html">constants</a></li>
   <li><a href="../modules/colorizer.matcher.html">matcher</a></li>
   <li><a href="../modules/colorizer.parser.rgb_hex.html">parser.rgb_hex</a></li>
   <li><a href="../modules/colorizer.parser.hsl.html">parser.hsl</a></li>
@@ -75,7 +76,7 @@
 	<td class="summary">Cleanup tailwind variables and autocmd</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#setup_lsp_colors">setup_lsp_colors (bufnr, ud_opts, options_local, add_highlight, on_detach)</a></td>
+	<td class="name" nowrap><a href="#setup_lsp_colors">setup_lsp_colors (bufnr, ud_opts, buf_local_opts, add_highlight, on_detach)</a></td>
 	<td class="summary">Highlight buffer using values returned by tailwindcss</td>
 	</tr>
 </table>
@@ -109,7 +110,7 @@
 </dd>
     <dt>
     <a name = "setup_lsp_colors"></a>
-    <strong>setup_lsp_colors (bufnr, ud_opts, options_local, add_highlight, on_detach)</strong>
+    <strong>setup_lsp_colors (bufnr, ud_opts, buf_local_opts, add_highlight, on_detach)</strong>
     </dt>
     <dd>
     Highlight buffer using values returned by tailwindcss
@@ -123,8 +124,8 @@
         <li><span class="parameter">ud_opts</span>
          table: `user_default_options`
         </li>
-        <li><span class="parameter">options_local</span>
-         table
+        <li><span class="parameter">buf_local_opts</span>
+         table: Buffer local options
         </li>
         <li><span class="parameter">add_highlight</span>
          function

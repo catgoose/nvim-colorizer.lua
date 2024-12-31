@@ -43,6 +43,7 @@
   <li><a href="../modules/colorizer.buffer.html">buffer</a></li>
   <li><a href="../modules/colorizer.color.html">color</a></li>
   <li><a href="../modules/colorizer.config.html">config</a></li>
+  <li><a href="../modules/colorizer.constants.html">constants</a></li>
   <li><a href="../modules/colorizer.matcher.html">matcher</a></li>
   <li><a href="../modules/colorizer.parser.rgb_hex.html">parser.rgb_hex</a></li>
   <li><a href="../modules/colorizer.parser.hsl.html">parser.hsl</a></li>
@@ -80,7 +81,7 @@
  check for value in state[buf].definitions_all</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#update_variables">update_variables (bufnr, line_start, line_end, lines, color_parser, ud_opts, options_local)</a></td>
+	<td class="name" nowrap><a href="#update_variables">update_variables (bufnr, line_start, line_end, lines, color_parser, ud_opts, buf_local_opts)</a></td>
 	<td class="summary">Parse the given lines for sass variabled and add to `SASS[buf].DEFINITIONS_ALL`.</td>
 	</tr>
 </table>
@@ -146,7 +147,7 @@
 </dd>
     <dt>
     <a name = "update_variables"></a>
-    <strong>update_variables (bufnr, line_start, line_end, lines, color_parser, ud_opts, options_local)</strong>
+    <strong>update_variables (bufnr, line_start, line_end, lines, color_parser, ud_opts, buf_local_opts)</strong>
     </dt>
     <dd>
     Parse the given lines for sass variabled and add to `SASS[buf].DEFINITIONS_ALL`.
@@ -174,8 +175,8 @@
         <li><span class="parameter">ud_opts</span>
          table: `user_default_options`
         </li>
-        <li><span class="parameter">options_local</span>
-         table|nil: Buffer local variables
+        <li><span class="parameter">buf_local_opts</span>
+         table|nil: Buffer local options
         </li>
     </ul>
 

@@ -82,11 +82,12 @@ local M = {}
 
 local buffer = require("colorizer.buffer")
 local config = require("colorizer.config")
+local const = require("colorizer.constants")
 local utils = require("colorizer.utils")
 
 --- State and configuration dynamic holding information table tracking
 local colorizer_state = {
-  augroup = vim.api.nvim_create_augroup("ColorizerSetup", { clear = true }),
+  augroup = vim.api.nvim_create_augroup(const.autocmd.setup, { clear = true }),
   buffer_current = 0,
   buffer_lines = {},
   buffer_local = {},
@@ -101,8 +102,7 @@ M.highlight_buffer = buffer.highlight
 
 ---Default namespace used in `colorizer.buffer.highlight` and `attach_to_buffer`.
 ---@string: default_namespace
----@see colorizer.buffer.default_namespace
-M.default_namespace = buffer.default_namespace
+M.default_namespace = const.namespace.default
 
 --- Get the row range of the current window
 ---@param bufnr number: Buffer number
@@ -149,21 +149,21 @@ end
 --- Rehighlight the buffer if colorizer is active
 ---@param bufnr number: Buffer number (0 for current)
 ---@param ud_opts table: `user_default_options`
----@param options_local table|nil: Buffer local variables
+---@param buf_local_opts table|nil: Buffer local options
 ---@param use_local_lines boolean|nil Whether to use lines num range from options_local
 ---@return table: Detach settings table { ns_id = {}, functions = {} }
-function M.rehighlight(bufnr, ud_opts, options_local, use_local_lines)
+function M.rehighlight(bufnr, ud_opts, buf_local_opts, use_local_lines)
   bufnr = utils.bufme(bufnr)
   local ns_id = M.default_namespace
 
   local min, max
-  if use_local_lines and options_local then
-    min, max = options_local.__startline or 0, options_local.__endline or -1
+  if use_local_lines and buf_local_opts then
+    min, max = buf_local_opts.__startline or 0, buf_local_opts.__endline or -1
   else
     min, max = row_range(bufnr)
   end
 
-  local detach = M.highlight_buffer(bufnr, ns_id, min, max, ud_opts, options_local or {})
+  local detach = M.highlight_buffer(bufnr, ns_id, min, max, ud_opts, buf_local_opts or {})
   table.insert(detach.functions, function()
     colorizer_state.buffer_lines[bufnr] = nil
   end)
@@ -370,7 +370,7 @@ function M.attach_to_buffer(bufnr, ud_opts, bo_type)
       -- Only reload if it was not disabled using detach_from_buffer
       if colorizer_state.buffer_options[bufnr] then
         colorizer_state.buffer_local[bufnr].__event = args.event
-        M.rehighlight(bufnr, ud_opts, colorizer_state.buffer_local[bufnr])
+        -- M.rehighlight(bufnr, ud_opts, colorizer_state.buffer_local[bufnr])
       end
     end,
   })

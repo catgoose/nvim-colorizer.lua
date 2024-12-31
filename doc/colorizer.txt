@@ -121,13 +121,13 @@ highlight_buffer()                                  *colorizer.highlight_buffer*
 
 
 							 *colorizer.rehighlight*
-rehighlight({bufnr}, {ud_opts}, {options_local}, {use_local_lines})
+rehighlight({bufnr}, {ud_opts}, {buf_local_opts}, {use_local_lines})
     Rehighlight the buffer if colorizer is active
 
     Parameters: ~
 	{bufnr} -  number: Buffer number (0 for current)
 	{ud_opts} -  table: `user_default_options`
-	{options_local} -  table|nil: Buffer local variables
+	{buf_local_opts} -  table|nil: Buffer local options
 	{use_local_lines} -  boolean|nil Whether to use lines num range from
 	options_local
 
@@ -246,9 +246,6 @@ default_namespace                                  *colorizer.default_namespace*
 	    href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a>
 	{:} -  default_namespace
 
-    See also:~
-	|colorizer.buffer.default_namespace|
-
 
 
 ==============================================================================
@@ -271,11 +268,10 @@ Functions: ~
     containing
  rgb_hex and range per line
 
-Tables: ~
+Fields: ~
     |highlight_mode_names| - Highlight mode which will be use to render the
     color
 
-Fields: ~
     |default_namespace| - Default namespace used in `highlight` and
     `colorizer.attach_to_buffer`.
 
@@ -287,24 +283,26 @@ clear_hl_cache()                               *colorizer.buffer.clear_hl_cache*
 
 
 						*colorizer.buffer.add_highlight*
-add_highlight({bufnr}, {ns_id}, {line_start}, {line_end}, {data}, {ud_opts})
+add_highlight({bufnr}, {ns_id}, {line_start}, {line_end}, {data}, {ud_opts},
+{hl_opts})
     Create highlight and set highlights
 
     Parameters: ~
-	{bufnr} -  number: buffer number (0 for current)
-	{ns_id} -  number: namespace id.  default is "colorizer", created with
-	vim.api.nvim_create_namespace
-	{line_start} -  number: line_start should be 0-indexed
+	{bufnr} -  number: Buffer number (0 for current)
+	{ns_id} -  number: Namespace id for which to create highlights
+	{line_start} -  number: Line_start should be 0-indexed
 	{line_end} -  number: Last line to highlight
-	{data} -  table: table output of `parse_lines`
+	{data} -  table: Table output of `parse_lines`
 	{ud_opts} -  table: `user_default_options`
+	{hl_opts} -  table|nil: highlight options:
+ - tailwind_lsp boolean: indicates to clear default namespace on line
 
 
 
 
 						    *colorizer.buffer.highlight*
 highlight({bufnr}, {ns_id}, {line_start}, {line_end}, {ud_opts},
-{options_local})
+{buf_local_opts})
     Highlight the buffer region.
 
      Highlight starting from `line_start` (0-indexed) for each line described by
@@ -319,7 +317,7 @@ highlight({bufnr}, {ns_id}, {line_start}, {line_end}, {ud_opts},
 	{line_start} -  number: line_start should be 0-indexed
 	{line_end} -  number: Last line to highlight
 	{ud_opts} -  table: `user_default_options`
-	{options_local} -  table: Buffer local variables
+	{buf_local_opts} -  table: Buffer local options
 
     returns:~
 	table: Detach settings table { ns_id = {}, functions = {} }
@@ -328,7 +326,7 @@ highlight({bufnr}, {ns_id}, {line_start}, {line_end}, {ud_opts},
 
 
 						  *colorizer.buffer.parse_lines*
-parse_lines({bufnr}, {lines}, {line_start}, {options})
+parse_lines({bufnr}, {lines}, {line_start}, {ud_opts})
     Parse the given lines for colors and return a table containing
      rgb_hex and range per line
 
@@ -336,7 +334,7 @@ parse_lines({bufnr}, {lines}, {line_start}, {options})
 	{bufnr} -  number: Buffer number (0 for current)
 	{lines} -  table: Table of lines to parse
 	{line_start} -  number: Buffer line number to start highlighting
-	{options} -  table: `user_default_options`
+	{ud_opts} -  table: `user_default_options`
 
     returns:~
 	table or nil
@@ -345,11 +343,6 @@ parse_lines({bufnr}, {lines}, {line_start}, {options})
 
 highlight_mode_names                     *colorizer.buffer.highlight_mode_names*
     Highlight mode which will be use to render the color
-
-    Fields: ~
-	{background} -
-	{foreground} -
-	{virtualtext} -
 
 
 
@@ -511,7 +504,7 @@ get_setup_options({opts})                   *colorizer.config.get_setup_options*
 
 
     Parameters: ~
-	{opts} -  table: Configuration options for colorizer.
+	{opts} -  table|nil: Configuration options for colorizer.
 
     returns:~
 	table: Final settings after merging user and default options.
@@ -657,6 +650,72 @@ opts                                                     *colorizer.config.opts*
    - `"ColorizerDetachFromBuffer"`
    - `"ColorizerReloadAllBuffers"`
    - `"ColorizerToggle"`
+
+
+
+==============================================================================
+CONSTANTS                                     *colorizer.constants-introduction*
+
+This module provides constants that are required across the application
+
+
+==============================================================================
+LUA API                                            *colorizer.constants-lua-api*
+
+Tables: ~
+    |plugin| - Plugin name
+
+    |namespace| - Namespaces used for colorizing
+ - default - Default namespace
+ - tailwind - Namespace used for creating extmarks to prevent tailwind name
+   parsing from overwriting tailwind lsp highlights
+
+    |autocmd| - Autocommand group for setting up Colorizer
+
+    |highlight_mode_names| - Highlight mode names.
+
+
+plugin                                              *colorizer.constants.plugin*
+    Plugin name
+
+    Fields: ~
+	{name} -
+
+
+
+namespace                                        *colorizer.constants.namespace*
+    Namespaces used for colorizing
+     - default - Default namespace
+     - tailwind - Namespace used for creating extmarks to prevent tailwind name
+       parsing from overwriting tailwind lsp highlights
+
+    Fields: ~
+	{default} -
+	{tailwind} -
+
+
+
+autocmd                                            *colorizer.constants.autocmd*
+    Autocommand group for setting up Colorizer
+
+    Fields: ~
+	{setup} -
+
+
+
+highlight_mode_names                  *colorizer.constants.highlight_mode_names*
+    Highlight mode names.
+      Used to create highlight names to be used with
+      vim.api.nvim_buf_add_highlight
+     - background - Background mode
+     - foreground - Foreground mode
+     - virtualtext - Virtual text mode
+
+
+    Fields: ~
+	{background} -
+	{foreground} -
+	{virtualtext} -
 
 
 
@@ -965,7 +1024,7 @@ parser({line}, {i}, {bufnr})                             *colorizer.sass.parser*
 
 					       *colorizer.sass.update_variables*
 update_variables({bufnr}, {line_start}, {line_end}, {lines}, {color_parser},
-{ud_opts}, {options_local})
+{ud_opts}, {buf_local_opts})
     Parse the given lines for sass variabled and add to
     `SASS[buf].DEFINITIONS_ALL`.
 
@@ -980,7 +1039,7 @@ update_variables({bufnr}, {line_start}, {line_end}, {lines}, {color_parser},
 	{lines} -  table|nil
 	{color_parser} -  function|boolean
 	{ud_opts} -  table: `user_default_options`
-	{options_local} -  table|nil: Buffer local variables
+	{buf_local_opts} -  table|nil: Buffer local options
 
 
 
@@ -1014,14 +1073,14 @@ cleanup({bufnr})                                    *colorizer.tailwind.cleanup*
 
 
 					   *colorizer.tailwind.setup_lsp_colors*
-setup_lsp_colors({bufnr}, {ud_opts}, {options_local}, {add_highlight},
+setup_lsp_colors({bufnr}, {ud_opts}, {buf_local_opts}, {add_highlight},
 {on_detach})
     Highlight buffer using values returned by tailwindcss
 
     Parameters: ~
 	{bufnr} -  number: Buffer number (0 for current)
 	{ud_opts} -  table: `user_default_options`
-	{options_local} -  table
+	{buf_local_opts} -  table: Buffer local options
 	{add_highlight} -  function
 	{on_detach} -  function
 

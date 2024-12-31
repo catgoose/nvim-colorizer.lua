@@ -8,26 +8,20 @@ local sass = require("colorizer.sass")
 local tailwind = require("colorizer.tailwind")
 local utils = require("colorizer.utils")
 local make_matcher = require("colorizer.matcher").make
-
-local plugin_name = "colorizer"
+local const = require("colorizer.constants")
 
 local hl_state = {
-  name_prefix = plugin_name,
+  name_prefix = const.plugin.name,
   cache = {},
-  hs_id = plugin_name,
 }
 
 --- Highlight mode which will be use to render the color
-M.highlight_mode_names = {
-  background = "mb",
-  foreground = "mf",
-  virtualtext = "mv",
-}
+M.highlight_mode_names = const.highlight_mode_names
 
 --- Default namespace used in `highlight` and `colorizer.attach_to_buffer`.
 ---@see highlight
 ---@see colorizer.attach_to_buffer
-M.default_namespace = vim.api.nvim_create_namespace(hl_state.hs_id)
+M.default_namespace = const.namespace.default
 
 --- Clean the highlight cache
 function M.clear_hl_cache()
@@ -78,20 +72,28 @@ local function create_highlight(rgb_hex, mode)
 end
 
 --- Create highlight and set highlights
----@param bufnr number: buffer number (0 for current)
----@param ns_id number: namespace id.  default is "colorizer", created with vim.api.nvim_create_namespace
----@param line_start number: line_start should be 0-indexed
+---@param bufnr number: Buffer number (0 for current)
+---@param ns_id number: Namespace id for which to create highlights
+---@param line_start number: Line_start should be 0-indexed
 ---@param line_end number: Last line to highlight
----@param data table: table output of `parse_lines`
+---@param data table: Table output of `parse_lines`
 ---@param ud_opts table: `user_default_options`
-function M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts)
+---@param hl_opts table|nil: highlight options:
+-- - tailwind_lsp boolean: indicates to clear default namespace on line
+function M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts, hl_opts)
+  if not vim.api.nvim_buf_is_valid(bufnr) then
+    vim.api.nvim_err_writeln(string.format("buffer.add_highlight: Invalid bufnr: %d", bufnr))
+    return
+  end
+  hl_opts = hl_opts or {}
+
   vim.api.nvim_buf_clear_namespace(bufnr, ns_id, line_start, line_end)
-
-  --  TODO: 2024-12-29 - check if extmark exists for text range, i.e. tailwind lsp colors shouldn't be overwritten
-
   if vim.tbl_contains({ "background", "foreground" }, ud_opts.mode) then
     for linenr, hls in pairs(data) do
       for _, hl in ipairs(hls) do
+        if hl_opts.tailwind_lsp then
+          vim.api.nvim_buf_clear_namespace(bufnr, const.namespace.default, linenr, linenr + 1)
+        end
         local hlname = create_highlight(hl.rgb_hex, ud_opts.mode)
         vim.api.nvim_buf_add_highlight(bufnr, ns_id, hlname, linenr, hl.range[1], hl.range[2])
       end
@@ -116,6 +118,9 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts)
 
         opts.end_col = start_col
 
+        if hl_opts.tailwind_lsp then
+          vim.api.nvim_buf_clear_namespace(bufnr, const.namespace.default, linenr, linenr + 1)
+        end
         vim.api.nvim_buf_set_extmark(bufnr, ns_id, linenr, start_col, opts)
       end
     end
@@ -130,16 +135,16 @@ end
 ---@param line_start number: line_start should be 0-indexed
 ---@param line_end number: Last line to highlight
 ---@param ud_opts table: `user_default_options`
----@param options_local table: Buffer local variables
+---@param buf_local_opts table: Buffer local options
 ---@return table: Detach settings table { ns_id = {}, functions = {} }
-function M.highlight(bufnr, ns_id, line_start, line_end, ud_opts, options_local)
+function M.highlight(bufnr, ns_id, line_start, line_end, ud_opts, buf_local_opts)
   ns_id = ns_id or M.default_namespace
   bufnr = utils.bufme(bufnr)
   local detach = { ns_id = {}, functions = {} }
   local lines = vim.api.nvim_buf_get_lines(bufnr, line_start, line_end, false)
 
   -- only update sass varibles when text is changed
-  if options_local.__event ~= "WinScrolled" and ud_opts.sass and ud_opts.sass.enable then
+  if buf_local_opts.__event ~= "WinScrolled" and ud_opts.sass and ud_opts.sass.enable then
     table.insert(detach.functions, sass.cleanup)
     sass.update_variables(
       bufnr,
@@ -148,7 +153,7 @@ function M.highlight(bufnr, ns_id, line_start, line_end, ud_opts, options_local)
       nil,
       make_matcher(ud_opts.sass.parsers),
       ud_opts,
-      options_local
+      buf_local_opts
     )
   end
 
@@ -157,7 +162,7 @@ function M.highlight(bufnr, ns_id, line_start, line_end, ud_opts, options_local)
   M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts)
 
   if ud_opts.tailwind == "lsp" or ud_opts.tailwind == "both" then
-    tailwind.setup_lsp_colors(bufnr, ud_opts, options_local, M.add_highlight, tailwind.cleanup)
+    tailwind.setup_lsp_colors(bufnr, ud_opts, buf_local_opts, M.add_highlight, tailwind.cleanup)
     table.insert(detach.functions, tailwind.cleanup)
   end
 
@@ -169,10 +174,10 @@ end
 ---@param bufnr number: Buffer number (0 for current)
 ---@param lines table: Table of lines to parse
 ---@param line_start number: Buffer line number to start highlighting
----@param options table: `user_default_options`
+---@param ud_opts table: `user_default_options`
 ---@return table|nil
-function M.parse_lines(bufnr, lines, line_start, options)
-  local loop_parse_fn = make_matcher(options)
+function M.parse_lines(bufnr, lines, line_start, ud_opts)
+  local loop_parse_fn = make_matcher(ud_opts)
   if not loop_parse_fn then
     return
   end
