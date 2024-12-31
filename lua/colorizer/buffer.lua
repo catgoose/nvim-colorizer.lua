@@ -81,6 +81,10 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts, hl_o
   if vim.tbl_contains({ "background", "foreground" }, ud_opts.mode) then
     for linenr, hls in pairs(data) do
       for _, hl in ipairs(hls) do
+        --  NOTE: 2024-12-30 - This ensures that tailwind lsp colors are applied with priority over
+        --  default namespace highlighting.
+        -- Beware that with something like `class="red blue dark:ring-sky-600"`, `red` and `blue` will
+        -- become unhighlighted.  Not sure how to account for this case or if it is even an issue
         if hl_opts.tailwind_lsp then
           vim.api.nvim_buf_clear_namespace(bufnr, const.namespace.default, linenr, linenr + 1)
         end
