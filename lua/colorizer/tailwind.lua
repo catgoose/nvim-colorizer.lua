@@ -28,9 +28,6 @@ local function highlight_tailwind(bufnr, ud_opts, add_highlight)
   -- on top of that, tailwindcss is quite slow in neovim
   vim.defer_fn(function()
     if not state[bufnr] or not state[bufnr].client or not state[bufnr].client.request then
-      vim.api.nvim_err_writeln(
-        string.format("tailwind.highlight_tailwind: Invalid bufnr: %d", bufnr)
-      )
       return
     end
 
@@ -88,7 +85,6 @@ end
 ---@param on_detach function
 function M.setup_lsp_colors(bufnr, ud_opts, buf_local_opts, add_highlight, on_detach)
   if not vim.api.nvim_buf_is_valid(bufnr) then
-    vim.api.nvim_err_writeln(string.format("tailwind.setup_lsp_colors: Invalid bufnr: %d", bufnr))
     return
   end
   state[bufnr] = state[bufnr] or {}

@@ -82,7 +82,6 @@ end
 -- - tailwind_lsp boolean: indicates to clear default namespace on line
 function M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts, hl_opts)
   if not vim.api.nvim_buf_is_valid(bufnr) then
-    vim.api.nvim_err_writeln(string.format("buffer.add_highlight: Invalid bufnr: %d", bufnr))
     return
   end
   hl_opts = hl_opts or {}
