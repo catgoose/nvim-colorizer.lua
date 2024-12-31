@@ -100,10 +100,6 @@ local colorizer_state = {
 ---@see colorizer.buffer.highlight
 M.highlight_buffer = buffer.highlight
 
----Default namespace used in `colorizer.buffer.highlight` and `attach_to_buffer`.
----@string: default_namespace
-M.default_namespace = const.namespace.default
-
 --- Get the row range of the current window
 ---@param bufnr number: Buffer number
 local function row_range(bufnr)
@@ -154,7 +150,7 @@ end
 ---@return table: Detach settings table { ns_id = {}, functions = {} }
 function M.rehighlight(bufnr, ud_opts, buf_local_opts, use_local_lines)
   bufnr = utils.bufme(bufnr)
-  local ns_id = M.default_namespace
+  local ns_id = const.namespace.default
 
   local min, max
   if use_local_lines and buf_local_opts then
@@ -280,7 +276,7 @@ function M.attach_to_buffer(bufnr, ud_opts, bo_type)
   ud_opts = config.apply_alias_options(ud_opts)
 
   --  TODO: 2024-11-26 - This seems to be validated in config.validate_opts
-  if not buffer.highlight_mode_names[ud_opts.mode] then
+  if not const.highlight_mode_names[ud_opts.mode] then
     local default = "background"
     if ud_opts.mode ~= nil then
       local mode = ud_opts.mode
@@ -397,7 +393,7 @@ function M.detach_from_buffer(bufnr)
   if bufnr < 0 then
     return -1
   end
-  vim.api.nvim_buf_clear_namespace(bufnr, buffer.default_namespace, 0, -1)
+  vim.api.nvim_buf_clear_namespace(bufnr, const.namespace.default, 0, -1)
   if colorizer_state.buffer_local[bufnr] then
     for _, namespace in pairs(colorizer_state.buffer_local[bufnr].__detach.ns_id) do
       vim.api.nvim_buf_clear_namespace(bufnr, namespace, 0, -1)

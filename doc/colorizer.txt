@@ -106,10 +106,6 @@ Functions: ~
     |clear_highlight_cache| - Clears the highlight cache and reloads all
     buffers.
 
-Fields: ~
-    |default_namespace| - Default namespace used in `colorizer.buffer.highlight`
-    and `attach_to_buffer`.
-
 
 highlight_buffer()                                  *colorizer.highlight_buffer*
     Highlight the buffer region.
@@ -239,15 +235,6 @@ clear_highlight_cache()                        *colorizer.clear_highlight_cache*
 
 
 
-default_namespace                                  *colorizer.default_namespace*
-    Default namespace used in `colorizer.buffer.highlight` and
-    `attach_to_buffer`.
-	    <a class="type"
-	    href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a>
-	{:} -  default_namespace
-
-
-
 ==============================================================================
 BUFFER                                           *colorizer.buffer-introduction*
 
@@ -267,13 +254,6 @@ Functions: ~
     |parse_lines| - Parse the given lines for colors and return a table
     containing
  rgb_hex and range per line
-
-Fields: ~
-    |highlight_mode_names| - Highlight mode which will be use to render the
-    color
-
-    |default_namespace| - Default namespace used in `highlight` and
-    `colorizer.attach_to_buffer`.
 
 
 clear_hl_cache()                               *colorizer.buffer.clear_hl_cache*
@@ -338,20 +318,6 @@ parse_lines({bufnr}, {lines}, {line_start}, {ud_opts})
 
     returns:~
 	table or nil
-
-
-
-highlight_mode_names                     *colorizer.buffer.highlight_mode_names*
-    Highlight mode which will be use to render the color
-
-
-
-default_namespace                           *colorizer.buffer.default_namespace*
-    Default namespace used in `highlight` and `colorizer.attach_to_buffer`.
-
-    See also:~
-	|highlight|
-	|colorizer.attach_to_buffer|
 
 
 
@@ -674,6 +640,8 @@ Tables: ~
 
     |highlight_mode_names| - Highlight mode names.
 
+    |defaults| - Miscellaneous constants
+
 
 plugin                                              *colorizer.constants.plugin*
     Plugin name
@@ -715,6 +683,14 @@ highlight_mode_names                  *colorizer.constants.highlight_mode_names*
     Fields: ~
 	{background} -
 	{foreground} -
+	{virtualtext} -
+
+
+
+defaults                                          *colorizer.constants.defaults*
+    Miscellaneous constants
+
+    Fields: ~
 	{virtualtext} -
 
 

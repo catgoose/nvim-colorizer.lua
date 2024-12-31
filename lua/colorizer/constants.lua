@@ -30,4 +30,9 @@ M.highlight_mode_names = {
   virtualtext = "mv",
 }
 
+--- Miscellaneous constants
+M.defaults = {
+  virtualtext = "■",
+}
+
 return M

@@ -15,14 +15,6 @@ local hl_state = {
   cache = {},
 }
 
---- Highlight mode which will be use to render the color
-M.highlight_mode_names = const.highlight_mode_names
-
---- Default namespace used in `highlight` and `colorizer.attach_to_buffer`.
----@see highlight
----@see colorizer.attach_to_buffer
-M.default_namespace = const.namespace.default
-
 --- Clean the highlight cache
 function M.clear_hl_cache()
   hl_state.cache = {}
@@ -30,7 +22,7 @@ end
 
 --- Make a deterministic name for a highlight given these attributes
 local function make_highlight_name(rgb, mode)
-  return table.concat({ hl_state.name_prefix, M.highlight_mode_names[mode], rgb }, "_")
+  return table.concat({ hl_state.name_prefix, const.highlight_mode_names[mode], rgb }, "_")
 end
 
 --- Create a highlight with the given rgb_hex and mode
@@ -40,7 +32,7 @@ local function create_highlight(rgb_hex, mode)
   mode = mode or "background"
   --  TODO: 2024-12-20 - validate rgb format
   rgb_hex = rgb_hex:lower()
-  local cache_key = table.concat({ M.highlight_mode_names[mode], rgb_hex }, "_")
+  local cache_key = table.concat({ const.highlight_mode_names[mode], rgb_hex }, "_")
   local highlight_name = hl_state.cache[cache_key]
 
   -- Look up in our cache.
@@ -85,7 +77,6 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts, hl_o
     return
   end
   hl_opts = hl_opts or {}
-
   vim.api.nvim_buf_clear_namespace(bufnr, ns_id, line_start, line_end)
   if vim.tbl_contains({ "background", "foreground" }, ud_opts.mode) then
     for linenr, hls in pairs(data) do
@@ -101,22 +92,19 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts, hl_o
     for linenr, hls in pairs(data) do
       for _, hl in ipairs(hls) do
         local hlname = create_highlight(hl.rgb_hex, ud_opts.virtualtext_mode)
-
         local start_col = hl.range[2]
         local opts = {
-          virt_text = { { ud_opts.virtualtext or "■", hlname } },
+          virt_text = { { ud_opts.virtualtext or const.defaults.virtualtext, hlname } },
           hl_mode = "combine",
           priority = 0,
         }
-
         if ud_opts.virtualtext_inline then
           start_col = hl.range[1]
           opts.virt_text_pos = "inline"
-          opts.virt_text = { { (ud_opts.virtualtext or "■") .. " ", hlname } }
+          opts.virt_text =
+            { { (ud_opts.virtualtext or const.defaults.virtualtext) .. " ", hlname } }
         end
-
         opts.end_col = start_col
-
         if hl_opts.tailwind_lsp then
           vim.api.nvim_buf_clear_namespace(bufnr, const.namespace.default, linenr, linenr + 1)
         end
@@ -137,7 +125,7 @@ end
 ---@param buf_local_opts table: Buffer local options
 ---@return table: Detach settings table { ns_id = {}, functions = {} }
 function M.highlight(bufnr, ns_id, line_start, line_end, ud_opts, buf_local_opts)
-  ns_id = ns_id or M.default_namespace
+  ns_id = ns_id or const.namespace.default
   bufnr = utils.bufme(bufnr)
   local detach = { ns_id = {}, functions = {} }
   local lines = vim.api.nvim_buf_get_lines(bufnr, line_start, line_end, false)
@@ -157,7 +145,6 @@ function M.highlight(bufnr, ns_id, line_start, line_end, ud_opts, buf_local_opts
   end
 
   local data = M.parse_lines(bufnr, lines, line_start, ud_opts) or {}
-
   M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts)
 
   if ud_opts.tailwind == "lsp" or ud_opts.tailwind == "both" then
@@ -184,7 +171,6 @@ function M.parse_lines(bufnr, lines, line_start, ud_opts)
   local data = {}
   for line_nr, line in ipairs(lines) do
     line_nr = line_nr - 1 + line_start
-
     local i = 1
     while i < #line do
       local length, rgb_hex = loop_parse_fn(line, i, bufnr)
