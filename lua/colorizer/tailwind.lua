@@ -147,7 +147,6 @@ function M.setup_lsp_colors(bufnr, ud_opts, buf_local_opts, add_highlight, on_de
       if client and client:supports_method("textDocument/documentColor") then
         return client
       end
-      return
     end)
     if not (ok and client) then
       return

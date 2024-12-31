@@ -366,7 +366,7 @@ function M.attach_to_buffer(bufnr, ud_opts, bo_type)
       -- Only reload if it was not disabled using detach_from_buffer
       if colorizer_state.buffer_options[bufnr] then
         colorizer_state.buffer_local[bufnr].__event = args.event
-        -- M.rehighlight(bufnr, ud_opts, colorizer_state.buffer_local[bufnr])
+        M.rehighlight(bufnr, ud_opts, colorizer_state.buffer_local[bufnr])
       end
     end,
   })
