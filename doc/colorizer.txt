@@ -1043,7 +1043,7 @@ cleanup({bufnr})                                    *colorizer.tailwind.cleanup*
     Cleanup tailwind variables and autocmd
 
     Parameters: ~
-	{bufnr} -  number: buffer number (0 for current)
+	{bufnr} -  number|nil: buffer number (0 for current)
 
 
 
@@ -1059,6 +1059,9 @@ setup_lsp_colors({bufnr}, {ud_opts}, {buf_local_opts}, {add_highlight},
 	{buf_local_opts} -  table: Buffer local options
 	{add_highlight} -  function
 	{on_detach} -  function
+
+    returns:~
+	boolean or nil
 
 
 
