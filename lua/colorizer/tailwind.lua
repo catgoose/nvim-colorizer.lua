@@ -130,7 +130,7 @@ function M.setup_lsp_colors(bufnr, ud_opts, buf_local_opts, add_highlight, on_de
           if ok and client then
             if
               client.name == "tailwindcss"
-              and client.supports_method("textDocument/documentColor")
+              and client:supports_method("textDocument/documentColor", bufnr)
             then
               state[bufnr].client = client
               vim.defer_fn(function()
@@ -156,7 +156,7 @@ function M.setup_lsp_colors(bufnr, ud_opts, buf_local_opts, add_highlight, on_de
     local ok, client = pcall(function()
       local clients = vim.lsp.get_clients({ bufnr = bufnr, name = "tailwindcss" })
       local client = clients[1]
-      if client and client.supports_method("textDocument/documentColor") then
+      if client and client:supports_method("textDocument/documentColor", bufnr) then
         return client
       end
     end)
