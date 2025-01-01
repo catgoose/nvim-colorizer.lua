@@ -1193,7 +1193,7 @@ Functions: ~
 
     |bufme| - Validates and returns a buffer number.
 
-    |view_range| - Returns range of lines in viewport
+    |visible_line_range| - Returns range of visible lines
 
 
 rgb_to_hex({r}, {g}, {b})                           *colorizer.utils.rgb_to_hex*
@@ -1301,8 +1301,8 @@ bufme({bufnr})                                           *colorizer.utils.bufme*
 
 
 
-view_range({bufnr})                                 *colorizer.utils.view_range*
-    Returns range of lines in viewport
+visible_line_range({bufnr})                 *colorizer.utils.visible_line_range*
+    Returns range of visible lines
 
     Parameters: ~
 	{bufnr} -  number: Buffer number

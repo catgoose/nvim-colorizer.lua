@@ -105,7 +105,7 @@ M.highlight_buffer = buffer.highlight
 local function row_range(bufnr)
   colorizer_state.buffer_lines[bufnr] = colorizer_state.buffer_lines[bufnr] or {}
   local min, max
-  local new_min, new_max = utils.view_range(bufnr)
+  local new_min, new_max = utils.visible_line_range(bufnr)
   local old_min, old_max =
     colorizer_state.buffer_lines[bufnr]["min"], colorizer_state.buffer_lines[bufnr]["max"]
   if old_min and old_max then

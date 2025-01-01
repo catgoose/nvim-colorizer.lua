@@ -48,7 +48,7 @@ local function highlight_tailwind(bufnr, ud_opts, add_highlight)
           vim.api.nvim_err_writeln("tailwind.highlight_tailwind: Error: " .. err)
         end
         if err == nil and results ~= nil then
-          local min, max = utils.view_range(bufnr)
+          local min, max = utils.visible_line_range(bufnr)
           local data, line_start, line_end = {}, nil, nil
           for _, result in pairs(results) do
             local cur_line = result.range.start.line
