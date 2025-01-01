@@ -274,8 +274,9 @@ add_highlight({bufnr}, {ns_id}, {line_start}, {line_end}, {data}, {ud_opts},
 	{line_end} -  number: Last line to highlight
 	{data} -  table: Table output of `parse_lines`
 	{ud_opts} -  table: `user_default_options`
-	{hl_opts} -  table|nil: highlight options:
- - tailwind_lsp boolean: indicates to clear default namespace on line
+	{hl_opts} -  table|nil: Highlight options:
+ - tailwind_lsp boolean: Clear tailwind_names namespace when applying Tailwind
+   LSP highlighting
 
 
 
@@ -661,7 +662,8 @@ namespace                                        *colorizer.constants.namespace*
 
     Fields: ~
 	{default} -
-	{tailwind} -
+	{tailwind_names} -
+	{tailwind_lsp} -
 
 
 

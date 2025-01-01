@@ -70,8 +70,8 @@ end
 ---@param line_end number: Last line to highlight
 ---@param data table: Table output of `parse_lines`
 ---@param ud_opts table: `user_default_options`
----@param hl_opts table|nil: highlight options:
--- - tailwind_lsp boolean: indicates to clear default namespace on line
+---@param hl_opts table|nil: Highlight options:
+--- - tailwind_lsp boolean: Clear tailwind_names namespace when applying Tailwind LSP highlighting
 function M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts, hl_opts)
   if not vim.api.nvim_buf_is_valid(bufnr) then
     return
@@ -81,12 +81,13 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts, hl_o
   if vim.tbl_contains({ "background", "foreground" }, ud_opts.mode) then
     for linenr, hls in pairs(data) do
       for _, hl in ipairs(hls) do
-        --  HACK: 2024-12-30 - This ensures that tailwind lsp colors are applied with priority over
-        --  default namespace highlighting when tailwind = "both"
-        -- Beware that with something like `class="red blue dark:ring-sky-600"`, `red` and `blue` will
-        -- become unhighlighted.  Not sure how to account for this case or if it is even an issue
         if ud_opts.tailwind == "both" and hl_opts.tailwind_lsp then
-          -- vim.api.nvim_buf_clear_namespace(bufnr, const.namespace.default, linenr, linenr + 1)
+          vim.api.nvim_buf_clear_namespace(
+            bufnr,
+            const.namespace.tailwind_names,
+            linenr,
+            linenr + 1
+          )
         end
         local hlname = create_highlight(hl.rgb_hex, ud_opts.mode)
         vim.api.nvim_buf_add_highlight(bufnr, ns_id, hlname, linenr, hl.range[1], hl.range[2])
@@ -95,6 +96,14 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts, hl_o
   elseif ud_opts.mode == "virtualtext" then
     for linenr, hls in pairs(data) do
       for _, hl in ipairs(hls) do
+        if ud_opts.tailwind == "both" and hl_opts.tailwind_lsp then
+          vim.api.nvim_buf_clear_namespace(
+            bufnr,
+            const.namespace.tailwind_names,
+            linenr,
+            linenr + 1
+          )
+        end
         local hlname = create_highlight(hl.rgb_hex, ud_opts.virtualtext_mode)
         local start_col = hl.range[2]
         local opts = {
@@ -109,9 +118,6 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts, hl_o
             { { (ud_opts.virtualtext or const.defaults.virtualtext) .. " ", hlname } }
         end
         opts.end_col = start_col
-        if ud_opts.tailwind == "both" and hl_opts.tailwind_lsp then
-          vim.api.nvim_buf_clear_namespace(bufnr, const.namespace.default, linenr, linenr + 1)
-        end
         vim.api.nvim_buf_set_extmark(bufnr, ns_id, linenr, start_col, opts)
       end
     end
@@ -156,10 +162,9 @@ function M.highlight(bufnr, ns_id, line_start, line_end, ud_opts, buf_local_opts
     tailwind.setup_lsp_colors(bufnr, ud_opts, buf_local_opts, M.add_highlight, tailwind.cleanup)
     table.insert(detach.functions, tailwind.cleanup)
   end
-  --  TODO: 2024-12-31 - Simplify this if statement
   if ud_opts.tailwind == true or ud_opts.tailwind == "normal" or ud_opts.tailwind == "both" then
     local tw_data = M.parse_lines(bufnr, lines, line_start, ud_opts, { tailwind = true }) or {}
-    M.add_highlight(bufnr, const.namespace.tailwind, line_start, line_end, tw_data, ud_opts)
+    M.add_highlight(bufnr, const.namespace.tailwind_names, line_start, line_end, tw_data, ud_opts)
   end
 
   return detach

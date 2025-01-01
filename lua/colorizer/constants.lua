@@ -12,7 +12,8 @@ M.plugin = {
 -- - tailwind - Namespace used for creating extmarks to prevent tailwind name parsing from overwriting tailwind lsp highlights
 M.namespace = {
   default = vim.api.nvim_create_namespace(M.plugin.name),
-  tailwind = vim.api.nvim_create_namespace(M.plugin.name .. "_tailwind"),
+  tailwind_names = vim.api.nvim_create_namespace(M.plugin.name .. "_tailwind_names"),
+  tailwind_lsp = vim.api.nvim_create_namespace(M.plugin.name .. "_tailwind_lsp"),
 }
 
 --- Autocommand group for setting up Colorizer

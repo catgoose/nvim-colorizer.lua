@@ -62,6 +62,20 @@ local function compile(matchers, matchers_trie)
     end
 
     -- Color names
+    -- if matchers.color_name_parser and not matchers.tailwind_names_parser then
+    --   return parsers.color_name(line, i, matchers.color_name_parser)
+    -- end
+    -- if not matchers.color_name_parser and matchers.tailwind_names_parser then
+    --   return parsers.tailwind_name(line, i)
+    -- end
+    -- if matchers.color_name_parser and matchers.tailwind_names_parser then
+    --   local length, rgb_hex
+    --   length, rgb_hex = parsers.color_name(line, i, matchers.color_name_parser)
+    --   if length and rgb_hex then
+    --     return length, rgb_hex
+    --   end
+    --   return parsers.tailwind_name(line, i)
+    -- end
     if matchers.color_name_parser then
       return parsers.color_name(line, i, matchers.color_name_parser)
     end
@@ -154,7 +168,7 @@ function M.make(opts)
       matchers.color_name_parser.names_custom = enable_names_custom
     end
   end
-  matchers.tailwind_names_parser = enable_tailwind ~= "lsp" or nil
+
   matchers.sass_name_parser = enable_sass or nil
 
   local valid_lengths =

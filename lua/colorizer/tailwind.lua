@@ -9,7 +9,7 @@ local M = {}
 local utils = require("colorizer.utils")
 
 -- use a different namespace for tailwind as will be cleared if kept in Default namespace
-local tw_ns_id = require("colorizer.constants").namespace.tailwind
+local tw_ns_id = require("colorizer.constants").namespace.tailwind_lsp
 
 local state = {}
 
@@ -46,7 +46,7 @@ local function highlight_tailwind(bufnr, ud_opts, add_highlight)
       state[bufnr].document_params,
       function(err, results, _, _)
         if err ~= nil then
-          vim.api.nvim_err_writeln("tailwind.highlight_tailwindError: " .. err)
+          vim.api.nvim_err_writeln("tailwind.highlight_tailwind: Error: " .. err)
         end
         if err == nil and results ~= nil then
           local data, line_start, line_end = {}, nil, nil
@@ -83,13 +83,19 @@ local function highlight_tailwind(bufnr, ud_opts, add_highlight)
           end
           line_start = line_start or 0
           line_end = line_end and (line_end + 2) or -1
-          add_highlight(bufnr, tw_ns_id, line_start, line_end, data, ud_opts, {
-            tailwind_lsp = true,
-          })
+          add_highlight(
+            bufnr,
+            tw_ns_id,
+            line_start,
+            line_end,
+            data,
+            ud_opts,
+            { tailwind_lsp = true }
+          )
         end
       end
     )
-  end, 1000)
+  end, 10)
 end
 
 --- Highlight buffer using values returned by tailwindcss
