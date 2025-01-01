@@ -104,14 +104,8 @@ M.highlight_buffer = buffer.highlight
 ---@param bufnr number: Buffer number
 local function row_range(bufnr)
   colorizer_state.buffer_lines[bufnr] = colorizer_state.buffer_lines[bufnr] or {}
-  local range = vim.api.nvim_buf_call(bufnr, function()
-    return {
-      vim.fn.line("w0"),
-      vim.fn.line("w$"),
-    }
-  end)
   local min, max
-  local new_min, new_max = range[1] - 1, range[2]
+  local new_min, new_max = utils.view_range(bufnr)
   local old_min, old_max =
     colorizer_state.buffer_lines[bufnr]["min"], colorizer_state.buffer_lines[bufnr]["max"]
   if old_min and old_max then
@@ -147,7 +141,9 @@ end
 ---@param ud_opts table: `user_default_options`
 ---@param buf_local_opts table|nil: Buffer local options
 ---@param use_local_lines boolean|nil Whether to use lines num range from options_local
----@return table: Detach settings table { ns_id = {}, functions = {} }
+---@return table: Detach settings table to use when cleaning up buffer state in `colorizer.detach_from_buffer`
+--- - ns_id number: Table of namespace ids to clear
+--- - functions function: Table of detach functions to call
 function M.rehighlight(bufnr, ud_opts, buf_local_opts, use_local_lines)
   bufnr = utils.bufme(bufnr)
   local ns_id = const.namespace.default

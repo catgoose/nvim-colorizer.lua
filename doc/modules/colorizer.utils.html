@@ -107,6 +107,10 @@
 	<td class="name" nowrap><a href="#bufme">bufme (bufnr)</a></td>
 	<td class="summary">Validates and returns a buffer number.</td>
 	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#view_range">view_range (bufnr)</a></td>
+	<td class="summary">Returns range of lines in viewport</td>
+	</tr>
 </table>
 
 <br/>
@@ -346,6 +350,31 @@
     <ol>
 
         number: The validated buffer number.
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "view_range"></a>
+    <strong>view_range (bufnr)</strong>
+    </dt>
+    <dd>
+    Returns range of lines in viewport
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">bufnr</span>
+         number: Buffer number
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        number, number: Start (0-index) and end (exclusive) range of lines in viewport
     </ol>
 
 

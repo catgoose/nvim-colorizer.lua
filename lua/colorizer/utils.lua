@@ -170,4 +170,18 @@ function M.bufme(bufnr)
     or vim.api.nvim_get_current_buf()
 end
 
+--- Returns range of lines in viewport
+---@param bufnr number: Buffer number
+---@return number, number: Start (0-index) and end (exclusive) range of lines in viewport
+function M.view_range(bufnr)
+  bufnr = M.bufme(bufnr)
+  local range = vim.api.nvim_buf_call(bufnr, function()
+    return {
+      vim.fn.line("w0"),
+      vim.fn.line("w$"),
+    }
+  end)
+  return range[1] - 1, range[2]
+end
+
 return M

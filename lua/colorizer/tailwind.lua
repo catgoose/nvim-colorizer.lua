@@ -30,7 +30,6 @@ function M.cleanup(bufnr)
   clear_ns(bufnr)
 end
 
---  TODO: 2024-12-31 - Cache lsp response and only rehighlight if diff
 local function highlight_tailwind(bufnr, ud_opts, add_highlight)
   -- it can take some time to actually fetch the results
   -- on top of that, tailwindcss is quite slow in neovim
@@ -49,9 +48,15 @@ local function highlight_tailwind(bufnr, ud_opts, add_highlight)
           vim.api.nvim_err_writeln("tailwind.highlight_tailwind: Error: " .. err)
         end
         if err == nil and results ~= nil then
+          local min, max = utils.view_range(bufnr)
           local data, line_start, line_end = {}, nil, nil
           for _, result in pairs(results) do
             local cur_line = result.range.start.line
+            --  TODO: 2025-01-01 - This only highlights current viewport.  LSP response should be
+            --  cached and used to highlight new rows in viewport before applying LSP highlights
+            if cur_line < min or cur_line > max then
+              goto continue
+            end
             if line_start then
               if cur_line < line_start then
                 line_start = cur_line
@@ -80,6 +85,7 @@ local function highlight_tailwind(bufnr, ud_opts, add_highlight)
 
             data[cur_line] = data[cur_line] or {}
             table.insert(data[cur_line], { rgb_hex = rgb_hex, range = { first_col, end_col } })
+            ::continue::
           end
           line_start = line_start or 0
           line_end = line_end and (line_end + 2) or -1

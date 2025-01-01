@@ -133,7 +133,9 @@ end
 ---@param line_end number: Last line to highlight
 ---@param ud_opts table: `user_default_options`
 ---@param buf_local_opts table: Buffer local options
----@return table: Detach settings table { ns_id = {}, functions = {} }
+---@return table: Detach settings table to use when cleaning up buffer state in `colorizer.detach_from_buffer`
+--- - ns_id number: Table of namespace ids to clear
+--- - functions function: Table of detach functions to call
 function M.highlight(bufnr, ns_id, line_start, line_end, ud_opts, buf_local_opts)
   ns_id = ns_id or const.namespace.default
   bufnr = utils.bufme(bufnr)
@@ -157,7 +159,6 @@ function M.highlight(bufnr, ns_id, line_start, line_end, ud_opts, buf_local_opts
   local data = M.parse_lines(bufnr, lines, line_start, ud_opts) or {}
   M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts)
 
-  --  TODO: 2024-12-31 - Simplifiy checking tailwind opts
   if ud_opts.tailwind == "lsp" or ud_opts.tailwind == "both" then
     tailwind.setup_lsp_colors(bufnr, ud_opts, buf_local_opts, M.add_highlight, tailwind.cleanup)
     table.insert(detach.functions, tailwind.cleanup)
