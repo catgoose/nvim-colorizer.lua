@@ -691,6 +691,8 @@ autocmd                                            *colorizer.constants.autocmd*
 
     Fields: ~
 	{setup} -
+	{bo_type_ac} -
+	{buftype} -
 
 
 

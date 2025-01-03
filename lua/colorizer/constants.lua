@@ -19,6 +19,10 @@ M.namespace = {
 --- Autocommand group for setting up Colorizer
 M.autocmd = {
   setup = "ColorizerSetup",
+  bo_type_ac = {
+    filetype = "FileType",
+    buftype = "BufWinEnter",
+  },
 }
 
 --- Highlight mode names.  Used to create highlight names to be used with vim.api.nvim_buf_add_highlight

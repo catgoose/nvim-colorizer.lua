@@ -102,12 +102,14 @@ end
 
 --- Validate user options and set defaults.
 local function validate_options(ud_opts)
+  -- Set true value to it's "name"
   if ud_opts.tailwind == true then
     ud_opts.tailwind = "normal"
   end
   if ud_opts.virtualtext_inline == true then
     ud_opts.virtualtext_inline = "after"
   end
+  -- Set default if value is invalid
   if ud_opts.tailwind ~= "normal" and ud_opts.tailwind ~= "both" and ud_opts.tailwind ~= "lsp" then
     ud_opts.tailwind = plugin_user_default_options.tailwind
   end
@@ -165,6 +167,7 @@ function M.apply_alias_options(ud_opts)
   end
 
   ud_opts = vim.tbl_deep_extend("force", M.options.user_default_options, ud_opts)
+  validate_options(ud_opts)
   return ud_opts
 end
 
@@ -216,7 +219,6 @@ function M.get_setup_options(opts)
   opts = opts or {}
   opts.user_default_options = opts.user_default_options or plugin_user_default_options
   opts.user_default_options = M.apply_alias_options(opts.user_default_options)
-  validate_options(opts.user_default_options)
   M.options = vim.tbl_deep_extend("force", M.options, opts)
   return M.options
 end

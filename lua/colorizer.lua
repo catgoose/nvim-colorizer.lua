@@ -271,6 +271,8 @@ function M.attach_to_buffer(bufnr, ud_opts, bo_type)
     or get_attached_buffer_options(bufnr)
     -- new buffer options
     or config.new_bo_options(bufnr, bo_type)
+
+  -- Applying alias options also validates options, for example converts `tailwind = true` to `tailwind = "normal"`.  This makes later options checks easier
   ud_opts = config.apply_alias_options(ud_opts)
 
   colorizer_state.buffer_options[bufnr] = ud_opts
@@ -470,60 +472,47 @@ function M.setup(opts)
     end
   end
 
-  --  TODO: 2024-12-24 - refactor this
   -- Setup highlighting autocmds for filetypes and buftypes
-  local bo_type_ac = {
-    filetype = "FileType",
-    buftype = "BufWinEnter",
-  }
   local bo_type_options = {
     filetype = s.filetypes,
     buftype = s.buftypes,
   }
   for bo_type, bo_type_option in pairs(bo_type_options) do
-    if type(bo_type_option) ~= "table" then
-      vim.notify_once(
-        string.format("colorizer: Invalid type for %ss %s", bo_type, vim.inspect(bo_type_option)),
-        4
-      )
-    else
-      local list = {}
-      for k, v in pairs(bo_type_option) do
-        local value
-        local ud_opts = s.user_default_options
-        if type(k) == "string" then
-          value = k
-          if type(v) ~= "table" then
-            vim.notify(string.format("colorizer: Invalid option type for %s", value), 4)
-          else
-            ud_opts = vim.tbl_extend("force", ud_opts, v)
-          end
+    local list = {}
+    for k, v in pairs(bo_type_option) do
+      local value
+      local ud_opts = s.user_default_options
+      if type(k) == "string" then
+        value = k
+        if type(v) ~= "table" then
+          vim.notify(string.format("colorizer: Invalid option type for %s", value), 4)
         else
-          value = v
+          ud_opts = vim.tbl_extend("force", ud_opts, v)
         end
-        -- Exclude or set buffer options
-        if value:sub(1, 1) == "!" then
-          s.exclusions[bo_type][value:sub(2)] = true
+      else
+        value = v
+      end
+      -- Exclude or set buffer options
+      if value:sub(1, 1) == "!" then
+        s.exclusions[bo_type][value:sub(2)] = true
+      else
+        config.set_bo_value(bo_type, value, ud_opts)
+        if value == "*" then
+          s.all[bo_type] = true
         else
-          config.set_bo_value(bo_type, value, ud_opts)
-          if value == "*" then
-            s.all[bo_type] = true
-          else
-            table.insert(list, value)
-          end
+          table.insert(list, value)
         end
       end
-      --  TODO: 2025-01-02 - is this setup correctly for buftype?
-      vim.api.nvim_create_autocmd({ bo_type_ac[bo_type] }, {
-        group = colorizer_state.augroup,
-        pattern = bo_type == "filetype" and (s.all[bo_type] and "*" or list) or nil,
-        callback = function()
-          vim.schedule(function()
-            setup(bo_type)
-          end)
-        end,
-      })
     end
+    vim.api.nvim_create_autocmd({ const.autocmd.bo_type_ac[bo_type] }, {
+      group = colorizer_state.augroup,
+      pattern = bo_type == "filetype" and (s.all[bo_type] and "*" or list) or nil,
+      callback = function()
+        vim.schedule(function()
+          setup(bo_type)
+        end)
+      end,
+    })
   end
 
   -- Clear highlight cache on colorscheme change
