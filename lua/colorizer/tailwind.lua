@@ -8,9 +8,7 @@ local M = {}
 
 local utils = require("colorizer.utils")
 
--- use a different namespace for tailwind as will be cleared if kept in Default namespace
 local tw_ns_id = require("colorizer.constants").namespace.tailwind_lsp
-
 local state = {}
 
 local function clear_ns(bufnr)
@@ -31,77 +29,54 @@ function M.cleanup(bufnr)
 end
 
 local function highlight_tailwind(bufnr, ud_opts, add_highlight)
-  -- it can take some time to actually fetch the results
-  -- on top of that, tailwindcss is quite slow in neovim
-  vim.defer_fn(function()
-    if not state[bufnr] or not state[bufnr].client or not state[bufnr].client.request then
-      return
-    end
-
-    state[bufnr].document_params = state[bufnr].document_params
-      or { textDocument = vim.lsp.util.make_text_document_params(bufnr) }
-    state[bufnr].client.request(
-      "textDocument/documentColor",
-      state[bufnr].document_params,
-      function(err, results, _, _)
-        if err ~= nil then
-          vim.api.nvim_err_writeln("tailwind.highlight_tailwind: Error: " .. err)
-        end
-        if err == nil and results ~= nil then
-          local min, max = utils.visible_line_range(bufnr)
-          local data, line_start, line_end = {}, nil, nil
-          for _, result in pairs(results) do
-            local cur_line = result.range.start.line
-            --  TODO: 2025-01-01 - This only highlights current viewport.  LSP response should be
-            --  cached and used to highlight new rows in viewport before applying LSP highlights
-            if cur_line < min or cur_line > max then
-              goto continue
-            end
-            if line_start then
-              if cur_line < line_start then
-                line_start = cur_line
-              end
-            else
+  if not state[bufnr] or not state[bufnr].client or not state[bufnr].client.request then
+    return
+  end
+  state[bufnr].document_params = state[bufnr].document_params
+    or { textDocument = vim.lsp.util.make_text_document_params(bufnr) }
+  state[bufnr].client.request(
+    "textDocument/documentColor",
+    state[bufnr].document_params,
+    function(err, results, _, _)
+      if err ~= nil then
+        vim.api.nvim_err_writeln("tailwind.highlight_tailwind: Error: " .. err)
+      end
+      if err == nil and results ~= nil then
+        local data, line_start, line_end = {}, nil, nil
+        for _, result in pairs(results) do
+          local cur_line = result.range.start.line
+          if line_start then
+            if cur_line < line_start then
               line_start = cur_line
             end
-
-            local end_line = result.range["end"].line
-            if line_end then
-              if end_line > line_end then
-                line_end = end_line
-              end
-            else
+          else
+            line_start = cur_line
+          end
+          local end_line = result.range["end"].line
+          if line_end then
+            if end_line > line_end then
               line_end = end_line
             end
-
-            local r, g, b, a =
-              result.color.red or 0,
-              result.color.green or 0,
-              result.color.blue or 0,
-              result.color.alpha or 0
-            local rgb_hex = string.format("%02x%02x%02x", r * a * 255, g * a * 255, b * a * 255)
-            local first_col = result.range.start.character
-            local end_col = result.range["end"].character
-
-            data[cur_line] = data[cur_line] or {}
-            table.insert(data[cur_line], { rgb_hex = rgb_hex, range = { first_col, end_col } })
-            ::continue::
+          else
+            line_end = end_line
           end
-          line_start = line_start or 0
-          line_end = line_end and (line_end + 2) or -1
-          add_highlight(
-            bufnr,
-            tw_ns_id,
-            line_start,
-            line_end,
-            data,
-            ud_opts,
-            { tailwind_lsp = true }
-          )
+          local r, g, b, a =
+            result.color.red or 0,
+            result.color.green or 0,
+            result.color.blue or 0,
+            result.color.alpha or 0
+          local rgb_hex = string.format("%02x%02x%02x", r * a * 255, g * a * 255, b * a * 255)
+          local first_col = result.range.start.character
+          local end_col = result.range["end"].character
+          data[cur_line] = data[cur_line] or {}
+          table.insert(data[cur_line], { rgb_hex = rgb_hex, range = { first_col, end_col } })
         end
+        line_start = line_start or 0
+        line_end = line_end and (line_end + 2) or -1
+        add_highlight(bufnr, tw_ns_id, line_start, line_end, data, ud_opts, { tailwind_lsp = true })
       end
-    )
-  end, 10)
+    end
+  )
 end
 
 --- Highlight buffer using values returned by tailwindcss
@@ -133,9 +108,7 @@ function M.setup_lsp_colors(bufnr, ud_opts, buf_local_opts, add_highlight, on_de
               and client:supports_method("textDocument/documentColor", bufnr)
             then
               state[bufnr].client = client
-              vim.defer_fn(function()
-                highlight_tailwind(bufnr, ud_opts, add_highlight)
-              end, 100)
+              highlight_tailwind(bufnr, ud_opts, add_highlight)
             end
           end
         end,
@@ -165,9 +138,7 @@ function M.setup_lsp_colors(bufnr, ud_opts, buf_local_opts, add_highlight, on_de
     end
 
     state[bufnr].client = client
-    vim.defer_fn(function()
-      highlight_tailwind(bufnr, ud_opts, add_highlight)
-    end, 1000)
+    highlight_tailwind(bufnr, ud_opts, add_highlight)
 
     return true
   end

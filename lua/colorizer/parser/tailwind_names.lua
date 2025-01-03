@@ -22,6 +22,15 @@ do
   M.reset_cache()
 end
 
+function M.update_color(name, val)
+  if not name or not val then
+    return
+  end
+  if names_cache.color_map[name] then
+    names_cache.color_map[name] = val
+  end
+end
+
 --- Internal function to add a color to the Trie and map.
 ---@param name string: The color name.
 ---@param val string: The color value in hex format.

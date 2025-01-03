@@ -23,6 +23,9 @@ local plugin_user_default_options = {
   css_fn = false,
   mode = "background",
   tailwind = false,
+  tailwind_opts = {
+    update_names = false,
+  },
   sass = { enable = false, parsers = { css = true } },
   virtualtext = "■",
   virtualtext_inline = false,
@@ -59,9 +62,10 @@ local plugin_user_default_options = {
 -- @field css_fn boolean: Enables all CSS functions (`rgb_fn`, `hsl_fn`).
 -- @field mode 'background'|'foreground'|'virtualtext': Display mode
 -- @field tailwind boolean|string: Enables Tailwind CSS colors (e.g., `"normal"`, `"lsp"`, `"both"`).
+-- @field tailwind_opts table: Tailwind options for updating names cache, etc
 -- @field sass table: Sass color configuration (`enable` flag and `parsers`).
 -- @field virtualtext string: Character used for virtual text display.
--- @field virtualtext_inline boolean: Shows virtual text inline with color.
+-- @field virtualtext_inline boolean|'before'|'after': Shows virtual text inline with color.
 -- @field virtualtext_mode 'background'|'foreground': Mode for virtual text display.
 -- @field always_update boolean: Always update color values, even if buffer is not focused.
 
@@ -96,11 +100,38 @@ do
   M.reset_cache()
 end
 
+--- Validate user options and set defaults.
+local function validate_options(ud_opts)
+  if ud_opts.tailwind == true then
+    ud_opts.tailwind = "normal"
+  end
+  if ud_opts.virtualtext_inline == true then
+    ud_opts.virtualtext_inline = "after"
+  end
+  if ud_opts.tailwind ~= "normal" and ud_opts.tailwind ~= "both" and ud_opts.tailwind ~= "lsp" then
+    ud_opts.tailwind = plugin_user_default_options.tailwind
+  end
+  if ud_opts.virtualtext_inline ~= "before" and ud_opts.virtualtext_inline ~= "after" then
+    ud_opts.virtualtext_inline = plugin_user_default_options.virtualtext_inline
+  end
+  if
+    ud_opts.mode ~= "background"
+    and ud_opts.mode ~= "foreground"
+    and ud_opts.mode ~= "virtualtext"
+  then
+    ud_opts.mode = plugin_user_default_options.mode
+  end
+  if ud_opts.virtualtext_mode ~= "background" and ud_opts.virtualtext_mode ~= "foreground" then
+    ud_opts.virtualtext_mode = plugin_user_default_options.virtualtext_mode
+  end
+end
+
 --- Set options for a specific buffer or file type.
 ---@param bo_type 'buftype'|'filetype': The type of buffer option
 ---@param val string: The specific value to set.
 ---@param ud_opts table: `user_default_options`
 function M.set_bo_value(bo_type, val, ud_opts)
+  validate_options(ud_opts)
   options_cache[bo_type][val] = ud_opts
 end
 
@@ -143,6 +174,10 @@ end
 -- @field user_default_options table Default options for color handling.
 --   - `names` (boolean): Enables named color codes like `"Blue"`.
 --   - `names_opts` (table): Names options for customizing casing, digit stripping, etc
+--     - `lowercase` (boolean): Converts color names to lowercase.
+--     - `camelcase` (boolean): Converts color names to camelCase.  This is the default naming scheme for colors returned from `vim.api.nvim_get_color_map`
+--     - `uppercase` (boolean): Converts color names to uppercase.
+--     - `strip_digits` (boolean): Removes digits from color names.
 --   - `names_custom` (table|function|false|nil): Custom color name to RGB value mappings
 --   - `RGB` (boolean): Enables support for `#RGB` hex codes.
 --   - `RGBA` (boolean): Enables support for `#RGBA` hex codes.
@@ -155,11 +190,13 @@ end
 --   - `css_fn` (boolean): Enables all CSS function-related features (e.g., `rgb_fn`, `hsl_fn`).
 --   - `mode` (string): Determines the display mode for highlights. Options are `"background"`, `"foreground"`, and `"virtualtext"`.
 --   - `tailwind` (boolean|string): Enables Tailwind CSS colors. Accepts `true`, `"normal"`, `"lsp"`, or `"both"`.
+--   - `tailwind_opts` (table): Tailwind options for updating names cache, etc
+--      - `update_names` (boolean): Updates Tailwind "normal" names cache from LSP results.  This provides a smoother highlighting experience when tailwind = "both" is used.  Highlighting on non-tailwind lsp buffers (like cmp) becomes more consistent.
 --   - `sass` (table): Configures Sass color support.
 --      - `enable` (boolean): Enables Sass color parsing.
 --      - `parsers` (table): A list of parsers to use, typically includes `"css"`.
 --   - `virtualtext` (string): Character used for virtual text display of colors (default is `"■"`).
---   - `virtualtext_inline` (boolean): If true, shows the virtual text inline with the color.
+--   - `virtualtext_inline` (boolean|'before'|'after'): Shows the virtual text inline with the color.  True defaults to 'before'.  False or nil disables.
 -- - `virtualtext_mode` ('background'|'foreground'): Determines the display mode for virtual text.
 --   - `always_update` (boolean): If true, updates color values even if the buffer is not focused.
 -- @field buftypes table|nil Optional. A list of buffer types where colorizer should be enabled. Defaults to all buffer types if not provided.
@@ -179,6 +216,7 @@ function M.get_setup_options(opts)
   opts = opts or {}
   opts.user_default_options = opts.user_default_options or plugin_user_default_options
   opts.user_default_options = M.apply_alias_options(opts.user_default_options)
+  validate_options(opts.user_default_options)
   M.options = vim.tbl_deep_extend("force", M.options, opts)
   return M.options
 end

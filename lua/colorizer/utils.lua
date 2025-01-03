@@ -77,8 +77,9 @@ end
 ---@param byte number The byte to check.
 ---@return boolean: `true` if the byte is valid, otherwise `false`.
 function M.byte_is_valid_colorchar(byte)
-  --  TODO: 2024-12-21 - Is this check required?
-  return M.byte_is_alphanumeric(byte) or byte == ("-"):byte()
+  --  TODO: 2025-01-02 - The "-" seems to be have used for tailwind, but additional_chars can be dynamically added
+  --  to the trie now, so this should somehow taken into account here
+  return M.byte_is_alphanumeric(byte) or byte == ("-"):byte() or byte == (":"):byte()
 end
 
 ---Count the number of character in a string

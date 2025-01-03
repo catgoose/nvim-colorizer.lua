@@ -6,18 +6,22 @@ local M = {}
 local color = require("colorizer.color")
 local sass = require("colorizer.sass")
 local tailwind = require("colorizer.tailwind")
+local tailwind_names = require("colorizer.parser.tailwind_names")
 local utils = require("colorizer.utils")
 local make_matcher = require("colorizer.matcher").make
 local const = require("colorizer.constants")
 
-local hl_state = {
-  name_prefix = const.plugin.name,
-  cache = {},
-}
-
+local hl_state
 --- Clean the highlight cache
-function M.clear_hl_cache()
-  hl_state.cache = {}
+function M.reset_cache()
+  hl_state = {
+    name_prefix = const.plugin.name,
+    cache = {},
+    updated_colors = {},
+  }
+end
+do
+  M.reset_cache()
 end
 
 --- Make a deterministic name for a highlight given these attributes
@@ -40,6 +44,7 @@ local function create_highlight(rgb_hex, mode)
     return highlight_name
   end
 
+  --  TODO: 2025-01-02 - Is this required?
   -- convert from #fff to #ffffff
   if #rgb_hex == 3 then
     rgb_hex = table.concat({
@@ -63,6 +68,14 @@ local function create_highlight(rgb_hex, mode)
   return highlight_name
 end
 
+local function slice_line(bufnr, line, start_col, end_col)
+  local lines = vim.api.nvim_buf_get_lines(bufnr, line, line + 1, false)
+  if #lines == 0 then
+    return
+  end
+  return string.sub(lines[1], start_col + 1, end_col)
+end
+
 --- Create highlight and set highlights
 ---@param bufnr number: Buffer number (0 for current)
 ---@param ns_id number: Namespace id for which to create highlights
@@ -78,7 +91,7 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts, hl_o
   end
   hl_opts = hl_opts or {}
   vim.api.nvim_buf_clear_namespace(bufnr, ns_id, line_start, line_end)
-  if vim.tbl_contains({ "background", "foreground" }, ud_opts.mode) then
+  if ud_opts.mode == "background" or ud_opts.mode == "foreground" then
     for linenr, hls in pairs(data) do
       for _, hl in ipairs(hls) do
         if ud_opts.tailwind == "both" and hl_opts.tailwind_lsp then
@@ -88,6 +101,13 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts, hl_o
             linenr,
             linenr + 1
           )
+          if ud_opts.tailwind_opts.update_names then
+            local txt = slice_line(bufnr, linenr, hl.range[1], hl.range[2])
+            if txt and not hl_state.updated_colors[txt] then
+              hl_state.updated_colors[txt] = true
+              tailwind_names.update_color(txt, hl.rgb_hex)
+            end
+          end
         end
         local hlname = create_highlight(hl.rgb_hex, ud_opts.mode)
         vim.api.nvim_buf_add_highlight(bufnr, ns_id, hlname, linenr, hl.range[1], hl.range[2])
@@ -103,6 +123,13 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts, hl_o
             linenr,
             linenr + 1
           )
+          -- if ud_opts.tailwind_opts.update_names then
+          --   local txt = slice_line(bufnr, linenr, hl.range[1], hl.range[2])
+          --   if txt and not hl_state.updated_colors[txt] then
+          --     hl_state.updated_colors[txt] = true
+          --     tailwind_names.update_color(txt, hl.rgb_hex)
+          --   end
+          -- end
         end
         local hlname = create_highlight(hl.rgb_hex, ud_opts.virtualtext_mode)
         local start_col = hl.range[2]
@@ -112,10 +139,25 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts, hl_o
           priority = 0,
         }
         if ud_opts.virtualtext_inline then
-          start_col = hl.range[1]
           opts.virt_text_pos = "inline"
-          opts.virt_text =
-            { { (ud_opts.virtualtext or const.defaults.virtualtext) .. " ", hlname } }
+          opts.virt_text = {
+            {
+              string.format(
+                "%s%s%s",
+                ud_opts.virtualtext_inline == "before"
+                    and (ud_opts.virtualtext or const.defaults.virtualtext)
+                  or " ",
+                ud_opts.virtualtext_inline == "before" and " " or "",
+                ud_opts.virtualtext_inline == "after"
+                    and (ud_opts.virtualtext or const.defaults.virtualtext)
+                  or ""
+              ),
+              hlname,
+            },
+          }
+          if ud_opts.virtualtext_inline == "before" then
+            start_col = hl.range[1]
+          end
         end
         opts.end_col = start_col
         vim.api.nvim_buf_set_extmark(bufnr, ns_id, linenr, start_col, opts)
@@ -158,12 +200,11 @@ function M.highlight(bufnr, ns_id, line_start, line_end, ud_opts, buf_local_opts
 
   local data = M.parse_lines(bufnr, lines, line_start, ud_opts) or {}
   M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts)
-
   if ud_opts.tailwind == "lsp" or ud_opts.tailwind == "both" then
     tailwind.setup_lsp_colors(bufnr, ud_opts, buf_local_opts, M.add_highlight, tailwind.cleanup)
     table.insert(detach.functions, tailwind.cleanup)
   end
-  if ud_opts.tailwind == true or ud_opts.tailwind == "normal" or ud_opts.tailwind == "both" then
+  if ud_opts.tailwind == "normal" or ud_opts.tailwind == "both" then
     local tw_data = M.parse_lines(bufnr, lines, line_start, ud_opts, { tailwind = true }) or {}
     M.add_highlight(bufnr, const.namespace.tailwind_names, line_start, line_end, tw_data, ud_opts)
   end
