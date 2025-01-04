@@ -537,7 +537,13 @@ function M.setup(opts)
         group = colorizer_state.augroup,
         pattern = bo_type == "filetype" and (s.all[bo_type] and "*" or list) or nil,
         callback = function()
-          setup(bo_type)
+          if s.lazy_load then
+            vim.schedule(function()
+              setup(bo_type)
+            end)
+          else
+            setup(bo_type)
+          end
         end,
       })
     end

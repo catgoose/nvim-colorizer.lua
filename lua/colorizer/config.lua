@@ -73,6 +73,7 @@ local plugin_user_default_options = {
 --@field user_commands
 --@field filetypes
 --@field buftypes
+--@field lazy_load
 M.options = {}
 local function init_options()
   M.options = {
@@ -84,6 +85,7 @@ local function init_options()
     -- shortcuts for filetype, buftype inclusion, exclusion settings
     exclusions = { buftype = {}, filetype = {} },
     all = { buftype = false, filetype = false },
+    lazy_load = false,
   }
 end
 
@@ -164,11 +166,12 @@ end
 -- - `virtualtext_mode` ('background'|'foreground'): Determines the display mode for virtual text.
 --   - `always_update` (boolean): If true, updates color values even if the buffer is not focused.
 -- @field buftypes table|nil Optional. A list of buffer types where colorizer should be enabled. Defaults to all buffer types if not provided.
--- @field user_commands boolean|table If true, enables all user commands for colorizer. If `false`, disables user commands. Alternatively, provide a table of specific commands to enable:
+-- @field user_commands (boolean|table): If true, enables all user commands for colorizer. If `false`, disables user commands. Alternatively, provide a table of specific commands to enable:
 --   - `"ColorizerAttachToBuffer"`
 --   - `"ColorizerDetachFromBuffer"`
 --   - `"ColorizerReloadAllBuffers"`
 --   - `"ColorizerToggle"`
+-- @field lazy_load (boolean): If true, lazily schedule buffer highlighting setup function
 
 --- Initializes colorizer with user-provided options.
 -- Merges default settings with any user-specified options, setting up `filetypes`,

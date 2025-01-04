@@ -13,6 +13,7 @@
   - [Why another highlighter?](#why-another-highlighter)
   - [Customization](#customization)
     - [Updating color even when buffer is not focused](#updating-color-even-when-buffer-is-not-focused)
+    - [Lazyload Colorizer with Lazy.nvim](#lazyload-colorizer-with-lazynvim)
   - [Testing](#testing)
   - [Extras](#extras)
   - [TODO](#todo)
@@ -165,6 +166,9 @@ library to do custom highlighting themselves.
     buftypes = {},
     -- Boolean | List of usercommands to enable
     user_commands = true, -- Enable all or some usercommands
+    -- If true Lazily schedule buffer highlighting setup function
+    -- Useful if using "VeryLazy" event in Lazy.nvim
+    lazy_load = false,
   })
 ```
 
@@ -331,6 +335,19 @@ require("colorizer").setup(
 For lower level interface, see
 [LuaDocs for API details](https://catgoose.github.io/nvim-colorizer.lua/modules/colorizer.html)
 or use `:h colorizer` once installed.
+
+### Lazyload Colorizer with Lazy.nvim
+
+```lua
+return {
+  "catgoose/nvim-colorizer.lua",
+  event = "VeryLazy",
+  opts = {
+    lazy_load = true,
+    -- other setup options
+  },
+}
+```
 
 ## Testing
 
