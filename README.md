@@ -350,7 +350,7 @@ to conveniently reattach Colorizer to `test/expect.lua` on save.
 
 ## Extras
 
-Documentaion is generated using ldoc. See
+Documentation is generated using ldoc. See
 [scripts/gen_docs.sh](https://github.com/colorizer/nvim-colorizer.lua/blob/master/scripts/gen_docs.sh)
 
 ## TODO
