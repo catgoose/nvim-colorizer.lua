@@ -13,6 +13,7 @@
   - [Why another highlighter?](#why-another-highlighter)
   - [Customization](#customization)
     - [Updating color even when buffer is not focused](#updating-color-even-when-buffer-is-not-focused)
+    - [Tailwind](#tailwind)
   - [Testing](#testing)
   - [Extras](#extras)
   - [TODO](#todo)
@@ -27,7 +28,7 @@ dependencies**! Written in performant Luajit.
 As long as you have `malloc()` and `free()` on your system, this will work.
 Which includes Linux, OSX, and Windows.
 
-![Demo.gif](https://raw.githubusercontent.com/norcalli/github-assets/master/nvim-colorizer.lua-demo-short.gif)
+![Demo.gif](https://github.com/catgoose/screenshots/blob/51466fa599efe6d9821715616106c1712aad00c3/nvim-colorizer.lua/demo-short.gif)
 
 ## Installation and Usage
 
@@ -122,6 +123,10 @@ library to do custom highlighting themselves.
 ```lua
   require("colorizer").setup({
     filetypes = { "*" },
+    -- all the sub-options of filetypes apply to buftypes
+    buftypes = {},
+    -- Boolean | List of usercommands to enable.  See User commands section.
+    user_commands = true, -- Enable all or some usercommands
     user_default_options = {
       names = true, -- "Name" codes like Blue or red.  Added from `vim.api.nvim_get_color_map()`
       names_opts = { -- options for mutating/filtering names.
@@ -149,6 +154,9 @@ library to do custom highlighting themselves.
       mode = "background", -- Set the display mode
       -- Tailwind colors.  boolean|'normal'|'lsp'|'both'.  True is same as normal
       tailwind = false, -- Enable tailwind colors
+      tailwind_opts = { -- Options for highlighting tailwind names
+        update_names = false, -- When using tailwind = 'both', update tailwind names from LSP results.  See tailwind section
+      },
       -- parsers can contain values used in |user_default_options|
       sass = { enable = false, parsers = { "css" } }, -- Enable sass colors
       -- Virtualtext character to use
@@ -161,18 +169,16 @@ library to do custom highlighting themselves.
       -- example use: cmp_menu, cmp_docs
       always_update = false,
     },
-    -- all the sub-options of filetypes apply to buftypes
-    buftypes = {},
-    -- Boolean | List of usercommands to enable
-    user_commands = true, -- Enable all or some usercommands
   })
 ```
 
-MODES:
+Highlighting modes:
 
 - `background`: sets the background text color.
 - `foreground`: sets the foreground text color.
 - `virtualtext`: indicate the color behind the virtualtext.
+
+Virtualtext symbol can be displayed at end of line, or
 
 For basic setup, you can use a command like the following.
 
@@ -260,9 +266,9 @@ In `user_default_options`, there are 2 types of options
 
 1. Alias options - `css`, `css_fn`
 
-If `css_fn` is true, then `hsl_fn`, `rgb_fn` becomes `true`
+If `css_fn` is true `hsl_fn`, `rgb_fn` becomes `true`
 
-If `css` is true, then `names`, `RGB`, `RGBA`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn`
+If `css` is true `names`, `RGB`, `RGBA`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn`
 becomes `true`
 
 These options have a priority, Individual options have the highest priority,
@@ -331,6 +337,37 @@ require("colorizer").setup(
 For lower level interface, see
 [LuaDocs for API details](https://catgoose.github.io/nvim-colorizer.lua/modules/colorizer.html)
 or use `:h colorizer` once installed.
+
+### Tailwind
+
+Tailwind colors can either be parsed from the Tailwind colors file (found in
+`lua/colorizer/data/tailwind_colors.lua`) or by requesting
+`textDocument/documentColor` from the LSP.
+
+When using `tailwind="normal"`, only standard color names are parsed. However,
+custom colors defined in `tailwind.config.{js,ts}` can be included using the
+`tailwind_opts.update_names` configuration option. This updates the highlight
+color mapping for color names discovered by the LSP.
+
+This can be useful if you are highlighting `cmp_menu` filetype.
+
+```typescript
+// tailwind.config.ts
+    extend: {
+      colors: {
+        gray: {
+          600: '#2CEF6F',
+          700: '#AC50EF',
+          800: '#2ECFF6',
+        },
+      },
+    },
+```
+
+![tailwind.update_names](https://github.com/catgoose/screenshots/blob/51466fa599efe6d9821715616106c1712aad00c3/nvim-colorizer.lua/tailwind_update_names.png)
+
+To improve highlighting performance with the slow Tailwind LSP, results from LSP
+are cached and returned on `WinScrolled` event.
 
 ## Testing
 
