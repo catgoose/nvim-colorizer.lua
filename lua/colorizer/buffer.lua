@@ -4,12 +4,12 @@
 local M = {}
 
 local color = require("colorizer.color")
+local const = require("colorizer.constants")
+local matcher = require("colorizer.matcher")
 local sass = require("colorizer.sass")
 local tailwind = require("colorizer.tailwind")
 local tailwind_names = require("colorizer.parser.tailwind_names")
 local utils = require("colorizer.utils")
-local make_matcher = require("colorizer.matcher").make
-local const = require("colorizer.constants")
 
 local hl_state
 --- Clean the highlight cache
@@ -123,13 +123,13 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts, hl_o
             linenr,
             linenr + 1
           )
-          -- if ud_opts.tailwind_opts.update_names then
-          --   local txt = slice_line(bufnr, linenr, hl.range[1], hl.range[2])
-          --   if txt and not hl_state.updated_colors[txt] then
-          --     hl_state.updated_colors[txt] = true
-          --     tailwind_names.update_color(txt, hl.rgb_hex)
-          --   end
-          -- end
+          if ud_opts.tailwind_opts.update_names then
+            local txt = slice_line(bufnr, linenr, hl.range[1], hl.range[2])
+            if txt and not hl_state.updated_colors[txt] then
+              hl_state.updated_colors[txt] = true
+              tailwind_names.update_color(txt, hl.rgb_hex)
+            end
+          end
         end
         local hlname = create_highlight(hl.rgb_hex, ud_opts.virtualtext_mode)
         local start_col = hl.range[2]
@@ -160,7 +160,10 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts, hl_o
           end
         end
         opts.end_col = start_col
-        vim.api.nvim_buf_set_extmark(bufnr, ns_id, linenr, start_col, opts)
+        --  TODO: 2025-01-08 - Fix this
+        pcall(function()
+          vim.api.nvim_buf_set_extmark(bufnr, ns_id, linenr, start_col, opts)
+        end)
       end
     end
   end
@@ -187,26 +190,27 @@ function M.highlight(bufnr, ns_id, line_start, line_end, ud_opts, buf_local_opts
   -- only update sass varibles when text is changed
   if buf_local_opts.__event ~= "WinScrolled" and ud_opts.sass and ud_opts.sass.enable then
     table.insert(detach.functions, sass.cleanup)
-    sass.update_variables(
-      bufnr,
-      0,
-      -1,
-      nil,
-      make_matcher(ud_opts.sass.parsers),
-      ud_opts,
-      buf_local_opts
-    )
+    sass.update_variables(bufnr, 0, -1, nil, matcher(ud_opts.sass.parsers), ud_opts, buf_local_opts)
   end
 
+  -- Parse lines from matcher
   local data = M.parse_lines(bufnr, lines, line_start, ud_opts) or {}
   M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts)
-  if ud_opts.tailwind == "lsp" or ud_opts.tailwind == "both" then
-    tailwind.setup_lsp_colors(bufnr, ud_opts, buf_local_opts, M.add_highlight, tailwind.cleanup)
-    table.insert(detach.functions, tailwind.cleanup)
-  end
+  -- Tailwind parsing
   if ud_opts.tailwind == "normal" or ud_opts.tailwind == "both" then
     local tw_data = M.parse_lines(bufnr, lines, line_start, ud_opts, { tailwind = true }) or {}
     M.add_highlight(bufnr, const.namespace.tailwind_names, line_start, line_end, tw_data, ud_opts)
+  end
+  if ud_opts.tailwind == "lsp" or ud_opts.tailwind == "both" then
+    tailwind.lsp_highlight(
+      bufnr,
+      ud_opts,
+      buf_local_opts,
+      M.add_highlight,
+      tailwind.cleanup,
+      line_start,
+      line_end
+    )
   end
 
   return detach
@@ -227,10 +231,10 @@ function M.parse_lines(bufnr, lines, line_start, ud_opts, parse_opts)
   local use_tailwind = parse_opts.tailwind == true and ud_opts.tailwind ~= "lsp"
   if use_tailwind then
     loop_parse_fn = function(line, i, _bufnr)
-      return require("colorizer.parser.tailwind_names").parser(line, i)
+      return tailwind_names.parser(line, i)
     end
   else
-    loop_parse_fn = make_matcher(ud_opts)
+    loop_parse_fn = matcher.make(ud_opts)
   end
   if not loop_parse_fn then
     return

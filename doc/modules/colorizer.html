@@ -152,7 +152,7 @@ Detach
 	<td class="summary">Highlight the buffer region.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#rehighlight">rehighlight (bufnr, ud_opts, buf_local_opts, use_local_lines)</a></td>
+	<td class="name" nowrap><a href="#rehighlight">rehighlight (bufnr, ud_opts, buf_local_opts, hl_opts)</a></td>
 	<td class="summary">Rehighlight the buffer if colorizer is active</td>
 	</tr>
 	<tr>
@@ -216,7 +216,7 @@ Detach
 </dd>
     <dt>
     <a name = "rehighlight"></a>
-    <strong>rehighlight (bufnr, ud_opts, buf_local_opts, use_local_lines)</strong>
+    <strong>rehighlight (bufnr, ud_opts, buf_local_opts, hl_opts)</strong>
     </dt>
     <dd>
     Rehighlight the buffer if colorizer is active
@@ -233,8 +233,9 @@ Detach
         <li><span class="parameter">buf_local_opts</span>
          table|nil: Buffer local options
         </li>
-        <li><span class="parameter">use_local_lines</span>
-         boolean|nil Whether to use lines num range from options_local
+        <li><span class="parameter">hl_opts</span>
+         table|nil: Highlighting options
+ - use_local_lines: boolean: Use `buf_local_opts` __startline and __endline for lines
         </li>
     </ul>
 

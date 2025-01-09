@@ -117,15 +117,16 @@ highlight_buffer()                                  *colorizer.highlight_buffer*
 
 
 							 *colorizer.rehighlight*
-rehighlight({bufnr}, {ud_opts}, {buf_local_opts}, {use_local_lines})
+rehighlight({bufnr}, {ud_opts}, {buf_local_opts}, {hl_opts})
     Rehighlight the buffer if colorizer is active
 
     Parameters: ~
 	{bufnr} -  number: Buffer number (0 for current)
 	{ud_opts} -  table: `user_default_options`
 	{buf_local_opts} -  table|nil: Buffer local options
-	{use_local_lines} -  boolean|nil Whether to use lines num range from
-	options_local
+	{hl_opts} -  table|nil: Highlighting options
+ - use_local_lines: boolean: Use `buf_local_opts` __startline and __endline for
+   lines
 
     returns:~
 	 table: Detach settings table to use when cleaning up buffer state in
@@ -1099,7 +1100,7 @@ LUA API                                             *colorizer.tailwind-lua-api*
 Functions: ~
     |cleanup| - Cleanup tailwind variables and autocmd
 
-    |setup_lsp_colors| - Highlight buffer using values returned by tailwindcss
+    |lsp_highlight| - Highlight buffer using values returned by tailwindcss
 
 
 cleanup({bufnr})                                    *colorizer.tailwind.cleanup*
@@ -1111,8 +1112,8 @@ cleanup({bufnr})                                    *colorizer.tailwind.cleanup*
 
 
 
-					   *colorizer.tailwind.setup_lsp_colors*
-setup_lsp_colors({bufnr}, {ud_opts}, {buf_local_opts}, {add_highlight},
+					      *colorizer.tailwind.lsp_highlight*
+lsp_highlight({bufnr}, {ud_opts}, {buf_local_opts}, {add_highlight},
 {on_detach})
     Highlight buffer using values returned by tailwindcss
 

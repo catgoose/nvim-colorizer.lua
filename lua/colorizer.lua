@@ -87,11 +87,24 @@ local utils = require("colorizer.utils")
 
 --- State and configuration dynamic holding information table tracking
 local colorizer_state = {
+  -- augroup: augroup id
   augroup = vim.api.nvim_create_augroup(const.autocmd.setup, { clear = true }),
+  -- buffer_current: store the current buffer number to prevent rehighlighting the current buffer
   buffer_current = 0,
+  -- buffer_lines: store the current window position to be used later to incremently highlight
   buffer_lines = {},
+  -- buffer_local: store buffer local options
+  -- __init: whether the buffer has been initialized
+  -- __autocmds: list of autocmds attached to buffer
+  -- __detach: detach settings table to use when cleaning up buffer state in `colorizer.detach_from_buffer`
+  -- __startline: start line of the current window
+  -- __endline: end line of the current window
+  -- __event: event that triggered the autocmd
+  -- __augroup_id: augroup id
   buffer_local = {},
+  -- buffer_options: store buffer options
   buffer_options = {},
+  -- buffer_reload: store buffer reload state
   buffer_reload = {},
 }
 
@@ -104,35 +117,38 @@ M.highlight_buffer = buffer.highlight
 ---@param bufnr number: Buffer number
 local function row_range(bufnr)
   colorizer_state.buffer_lines[bufnr] = colorizer_state.buffer_lines[bufnr] or {}
-  local min, max
   local new_min, new_max = utils.visible_line_range(bufnr)
-  local old_min, old_max =
-    colorizer_state.buffer_lines[bufnr]["min"], colorizer_state.buffer_lines[bufnr]["max"]
+  local old_min = colorizer_state.buffer_lines[bufnr]["min"]
+  local old_max = colorizer_state.buffer_lines[bufnr]["max"]
+  local min, max
   if old_min and old_max then
-    -- Triggered for TextChanged autocmds
-    -- TODO: Find a way to just apply highlight to changed text lines
     if (old_max == new_max) or (old_min == new_min) then
+      -- TextChanged autocmd
       min, max = new_min, new_max
-    -- Triggered for WinScrolled autocmd - Scroll Down
     elseif old_max < new_max then
+      -- Scroll Down
       min = old_max
       max = new_max
-    -- Triggered for WinScrolled autocmd - Scroll Up
     elseif old_max > new_max then
+      -- Scroll Up
       min = new_min
       max = new_min + (old_max - new_max)
     end
-    -- just in case a long jump was made
+    -- Handle large jumps
     if max - min > new_max - new_min then
       min = new_min
       max = new_max
     end
+  else
+    -- First time initialization
+    min, max = new_min, new_max
   end
-  min = min or new_min
-  max = max or new_max
-  -- store current window position to be used later to incremently highlight
-  colorizer_state.buffer_lines[bufnr]["max"] = new_max
+  -- Ensure ranges are clamped to new_min and new_max
+  min = math.max(new_min, min or new_min)
+  max = math.min(new_max, max or new_max)
+  -- Store current window position for future use to incrementally highlight
   colorizer_state.buffer_lines[bufnr]["min"] = new_min
+  colorizer_state.buffer_lines[bufnr]["max"] = new_max
   return min, max
 end
 
@@ -140,22 +156,30 @@ end
 ---@param bufnr number: Buffer number (0 for current)
 ---@param ud_opts table: `user_default_options`
 ---@param buf_local_opts table|nil: Buffer local options
----@param use_local_lines boolean|nil Whether to use lines num range from options_local
+---@param hl_opts table|nil: Highlighting options
+--- - use_local_lines: boolean: Use `buf_local_opts` __startline and __endline for lines
 ---@return table: Detach settings table to use when cleaning up buffer state in `colorizer.detach_from_buffer`
 --- - ns_id number: Table of namespace ids to clear
 --- - functions function: Table of detach functions to call
-function M.rehighlight(bufnr, ud_opts, buf_local_opts, use_local_lines)
+function M.rehighlight(bufnr, ud_opts, buf_local_opts, hl_opts)
+  hl_opts = hl_opts or {}
   bufnr = utils.bufme(bufnr)
-  local ns_id = const.namespace.default
 
-  local min, max
-  if use_local_lines and buf_local_opts then
-    min, max = buf_local_opts.__startline or 0, buf_local_opts.__endline or -1
+  local line_start, line_end
+  if hl_opts.use_local_lines and buf_local_opts then
+    line_start, line_end = buf_local_opts.__startline or 0, buf_local_opts.__endline or -1
   else
-    min, max = row_range(bufnr)
+    line_start, line_end = row_range(bufnr)
   end
 
-  local detach = M.highlight_buffer(bufnr, ns_id, min, max, ud_opts, buf_local_opts or {})
+  local detach = M.highlight_buffer(
+    bufnr,
+    const.namespace.default,
+    line_start,
+    line_end,
+    ud_opts,
+    buf_local_opts or {}
+  )
   table.insert(detach.functions, function()
     colorizer_state.buffer_lines[bufnr] = nil
   end)
@@ -277,6 +301,7 @@ function M.attach_to_buffer(bufnr, ud_opts, bo_type)
 
   colorizer_state.buffer_options[bufnr] = ud_opts
   colorizer_state.buffer_local[bufnr] = colorizer_state.buffer_local[bufnr] or {}
+
   local detach = M.rehighlight(bufnr, ud_opts)
 
   colorizer_state.buffer_local[bufnr].__detach = colorizer_state.buffer_local[bufnr].__detach
@@ -336,7 +361,12 @@ function M.attach_to_buffer(bufnr, ud_opts, bo_type)
           local pos = vim.fn.getpos(".")
           colorizer_state.buffer_local[bufnr].__startline = pos[2] - 1
           colorizer_state.buffer_local[bufnr].__endline = pos[2]
-          M.rehighlight(bufnr, ud_opts, colorizer_state.buffer_local[bufnr], true)
+          M.rehighlight(
+            bufnr,
+            ud_opts,
+            colorizer_state.buffer_local[bufnr],
+            { use_local_lines = true }
+          )
         end
       end
     end,
@@ -508,9 +538,7 @@ function M.setup(opts)
       group = colorizer_state.augroup,
       pattern = bo_type == "filetype" and (s.all[bo_type] and "*" or list) or nil,
       callback = function()
-        vim.schedule(function()
-          setup(bo_type)
-        end)
+        setup(bo_type)
       end,
     })
   end
