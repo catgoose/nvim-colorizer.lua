@@ -207,7 +207,7 @@ local function sass_parse_lines(bufnr, line_start, content, name)
                       cc = nil
                     end
 
-                    require("colorizer.buffer").rehighlight(
+                    require("colorizer").rehighlight(
                       bufnr,
                       state[bufnr].options,
                       state[bufnr].local_options,
