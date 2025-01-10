@@ -204,7 +204,7 @@ end
 --   - `virtualtext_inline` (boolean|'before'|'after'): Shows the virtual text inline with the color.  True defaults to 'before'.  False or nil disables.
 -- - `virtualtext_mode` ('background'|'foreground'): Determines the display mode for virtual text.
 --   - `always_update` (boolean): If true, updates color values even if the buffer is not focused.
--- @field buftypes table|nil Optional. A list of buffer types where colorizer should be enabled. Defaults to all buffer types if not provided.
+-- @field buftypes (table|nil): Optional. A list of buffer types where colorizer should be enabled. Defaults to all buffer types if not provided.
 -- @field user_commands (boolean|table): If true, enables all user commands for colorizer. If `false`, disables user commands. Alternatively, provide a table of specific commands to enable:
 --   - `"ColorizerAttachToBuffer"`
 --   - `"ColorizerDetachFromBuffer"`
