@@ -267,7 +267,7 @@ function M.update_variables(
       watch_imports = {},
       current_imports = {},
       definitions_linewise = {},
-      options = ud_opts,
+      ud_opts = ud_opts,
       local_options = buf_local_opts,
     }
   end
