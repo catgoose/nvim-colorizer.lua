@@ -34,7 +34,13 @@ local Trie_ptr_t = ffi.typeof("$ *", Trie_t)
 local Trie_size = ffi.sizeof(Trie_t)
 
 local function trie_create()
+  if not Trie_size then
+    return
+  end
   local ptr = ffi.C.malloc(Trie_size)
+  if not ptr then
+    return
+  end
   ffi.fill(ptr, Trie_size)
   return ffi.cast(Trie_ptr_t, ptr)
 end
@@ -156,6 +162,20 @@ local function trie_extend(trie, t)
   end
 end
 
+local function trie_additional_chars(trie, chars)
+  if trie == nil or type(chars) ~= "string" then
+    return
+  end
+  for i = 1, #chars do
+    local char = chars:sub(i, i)
+    local char_byte = string.byte(char)
+    if index_lookup[char_byte] == total_char then
+      char_lookup = char_lookup .. char
+      index_lookup[char_byte] = total_char + 1
+    end
+  end
+end
+
 --- Printing utilities
 
 local function index_to_char(index)
@@ -241,20 +261,6 @@ local function trie_to_string(trie)
   end
   local as_table = trie_as_table(trie)
   return table.concat(print_trie_table(as_table), "\n")
-end
-
-local function trie_additional_chars(trie, chars)
-  if trie == nil or type(chars) ~= "string" then
-    return
-  end
-  for i = 1, #chars do
-    local char = chars:sub(i, i)
-    local char_byte = string.byte(char)
-    if index_lookup[char_byte] == total_char then
-      char_lookup = char_lookup .. char
-      index_lookup[char_byte] = total_char + 1
-    end
-  end
 end
 
 local Trie_mt = {

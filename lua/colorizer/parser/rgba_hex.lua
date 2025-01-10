@@ -14,14 +14,14 @@ local utils = require("colorizer.utils")
 --- Parses `#RRGGBBAA` hexadecimal colors and converts them to RGB hex format.
 -- This function matches `#RRGGBBAA` format colors within a line, handling alpha transparency if specified.
 -- It checks the length of the color string to match expected valid lengths (e.g., 4, 7, 9 characters).
--- @param line string The line of text to parse for the hex color
--- @param i number The starting index within the line where parsing should begin
--- @param opts table Options containing:
---   - `minlen` (number): Minimum length of the color string
---   - `maxlen` (number): Maximum length of the color string
---   - `valid_lengths` (table): Set of valid lengths (e.g., `{3, 4, 6, 8}`)
--- @return number|nil The end index of the parsed hex color within the line, or `nil` if parsing failed
--- @return string|nil The RGB hexadecimal color (e.g., "ff0000" for red), or `nil` if parsing failed
+---@param line string: The line of text to parse for the hex color
+---@param i number: The starting index within the line where parsing should begin
+---@param opts table: Options containing:
+--- - `minlen` (number): Minimum length of the color string
+--- - `maxlen` (number): Maximum length of the color string
+--- - `valid_lengths` (table): Set of valid lengths (e.g., `{3, 4, 6, 8}`)
+---@return number|nil: The end index of the parsed hex color within the line, or `nil` if parsing failed
+---@return string|nil: The RGB hexadecimal color (e.g., "ff0000" for red), or `nil` if parsing failed
 function M.parser(line, i, opts)
   local minlen, maxlen, valid_lengths = opts.minlen, opts.maxlen, opts.valid_lengths
   local line_length = #line

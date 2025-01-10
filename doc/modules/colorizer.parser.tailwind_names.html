@@ -46,11 +46,11 @@
   <li><a href="../modules/colorizer.constants.html">constants</a></li>
   <li><a href="../modules/colorizer.matcher.html">matcher</a></li>
   <li><a href="../modules/colorizer.parser.rgb_hex.html">parser.rgb_hex</a></li>
-  <li><strong>parser.hsl</strong></li>
+  <li><a href="../modules/colorizer.parser.hsl.html">parser.hsl</a></li>
   <li><a href="../modules/colorizer.parser.names.html">parser.names</a></li>
   <li><a href="../modules/colorizer.parser.rgb.html">parser.rgb</a></li>
   <li><a href="../modules/colorizer.parser.rgba_hex.html">parser.rgba_hex</a></li>
-  <li><a href="../modules/colorizer.parser.tailwind_names.html">parser.tailwind_names</a></li>
+  <li><strong>parser.tailwind_names</strong></li>
   <li><a href="../modules/colorizer.sass.html">sass</a></li>
   <li><a href="../modules/colorizer.tailwind.html">tailwind</a></li>
   <li><a href="../modules/colorizer.trie.html">trie</a></li>
@@ -62,18 +62,21 @@
 
 <div id="content">
 
-<h1>Module <code>colorizer.parser.hsl</code></h1>
-<p>This module provides a parser for identifying and converting `hsl()` and `hsla()` CSS functions to RGB hexadecimal format.</p>
+<h1>Module <code>colorizer.parser.tailwind_names</code></h1>
+<p>This module provides a parser that identifies named colors from a given line of text.</p>
 <p>
- It supports various CSS color value formats, including degrees (`deg`), turns (`turn`), percentages, and alpha transparency.
- This function is useful for syntax highlighting or color recognition in a text editor.</p>
+ The module uses a Trie structure for efficient matching of color names to #rrggbb values</p>
 
 
 <h2><a href="#Functions">Functions</a></h2>
 <table class="function_list">
 	<tr>
-	<td class="name" nowrap><a href="#parser">parser (line, i, opts)</a></td>
-	<td class="summary">Parses `hsl()` and `hsla()` CSS functions and converts them to RGB hexadecimal format.</td>
+	<td class="name" nowrap><a href="#reset_cache">reset_cache ()</a></td>
+	<td class="summary">Reset the color names cache.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#parser">parser (line, i)</a></td>
+	<td class="summary">Parses a line to identify color names.</td>
 	</tr>
 </table>
 
@@ -85,35 +88,42 @@
 
     <dl class="function">
     <dt>
-    <a name = "parser"></a>
-    <strong>parser (line, i, opts)</strong>
+    <a name = "reset_cache"></a>
+    <strong>reset_cache ()</strong>
     </dt>
     <dd>
-    Parses `hsl()` and `hsla()` CSS functions and converts them to RGB hexadecimal format.
- This function matches `hsl()` or `hsla()` functions within a line of text, extracting and converting the hue, saturation, and luminance
- to an RGB color. It handles angles in degrees and turns, percentages, and an optional alpha (transparency) value.
+    Reset the color names cache.
+ Called from colorizer.setup
+
+
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "parser"></a>
+    <strong>parser (line, i)</strong>
+    </dt>
+    <dd>
+    Parses a line to identify color names.
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">line</span>
-         string: The line of text to parse
+         string: The text line to parse.
         </li>
         <li><span class="parameter">i</span>
-         number: The starting index within the line where parsing should begin
-        </li>
-        <li><span class="parameter">opts</span>
-         table: Parsing options, including:
-  - `prefix` (string): "hsl" or "hsla" to specify the CSS function type.
+         number: The index to start parsing from.
         </li>
     </ul>
 
     <h3>Returns:</h3>
     <ol>
-        <li>
-        number|nil: The end index of the parsed `hsl/hsla` function within the line, or `nil` if no match was found.</li>
-        <li>
-        string|nil: The RGB hexadecimal color (e.g., "ff0000" for red), or `nil` if parsing failed</li>
+
+        number|nil, string|nil: Length of match and hex value if found.
     </ol>
 
 
