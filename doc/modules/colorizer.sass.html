@@ -83,7 +83,7 @@
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#update_variables">update_variables (bufnr, line_start, line_end, lines, color_parser, ud_opts, buf_local_opts)</a></td>
-	<td class="summary">Parse the given lines for sass variabled and add to `SASS[buf].DEFINITIONS_ALL`.</td>
+	<td class="summary">Parse the given lines for sass variabled and add to `sass_state[buf].definitions_all`.</td>
 	</tr>
 </table>
 
@@ -151,7 +151,7 @@
     <strong>update_variables (bufnr, line_start, line_end, lines, color_parser, ud_opts, buf_local_opts)</strong>
     </dt>
     <dd>
-    Parse the given lines for sass variabled and add to `SASS[buf].DEFINITIONS_ALL`.
+    Parse the given lines for sass variabled and add to `sass_state[buf].definitions_all`.
  which is then used in |sass_name_parser|
  If lines are not given, then fetch the lines with line_start and line_end
 

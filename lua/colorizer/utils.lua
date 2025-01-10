@@ -20,6 +20,7 @@ local band, bor, rshift, lshift = bit.band, bit.bor, bit.rshift, bit.lshift
 -- Create a lookup table where the bottom 4 bits are used to indicate the
 -- category and the top 4 bits are the hex value of the ASCII byte.
 local byte_category = ffi.new("uint8_t[256]")
+
 local category_hex = lshift(1, 2)
 local category_alphanum = bor(lshift(1, 1) --[[alpha]], lshift(1, 0) --[[digit]])
 local additional_color_chars = {}

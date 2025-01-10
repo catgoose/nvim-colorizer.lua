@@ -1036,7 +1036,7 @@ Functions: ~
  check for value in state[buf].definitions_all
 
     |update_variables| - Parse the given lines for sass variabled and add to
-    `SASS[buf].DEFINITIONS_ALL`.
+    `sass_state[buf].definitions_all`.
 
 
 cleanup({bufnr})                                        *colorizer.sass.cleanup*
@@ -1066,7 +1066,7 @@ parser({line}, {i}, {bufnr})                             *colorizer.sass.parser*
 update_variables({bufnr}, {line_start}, {line_end}, {lines}, {color_parser},
 {ud_opts}, {buf_local_opts})
     Parse the given lines for sass variabled and add to
-    `SASS[buf].DEFINITIONS_ALL`.
+    `sass_state[buf].definitions_all`.
 
      which is then used in |sass_name_parser|
      If lines are not given, then fetch the lines with line_start and line_end
