@@ -51,12 +51,13 @@ local function populate_colors()
   names_cache.color_trie = Trie()
   names_cache.color_name_minlen, names_cache.color_name_maxlen = nil, nil
 
-  names_cache.color_trie:additional_chars("-")
+  local tw_delimeter = "-"
+  names_cache.color_trie:additional_chars(tw_delimeter)
+  utils.add_additional_color_chars("tailwind_names", tw_delimeter)
   local data = require("colorizer.data.tailwind_colors")
   for name, hex in pairs(data.colors) do
     for _, prefix in ipairs(data.prefixes) do
-      --  TODO: 2024-12-31 - Add modifiers from data.tailwind_colors as config option?
-      add_color(prefix .. "-" .. name, hex)
+      add_color(prefix .. tw_delimeter .. name, hex)
     end
   end
 end

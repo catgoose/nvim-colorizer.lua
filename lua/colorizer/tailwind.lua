@@ -155,7 +155,7 @@ function M.lsp_highlight(
   if buf_state[bufnr].client then
     if
       buf_state[bufnr].data
-      and not buf_state[bufnr].data_highlighted
+      and not buf_state[bufnr].cache_highlighted
       and buf_local_opts.__event == "WinScrolled"
     then
       add_highlight(
@@ -167,7 +167,7 @@ function M.lsp_highlight(
         ud_opts,
         { tailwind_lsp = true }
       )
-      buf_state[bufnr].data_highlighted = true
+      buf_state[bufnr].cache_highlighted = true
     else
       highlight(bufnr, ud_opts, add_highlight)
     end

@@ -1196,8 +1196,14 @@ Functions: ~
 
     |byte_is_hex| - Checks if a byte represents a hexadecimal character.
 
+    |get_non_alphanum_keys| - Extract non-alphanumeric characters to add as a
+    valid index in the Trie
+
+    |add_additional_color_chars| - Adds additional characters to the list of
+    valid color characters.
+
     |byte_is_valid_colorchar| - Checks if a byte is valid as a color character
-    (alphanumeric or `-` for Tailwind colors).
+    (alphanumeric, dynamically added chars, or hardcoded characters).
 
     |count| - Count the number of character in a string
 
@@ -1244,12 +1250,39 @@ byte_is_hex({byte})                                *colorizer.utils.byte_is_hex*
 
 
 
-byte_is_valid_colorchar({byte})        *colorizer.utils.byte_is_valid_colorchar*
-    Checks if a byte is valid as a color character (alphanumeric or `-` for
-    Tailwind colors).
+get_non_alphanum_keys({tbl})             *colorizer.utils.get_non_alphanum_keys*
+    Extract non-alphanumeric characters to add as a valid index in the Trie
 
     Parameters: ~
-	{byte} -  number The byte to check.
+	{tbl} -  table: The table to extract non-alphanumeric characters from.
+
+    returns:~
+	string: The extracted non-alphanumeric characters.
+
+
+
+
+				    *colorizer.utils.add_additional_color_chars*
+add_additional_color_chars({key}, {chars})
+    Adds additional characters to the list of valid color characters.
+
+    Parameters: ~
+	{key} -  string: The key to associate with the additional characters.
+	{chars} -  string: The additional characters to add.
+
+    returns:~
+	boolean: `true` if the characters were added, otherwise `false`.
+
+
+
+byte_is_valid_colorchar({byte}, {key}) *colorizer.utils.byte_is_valid_colorchar*
+    Checks if a byte is valid as a color character (alphanumeric, dynamically
+    added chars, or hardcoded characters).
+
+    Parameters: ~
+	{byte} -  number: The byte to check.
+	{key} -  string|nil: The key for additional characters to validate
+	against.
 
     returns:~
 	boolean: `true` if the byte is valid, otherwise `false`.

@@ -37,22 +37,6 @@ local function add_color(name, val)
   names_cache.color_trie:insert(name)
 end
 
---- Extract non-alphanumeric characters to add as a valid index in the Trie
----@param tbl table: The table to extract non-alphanumeric characters from.
-local function extract_non_alphanum_keys(tbl)
-  local non_alphanum_chars = {}
-  for key, _ in pairs(tbl) do
-    for char in key:gmatch("[^%w]") do
-      non_alphanum_chars[char] = true
-    end
-  end
-  local result = ""
-  for char in pairs(non_alphanum_chars) do
-    result = result .. char
-  end
-  return result
-end
-
 --- Handles additional color names provided as a table or function.
 ---@param names_custom table|function|nil: Additional color names to add.
 local function handle_names_custom(names_custom)
@@ -76,8 +60,9 @@ local function handle_names_custom(names_custom)
   end
 
   -- Add additional characters found in names_custom keys
-  local chars = extract_non_alphanum_keys(names)
+  local chars = utils.get_non_alphanum_keys(names)
   names_cache.color_trie:additional_chars(chars)
+  utils.add_additional_color_chars("names", chars)
 
   for name, hex in pairs(names) do
     if type(hex) == "string" then

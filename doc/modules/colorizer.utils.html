@@ -84,8 +84,16 @@
 	<td class="summary">Checks if a byte represents a hexadecimal character.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#byte_is_valid_colorchar">byte_is_valid_colorchar (byte)</a></td>
-	<td class="summary">Checks if a byte is valid as a color character (alphanumeric or `-` for Tailwind colors).</td>
+	<td class="name" nowrap><a href="#get_non_alphanum_keys">get_non_alphanum_keys (tbl)</a></td>
+	<td class="summary">Extract non-alphanumeric characters to add as a valid index in the Trie</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#add_additional_color_chars">add_additional_color_chars (key, chars)</a></td>
+	<td class="summary">Adds additional characters to the list of valid color characters.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#byte_is_valid_colorchar">byte_is_valid_colorchar (byte, key)</a></td>
+	<td class="summary">Checks if a byte is valid as a color character (alphanumeric, dynamically added chars, or hardcoded characters).</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#count">count (str, pattern)</a></td>
@@ -197,17 +205,73 @@
 
 </dd>
     <dt>
-    <a name = "byte_is_valid_colorchar"></a>
-    <strong>byte_is_valid_colorchar (byte)</strong>
+    <a name = "get_non_alphanum_keys"></a>
+    <strong>get_non_alphanum_keys (tbl)</strong>
     </dt>
     <dd>
-    Checks if a byte is valid as a color character (alphanumeric or `-` for Tailwind colors).
+    Extract non-alphanumeric characters to add as a valid index in the Trie
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">tbl</span>
+         table: The table to extract non-alphanumeric characters from.
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        string: The extracted non-alphanumeric characters.
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "add_additional_color_chars"></a>
+    <strong>add_additional_color_chars (key, chars)</strong>
+    </dt>
+    <dd>
+    Adds additional characters to the list of valid color characters.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">key</span>
+         string: The key to associate with the additional characters.
+        </li>
+        <li><span class="parameter">chars</span>
+         string: The additional characters to add.
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        boolean: `true` if the characters were added, otherwise `false`.
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "byte_is_valid_colorchar"></a>
+    <strong>byte_is_valid_colorchar (byte, key)</strong>
+    </dt>
+    <dd>
+    Checks if a byte is valid as a color character (alphanumeric, dynamically added chars, or hardcoded characters).
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">byte</span>
-         number The byte to check.
+         number: The byte to check.
+        </li>
+        <li><span class="parameter">key</span>
+         string|nil: The key for additional characters to validate against.
         </li>
     </ul>
 
