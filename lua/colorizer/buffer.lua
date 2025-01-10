@@ -160,7 +160,6 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts, hl_o
           end
         end
         opts.end_col = start_col
-        --  TODO: 2025-01-08 - Fix this
         pcall(function()
           vim.api.nvim_buf_set_extmark(bufnr, ns_id, linenr, start_col, opts)
         end)
