@@ -20,8 +20,10 @@ local band, bor, rshift, lshift = bit.band, bit.bor, bit.rshift, bit.lshift
 -- Create a lookup table where the bottom 4 bits are used to indicate the
 -- category and the top 4 bits are the hex value of the ASCII byte.
 local byte_category = ffi.new("uint8_t[256]")
+
 local category_hex = lshift(1, 2)
 local category_alphanum = bor(lshift(1, 1) --[[alpha]], lshift(1, 0) --[[digit]])
+local additional_color_chars = {}
 
 do
   -- do not run the loop multiple times
@@ -73,12 +75,66 @@ function M.byte_is_hex(byte)
   return band(byte_category[byte], category_hex) ~= 0
 end
 
---- Checks if a byte is valid as a color character (alphanumeric or `-` for Tailwind colors).
----@param byte number The byte to check.
+--- Extract non-alphanumeric characters to add as a valid index in the Trie
+---@param tbl table: The table to extract non-alphanumeric characters from.
+---@return string: The extracted non-alphanumeric characters.
+function M.get_non_alphanum_keys(tbl)
+  local non_alphanum_chars = {}
+  for key, _ in pairs(tbl) do
+    for char in key:gmatch("[^%w]") do
+      non_alphanum_chars[char] = true
+    end
+  end
+  local result = ""
+  for char in pairs(non_alphanum_chars) do
+    result = result .. char
+  end
+  return result
+end
+
+--- Adds additional characters to the list of valid color characters.
+---@param key string: The key to associate with the additional characters.
+---@param chars string: The additional characters to add.
+---@return boolean: `true` if the characters were added, otherwise `false`.
+function M.add_additional_color_chars(key, chars)
+  if type(chars) ~= "string" then
+    vim.api.nvim_err_writeln(
+      string.format("colorizer.utils.add_additional_chars: invalid chars: %s", chars)
+    )
+    return false
+  end
+  if not additional_color_chars[key] then
+    additional_color_chars[key] = ""
+  end
+  for i = 1, #chars do
+    local char = chars:sub(i, i)
+    local char_byte = string.byte(char)
+    if byte_category[char_byte] == 0 then
+      additional_color_chars[key] = additional_color_chars[key] .. char
+      byte_category[char_byte] = 1
+    end
+  end
+  return true
+end
+
+--- Checks if a byte is valid as a color character (alphanumeric, dynamically added chars, or hardcoded characters).
+---@param byte number: The byte to check.
+---@param key string|nil: The key for additional characters to validate against.
 ---@return boolean: `true` if the byte is valid, otherwise `false`.
-function M.byte_is_valid_colorchar(byte)
-  --  TODO: 2024-12-21 - Is this check required?
-  return M.byte_is_alphanumeric(byte) or byte == ("-"):byte()
+function M.byte_is_valid_colorchar(byte, key)
+  -- Check alphanumeric characters
+  if M.byte_is_alphanumeric(byte) then
+    return true
+  end
+  -- Check additional characters for the provided key
+  if additional_color_chars[key] then
+    for i = 1, #additional_color_chars[key] do
+      if byte == additional_color_chars[key]:byte(i) then
+        return true
+      end
+    end
+  end
+  return false
 end
 
 ---Count the number of character in a string
@@ -168,6 +224,20 @@ end
 function M.bufme(bufnr)
   return bufnr and bufnr ~= 0 and vim.api.nvim_buf_is_valid(bufnr) and bufnr
     or vim.api.nvim_get_current_buf()
+end
+
+--- Returns range of visible lines
+---@param bufnr number: Buffer number
+---@return number, number: Start (0-index) and end (exclusive) range of lines in viewport
+function M.visible_line_range(bufnr)
+  bufnr = M.bufme(bufnr)
+  local range = vim.api.nvim_buf_call(bufnr, function()
+    return {
+      vim.fn.line("w0"),
+      vim.fn.line("w$"),
+    }
+  end)
+  return range[1] - 1, range[2]
 end
 
 return M

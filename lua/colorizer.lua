@@ -82,15 +82,29 @@ local M = {}
 
 local buffer = require("colorizer.buffer")
 local config = require("colorizer.config")
+local const = require("colorizer.constants")
 local utils = require("colorizer.utils")
 
 --- State and configuration dynamic holding information table tracking
 local colorizer_state = {
-  augroup = vim.api.nvim_create_augroup("ColorizerSetup", { clear = true }),
+  -- augroup: augroup id
+  augroup = vim.api.nvim_create_augroup(const.autocmd.setup, { clear = true }),
+  -- buffer_current: store the current buffer number to prevent rehighlighting the current buffer
   buffer_current = 0,
+  -- buffer_lines: store the current window position to be used later to incremently highlight
   buffer_lines = {},
+  -- buffer_local: store buffer local options
+  -- __init: whether the buffer has been initialized
+  -- __autocmds: list of autocmds attached to buffer
+  -- __detach: detach settings table to use when cleaning up buffer state in `colorizer.detach_from_buffer`
+  -- __startline: start line of the current window
+  -- __endline: end line of the current window
+  -- __event: event that triggered the autocmd
+  -- __augroup_id: augroup id
   buffer_local = {},
+  -- buffer_options: store buffer options
   buffer_options = {},
+  -- buffer_reload: store buffer reload state
   buffer_reload = {},
 }
 
@@ -99,76 +113,78 @@ local colorizer_state = {
 ---@see colorizer.buffer.highlight
 M.highlight_buffer = buffer.highlight
 
----Default namespace used in `colorizer.buffer.highlight` and `attach_to_buffer`.
----@string: default_namespace
----@see colorizer.buffer.default_namespace
-M.default_namespace = buffer.default_namespace
-
 --- Get the row range of the current window
 ---@param bufnr number: Buffer number
 local function row_range(bufnr)
   colorizer_state.buffer_lines[bufnr] = colorizer_state.buffer_lines[bufnr] or {}
-  local range = vim.api.nvim_buf_call(bufnr, function()
-    return {
-      vim.fn.line("w0"),
-      vim.fn.line("w$"),
-    }
-  end)
+  local new_min, new_max = utils.visible_line_range(bufnr)
+  local old_min = colorizer_state.buffer_lines[bufnr]["min"]
+  local old_max = colorizer_state.buffer_lines[bufnr]["max"]
   local min, max
-  local new_min, new_max = range[1] - 1, range[2]
-  local old_min, old_max =
-    colorizer_state.buffer_lines[bufnr]["min"], colorizer_state.buffer_lines[bufnr]["max"]
   if old_min and old_max then
-    -- Triggered for TextChanged autocmds
-    -- TODO: Find a way to just apply highlight to changed text lines
     if (old_max == new_max) or (old_min == new_min) then
+      -- TextChanged autocmd
       min, max = new_min, new_max
-    -- Triggered for WinScrolled autocmd - Scroll Down
     elseif old_max < new_max then
+      -- Scroll Down
       min = old_max
       max = new_max
-    -- Triggered for WinScrolled autocmd - Scroll Up
     elseif old_max > new_max then
+      -- Scroll Up
       min = new_min
       max = new_min + (old_max - new_max)
     end
-    -- just in case a long jump was made
+    -- Handle large jumps
     if max - min > new_max - new_min then
       min = new_min
       max = new_max
     end
+  else
+    -- First time initialization
+    min, max = new_min, new_max
   end
-  min = min or new_min
-  max = max or new_max
-  -- store current window position to be used later to incremently highlight
-  colorizer_state.buffer_lines[bufnr]["max"] = new_max
+  -- Ensure ranges are clamped to new_min and new_max
+  min = math.max(new_min, min or new_min)
+  max = math.min(new_max, max or new_max)
+  -- Store current window position for future use to incrementally highlight
   colorizer_state.buffer_lines[bufnr]["min"] = new_min
+  colorizer_state.buffer_lines[bufnr]["max"] = new_max
   return min, max
 end
 
 --- Rehighlight the buffer if colorizer is active
----@param bufnr number: buffer number (0 for current)
----@param options table: Buffer options
----@param options_local table|nil: Buffer local variables
----@param use_local_lines boolean|nil Whether to use lines num range from options_local
----@return table
-function M.rehighlight(bufnr, options, options_local, use_local_lines)
+---@param bufnr number: Buffer number (0 for current)
+---@param ud_opts table: `user_default_options`
+---@param buf_local_opts table|nil: Buffer local options
+---@param hl_opts table|nil: Highlighting options
+--- - use_local_lines: boolean: Use `buf_local_opts` __startline and __endline for lines
+---@return table: Detach settings table to use when cleaning up buffer state in `colorizer.detach_from_buffer`
+--- - ns_id number: Table of namespace ids to clear
+--- - functions function: Table of detach functions to call
+function M.rehighlight(bufnr, ud_opts, buf_local_opts, hl_opts)
+  hl_opts = hl_opts or {}
   bufnr = utils.bufme(bufnr)
-  local ns_id = M.default_namespace
 
-  local min, max
-  if use_local_lines and options_local then
-    min, max = options_local.__startline or 0, options_local.__endline or -1
+  local line_start, line_end
+  if hl_opts.use_local_lines and buf_local_opts then
+    line_start, line_end = buf_local_opts.__startline or 0, buf_local_opts.__endline or -1
   else
-    min, max = row_range(bufnr)
+    line_start, line_end = row_range(bufnr)
   end
 
-  local returns = M.highlight_buffer(bufnr, ns_id, min, max, options, options_local or {})
-  table.insert(returns.detach.functions, function()
+  local detach = M.highlight_buffer(
+    bufnr,
+    const.namespace.default,
+    line_start,
+    line_end,
+    ud_opts,
+    buf_local_opts or {}
+  )
+  table.insert(detach.functions, function()
     colorizer_state.buffer_lines[bufnr] = nil
   end)
 
-  return returns
+  return detach
 end
 
 ---Get attached bufnr
@@ -261,48 +277,35 @@ end
 
 ---Attach to a buffer and continuously highlight changes.
 ---@param bufnr number|nil: buffer number (0 for current)
----@param options table|nil: Configuration options as described in `setup`
+---@param ud_opts table|nil: `user_default_options`
 ---@param bo_type 'buftype'|'filetype'|nil: The type of buffer option
-function M.attach_to_buffer(bufnr, options, bo_type)
+function M.attach_to_buffer(bufnr, ud_opts, bo_type)
   bufnr = utils.bufme(bufnr)
   if not vim.api.nvim_buf_is_valid(bufnr) then
     colorizer_state.buffer_local[bufnr], colorizer_state.buffer_options[bufnr] = nil, nil
     return
   end
-  bo_type = vim.tbl_contains({ "buftype", "filetype" }, bo_type) and bo_type or "buftype"
 
-  -- options for filetype
-  options = config.options.filetypes[vim.bo.filetype]
+  bo_type = bo_type or "buftype"
+
+  ud_opts = ud_opts
+    -- options for filetype
+    or config.options.filetypes[vim.bo.filetype]
     -- cached buffer options
     or get_attached_buffer_options(bufnr)
     -- new buffer options
     or config.new_bo_options(bufnr, bo_type)
-  options = config.apply_alias_options(options)
 
-  --  TODO: 2024-11-26 - This seems to be validated in config.validate_opts
-  if not buffer.highlight_mode_names[options.mode] then
-    local default = "background"
-    if options.mode ~= nil then
-      local mode = options.mode
-      vim.defer_fn(function()
-        vim.notify_once(
-          string.format(
-            "Warning: Invalid mode given to colorizer setup [ %s ], setting to '%s'",
-            mode,
-            default
-          )
-        )
-      end, 0)
-    end
-    options.mode = default
-  end
+  -- Applying alias options also validates options, for example converts `tailwind = true` to `tailwind = "normal"`.  This makes later options checks easier
+  ud_opts = config.apply_alias_options(ud_opts)
 
-  colorizer_state.buffer_options[bufnr] = options
+  colorizer_state.buffer_options[bufnr] = ud_opts
   colorizer_state.buffer_local[bufnr] = colorizer_state.buffer_local[bufnr] or {}
-  local returns = M.rehighlight(bufnr, options)
+
+  local detach = M.rehighlight(bufnr, ud_opts)
 
   colorizer_state.buffer_local[bufnr].__detach = colorizer_state.buffer_local[bufnr].__detach
-    or returns.detach
+    or detach
   colorizer_state.buffer_local[bufnr].__init = true
 
   if colorizer_state.buffer_local[bufnr].__autocmds then
@@ -313,7 +316,7 @@ function M.attach_to_buffer(bufnr, options, bo_type)
     colorizer_state.buffer_current = bufnr
   end
 
-  if options.always_update then
+  if ud_opts.always_update then
     -- attach using lua api so buffer gets updated even when not the current buffer
     -- completely moving to buf_attach is not possible because it doesn't handle all the text change events
     vim.api.nvim_buf_attach(bufnr, false, {
@@ -322,7 +325,7 @@ function M.attach_to_buffer(bufnr, options, bo_type)
         if not (colorizer_state.buffer_current == _bufnr) then
           -- only reload if it was not disabled using detach_from_buffer
           if colorizer_state.buffer_options[bufnr] then
-            M.rehighlight(bufnr, options, colorizer_state.buffer_local[bufnr])
+            M.rehighlight(bufnr, ud_opts, colorizer_state.buffer_local[bufnr])
           end
         end
       end,
@@ -331,7 +334,7 @@ function M.attach_to_buffer(bufnr, options, bo_type)
         if not (colorizer_state.buffer_current == _bufnr) then
           -- only reload if it was not disabled using detach_from_buffer
           if colorizer_state.buffer_options[bufnr] then
-            M.rehighlight(bufnr, options, colorizer_state.buffer_local[bufnr])
+            M.rehighlight(bufnr, ud_opts, colorizer_state.buffer_local[bufnr])
           end
         end
       end,
@@ -341,7 +344,7 @@ function M.attach_to_buffer(bufnr, options, bo_type)
   local autocmds = {}
   local text_changed_au = { "TextChanged", "TextChangedI", "TextChangedP" }
   -- Only enable InsertLeave in sass mode, other modes do not require it
-  if options.sass and options.sass.enable then
+  if ud_opts.sass and ud_opts.sass.enable then
     table.insert(text_changed_au, "InsertLeave")
   end
   autocmds[#autocmds + 1] = vim.api.nvim_create_autocmd(text_changed_au, {
@@ -353,12 +356,17 @@ function M.attach_to_buffer(bufnr, options, bo_type)
       if colorizer_state.buffer_options[bufnr] then
         colorizer_state.buffer_local[bufnr].__event = args.event
         if args.event == "TextChanged" or args.event == "InsertLeave" then
-          M.rehighlight(bufnr, options, colorizer_state.buffer_local[bufnr])
+          M.rehighlight(bufnr, ud_opts, colorizer_state.buffer_local[bufnr])
         else
           local pos = vim.fn.getpos(".")
           colorizer_state.buffer_local[bufnr].__startline = pos[2] - 1
           colorizer_state.buffer_local[bufnr].__endline = pos[2]
-          M.rehighlight(bufnr, options, colorizer_state.buffer_local[bufnr], true)
+          M.rehighlight(
+            bufnr,
+            ud_opts,
+            colorizer_state.buffer_local[bufnr],
+            { use_local_lines = true }
+          )
         end
       end
     end,
@@ -370,7 +378,7 @@ function M.attach_to_buffer(bufnr, options, bo_type)
       -- Only reload if it was not disabled using detach_from_buffer
       if colorizer_state.buffer_options[bufnr] then
         colorizer_state.buffer_local[bufnr].__event = args.event
-        M.rehighlight(bufnr, options, colorizer_state.buffer_local[bufnr])
+        M.rehighlight(bufnr, ud_opts, colorizer_state.buffer_local[bufnr])
       end
     end,
   })
@@ -397,7 +405,7 @@ function M.detach_from_buffer(bufnr)
   if bufnr < 0 then
     return -1
   end
-  vim.api.nvim_buf_clear_namespace(bufnr, buffer.default_namespace, 0, -1)
+  vim.api.nvim_buf_clear_namespace(bufnr, const.namespace.default, 0, -1)
   if colorizer_state.buffer_local[bufnr] then
     for _, namespace in pairs(colorizer_state.buffer_local[bufnr].__detach.ns_id) do
       vim.api.nvim_buf_clear_namespace(bufnr, namespace, 0, -1)
@@ -459,7 +467,10 @@ function M.setup(opts)
   }
   require("colorizer.matcher").reset_cache()
   require("colorizer.parser.names").reset_cache()
+  require("colorizer.parser.tailwind_names").reset_cache()
+  require("colorizer.buffer").reset_cache()
   require("colorizer.config").reset_cache()
+
   local s = config.get_setup_options(opts)
 
   -- Setup the buffer with the correct options
@@ -477,76 +488,65 @@ function M.setup(opts)
       colorizer_state.buffer_local[bufnr].__init = nil
       return
     end
+
     -- get cached options
-    local options = config.get_bo_options(bo_type, buftype, filetype)
-    if not options and not s.all[bo_type] then
+    local ud_opts = config.get_bo_options(bo_type, buftype, filetype)
+    if not ud_opts and not s.all[bo_type] then
       return
     end
 
     -- Multiple autocmd events can try to attach to buffer
     -- check if buffer has already been initialized before attaching
     if not colorizer_state.buffer_local[bufnr].__init then
-      M.attach_to_buffer(bufnr, options, bo_type)
+      M.attach_to_buffer(bufnr, ud_opts, bo_type)
     end
   end
 
-  --  TODO: 2024-12-24 - refactor this
   -- Setup highlighting autocmds for filetypes and buftypes
-  local bo_type_ac = {
-    filetype = "FileType",
-    buftype = "BufWinEnter",
-  }
   local bo_type_options = {
     filetype = s.filetypes,
     buftype = s.buftypes,
   }
   for bo_type, bo_type_option in pairs(bo_type_options) do
-    if type(bo_type_option) ~= "table" then
-      vim.notify_once(
-        string.format("colorizer: Invalid type for %ss %s", bo_type, vim.inspect(bo_type_option)),
-        4
-      )
-    else
-      local list = {}
-      for k, v in pairs(bo_type_option) do
-        local value
-        local options = s.user_default_options
-        if type(k) == "string" then
-          value = k
-          if type(v) ~= "table" then
-            vim.notify(string.format("colorizer: Invalid option type for %s", value), 4)
-          else
-            options = vim.tbl_extend("force", options, v)
-          end
+    local list = {}
+    for k, v in pairs(bo_type_option) do
+      local value
+      local ud_opts = s.user_default_options
+      if type(k) == "string" then
+        value = k
+        if type(v) ~= "table" then
+          vim.notify(string.format("colorizer: Invalid option type for %s", value), 4)
         else
-          value = v
+          ud_opts = vim.tbl_extend("force", ud_opts, v)
         end
-        -- Exclude or set buffer options
-        if value:sub(1, 1) == "!" then
-          s.exclusions[bo_type][value:sub(2)] = true
+      else
+        value = v
+      end
+      -- Exclude or set buffer options
+      if value:sub(1, 1) == "!" then
+        s.exclusions[bo_type][value:sub(2)] = true
+      else
+        config.set_bo_value(bo_type, value, ud_opts)
+        if value == "*" then
+          s.all[bo_type] = true
         else
-          config.set_bo_value(bo_type, value, options)
-          if value == "*" then
-            s.all[bo_type] = true
-          else
-            table.insert(list, value)
-          end
+          table.insert(list, value)
         end
       end
-      vim.api.nvim_create_autocmd({ bo_type_ac[bo_type] }, {
-        group = colorizer_state.augroup,
-        pattern = bo_type == "filetype" and (s.all[bo_type] and "*" or list) or nil,
-        callback = function()
-          if s.lazy_load then
-            vim.schedule(function()
-              setup(bo_type)
-            end)
-          else
-            setup(bo_type)
-          end
-        end,
-      })
     end
+    vim.api.nvim_create_autocmd({ const.autocmd.bo_type_ac[bo_type] }, {
+      group = colorizer_state.augroup,
+      pattern = bo_type == "filetype" and (s.all[bo_type] and "*" or list) or nil,
+      callback = function()
+        if s.lazy_load then
+          vim.schedule(function()
+            setup(bo_type)
+          end)
+        else
+          setup(bo_type)
+        end
+      end,
+    })
   end
 
   -- Clear highlight cache on colorscheme change
@@ -561,7 +561,7 @@ end
 
 --- Clears the highlight cache and reloads all buffers.
 function M.clear_highlight_cache()
-  buffer.clear_hl_cache()
+  buffer.reset_cache()
   vim.schedule(M.reload_all_buffers)
 end
 

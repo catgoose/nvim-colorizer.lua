@@ -10,8 +10,9 @@ local Trie = require("colorizer.trie")
 local min, max = math.min, math.max
 
 local parsers = {
-  argb_hex = require("colorizer.parser.argb_hex").parser,
   color_name = require("colorizer.parser.names").parser,
+  tailwind_name = require("colorizer.parser.tailwind_names").parser,
+  argb_hex = require("colorizer.parser.argb_hex").parser,
   hsl_function = require("colorizer.parser.hsl").parser,
   rgb_function = require("colorizer.parser.rgb").parser,
   rgba_hex = require("colorizer.parser.rgba_hex").parser,
@@ -26,6 +27,8 @@ parsers.prefix = {
   ["_hsl"] = parsers.hsl_function,
   ["_hsla"] = parsers.hsl_function,
 }
+
+--  TODO: 2024-12-31 - Return multiple parse_fn for tailwind parser?
 
 ---Form a trie stuct with the given prefixes
 ---@param matchers table: List of prefixes, {"rgb", "hsl"}
@@ -59,6 +62,20 @@ local function compile(matchers, matchers_trie)
     end
 
     -- Color names
+    -- if matchers.color_name_parser and not matchers.tailwind_names_parser then
+    --   return parsers.color_name(line, i, matchers.color_name_parser)
+    -- end
+    -- if not matchers.color_name_parser and matchers.tailwind_names_parser then
+    --   return parsers.tailwind_name(line, i)
+    -- end
+    -- if matchers.color_name_parser and matchers.tailwind_names_parser then
+    --   local length, rgb_hex
+    --   length, rgb_hex = parsers.color_name(line, i, matchers.color_name_parser)
+    --   if length and rgb_hex then
+    --     return length, rgb_hex
+    --   end
+    --   return parsers.tailwind_name(line, i)
+    -- end
     if matchers.color_name_parser then
       return parsers.color_name(line, i, matchers.color_name_parser)
     end
@@ -136,7 +153,7 @@ function M.make(opts)
   local matchers = {}
   local matchers_prefix = {}
 
-  if enable_names or enable_names_custom or enable_tailwind then
+  if enable_names or enable_names_custom then
     matchers.color_name_parser = matchers.color_name_parser or {}
     if enable_names then
       matchers.color_name_parser.color_names = enable_names
@@ -150,14 +167,9 @@ function M.make(opts)
     if enable_names_custom then
       matchers.color_name_parser.names_custom = enable_names_custom
     end
-    if enable_tailwind then
-      matchers.color_name_parser.tailwind = enable_tailwind
-    end
   end
 
-  if enable_sass then
-    matchers.sass_name_parser = true
-  end
+  matchers.sass_name_parser = enable_sass or nil
 
   local valid_lengths =
     { [3] = enable_RGB, [4] = enable_RGBA, [6] = enable_RRGGBB, [8] = enable_RRGGBBAA }
@@ -168,7 +180,6 @@ function M.make(opts)
       maxlen = maxlen and max(k, maxlen) or k
     end
   end
-
   if minlen then
     matchers.rgba_hex_parser = {
       valid_lengths = valid_lengths,
@@ -181,7 +192,6 @@ function M.make(opts)
   if enable_AARRGGBB then
     table.insert(matchers_prefix, "0x")
   end
-
   if enable_rgb and enable_hsl then
     table.insert(matchers_prefix, "hsla")
     table.insert(matchers_prefix, "rgba")
@@ -194,11 +204,11 @@ function M.make(opts)
     table.insert(matchers_prefix, "hsla")
     table.insert(matchers_prefix, "hsl")
   end
-
   for _, value in ipairs(matchers_prefix) do
     matchers[value] = { prefix = value }
   end
 
+  --  TODO: 2024-12-31 - How to return tailwind matcher for tailwind namespace?
   loop_parse_fn = compile(matchers, matchers_prefix)
   matcher_cache[matcher_key] = loop_parse_fn
 

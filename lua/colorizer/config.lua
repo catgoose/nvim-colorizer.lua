@@ -23,6 +23,9 @@ local plugin_user_default_options = {
   css_fn = false,
   mode = "background",
   tailwind = false,
+  tailwind_opts = {
+    update_names = false,
+  },
   sass = { enable = false, parsers = { css = true } },
   virtualtext = "■",
   virtualtext_inline = false,
@@ -59,21 +62,21 @@ local plugin_user_default_options = {
 -- @field css_fn boolean: Enables all CSS functions (`rgb_fn`, `hsl_fn`).
 -- @field mode 'background'|'foreground'|'virtualtext': Display mode
 -- @field tailwind boolean|string: Enables Tailwind CSS colors (e.g., `"normal"`, `"lsp"`, `"both"`).
+-- @field tailwind_opts table: Tailwind options for updating names cache, etc
 -- @field sass table: Sass color configuration (`enable` flag and `parsers`).
 -- @field virtualtext string: Character used for virtual text display.
--- @field virtualtext_inline boolean: Shows virtual text inline with color.
+-- @field virtualtext_inline boolean|'before'|'after': Shows virtual text inline with color.
 -- @field virtualtext_mode 'background'|'foreground': Mode for virtual text display.
 -- @field always_update boolean: Always update color values, even if buffer is not focused.
 
 --- Options for colorizer that were passed in to setup function
---@field setup_options
---@field exclusions
---@field all
---@field default_options
---@field user_commands
 --@field filetypes
 --@field buftypes
+--@field user_commands
 --@field lazy_load
+--@field user_default_options
+--@field exclusions
+--@field all
 M.options = {}
 local function init_options()
   M.options = {
@@ -81,11 +84,11 @@ local function init_options()
     filetypes = { "*" },
     buftypes = {},
     user_commands = true,
+    lazy_load = false,
     user_default_options = plugin_user_default_options,
     -- shortcuts for filetype, buftype inclusion, exclusion settings
     exclusions = { buftype = {}, filetype = {} },
     all = { buftype = false, filetype = false },
-    lazy_load = false,
   }
 end
 
@@ -99,18 +102,47 @@ do
   M.reset_cache()
 end
 
+--- Validate user options and set defaults.
+local function validate_options(ud_opts)
+  -- Set true value to it's "name"
+  if ud_opts.tailwind == true then
+    ud_opts.tailwind = "normal"
+  end
+  if ud_opts.virtualtext_inline == true then
+    ud_opts.virtualtext_inline = "after"
+  end
+  -- Set default if value is invalid
+  if ud_opts.tailwind ~= "normal" and ud_opts.tailwind ~= "both" and ud_opts.tailwind ~= "lsp" then
+    ud_opts.tailwind = plugin_user_default_options.tailwind
+  end
+  if ud_opts.virtualtext_inline ~= "before" and ud_opts.virtualtext_inline ~= "after" then
+    ud_opts.virtualtext_inline = plugin_user_default_options.virtualtext_inline
+  end
+  if
+    ud_opts.mode ~= "background"
+    and ud_opts.mode ~= "foreground"
+    and ud_opts.mode ~= "virtualtext"
+  then
+    ud_opts.mode = plugin_user_default_options.mode
+  end
+  if ud_opts.virtualtext_mode ~= "background" and ud_opts.virtualtext_mode ~= "foreground" then
+    ud_opts.virtualtext_mode = plugin_user_default_options.virtualtext_mode
+  end
+end
+
 --- Set options for a specific buffer or file type.
 ---@param bo_type 'buftype'|'filetype': The type of buffer option
----@param value string: The specific value to set.
----@param options table: Options to associate with the value.
-function M.set_bo_value(bo_type, value, options)
-  options_cache[bo_type][value] = options
+---@param val string: The specific value to set.
+---@param ud_opts table: `user_default_options`
+function M.set_bo_value(bo_type, val, ud_opts)
+  validate_options(ud_opts)
+  options_cache[bo_type][val] = ud_opts
 end
 
 --- Parse and apply alias options to the user options.
----@param options table: user_default_options
+---@param ud_opts table: user_default_options
 ---@return table
-function M.apply_alias_options(options)
+function M.apply_alias_options(ud_opts)
   local aliases = {
     --  TODO: 2024-12-24 - Should aliases be configurable?
     ["css"] = { "names", "RGB", "RGBA", "RRGGBB", "RRGGBBAA", "hsl_fn", "rgb_fn" },
@@ -122,22 +154,23 @@ function M.apply_alias_options(options)
     end
     for _, option in ipairs(aliases[name]) do
       if opts[option] == nil then
-        opts[option] = options[name]
+        opts[option] = ud_opts[name]
       end
     end
   end
 
   for alias, _ in pairs(aliases) do
-    handle_alias(alias, options)
+    handle_alias(alias, ud_opts)
   end
-  if options.sass and options.sass.enable then
-    for child, _ in pairs(options.sass.parsers) do
-      handle_alias(child, options.sass.parsers)
+  if ud_opts.sass and ud_opts.sass.enable then
+    for child, _ in pairs(ud_opts.sass.parsers) do
+      handle_alias(child, ud_opts.sass.parsers)
     end
   end
 
-  options = vim.tbl_deep_extend("force", M.options.user_default_options, options)
-  return options
+  ud_opts = vim.tbl_deep_extend("force", M.options.user_default_options, ud_opts)
+  validate_options(ud_opts)
+  return ud_opts
 end
 
 --- Configuration options for the `setup` function.
@@ -146,6 +179,10 @@ end
 -- @field user_default_options table Default options for color handling.
 --   - `names` (boolean): Enables named color codes like `"Blue"`.
 --   - `names_opts` (table): Names options for customizing casing, digit stripping, etc
+--     - `lowercase` (boolean): Converts color names to lowercase.
+--     - `camelcase` (boolean): Converts color names to camelCase.  This is the default naming scheme for colors returned from `vim.api.nvim_get_color_map`
+--     - `uppercase` (boolean): Converts color names to uppercase.
+--     - `strip_digits` (boolean): Removes digits from color names.
 --   - `names_custom` (table|function|false|nil): Custom color name to RGB value mappings
 --   - `RGB` (boolean): Enables support for `#RGB` hex codes.
 --   - `RGBA` (boolean): Enables support for `#RGBA` hex codes.
@@ -158,11 +195,13 @@ end
 --   - `css_fn` (boolean): Enables all CSS function-related features (e.g., `rgb_fn`, `hsl_fn`).
 --   - `mode` (string): Determines the display mode for highlights. Options are `"background"`, `"foreground"`, and `"virtualtext"`.
 --   - `tailwind` (boolean|string): Enables Tailwind CSS colors. Accepts `true`, `"normal"`, `"lsp"`, or `"both"`.
+--   - `tailwind_opts` (table): Tailwind options for updating names cache, etc
+--      - `update_names` (boolean): Updates Tailwind "normal" names cache from LSP results.  This provides a smoother highlighting experience when tailwind = "both" is used.  Highlighting on non-tailwind lsp buffers (like cmp) becomes more consistent.
 --   - `sass` (table): Configures Sass color support.
 --      - `enable` (boolean): Enables Sass color parsing.
 --      - `parsers` (table): A list of parsers to use, typically includes `"css"`.
 --   - `virtualtext` (string): Character used for virtual text display of colors (default is `"■"`).
---   - `virtualtext_inline` (boolean): If true, shows the virtual text inline with the color.
+--   - `virtualtext_inline` (boolean|'before'|'after'): Shows the virtual text inline with the color.  True defaults to 'before'.  False or nil disables.
 -- - `virtualtext_mode` ('background'|'foreground'): Determines the display mode for virtual text.
 --   - `always_update` (boolean): If true, updates color values even if the buffer is not focused.
 -- @field buftypes table|nil Optional. A list of buffer types where colorizer should be enabled. Defaults to all buffer types if not provided.
@@ -176,8 +215,8 @@ end
 --- Initializes colorizer with user-provided options.
 -- Merges default settings with any user-specified options, setting up `filetypes`,
 -- `user_default_options`, and `user_commands`.
--- @param opts table: Configuration options for colorizer.
--- @return table Final settings after merging user and default options.
+---@param opts table|nil: Configuration options for colorizer.
+---@return table: Final settings after merging user and default options.
 function M.get_setup_options(opts)
   init_options()
   opts = opts or {}

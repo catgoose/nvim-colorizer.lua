@@ -1,6 +1,5 @@
 --- This module provides a parser that identifies named colors from a given line of text.
--- It supports standard color names and optional Tailwind CSS color names.
--- The module uses a Trie structure for efficient matching of color names in text.
+-- The module uses a Trie structure for efficient matching of color names to #rrggbb values
 -- @module colorizer.parser.names
 local M = {}
 
@@ -18,7 +17,6 @@ function M.reset_cache()
     color_trie = nil,
     color_name_minlen = nil,
     color_name_maxlen = nil,
-    tailwind_enabled = false,
   }
 end
 do
@@ -26,37 +24,21 @@ do
 end
 
 --- Internal function to add a color to the Trie and map.
--- @param name string The color name.
--- @param value string The color value in hex format.
-local function add_color(name, value)
+---@param name string: The color name.
+---@param val string: The color value in hex format.
+local function add_color(name, val)
   names_cache.color_name_minlen = names_cache.color_name_minlen
       and min(#name, names_cache.color_name_minlen)
     or #name
   names_cache.color_name_maxlen = names_cache.color_name_maxlen
       and max(#name, names_cache.color_name_maxlen)
     or #name
-  names_cache.color_map[name] = value
+  names_cache.color_map[name] = val
   names_cache.color_trie:insert(name)
 end
 
---- Extract non-alphanumeric characters to add as a valid index in the Trie
--- @param tbl table The table to extract non-alphanumeric characters from.
-local function extract_non_alphanum_keys(tbl)
-  local non_alphanum_chars = {}
-  for key, _ in pairs(tbl) do
-    for char in key:gmatch("[^%w]") do
-      non_alphanum_chars[char] = true
-    end
-  end
-  local result = ""
-  for char in pairs(non_alphanum_chars) do
-    result = result .. char
-  end
-  return result
-end
-
 --- Handles additional color names provided as a table or function.
--- @param names_custom table|function|nil Additional color names to add.
+---@param names_custom table|function|nil: Additional color names to add.
 local function handle_names_custom(names_custom)
   if not names_custom then
     return
@@ -78,8 +60,9 @@ local function handle_names_custom(names_custom)
   end
 
   -- Add additional characters found in names_custom keys
-  local chars = extract_non_alphanum_keys(names)
+  local chars = utils.get_non_alphanum_keys(names)
   names_cache.color_trie:additional_chars(chars)
+  utils.add_additional_color_chars("names", chars)
 
   for name, hex in pairs(names) do
     if type(hex) == "string" then
@@ -93,17 +76,6 @@ local function handle_names_custom(names_custom)
       vim.api.nvim_err_writeln(
         "Invalid value for '" .. name .. "': Expected string, got " .. type(hex)
       )
-    end
-  end
-end
-
---- Handles Tailwind CSS colors and adds them to the Trie and map.
-local function handle_tailwind()
-  names_cache.color_trie:additional_chars("-")
-  local tailwind = require("colorizer.tailwind_colors")
-  for name, hex in pairs(tailwind.colors) do
-    for _, prefix in ipairs(tailwind.prefixes) do
-      add_color(prefix .. "-" .. name, hex)
     end
   end
 end
@@ -127,7 +99,7 @@ local function handle_names(opts)
 end
 
 --- Populates the Trie and map with colors based on options.
--- @param opts table Configuration options for color names and Tailwind CSS.
+---@param opts table Configuration options for color names.
 local function populate_colors(opts)
   names_cache.color_map = {}
   names_cache.color_trie = Trie()
@@ -138,12 +110,6 @@ local function populate_colors(opts)
     handle_names(opts.color_names_opts)
   end
 
-  -- Add Tailwind colors
-  if opts.tailwind then
-    handle_tailwind()
-  end
-  names_cache.tailwind_enabled = opts.tailwind
-
   -- Add extra names
   if opts.names_custom then
     handle_names_custom(opts.names_custom)
@@ -151,13 +117,12 @@ local function populate_colors(opts)
 end
 
 --- Parses a line to identify color names.
--- @param line string: The text line to parse.
--- @param i number: The index to start parsing from.
--- @param opts table: Parsing options.
--- @return number|nil, string|nil: Length of match and hex value if found.
+---@param line string: The text line to parse.
+---@param i number: The index to start parsing from.
+---@param opts table: Parsing options.
+---@return number|nil, string|nil: Length of match and hex value if found.
 function M.parser(line, i, opts)
-  if not names_cache.color_trie or opts.tailwind ~= names_cache.tailwind_enabled then
-    --  TODO: 2024-12-21 - Ensure that this is not being called too many times
+  if not names_cache.color_trie then
     populate_colors(opts)
   end
 

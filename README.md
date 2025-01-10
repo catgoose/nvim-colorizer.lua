@@ -14,10 +14,10 @@
   - [Customization](#customization)
     - [Updating color even when buffer is not focused](#updating-color-even-when-buffer-is-not-focused)
     - [Lazyload Colorizer with Lazy.nvim](#lazyload-colorizer-with-lazynvim)
+    - [Tailwind](#tailwind)
   - [Testing](#testing)
   - [Extras](#extras)
   - [TODO](#todo)
-  - [Similar projects](#similar-projects)
   <!--toc:end-->
 
 [![luadoc](https://img.shields.io/badge/luadoc-0.1-blue)](https://catgoose.github.io/nvim-colorizer.lua/)
@@ -28,15 +28,11 @@ dependencies**! Written in performant Luajit.
 As long as you have `malloc()` and `free()` on your system, this will work.
 Which includes Linux, OSX, and Windows.
 
-![Demo.gif](https://raw.githubusercontent.com/norcalli/github-assets/master/nvim-colorizer.lua-demo-short.gif)
+![Demo.gif](https://github.com/catgoose/screenshots/blob/51466fa599efe6d9821715616106c1712aad00c3/nvim-colorizer.lua/demo-short.gif)
 
 ## Installation and Usage
 
 Requires Neovim >= 0.7.0 and `set termguicolors`.
-If you don't have true color for your terminal or are
-unsure, [read this excellent guide](https://github.com/termstandard/colors).
-
-Use your plugin manager or clone directly into your package.
 
 ### Plugin managers
 
@@ -59,9 +55,6 @@ use("catgoose/nvim-colorizer.lua")
 
 #### Manual
 
-One line setup. This will create an `autocmd` for `FileType *` to highlight
-every filetype.
-
 > [!NOTE]
 > You should add this line after/below where your plugins are setup.
 
@@ -69,7 +62,13 @@ every filetype.
 require("colorizer").setup()
 ```
 
+This will create an `autocmd` for `FileType *` to highlight
+every filetype.
+
 ### User commands
+
+> [!NOTE]
+> User commands can be enabled/disabled in setup opts
 
 | Command                       | Description                                                 |
 | ----------------------------- | ----------------------------------------------------------- |
@@ -78,14 +77,11 @@ require("colorizer").setup()
 | **ColorizerReloadAllBuffers** | Reload all buffers that are being highlighted currently     |
 | **ColorizerToggle**           | Toggle highlighting of the current buffer                   |
 
-> [!NOTE]
-> User commands can be enabled/disabled in setup opts
-
 ### Lua API
 
 ```lua
 -- All options that can be passed to `user_default_options` in setup() can be
--- passed here
+-- passed to `attach_to_buffer`
 -- Similar for other functions
 
 -- Attach to buffer
@@ -108,10 +104,6 @@ is that _this only works for Neovim_, and that will never change.
 Apart from that, it only applies the highlights to the current visible contents,
 so even if a big file is opened, the editor won't just choke on a blank screen.
 
-This idea was copied from
-[brenoprata10/nvim-highlight-colors](https://github.com/brenoprata10/nvim-highlight-colors)
-Credits to [brenoprata10](https://github.com/brenoprata10)
-
 Additionally, having a Lua API that's available means users can use this as a
 library to do custom highlighting themselves.
 
@@ -122,7 +114,13 @@ library to do custom highlighting themselves.
 
 ```lua
   require("colorizer").setup({
+    -- Filetype options.  Accepts table like `user_default_options`
     filetypes = { "*" },
+    -- Buftype options.  Accepts table like `user_default_options`
+    buftypes = {},
+    -- Boolean | List of usercommands to enable.  See User commands section.
+    user_commands = true, -- Enable all or some usercommands
+    lazy_load = false, -- Lazily schedule buffer highlighting setup function
     user_default_options = {
       names = true, -- "Name" codes like Blue or red.  Added from `vim.api.nvim_get_color_map()`
       names_opts = { -- options for mutating/filtering names.
@@ -150,7 +148,11 @@ library to do custom highlighting themselves.
       mode = "background", -- Set the display mode
       -- Tailwind colors.  boolean|'normal'|'lsp'|'both'.  True is same as normal
       tailwind = false, -- Enable tailwind colors
-      -- parsers can contain values used in |user_default_options|
+      tailwind_opts = { -- Options for highlighting tailwind names
+        update_names = false, -- When using tailwind = 'both', update tailwind
+        -- names from LSP results.  See tailwind section
+      },
+      -- parsers can contain values used in `user_default_options`
       sass = { enable = false, parsers = { "css" } }, -- Enable sass colors
       -- Virtualtext character to use
       virtualtext = "■",
@@ -162,23 +164,18 @@ library to do custom highlighting themselves.
       -- example use: cmp_menu, cmp_docs
       always_update = false,
     },
-    -- all the sub-options of filetypes apply to buftypes
-    buftypes = {},
-    -- Boolean | List of usercommands to enable
-    user_commands = true, -- Enable all or some usercommands
-    -- If true Lazily schedule buffer highlighting setup function
-    -- Useful if using "VeryLazy" event in Lazy.nvim
-    lazy_load = false,
   })
 ```
 
-MODES:
+Highlighting modes:
 
 - `background`: sets the background text color.
 - `foreground`: sets the foreground text color.
 - `virtualtext`: indicate the color behind the virtualtext.
 
-For basic setup, you can use a command like the following.
+Virtualtext symbol can be displayed at end of line, or
+
+Setup examples:
 
 ```lua
 -- Attaches to every FileType with default options
@@ -264,9 +261,9 @@ In `user_default_options`, there are 2 types of options
 
 1. Alias options - `css`, `css_fn`
 
-If `css_fn` is true, then `hsl_fn`, `rgb_fn` becomes `true`
+If `css_fn` is true `hsl_fn`, `rgb_fn` becomes `true`
 
-If `css` is true, then `names`, `RGB`, `RGBA`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn`
+If `css` is true `names`, `RGB`, `RGBA`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn`
 becomes `true`
 
 These options have a priority, Individual options have the highest priority,
@@ -349,6 +346,37 @@ return {
 }
 ```
 
+### Tailwind
+
+Tailwind colors can either be parsed from the Tailwind colors file (found in
+`lua/colorizer/data/tailwind_colors.lua`) or by requesting
+`textDocument/documentColor` from the LSP.
+
+When using `tailwind="normal"`, only standard color names/values are parsed.
+
+Using the `tailwind_opts.update_names` configuration option, the `tailwind_names`
+color mapping will be updated with results from Tailwind LSP, including custom
+colors defined in `tailwind.config.{js,ts}`.
+
+This can be useful if you are highlighting `cmp_menu` filetype.
+
+```typescript
+// tailwind.config.ts
+    extend: {
+      colors: {
+        gray: {
+          600: '#2CEF6F',
+          700: '#AC50EF',
+          800: '#2ECFF6',
+        },
+      },
+    },
+```
+
+![tailwind.update_names](https://github.com/catgoose/screenshots/blob/51466fa599efe6d9821715616106c1712aad00c3/nvim-colorizer.lua/tailwind_update_names.png)
+To improve highlighting performance with the slow Tailwind LSP, results from LSP
+are cached and returned on `WinScrolled` event.
+
 ## Testing
 
 For troubleshooting use `test/minimal.lua`.
@@ -367,7 +395,7 @@ to conveniently reattach Colorizer to `test/expect.lua` on save.
 
 ## Extras
 
-Documentaion is generated using ldoc. See
+Documentation is generated using ldoc. See
 [scripts/gen_docs.sh](https://github.com/colorizer/nvim-colorizer.lua/blob/master/scripts/gen_docs.sh)
 
 ## TODO
@@ -376,7 +404,4 @@ Documentaion is generated using ldoc. See
 - [ ] Add more display modes. E.g - sign column
 - [ ] Use a more space efficient trie implementation.
 - [ ] Support custom parsers
-
-## Similar projects
-
-[nvim-highlight-colors](https://github.com/brenoprata10/nvim-highlight-colors)
+- [ ] Options support providing function to enable/disable instead of just boolean
