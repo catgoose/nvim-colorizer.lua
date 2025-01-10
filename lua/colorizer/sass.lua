@@ -211,7 +211,7 @@ local function sass_parse_lines(bufnr, line_start, content, name)
                       bufnr,
                       state[bufnr].options,
                       state[bufnr].local_options,
-                      true
+                      { use_local_lines = true }
                     )
                   end
                   state[bufnr].watch_imports[name][v] = utils.watch_file(v, watch_callback)
