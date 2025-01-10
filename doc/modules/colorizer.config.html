@@ -375,6 +375,9 @@
         <li><span class="parameter">user_commands</span>
 
         </li>
+        <li><span class="parameter">lazy_load</span>
+
+        </li>
         <li><span class="parameter">user_default_options</span>
 
         </li>
@@ -435,14 +438,17 @@
    - `always_update` (boolean): If true, updates color values even if the buffer is not focused.
         </li>
         <li><span class="parameter">buftypes</span>
-         table|nil Optional. A list of buffer types where colorizer should be enabled. Defaults to all buffer types if not provided.
+         (table|nil): Optional. A list of buffer types where colorizer should be enabled. Defaults to all buffer types if not provided.
         </li>
         <li><span class="parameter">user_commands</span>
-         boolean|table If true, enables all user commands for colorizer. If `false`, disables user commands. Alternatively, provide a table of specific commands to enable:
+         (boolean|table): If true, enables all user commands for colorizer. If `false`, disables user commands. Alternatively, provide a table of specific commands to enable:
    - `"ColorizerAttachToBuffer"`
    - `"ColorizerDetachFromBuffer"`
    - `"ColorizerReloadAllBuffers"`
    - `"ColorizerToggle"`
+        </li>
+        <li><span class="parameter">lazy_load</span>
+         (boolean): If true, lazily schedule buffer highlighting setup function
         </li>
     </ul>
 

@@ -13,6 +13,7 @@
   - [Why another highlighter?](#why-another-highlighter)
   - [Customization](#customization)
     - [Updating color even when buffer is not focused](#updating-color-even-when-buffer-is-not-focused)
+    - [Lazyload Colorizer with Lazy.nvim](#lazyload-colorizer-with-lazynvim)
     - [Tailwind](#tailwind)
   - [Testing](#testing)
   - [Extras](#extras)
@@ -113,11 +114,13 @@ library to do custom highlighting themselves.
 
 ```lua
   require("colorizer").setup({
+    -- Filetype options.  Accepts table like `user_default_options`
     filetypes = { "*" },
-    -- all the sub-options of filetypes apply to buftypes
+    -- Buftype options.  Accepts table like `user_default_options`
     buftypes = {},
     -- Boolean | List of usercommands to enable.  See User commands section.
     user_commands = true, -- Enable all or some usercommands
+    lazy_load = false, -- Lazily schedule buffer highlighting setup function
     user_default_options = {
       names = true, -- "Name" codes like Blue or red.  Added from `vim.api.nvim_get_color_map()`
       names_opts = { -- options for mutating/filtering names.
@@ -146,9 +149,10 @@ library to do custom highlighting themselves.
       -- Tailwind colors.  boolean|'normal'|'lsp'|'both'.  True is same as normal
       tailwind = false, -- Enable tailwind colors
       tailwind_opts = { -- Options for highlighting tailwind names
-        update_names = false, -- When using tailwind = 'both', update tailwind names from LSP results.  See tailwind section
+        update_names = false, -- When using tailwind = 'both', update tailwind
+        -- names from LSP results.  See tailwind section
       },
-      -- parsers can contain values used in |user_default_options|
+      -- parsers can contain values used in `user_default_options`
       sass = { enable = false, parsers = { "css" } }, -- Enable sass colors
       -- Virtualtext character to use
       virtualtext = "■",
@@ -329,6 +333,19 @@ For lower level interface, see
 [LuaDocs for API details](https://catgoose.github.io/nvim-colorizer.lua/modules/colorizer.html)
 or use `:h colorizer` once installed.
 
+### Lazyload Colorizer with Lazy.nvim
+
+```lua
+return {
+  "catgoose/nvim-colorizer.lua",
+  event = "VeryLazy",
+  opts = {
+    lazy_load = true,
+    -- other setup options
+  },
+}
+```
+
 ### Tailwind
 
 Tailwind colors can either be parsed from the Tailwind colors file (found in
@@ -357,7 +374,6 @@ This can be useful if you are highlighting `cmp_menu` filetype.
 ```
 
 ![tailwind.update_names](https://github.com/catgoose/screenshots/blob/51466fa599efe6d9821715616106c1712aad00c3/nvim-colorizer.lua/tailwind_update_names.png)
-
 To improve highlighting performance with the slow Tailwind LSP, results from LSP
 are cached and returned on `WinScrolled` event.
 

@@ -575,6 +575,7 @@ options                                               *colorizer.config.options*
 	{filetypes} -
 	{buftypes} -
 	{user_commands} -
+	{lazy_load} -
 	{user_default_options} -
 	{exclusions} -
 	{all} -
@@ -630,15 +631,18 @@ opts                                                     *colorizer.config.opts*
    for virtual text.
    - `always_update` (boolean): If true, updates color values even if the buffer
      is not focused.
-	{buftypes} -  table|nil Optional. A list of buffer types where colorizer
-	should be enabled. Defaults to all buffer types if not provided.
-	{user_commands} -  boolean|table If true, enables all user commands for
-	colorizer. If `false`, disables user commands. Alternatively, provide a
-	table of specific commands to enable:
+	{buftypes} -  (table|nil): Optional. A list of buffer types where
+	colorizer should be enabled. Defaults to all buffer types if not
+	provided.
+	{user_commands} -  (boolean|table): If true, enables all user commands
+	for colorizer. If `false`, disables user commands. Alternatively,
+	provide a table of specific commands to enable:
    - `"ColorizerAttachToBuffer"`
    - `"ColorizerDetachFromBuffer"`
    - `"ColorizerReloadAllBuffers"`
    - `"ColorizerToggle"`
+	{lazy_load} -  (boolean): If true, lazily schedule buffer highlighting
+	setup function
 
 
 
