@@ -190,7 +190,15 @@ function M.highlight(bufnr, ns_id, line_start, line_end, ud_opts, buf_local_opts
   -- only update sass varibles when text is changed
   if buf_local_opts.__event ~= "WinScrolled" and ud_opts.sass and ud_opts.sass.enable then
     table.insert(detach.functions, sass.cleanup)
-    sass.update_variables(bufnr, 0, -1, nil, matcher(ud_opts.sass.parsers), ud_opts, buf_local_opts)
+    sass.update_variables(
+      bufnr,
+      0,
+      -1,
+      nil,
+      matcher.make(ud_opts.sass.parsers),
+      ud_opts,
+      buf_local_opts
+    )
   end
 
   -- Parse lines from matcher
