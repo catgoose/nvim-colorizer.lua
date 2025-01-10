@@ -97,7 +97,7 @@ local function sass_parse_lines(bufnr, line_start, content, name)
             -- Check for a recursive variable definition.
             -- If it's not recursive, then just update the value.
             if state[bufnr].color_parser then
-              local length, rgb_hex = state[bufnr].COLOR_PARSER(variable_value, 1)
+              local length, rgb_hex = state[bufnr].color_parser(variable_value, 1)
               if length and rgb_hex then
                 state[bufnr].definitions[name][variable_name] = rgb_hex
                 state[bufnr].definitions_recursive_current[variable_name] = rgb_hex
@@ -238,7 +238,7 @@ local function sass_parse_lines(bufnr, line_start, content, name)
   end
 end -- sass_parse_lines end
 
---- Parse the given lines for sass variabled and add to `SASS[buf].DEFINITIONS_ALL`.
+--- Parse the given lines for sass variabled and add to `sass_state[buf].definitions_all`.
 -- which is then used in |sass_name_parser|
 -- If lines are not given, then fetch the lines with line_start and line_end
 ---@param bufnr number: Buffer number
@@ -279,7 +279,7 @@ function M.update_variables(
 
   sass_parse_lines(bufnr, line_start, lines, vim.api.nvim_buf_get_name(bufnr))
 
-  -- add non-recursive def to DEFINITIONS_ALL
+  -- add non-recursive def to definitions_all
   for _, color_table in pairs(state[bufnr].definitions) do
     for color_name, color in pairs(color_table) do
       state[bufnr].definitions_all[color_name] = color
@@ -287,7 +287,7 @@ function M.update_variables(
   end
 
   -- normally this is just a wasted step as all the values here are
-  -- already present in SASS[buf].DEFINITIONS
+  -- already present in sass_state[buf].definitions
   -- but when undoing a pasted text, it acts as a backup
   for name, color in pairs(state[bufnr].definitions_recursive_current_absolute) do
     state[bufnr].definitions_all[name] = color
