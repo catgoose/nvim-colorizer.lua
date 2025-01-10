@@ -228,7 +228,6 @@ end
 ---@param bo_type 'buftype'|'filetype': The type of buffer option
 function M.new_bo_options(bufnr, bo_type)
   local value = vim.api.nvim_get_option_value(bo_type, { buf = bufnr })
-  --  TODO: 2025-01-01 - should this be options_cache[bo_type][value]?
   return options_cache.filetype[value] or M.options.user_default_options
 end
 

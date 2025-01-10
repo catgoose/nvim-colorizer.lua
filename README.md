@@ -17,7 +17,6 @@
   - [Testing](#testing)
   - [Extras](#extras)
   - [TODO](#todo)
-  - [Similar projects](#similar-projects)
   <!--toc:end-->
 
 [![luadoc](https://img.shields.io/badge/luadoc-0.1-blue)](https://catgoose.github.io/nvim-colorizer.lua/)
@@ -33,10 +32,6 @@ Which includes Linux, OSX, and Windows.
 ## Installation and Usage
 
 Requires Neovim >= 0.7.0 and `set termguicolors`.
-If you don't have true color for your terminal or are
-unsure, [read this excellent guide](https://github.com/termstandard/colors).
-
-Use your plugin manager or clone directly into your package.
 
 ### Plugin managers
 
@@ -59,9 +54,6 @@ use("catgoose/nvim-colorizer.lua")
 
 #### Manual
 
-One line setup. This will create an `autocmd` for `FileType *` to highlight
-every filetype.
-
 > [!NOTE]
 > You should add this line after/below where your plugins are setup.
 
@@ -69,7 +61,13 @@ every filetype.
 require("colorizer").setup()
 ```
 
+This will create an `autocmd` for `FileType *` to highlight
+every filetype.
+
 ### User commands
+
+> [!NOTE]
+> User commands can be enabled/disabled in setup opts
 
 | Command                       | Description                                                 |
 | ----------------------------- | ----------------------------------------------------------- |
@@ -78,14 +76,11 @@ require("colorizer").setup()
 | **ColorizerReloadAllBuffers** | Reload all buffers that are being highlighted currently     |
 | **ColorizerToggle**           | Toggle highlighting of the current buffer                   |
 
-> [!NOTE]
-> User commands can be enabled/disabled in setup opts
-
 ### Lua API
 
 ```lua
 -- All options that can be passed to `user_default_options` in setup() can be
--- passed here
+-- passed to `attach_to_buffer`
 -- Similar for other functions
 
 -- Attach to buffer
@@ -107,10 +102,6 @@ is that _this only works for Neovim_, and that will never change.
 
 Apart from that, it only applies the highlights to the current visible contents,
 so even if a big file is opened, the editor won't just choke on a blank screen.
-
-This idea was copied from
-[brenoprata10/nvim-highlight-colors](https://github.com/brenoprata10/nvim-highlight-colors)
-Credits to [brenoprata10](https://github.com/brenoprata10)
 
 Additionally, having a Lua API that's available means users can use this as a
 library to do custom highlighting themselves.
@@ -180,7 +171,7 @@ Highlighting modes:
 
 Virtualtext symbol can be displayed at end of line, or
 
-For basic setup, you can use a command like the following.
+Setup examples:
 
 ```lua
 -- Attaches to every FileType with default options
@@ -344,10 +335,11 @@ Tailwind colors can either be parsed from the Tailwind colors file (found in
 `lua/colorizer/data/tailwind_colors.lua`) or by requesting
 `textDocument/documentColor` from the LSP.
 
-When using `tailwind="normal"`, only standard color names are parsed. However,
-custom colors defined in `tailwind.config.{js,ts}` can be included using the
-`tailwind_opts.update_names` configuration option. This updates the highlight
-color mapping for color names discovered by the LSP.
+When using `tailwind="normal"`, only standard color names/values are parsed.
+
+Using the `tailwind_opts.update_names` configuration option, the `tailwind_names`
+color mapping will be updated with results from Tailwind LSP, including custom
+colors defined in `tailwind.config.{js,ts}`.
 
 This can be useful if you are highlighting `cmp_menu` filetype.
 
@@ -397,7 +389,3 @@ Documentation is generated using ldoc. See
 - [ ] Use a more space efficient trie implementation.
 - [ ] Support custom parsers
 - [ ] Options support providing function to enable/disable instead of just boolean
-
-## Similar projects
-
-[nvim-highlight-colors](https://github.com/brenoprata10/nvim-highlight-colors)
