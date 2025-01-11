@@ -253,6 +253,15 @@ function M.parse_lines(bufnr, lines, line_start, ud_opts, parse_opts)
     local i = 1
     while i < #line do
       local length, rgb_hex = loop_parse_fn(line, i, bufnr)
+      if length and not rgb_hex then
+        vim.api.nvim_err_writeln(
+          string.format(
+            "Colorizer: Error parsing line %d, index %d. Please report this issue.",
+            line_nr,
+            i
+          )
+        )
+      end
       if length and rgb_hex then
         data[line_nr] = data[line_nr] or {}
         table.insert(data[line_nr] or {}, { rgb_hex = rgb_hex, range = { i - 1, i + length - 1 } })
