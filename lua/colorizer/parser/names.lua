@@ -25,13 +25,13 @@ end
 
 --- Updates the color value for a given color name.
 ---@param name string: The color name.
----@param val string: The color value in hex format.
-function M.update_color(name, val)
-  if not name or not val then
+---@param hex string: The color value in hex format.
+function M.update_color(name, hex)
+  if not name or not hex then
     return
   end
   if names_cache.color_map[name] then
-    names_cache.color_map[name] = val
+    names_cache.color_map[name] = hex
   end
 end
 

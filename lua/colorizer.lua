@@ -467,7 +467,6 @@ function M.setup(opts)
   }
   require("colorizer.matcher").reset_cache()
   require("colorizer.parser.names").reset_cache()
-  require("colorizer.parser.tailwind_names").reset_cache()
   require("colorizer.buffer").reset_cache()
   require("colorizer.config").reset_cache()
 
