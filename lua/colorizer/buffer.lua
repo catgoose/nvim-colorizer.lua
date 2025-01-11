@@ -59,6 +59,7 @@ local function create_highlight(rgb_hex, mode)
   if mode == "foreground" then
     vim.api.nvim_set_hl(0, highlight_name, { fg = "#" .. rgb_hex })
   else
+    --  TODO: 2025-01-11 - Should this check for background or virtualtext
     local rr, gg, bb = rgb_hex:sub(1, 2), rgb_hex:sub(3, 4), rgb_hex:sub(5, 6)
     local r, g, b = tonumber(rr, 16), tonumber(gg, 16), tonumber(bb, 16)
     local fg_color = color.is_bright(r, g, b) and "Black" or "White"
