@@ -1,18 +1,3 @@
----Trie implementation in luajit.
--- This module provides a Trie data structure implemented in LuaJIT with efficient memory handling.
--- It supports operations such as inserting, searching, finding the longest prefix, and converting the Trie into a table format.
--- The implementation uses LuaJIT's Foreign Function Interface (FFI) for optimized memory allocation.
-
--- Dynamic Allocation:
--- - The `character` array in each Trie node is dynamically allocated using a double pointer (`struct Trie**`).
--- - Each Trie node contains:
---   - A `bool is_leaf` field to indicate whether the node represents the end of a string.
---   - A `struct Trie** character` pointer that references the dynamically allocated array.
--- - Memory for the `character` array is allocated only when the node is created.
--- - The `character` array can support up to 256 child nodes, corresponding to ASCII values.
--- - Each slot in the array is initialized to `NULL` and represents a potential child node.
--- - Memory for each node and its `character` array is allocated using `ffi.C.malloc` and freed recursively using `ffi.C.free`.
-
 -- Copyright © 2019 Ashkan Kiani
 -- This program is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -26,10 +11,25 @@
 --
 -- You should have received a copy of the GNU General Public License
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+---Trie implementation in luajit.
+-- This module provides a Trie data structure implemented in LuaJIT with efficient memory handling.
+-- It supports operations such as inserting, searching, finding the longest prefix, and converting the Trie into a table format.
+-- The implementation uses LuaJIT's Foreign Function Interface (FFI) for optimized memory allocation.
+-- Dynamic Allocation:
+-- - The `character` array in each Trie node is dynamically allocated using a double pointer (`struct Trie**`).
+-- - Each Trie node contains:
+--   - A `bool is_leaf` field to indicate whether the node represents the end of a string.
+--   - A `struct Trie** character` pointer that references the dynamically allocated array.
+-- - Memory for the `character` array is allocated only when the node is created.
+-- - The `character` array can support up to 256 child nodes, corresponding to ASCII values.
+-- - Each slot in the array is initialized to `NULL` and represents a potential child node.
+-- - Memory for each node and its `character` array is allocated using `ffi.C.malloc` and freed recursively using `ffi.C.free`.
 --@module trie
 
 local ffi = require("ffi")
 
+--  TODO: 2025-01-11 - Instead of allocating a fixed-size array of 256 pointers for every node, allocate a smaller array and resize it dynamically as needed.
 ffi.cdef([[
 struct Trie {
   bool is_leaf;

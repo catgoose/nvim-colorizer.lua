@@ -1136,19 +1136,6 @@ lsp_highlight({bufnr}, {ud_opts}, {buf_local_opts}, {add_highlight},
 
 
 ==============================================================================
-TRIE                                               *colorizer.trie-introduction*
-
-Trie implementation in luajit.
-
- This module provides a Trie data structure implemented in LuaJIT with efficient
- memory handling.
- It supports operations such as inserting, searching, finding the longest
- prefix, and converting the Trie into a table format.
- The implementation uses LuaJIT's Foreign Function Interface (FFI) for optimized
- memory allocation.
-
-
-==============================================================================
 USERCMDS                                       *colorizer.usercmds-introduction*
 
 This module provides functions for creating user commands for the Colorizer
