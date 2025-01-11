@@ -73,7 +73,7 @@ function M.parser(line, i)
 
   if
     #line < i + (names_cache.color_name_minlen or 0) - 1
-    or (i > 1 and utils.byte_is_valid_colorchar(line:byte(i - 1), "tailwind_names"))
+    or (i > 1 and utils.byte_is_valid_color_char(line:byte(i - 1), "tailwind_names"))
   then
     return
   end
@@ -83,7 +83,7 @@ function M.parser(line, i)
     local next_byte_index = i + #prefix
     if
       #line >= next_byte_index
-      and utils.byte_is_valid_colorchar(line:byte(next_byte_index), "tailwind_names")
+      and utils.byte_is_valid_color_char(line:byte(next_byte_index), "tailwind_names")
     then
       return
     end

@@ -118,11 +118,11 @@ end
 ---@param byte number: The byte to check.
 ---@param key string: The key for additional characters to validate against.
 ---@return boolean: `true` if the byte is valid, otherwise `false`.
-function M.byte_is_valid_colorchar(byte, key)
+function M.byte_is_valid_color_char(byte, key)
   -- Check alphanumeric characters
   if not additional_color_chars[key] then
     vim.api.nvim_err_writeln(
-      string.format("colorizer.utils.byte_is_valid_colorchar: invalid key: %s", key)
+      string.format("colorizer.utils.byte_is_valid_color_char: invalid key: %s", key)
     )
     return false
   if M.byte_is_alphanumeric(byte) then

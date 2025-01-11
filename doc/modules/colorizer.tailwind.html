@@ -77,7 +77,7 @@
 	<td class="summary">Cleanup tailwind variables and autocmd</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#lsp_highlight">lsp_highlight (bufnr, ud_opts, buf_local_opts, add_highlight, on_detach)</a></td>
+	<td class="name" nowrap><a href="#lsp_highlight">lsp_highlight (bufnr, ud_opts, buf_local_opts, add_highlight, on_detach, line_start, line_end)</a></td>
 	<td class="summary">Highlight buffer using values returned by tailwindcss</td>
 	</tr>
 </table>
@@ -111,7 +111,7 @@
 </dd>
     <dt>
     <a name = "lsp_highlight"></a>
-    <strong>lsp_highlight (bufnr, ud_opts, buf_local_opts, add_highlight, on_detach)</strong>
+    <strong>lsp_highlight (bufnr, ud_opts, buf_local_opts, add_highlight, on_detach, line_start, line_end)</strong>
     </dt>
     <dd>
     Highlight buffer using values returned by tailwindcss
@@ -129,10 +129,16 @@
          table: Buffer local options
         </li>
         <li><span class="parameter">add_highlight</span>
-         function
+         function: Function to add highlights
         </li>
         <li><span class="parameter">on_detach</span>
-         function
+         function: Function to call when LSP is detached
+        </li>
+        <li><span class="parameter">line_start</span>
+         number: Start line
+        </li>
+        <li><span class="parameter">line_end</span>
+         number: End line
         </li>
     </ul>
 

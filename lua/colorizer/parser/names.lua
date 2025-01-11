@@ -128,7 +128,7 @@ function M.parser(line, i, opts)
 
   if
     #line < i + (names_cache.color_name_minlen or 0) - 1
-    or (i > 1 and utils.byte_is_valid_colorchar(line:byte(i - 1), "names"))
+    or (i > 1 and utils.byte_is_valid_color_char(line:byte(i - 1), "names"))
   then
     return
   end
@@ -138,7 +138,7 @@ function M.parser(line, i, opts)
     local next_byte_index = i + #prefix
     if
       #line >= next_byte_index
-      and utils.byte_is_valid_colorchar(line:byte(next_byte_index), "names")
+      and utils.byte_is_valid_color_char(line:byte(next_byte_index), "names")
     then
       return
     end

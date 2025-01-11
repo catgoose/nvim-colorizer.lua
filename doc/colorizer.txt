@@ -1118,15 +1118,17 @@ cleanup({bufnr})                                    *colorizer.tailwind.cleanup*
 
 					      *colorizer.tailwind.lsp_highlight*
 lsp_highlight({bufnr}, {ud_opts}, {buf_local_opts}, {add_highlight},
-{on_detach})
+{on_detach}, {line_start}, {line_end})
     Highlight buffer using values returned by tailwindcss
 
     Parameters: ~
 	{bufnr} -  number: Buffer number (0 for current)
 	{ud_opts} -  table: `user_default_options`
 	{buf_local_opts} -  table: Buffer local options
-	{add_highlight} -  function
-	{on_detach} -  function
+	{add_highlight} -  function: Function to add highlights
+	{on_detach} -  function: Function to call when LSP is detached
+	{line_start} -  number: Start line
+	{line_end} -  number: End line
 
     returns:~
 	boolean or nil
@@ -1206,7 +1208,7 @@ Functions: ~
     |add_additional_color_chars| - Adds additional characters to the list of
     valid color characters.
 
-    |byte_is_valid_colorchar| - Checks if a byte is valid as a color character
+    |byte_is_valid_color_char| - Checks if a byte is valid as a color character
     (alphanumeric, dynamically added chars, or hardcoded characters).
 
     |count| - Count the number of character in a string
@@ -1279,7 +1281,9 @@ add_additional_color_chars({chars}, {key})
 
 
 
-byte_is_valid_colorchar({byte}, {key}) *colorizer.utils.byte_is_valid_colorchar*
+
+				      *colorizer.utils.byte_is_valid_color_char*
+byte_is_valid_color_char({byte}, {key})
     Checks if a byte is valid as a color character (alphanumeric, dynamically
     added chars, or hardcoded characters).
 
