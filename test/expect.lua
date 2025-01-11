@@ -11,6 +11,7 @@ local opts = {
         uppercase = true,
         strip_digits = false,
       },
+      tailwind = true,
       names_custom = {
         [" NOTE:"] = "#5CA204",
         ["TODO: "] = "#3457D5",
@@ -27,7 +28,7 @@ local opts = {
   buftypes = { "*", "!prompt", "!popup" },
   user_commands = true,
   user_default_options = {
-    names = true,
+    names = false,
     names_opts = {
       lowercase = true,
       camelcase = true,
@@ -96,6 +97,9 @@ Custom names with non-alphanumeric characters:
    WARN:  WARN:  warn
     FIX:  .
     FIX:   fix
+
+Tailwind names:
+  accent-blue-100 bg-gray-200 border-black border-x-zinc-300 border-y-yellow-400 border-t-teal-500 border-r-neutral-600 border-b-blue-700 border-l-lime-800 caret-indigo-900 decoration-sky-950 divide-white fill-violet-950 from-indigo-900 shadow-blue-800 stroke-sky-700 text-cyan-500 to-red-400 via-green-300 ring-emerald-200 ring-offset-violet-100
 
 Hexadecimal:
 #RGB:

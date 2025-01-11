@@ -825,6 +825,8 @@ LUA API                                         *colorizer.parser.names-lua-api*
 Functions: ~
     |reset_cache| - Reset the color names cache.
 
+    |update_color| - Updates the color value for a given color name.
+
     |parser| - Parses a line to identify color names.
 
 
@@ -833,6 +835,15 @@ reset_cache()                               *colorizer.parser.names.reset_cache*
 
      Called from colorizer.setup
 
+
+
+
+update_color({name}, {val})                *colorizer.parser.names.update_color*
+    Updates the color value for a given color name.
+
+    Parameters: ~
+	{name} -  string: The color name.
+	{val} -  string: The color value in hex format.
 
 
 
@@ -1254,29 +1265,23 @@ get_non_alphanum_keys({tbl})             *colorizer.utils.get_non_alphanum_keys*
 
 
 
-
-				    *colorizer.utils.add_additional_color_chars*
-add_additional_color_chars({chars}, {key})
+add_additional_color_chars({chars}) *colorizer.utils.add_additional_color_chars*
     Adds additional characters to the list of valid color characters.
 
     Parameters: ~
 	{chars} -  string: The additional characters to add.
-	{key} -  string: The key to associate with the additional characters.
 
     returns:~
 	boolean: `true` if the characters were added, otherwise `false`.
 
 
 
-
-				      *colorizer.utils.byte_is_valid_color_char*
-byte_is_valid_color_char({byte}, {key})
+byte_is_valid_color_char({byte})      *colorizer.utils.byte_is_valid_color_char*
     Checks if a byte is valid as a color character (alphanumeric, dynamically
     added chars, or hardcoded characters).
 
     Parameters: ~
 	{byte} -  number: The byte to check.
-	{key} -  string: The key for additional characters to validate against.
 
     returns:~
 	boolean: `true` if the byte is valid, otherwise `false`.

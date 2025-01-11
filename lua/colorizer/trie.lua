@@ -68,6 +68,9 @@ local function trie_create()
   if not node_ptr then
     error("Failed to allocate memory for Trie node")
   end
+  if not Trie_size then
+    error("Failed to allocate memory for Trie node")
+  end
   ffi.fill(node_ptr, Trie_size)
   local node = ffi.cast(Trie_ptr_t, node_ptr)
   local char_array_ptr = ffi.C.malloc(256 * ffi.sizeof("struct Trie*"))
