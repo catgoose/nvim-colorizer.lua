@@ -6,9 +6,16 @@ local opts = {
     lua = {
       names = true,
       names_opts = {
-        -- strip_digits = false,
+        lowercase = true,
+        camelcase = true,
+        uppercase = true,
+        strip_digits = false,
       },
       names_custom = {
+        [" NOTE:"] = "#5CA204",
+        ["TODO: "] = "#3457D5",
+        [" WARN: "] = "#EAFE01",
+        ["  FIX:  "] = "#FF0000",
         one_two = "#017dac",
         ["three=four"] = "#3700c2",
         ["five@six"] = "#e9e240",
@@ -20,11 +27,11 @@ local opts = {
   buftypes = { "*", "!prompt", "!popup" },
   user_commands = true,
   user_default_options = {
-    names = false,
+    names = true,
     names_opts = {
       lowercase = true,
       camelcase = true,
-      uppercase = false,
+      uppercase = true,
       strip_digits = false,
     },
     names_custom = function()
@@ -38,10 +45,10 @@ local opts = {
     AARRGGBB = true,
     rgb_fn = true,
     hsl_fn = true,
-    css = true,
-    css_fn = true,
+    css = false,
+    css_fn = false,
     mode = "background",
-    tailwind = true,
+    tailwind = false,
     sass = { enable = true, parsers = { css = true } },
     virtualtext = "■",
     virtualtext_inline = false,
@@ -63,7 +70,9 @@ cyan magenta gold chartreuse lightgreen pink violet orange
 lightcoral lightcyan lemonchiffon papayawhip peachpuff
 blue gray lightblue gray100 white gold blue
 Blue LightBlue Gray100 White
-White
+Gray Gray Gray
+gray100     gray20      gray30
+White white blue blue blue pink pink pink
 
 Names options: casing, strip digits
 deepskyblue deepskyblue1
@@ -71,11 +80,22 @@ DeepSkyBlue DeepSkyBlue2
 DEEPSKYBLUE DEEPSKYBLUE3
 
 Extra names:
-oniViolet oniViolet2 crystalBlue springViolet1 springViolet2 springBlue
-lightBlue waveAqua2
+  oniViolet oniViolet2 crystalBlue springViolet1 springViolet2 springBlue
+  lightBlue waveAqua2
 
-Custom names with non-alphanumeric characters
-one_two three=four five@six seven!eight nine!!ten
+Custom names with non-alphanumeric characters:
+  one_two three=four five@six seven!eight nine!!ten
+   NOTE: TODO:  WARN:   FIX:  .
+   NOTE:
+   NOTE:  NOTE:
+   NOTE:  NOTE: note
+  TODO:  todo
+  TODO:  TODO: .
+  TODO:  TODO:  todo
+   WARN:  warn
+   WARN:  WARN:  warn
+    FIX:  .
+    FIX:   fix
 
 Hexadecimal:
 #RGB:
