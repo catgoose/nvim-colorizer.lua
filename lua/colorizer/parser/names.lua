@@ -61,7 +61,6 @@ local function handle_names_custom(names_custom)
 
   -- Add additional characters found in names_custom keys
   local chars = utils.get_non_alphanum_keys(names)
-  names_cache.color_trie:additional_chars(chars)
   utils.add_additional_color_chars(chars, "names")
 
   for name, hex in pairs(names) do

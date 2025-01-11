@@ -27,9 +27,10 @@
 -- - Memory for each node and its `character` array is allocated using `ffi.C.malloc` and freed recursively using `ffi.C.free`.
 --@module trie
 
+---  TODO: 2025-01-11 - Instead of allocating a fixed-size array of 256 pointers for every node, allocate a smaller array and resize it dynamically as needed.
+
 local ffi = require("ffi")
 
---  TODO: 2025-01-11 - Instead of allocating a fixed-size array of 256 pointers for every node, allocate a smaller array and resize it dynamically as needed.
 ffi.cdef([[
 struct Trie {
   bool is_leaf;
@@ -42,6 +43,25 @@ void free(void *ptr);
 local Trie_t = ffi.typeof("struct Trie")
 local Trie_ptr_t = ffi.typeof("$ *", Trie_t)
 local Trie_size = ffi.sizeof(Trie_t)
+
+local total_char = 255
+local last_index = 0
+local index_lookup = ffi.new("uint8_t[?]", total_char)
+local char_lookup = "" -- Dynamically built based on inserted words
+
+do
+  for i = 0, total_char do
+    index_lookup[i] = total_char
+  end
+end
+
+local function update_lookup_tables(char_byte)
+  if index_lookup[char_byte] == total_char then
+    char_lookup = char_lookup .. string.char(char_byte)
+    index_lookup[char_byte] = last_index
+    last_index = last_index + 1
+  end
+end
 
 local function trie_create()
   local node_ptr = ffi.C.malloc(Trie_size)
@@ -74,46 +94,15 @@ local function trie_destroy(trie)
   ffi.C.free(trie)
 end
 
-local total_char = 255
-local last_index = 0
-local index_lookup = ffi.new("uint8_t[?]", total_char)
-local char_lookup = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" -- used for printing Trie
-do
-  local b = string.byte
-  local byte = {
-    ["0"] = b("0"),
-    ["9"] = b("9"),
-    ["A"] = b("A"),
-    ["Z"] = b("Z"),
-    ["a"] = b("a"),
-    ["z"] = b("z"),
-  }
-  for i = 0, total_char do
-    if i >= byte["0"] and i <= byte["9"] then
-      index_lookup[i] = i - byte["0"]
-    elseif i >= byte["A"] and i <= byte["Z"] then
-      index_lookup[i] = i - byte["A"] + 10
-    elseif i >= byte["a"] and i <= byte["z"] then
-      index_lookup[i] = i - byte["a"] + 10 + 26
-    else
-      index_lookup[i] = total_char
-    end
-    if index_lookup[i] ~= total_char then
-      last_index = last_index + 1
-    end
-  end
-end
-
 local function trie_insert(trie, value)
-  if trie == nil then
+  if trie == nil or type(value) ~= "string" then
     return false
   end
   local node = trie
   for i = 1, #value do
-    local index = index_lookup[value:byte(i)]
-    if index == total_char then
-      return false
-    end
+    local char_byte = value:byte(i)
+    update_lookup_tables(char_byte)
+    local index = index_lookup[char_byte]
     if node.character[index] == nil then
       node.character[index] = trie_create()
     end
@@ -129,9 +118,10 @@ local function trie_search(trie, value, start)
   end
   local node = trie
   for i = (start or 1), #value do
-    local index = index_lookup[value:byte(i)]
+    local char_byte = value:byte(i)
+    local index = index_lookup[char_byte]
     if index == total_char then
-      return
+      return false
     end
     local child = node.character[index]
     if child == nil then
@@ -140,25 +130,6 @@ local function trie_search(trie, value, start)
     node = child
   end
   return node.is_leaf
-end
-
-local function trie_additional_chars(trie, chars)
-  if trie == nil or type(chars) ~= "string" then
-    return
-  end
-  if last_index + #chars == 255 then
-    error("Trie is full! Cannot add more characters.")
-  end
-  for i = 1, #chars do
-    local char = chars:sub(i, i)
-    local char_byte = string.byte(char)
-    if index_lookup[char_byte] == total_char then
-      char_lookup = char_lookup .. char
-      index_lookup[char_byte] = last_index
-      last_index = last_index + 1
-    end
-  end
-  return true
 end
 
 local function trie_longest_prefix(trie, value, start, exact)
@@ -204,7 +175,7 @@ end
 --- Printing utilities
 
 local function index_to_char(index)
-  if index < 0 or index > 61 then
+  if index < 0 or index >= #char_lookup then
     return
   end
   return char_lookup:sub(index + 1, index + 1)
@@ -215,7 +186,7 @@ local function trie_as_table(trie)
     return
   end
   local children = {}
-  for i = 0, 61 do
+  for i = 0, 255 do
     local child = trie.character[i]
     if child ~= nil then
       local child_table = trie_as_table(child)
@@ -302,7 +273,6 @@ local Trie_mt = {
     longest_prefix = trie_longest_prefix,
     extend = trie_extend,
     destroy = trie_destroy,
-    additional_chars = trie_additional_chars,
   },
   __tostring = trie_to_string,
   __gc = trie_destroy,

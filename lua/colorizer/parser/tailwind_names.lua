@@ -52,7 +52,6 @@ local function populate_colors()
   names_cache.color_name_minlen, names_cache.color_name_maxlen = nil, nil
 
   local tw_delimeter = "-"
-  names_cache.color_trie:additional_chars(tw_delimeter)
   utils.add_additional_color_chars(tw_delimeter, "tailwind_names")
   local data = require("colorizer.data.tailwind_colors")
   for name, hex in pairs(data.colors) do
