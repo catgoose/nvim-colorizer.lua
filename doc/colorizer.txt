@@ -1267,12 +1267,12 @@ get_non_alphanum_keys({tbl})             *colorizer.utils.get_non_alphanum_keys*
 
 
 				    *colorizer.utils.add_additional_color_chars*
-add_additional_color_chars({key}, {chars})
+add_additional_color_chars({chars}, {key})
     Adds additional characters to the list of valid color characters.
 
     Parameters: ~
-	{key} -  string: The key to associate with the additional characters.
 	{chars} -  string: The additional characters to add.
+	{key} -  string: The key to associate with the additional characters.
 
     returns:~
 	boolean: `true` if the characters were added, otherwise `false`.
@@ -1285,8 +1285,7 @@ byte_is_valid_colorchar({byte}, {key}) *colorizer.utils.byte_is_valid_colorchar*
 
     Parameters: ~
 	{byte} -  number: The byte to check.
-	{key} -  string|nil: The key for additional characters to validate
-	against.
+	{key} -  string: The key for additional characters to validate against.
 
     returns:~
 	boolean: `true` if the byte is valid, otherwise `false`.

@@ -23,14 +23,15 @@ local byte_category = ffi.new("uint8_t[256]")
 
 local category_hex = lshift(1, 2)
 local category_alphanum = bor(lshift(1, 1) --[[alpha]], lshift(1, 0) --[[digit]])
-local additional_color_chars = {}
+local additional_color_chars = {
+  names = "",
+  tailwind_names = "",
+}
 
 do
-  -- do not run the loop multiple times
   local b = string.byte
   local byte_values =
     { ["0"] = b("0"), ["9"] = b("9"), ["a"] = b("a"), ["f"] = b("f"), ["z"] = b("z") }
-
   for i = 0, 255 do
     local v = 0
     local lowercase = bor(i, 0x20)
@@ -64,8 +65,7 @@ end
 ---@param byte number The byte to check.
 ---@return boolean: `true` if the byte is alphanumeric, otherwise `false`.
 function M.byte_is_alphanumeric(byte)
-  local category = byte_category[byte]
-  return band(category, category_alphanum) ~= 0
+  return band(byte_category[byte], category_alphanum) ~= 0
 end
 
 --- Checks if a byte represents a hexadecimal character.
@@ -93,18 +93,15 @@ function M.get_non_alphanum_keys(tbl)
 end
 
 --- Adds additional characters to the list of valid color characters.
----@param key string: The key to associate with the additional characters.
 ---@param chars string: The additional characters to add.
+---@param key string: The key to associate with the additional characters.
 ---@return boolean: `true` if the characters were added, otherwise `false`.
-function M.add_additional_color_chars(key, chars)
-  if type(chars) ~= "string" then
+function M.add_additional_color_chars(chars, key)
+  if not additional_color_chars[key] then
     vim.api.nvim_err_writeln(
-      string.format("colorizer.utils.add_additional_chars: invalid chars: %s", chars)
+      string.format("colorizer.utils.add_additional_chars: invalid key: %s", key)
     )
     return false
-  end
-  if not additional_color_chars[key] then
-    additional_color_chars[key] = ""
   end
   for i = 1, #chars do
     local char = chars:sub(i, i)
@@ -119,10 +116,15 @@ end
 
 --- Checks if a byte is valid as a color character (alphanumeric, dynamically added chars, or hardcoded characters).
 ---@param byte number: The byte to check.
----@param key string|nil: The key for additional characters to validate against.
+---@param key string: The key for additional characters to validate against.
 ---@return boolean: `true` if the byte is valid, otherwise `false`.
 function M.byte_is_valid_colorchar(byte, key)
   -- Check alphanumeric characters
+  if not additional_color_chars[key] then
+    vim.api.nvim_err_writeln(
+      string.format("colorizer.utils.byte_is_valid_colorchar: invalid key: %s", key)
+    )
+    return false
   if M.byte_is_alphanumeric(byte) then
     return true
   end

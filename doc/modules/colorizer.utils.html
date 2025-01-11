@@ -88,7 +88,7 @@
 	<td class="summary">Extract non-alphanumeric characters to add as a valid index in the Trie</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#add_additional_color_chars">add_additional_color_chars (key, chars)</a></td>
+	<td class="name" nowrap><a href="#add_additional_color_chars">add_additional_color_chars (chars, key)</a></td>
 	<td class="summary">Adds additional characters to the list of valid color characters.</td>
 	</tr>
 	<tr>
@@ -231,7 +231,7 @@
 </dd>
     <dt>
     <a name = "add_additional_color_chars"></a>
-    <strong>add_additional_color_chars (key, chars)</strong>
+    <strong>add_additional_color_chars (chars, key)</strong>
     </dt>
     <dd>
     Adds additional characters to the list of valid color characters.
@@ -239,11 +239,11 @@
 
     <h3>Parameters:</h3>
     <ul>
-        <li><span class="parameter">key</span>
-         string: The key to associate with the additional characters.
-        </li>
         <li><span class="parameter">chars</span>
          string: The additional characters to add.
+        </li>
+        <li><span class="parameter">key</span>
+         string: The key to associate with the additional characters.
         </li>
     </ul>
 
@@ -271,7 +271,7 @@
          number: The byte to check.
         </li>
         <li><span class="parameter">key</span>
-         string|nil: The key for additional characters to validate against.
+         string: The key for additional characters to validate against.
         </li>
     </ul>
 

@@ -62,7 +62,7 @@ local function handle_names_custom(names_custom)
   -- Add additional characters found in names_custom keys
   local chars = utils.get_non_alphanum_keys(names)
   names_cache.color_trie:additional_chars(chars)
-  utils.add_additional_color_chars("names", chars)
+  utils.add_additional_color_chars(chars, "names")
 
   for name, hex in pairs(names) do
     if type(hex) == "string" then
@@ -110,7 +110,7 @@ local function populate_colors(opts)
     handle_names(opts.color_names_opts)
   end
 
-  -- Add extra names
+  -- Add custom names
   if opts.names_custom then
     handle_names_custom(opts.names_custom)
   end
@@ -128,7 +128,7 @@ function M.parser(line, i, opts)
 
   if
     #line < i + (names_cache.color_name_minlen or 0) - 1
-    or (i > 1 and utils.byte_is_valid_colorchar(line:byte(i - 1)))
+    or (i > 1 and utils.byte_is_valid_colorchar(line:byte(i - 1), "names"))
   then
     return
   end
@@ -136,7 +136,10 @@ function M.parser(line, i, opts)
   local prefix = names_cache.color_trie:longest_prefix(line, i)
   if prefix then
     local next_byte_index = i + #prefix
-    if #line >= next_byte_index and utils.byte_is_valid_colorchar(line:byte(next_byte_index)) then
+    if
+      #line >= next_byte_index
+      and utils.byte_is_valid_colorchar(line:byte(next_byte_index), "names")
+    then
       return
     end
     return #prefix, names_cache.color_map[prefix]
