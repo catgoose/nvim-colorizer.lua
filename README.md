@@ -114,10 +114,8 @@ library to do custom highlighting themselves.
 
 ```lua
   require("colorizer").setup({
-    -- Filetype options.  Accepts table like `user_default_options`
-    filetypes = { "*" },
-    -- Buftype options.  Accepts table like `user_default_options`
-    buftypes = {},
+    filetypes = { "*" }, -- Filetype options.  Accepts table like `user_default_options`
+    buftypes = {}, -- Buftype options.  Accepts table like `user_default_options`
     -- Boolean | List of usercommands to enable.  See User commands section.
     user_commands = true, -- Enable all or some usercommands
     lazy_load = false, -- Lazily schedule buffer highlighting setup function
@@ -144,18 +142,18 @@ library to do custom highlighting themselves.
       css = false, -- Enable all CSS *features*:
       -- names, RGB, RGBA, RRGGBB, RRGGBBAA, AARRGGBB, rgb_fn, hsl_fn
       css_fn = false, -- Enable all CSS *functions*: rgb_fn, hsl_fn
-      -- Highlighting mode.  'background'|'foreground'|'virtualtext'
-      mode = "background", -- Set the display mode
-      -- Tailwind colors.  boolean|'normal'|'lsp'|'both'.  True is same as normal
+      -- Tailwind colors.  boolean|'normal'|'lsp'|'both'.  True sets to 'normal'
       tailwind = false, -- Enable tailwind colors
       tailwind_opts = { -- Options for highlighting tailwind names
         update_names = false, -- When using tailwind = 'both', update tailwind names from LSP results.  See tailwind section
       },
       -- parsers can contain values used in `user_default_options`
       sass = { enable = false, parsers = { "css" } }, -- Enable sass colors
+      -- Highlighting mode.  'background'|'foreground'|'virtualtext'
+      mode = "background", -- Set the display mode
       -- Virtualtext character to use
       virtualtext = "■",
-      -- Display virtualtext inline with color
+      -- Display virtualtext inline with color.  boolean|'before'|'after'.  True sets to 'after'
       virtualtext_inline = false,
       -- Virtualtext highlight mode: 'background'|'foreground'
       virtualtext_mode = "foreground",
@@ -165,14 +163,6 @@ library to do custom highlighting themselves.
     },
   })
 ```
-
-Highlighting modes:
-
-- `background`: sets the background text color.
-- `foreground`: sets the foreground text color.
-- `virtualtext`: indicate the color behind the virtualtext.
-
-Virtualtext symbol can be displayed at end of line, or
 
 Setup examples:
 

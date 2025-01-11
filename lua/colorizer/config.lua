@@ -21,12 +21,12 @@ local plugin_user_default_options = {
   hsl_fn = false,
   css = false,
   css_fn = false,
-  mode = "background",
   tailwind = false,
   tailwind_opts = {
     update_names = false,
   },
   sass = { enable = false, parsers = { css = true } },
+  mode = "background",
   virtualtext = "■",
   virtualtext_inline = false,
   virtualtext_mode = "foreground",
@@ -60,10 +60,10 @@ local plugin_user_default_options = {
 -- @field hsl_fn boolean: Enables CSS `hsl()` and `hsla()` functions.
 -- @field css boolean: Enables all CSS features (`rgb_fn`, `hsl_fn`, `names`, `RGB`, `RRGGBB`).
 -- @field css_fn boolean: Enables all CSS functions (`rgb_fn`, `hsl_fn`).
--- @field mode 'background'|'foreground'|'virtualtext': Display mode
 -- @field tailwind boolean|string: Enables Tailwind CSS colors (e.g., `"normal"`, `"lsp"`, `"both"`).
 -- @field tailwind_opts table: Tailwind options for updating names cache, etc
 -- @field sass table: Sass color configuration (`enable` flag and `parsers`).
+-- @field mode 'background'|'foreground'|'virtualtext': Display mode
 -- @field virtualtext string: Character used for virtual text display.
 -- @field virtualtext_inline boolean|'before'|'after': Shows virtual text inline with color.
 -- @field virtualtext_mode 'background'|'foreground': Mode for virtual text display.
@@ -193,13 +193,13 @@ end
 --   - `hsl_fn` (boolean): Enables CSS `hsl()` and `hsla()` functions.
 --   - `css` (boolean): Enables all CSS-related features (e.g., `names`, `RGB`, `RRGGBB`, `hsl_fn`, `rgb_fn`).
 --   - `css_fn` (boolean): Enables all CSS function-related features (e.g., `rgb_fn`, `hsl_fn`).
---   - `mode` (string): Determines the display mode for highlights. Options are `"background"`, `"foreground"`, and `"virtualtext"`.
 --   - `tailwind` (boolean|string): Enables Tailwind CSS colors. Accepts `true`, `"normal"`, `"lsp"`, or `"both"`.
 --   - `tailwind_opts` (table): Tailwind options for updating names cache, etc
 --      - `update_names` (boolean): Updates Tailwind "normal" names cache from LSP results.  This provides a smoother highlighting experience when tailwind = "both" is used.  Highlighting on non-tailwind lsp buffers (like cmp) becomes more consistent.
 --   - `sass` (table): Configures Sass color support.
 --      - `enable` (boolean): Enables Sass color parsing.
 --      - `parsers` (table): A list of parsers to use, typically includes `"css"`.
+--   - `mode` (string): Determines the display mode for highlights. Options are `"background"`, `"foreground"`, and `"virtualtext"`.
 --   - `virtualtext` (string): Character used for virtual text display of colors (default is `"■"`).
 --   - `virtualtext_inline` (boolean|'before'|'after'): Shows the virtual text inline with the color.  True defaults to 'before'.  False or nil disables.
 -- - `virtualtext_mode` ('background'|'foreground'): Determines the display mode for virtual text.
