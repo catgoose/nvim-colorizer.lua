@@ -106,7 +106,8 @@ function M.add_additional_color_chars(chars, key)
   for i = 1, #chars do
     local char = chars:sub(i, i)
     local char_byte = string.byte(char)
-    if byte_category[char_byte] == 0 then
+    -- It's possible to define `custom_names` with spaces.  Ignore space: it's by empty space that separate things may exist 🧘
+    if char_byte ~= 32 and byte_category[char_byte] == 0 then
       additional_color_chars[key] = additional_color_chars[key] .. char
       byte_category[char_byte] = 1
     end
@@ -125,6 +126,7 @@ function M.byte_is_valid_color_char(byte, key)
       string.format("colorizer.utils.byte_is_valid_color_char: invalid key: %s", key)
     )
     return false
+  end
   if M.byte_is_alphanumeric(byte) then
     return true
   end
