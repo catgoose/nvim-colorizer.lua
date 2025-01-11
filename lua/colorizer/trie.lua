@@ -3,6 +3,16 @@
 -- It supports operations such as inserting, searching, finding the longest prefix, and converting the Trie into a table format.
 -- The implementation uses LuaJIT's Foreign Function Interface (FFI) for optimized memory allocation.
 
+-- Dynamic Allocation:
+-- - The `character` array in each Trie node is dynamically allocated using a double pointer (`struct Trie**`).
+-- - Each Trie node contains:
+--   - A `bool is_leaf` field to indicate whether the node represents the end of a string.
+--   - A `struct Trie** character` pointer that references the dynamically allocated array.
+-- - Memory for the `character` array is allocated only when the node is created.
+-- - The `character` array can support up to 256 child nodes, corresponding to ASCII values.
+-- - Each slot in the array is initialized to `NULL` and represents a potential child node.
+-- - Memory for each node and its `character` array is allocated using `ffi.C.malloc` and freed recursively using `ffi.C.free`.
+
 -- Copyright © 2019 Ashkan Kiani
 -- This program is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -22,8 +32,8 @@ local ffi = require("ffi")
 
 ffi.cdef([[
 struct Trie {
-	bool is_leaf;
-	struct Trie* character[62];
+  bool is_leaf;
+  struct Trie** character; // Necessary because we are adding additional characters
 };
 void *malloc(size_t size);
 void free(void *ptr);
@@ -34,42 +44,49 @@ local Trie_ptr_t = ffi.typeof("$ *", Trie_t)
 local Trie_size = ffi.sizeof(Trie_t)
 
 local function trie_create()
-  if not Trie_size then
-    return
+  local node_ptr = ffi.C.malloc(Trie_size)
+  if not node_ptr then
+    error("Failed to allocate memory for Trie node")
   end
-  local ptr = ffi.C.malloc(Trie_size)
-  if not ptr then
-    return
+  ffi.fill(node_ptr, Trie_size)
+  local node = ffi.cast(Trie_ptr_t, node_ptr)
+  local char_array_ptr = ffi.C.malloc(256 * ffi.sizeof("struct Trie*"))
+  if not char_array_ptr then
+    ffi.C.free(node_ptr)
+    error("Failed to allocate memory for Trie character array")
   end
-  ffi.fill(ptr, Trie_size)
-  return ffi.cast(Trie_ptr_t, ptr)
+  ffi.fill(char_array_ptr, 256 * ffi.sizeof("struct Trie*"))
+  node.character = ffi.cast("struct Trie**", char_array_ptr)
+  return node
 end
 
 local function trie_destroy(trie)
   if trie == nil then
     return
   end
-  for i = 0, 61 do
+  for i = 0, 255 do
     local child = trie.character[i]
     if child ~= nil then
       trie_destroy(child)
     end
   end
+  ffi.C.free(trie.character)
   ffi.C.free(trie)
 end
 
 local total_char = 255
+local last_index = 0
 local index_lookup = ffi.new("uint8_t[?]", total_char)
-local char_lookup = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+local char_lookup = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" -- used for printing Trie
 do
   local b = string.byte
   local byte = {
     ["0"] = b("0"),
     ["9"] = b("9"),
-    ["a"] = b("a"),
     ["A"] = b("A"),
-    ["z"] = b("z"),
     ["Z"] = b("Z"),
+    ["a"] = b("a"),
+    ["z"] = b("z"),
   }
   for i = 0, total_char do
     if i >= byte["0"] and i <= byte["9"] then
@@ -80,6 +97,9 @@ do
       index_lookup[i] = i - byte["a"] + 10 + 26
     else
       index_lookup[i] = total_char
+    end
+    if index_lookup[i] ~= total_char then
+      last_index = last_index + 1
     end
   end
 end
@@ -122,6 +142,25 @@ local function trie_search(trie, value, start)
   return node.is_leaf
 end
 
+local function trie_additional_chars(trie, chars)
+  if trie == nil or type(chars) ~= "string" then
+    return
+  end
+  if last_index + #chars == 255 then
+    error("Trie is full! Cannot add more characters.")
+  end
+  for i = 1, #chars do
+    local char = chars:sub(i, i)
+    local char_byte = string.byte(char)
+    if index_lookup[char_byte] == total_char then
+      char_lookup = char_lookup .. char
+      index_lookup[char_byte] = last_index
+      last_index = last_index + 1
+    end
+  end
+  return true
+end
+
 local function trie_longest_prefix(trie, value, start, exact)
   if trie == nil then
     return false
@@ -130,7 +169,8 @@ local function trie_longest_prefix(trie, value, start, exact)
   local node = trie
   local last_i = nil
   for i = start, #value do
-    local index = index_lookup[value:byte(i)]
+    local char_byte = value:byte(i)
+    local index = index_lookup[char_byte]
     if index == total_char then
       break
     end
@@ -148,7 +188,6 @@ local function trie_longest_prefix(trie, value, start, exact)
     if start == 1 and last_i == #value then
       return value
     end
-
     if not exact then
       return value:sub(start, last_i)
     end
@@ -159,20 +198,6 @@ local function trie_extend(trie, t)
   assert(type(t) == "table")
   for _, v in ipairs(t) do
     trie_insert(trie, v)
-  end
-end
-
-local function trie_additional_chars(trie, chars)
-  if trie == nil or type(chars) ~= "string" then
-    return
-  end
-  for i = 1, #chars do
-    local char = chars:sub(i, i)
-    local char_byte = string.byte(char)
-    if index_lookup[char_byte] == total_char then
-      char_lookup = char_lookup .. char
-      index_lookup[char_byte] = total_char + 1
-    end
   end
 end
 
