@@ -149,8 +149,7 @@ library to do custom highlighting themselves.
       -- Tailwind colors.  boolean|'normal'|'lsp'|'both'.  True is same as normal
       tailwind = false, -- Enable tailwind colors
       tailwind_opts = { -- Options for highlighting tailwind names
-        update_names = false, -- When using tailwind = 'both', update tailwind
-        -- names from LSP results.  See tailwind section
+        update_names = false, -- When using tailwind = 'both', update tailwind names from LSP results.  See tailwind section
       },
       -- parsers can contain values used in `user_default_options`
       sass = { enable = false, parsers = { "css" } }, -- Enable sass colors
