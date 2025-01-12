@@ -391,6 +391,5 @@ Documentation is generated using ldoc. See
 
 - [ ] Add more color types ( var, advanced css functions )
 - [ ] Add more display modes. E.g - sign column
-- [ ] Use a more space efficient trie implementation.
 - [ ] Support custom parsers
 - [ ] Options support providing function to enable/disable instead of just boolean
