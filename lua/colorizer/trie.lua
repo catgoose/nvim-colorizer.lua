@@ -46,6 +46,7 @@
 
 local ffi = require("ffi")
 
+--- Trie Node Structure.
 ffi.cdef([[
 struct Trie {
   bool is_leaf;
