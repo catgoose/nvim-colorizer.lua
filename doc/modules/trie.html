@@ -46,7 +46,6 @@
   <li><a href="../modules/colorizer.parser.names.html">parser.names</a></li>
   <li><a href="../modules/colorizer.parser.rgb.html">parser.rgb</a></li>
   <li><a href="../modules/colorizer.parser.rgba_hex.html">parser.rgba_hex</a></li>
-  <li><a href="../modules/colorizer.parser.tailwind_names.html">parser.tailwind_names</a></li>
   <li><a href="../modules/colorizer.sass.html">sass</a></li>
   <li><a href="../modules/colorizer.tailwind.html">tailwind</a></li>
   <li><strong>trie</strong></li>
@@ -59,20 +58,33 @@
 <div id="content">
 
 <h1>Module <code>trie</code></h1>
-<p>Trie implementation in luajit.</p>
+<p>Trie implementation in LuaJIT.</p>
 <p>
- This module provides a Trie data structure implemented in LuaJIT with efficient memory handling.
- It supports operations such as inserting, searching, finding the longest prefix, and converting the Trie into a table format.
- The implementation uses LuaJIT's Foreign Function Interface (FFI) for optimized memory allocation.
- Dynamic Allocation:
- - The `character` array in each Trie node is dynamically allocated using a double pointer (`struct Trie**`).
- - Each Trie node contains:
-   - A `bool is_leaf` field to indicate whether the node represents the end of a string.
-   - A `struct Trie** character` pointer that references the dynamically allocated array.
- - Memory for the `character` array is allocated only when the node is created.
- - The `character` array can support up to 256 child nodes, corresponding to ASCII values.
- - Each slot in the array is initialized to `NULL` and represents a potential child node.
- - Memory for each node and its `character` array is allocated using `ffi.C.malloc` and freed recursively using `ffi.C.free`.</p>
+ This module provides an optimized Trie data structure using LuaJIT's Foreign Function Interface (FFI).
+ It supports operations like insertion, search, finding the longest prefix, and converting the Trie into a table format.
+<p> Dynamic Allocation:
+ The implementation uses dynamic memory allocation for efficient storage and manipulation of nodes:
+ - Each Trie node dynamically allocates memory for its `children` and `keys` arrays using `ffi.C.malloc` and `ffi.C.realloc`.
+ - Arrays are initially allocated with a small capacity and are resized as needed to accommodate more child nodes.
+<p> Node Structure:
+ Each Trie node contains the following fields:
+ - **`is_leaf`** (boolean): Indicates whether the node represents the end of a string.
+ - **`capacity`** (number): The current maximum number of children the node can hold.
+   - Starts at a small initial value (e.g., 8) and doubles as needed.
+ - **`size`** (number): The current number of children the node has.
+   - Always ≤ `capacity`.
+ - **`children`** (array): A dynamically allocated array of pointers to child nodes.
+ - **`keys`** (array): A dynamically allocated array of ASCII values corresponding to the `children` nodes.
+<p> Dynamic Resizing:
+ - If a node's `size` exceeds its `capacity` during insertion, the `capacity` is doubled.
+ - The `children` and `keys` arrays are reallocated to match the new capacity using `ffi.C.realloc`.
+ - Resizing ensures efficient use of memory while avoiding frequent allocations.
+<p> Memory Management:
+ - Memory is manually managed:
+   - **Allocation**: Done using `ffi.C.malloc` for new nodes and `ffi.C.realloc` for resizing arrays.
+   - **Deallocation**: Performed recursively for all child nodes using `ffi.C.free`.
+ - The implementation includes safeguards to handle allocation failures and ensure proper cleanup.
+</p>
 
 
 

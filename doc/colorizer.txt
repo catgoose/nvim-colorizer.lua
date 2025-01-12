@@ -838,12 +838,12 @@ reset_cache()                               *colorizer.parser.names.reset_cache*
 
 
 
-update_color({name}, {val})                *colorizer.parser.names.update_color*
+update_color({name}, {hex})                *colorizer.parser.names.update_color*
     Updates the color value for a given color name.
 
     Parameters: ~
 	{name} -  string: The color name.
-	{val} -  string: The color value in hex format.
+	{hex} -  string: The color value in hex format.
 
 
 
@@ -989,44 +989,6 @@ parser({line}, {i}, {opts})                        *colorizer.parser.rgb.parser*
 	the line, or `nil` if parsing failed
 	string or nil: The RGB hexadecimal color (e.g., "ff0000" for red), or
 	`nil` if parsing failed
-
-
-
-==============================================================================
-TAILWIND_NAMES                    *colorizer.parser.tailwind_names-introduction*
-
-This module provides a parser that identifies named colors from a given line of
-text.
-
- The module uses a Trie structure for efficient matching of color names to
- #rrggbb values
-
-==============================================================================
-LUA API                                *colorizer.parser.tailwind_names-lua-api*
-
-Functions: ~
-    |reset_cache| - Reset the color names cache.
-
-    |parser| - Parses a line to identify color names.
-
-
-reset_cache()                      *colorizer.parser.tailwind_names.reset_cache*
-    Reset the color names cache.
-
-     Called from colorizer.setup
-
-
-
-
-parser({line}, {i})                     *colorizer.parser.tailwind_names.parser*
-    Parses a line to identify color names.
-
-    Parameters: ~
-	{line} -  string: The text line to parse.
-	{i} -  number: The index to start parsing from.
-
-    returns:~
-	number or nil, string or nil: Length of match and hex value if found.
 
 
 
