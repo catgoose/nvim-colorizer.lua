@@ -4,6 +4,7 @@ local settings = {
   use_remote = true, -- Use colorizer master or local git directory
   base_dir = "colorizer_trie", -- Directory to clone lazy.nvim
   local_plugin_dir = os.getenv("HOME") .. "/git/nvim-colorizer.lua", -- Local git directory for colorizer.  Used if use_remote is false
+  trie = "trie.lua",
   plugins = {},
 }
 
@@ -58,7 +59,4 @@ end
 
 add_colorizer()
 lazy.setup(settings.plugins)
-
-dofile("print-trie.lua")
-
--- ADD INIT.LUA SETTINGS _NECESSARY_ FOR REPRODUCING THE ISSUE
+dofile(settings.trie)

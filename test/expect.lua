@@ -28,7 +28,7 @@ local opts = {
   buftypes = { "*", "!prompt", "!popup" },
   user_commands = true,
   user_default_options = {
-    names = false,
+    names = true,
     names_opts = {
       lowercase = true,
       camelcase = true,
@@ -46,14 +46,15 @@ local opts = {
     AARRGGBB = true,
     rgb_fn = true,
     hsl_fn = true,
-    css = false,
-    css_fn = false,
+    css = true,
+    css_fn = true,
     mode = "background",
     tailwind = true,
     sass = { enable = true, parsers = { css = true } },
     virtualtext = "■",
     virtualtext_inline = false,
     virtualtext_mode = "foreground",
+    lazy_load = true,
     always_update = false,
   },
 }

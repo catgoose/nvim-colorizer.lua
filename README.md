@@ -368,13 +368,19 @@ are cached and returned on `WinScrolled` event.
 
 ## Testing
 
-For troubleshooting use `test/minimal.lua`.
-Startup neovim with `nvim --clean -u minimal.lua` in the `test` directory.
+For troubleshooting use `test/minimal-colorizer.lua`.
+Startup neovim with `nvim --clean -u minimal-colorizer.lua` in the `test` directory.
 
-Alternatively, use the following script from root directory:
+Alternatively,
 
 ```bash
-scripts/start_minimal.sh
+make minimal
+```
+
+or
+
+```bash
+scripts/minimal-colorizer.sh
 ```
 
 To test colorization with your config, edit `test/expect.lua` to see expected
