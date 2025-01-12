@@ -63,12 +63,27 @@ local Trie_t = ffi.typeof("struct Trie")
 local Trie_ptr_t = ffi.typeof("$ *", Trie_t)
 local Trie_size = ffi.sizeof(Trie_t)
 
+--[[
+Testing number of resizes with different starting `initial_capacity` with inserts from `names=true` and `tailwind=true`:
+
+initial_capacity: number of resizes
+1: 3299
+2: 1872
+4: 1110
+8: 550
+16: 23
+
+4 or 8 seem to be good initial values
+]]
 local initial_capacity = 4
 
 local function trie_create()
   local node_ptr = ffi.C.malloc(Trie_size)
   if not node_ptr then
     error("Failed to allocate memory for Trie node")
+  end
+  if not Trie_size then
+    error("Failed to get size of Trie node")
   end
   ffi.fill(node_ptr, Trie_size)
   local node = ffi.cast(Trie_ptr_t, node_ptr)
@@ -93,20 +108,18 @@ local function trie_create()
 end
 
 local function trie_resize(node)
-  local current_capacity = tonumber(node.capacity)
+  local current_capacity = tonumber(node.capacity) -- convert to lua number
   local new_capacity = current_capacity * 2
   local new_children = ffi.C.realloc(node.children, new_capacity * ffi.sizeof("struct Trie*"))
   if not new_children then
     error("Failed to reallocate memory for children")
   end
   node.children = ffi.cast("struct Trie**", new_children)
-
   local new_keys = ffi.C.realloc(node.keys, new_capacity * ffi.sizeof("uint8_t"))
   if not new_keys then
     error("Failed to reallocate memory for keys")
   end
   node.keys = ffi.cast("uint8_t*", new_keys)
-
   for i = current_capacity, new_capacity - 1 do
     node.children[i] = nil
     node.keys[i] = 0
