@@ -1,7 +1,7 @@
 -- Run this file as `nvim --clean -u test.lua`
 
 local opts = {
-  use_remote = false,
+  use_remote = true,
 }
 require("minimal").setup(opts)
 
