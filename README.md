@@ -16,6 +16,11 @@
     - [Lazyload Colorizer with Lazy.nvim](#lazyload-colorizer-with-lazynvim)
     - [Tailwind](#tailwind)
   - [Testing](#testing)
+    - [Minimal Colorizer](#minimal-colorizer)
+    - [Trie](#trie)
+      - [Test](#test)
+      - [Benchmark](#benchmark)
+        - [Results](#results)
   - [Extras](#extras)
   - [TODO](#todo)
   <!--toc:end-->
@@ -114,10 +119,8 @@ library to do custom highlighting themselves.
 
 ```lua
   require("colorizer").setup({
-    -- Filetype options.  Accepts table like `user_default_options`
-    filetypes = { "*" },
-    -- Buftype options.  Accepts table like `user_default_options`
-    buftypes = {},
+    filetypes = { "*" }, -- Filetype options.  Accepts table like `user_default_options`
+    buftypes = {}, -- Buftype options.  Accepts table like `user_default_options`
     -- Boolean | List of usercommands to enable.  See User commands section.
     user_commands = true, -- Enable all or some usercommands
     lazy_load = false, -- Lazily schedule buffer highlighting setup function
@@ -144,19 +147,18 @@ library to do custom highlighting themselves.
       css = false, -- Enable all CSS *features*:
       -- names, RGB, RGBA, RRGGBB, RRGGBBAA, AARRGGBB, rgb_fn, hsl_fn
       css_fn = false, -- Enable all CSS *functions*: rgb_fn, hsl_fn
-      -- Highlighting mode.  'background'|'foreground'|'virtualtext'
-      mode = "background", -- Set the display mode
-      -- Tailwind colors.  boolean|'normal'|'lsp'|'both'.  True is same as normal
+      -- Tailwind colors.  boolean|'normal'|'lsp'|'both'.  True sets to 'normal'
       tailwind = false, -- Enable tailwind colors
       tailwind_opts = { -- Options for highlighting tailwind names
-        update_names = false, -- When using tailwind = 'both', update tailwind
-        -- names from LSP results.  See tailwind section
+        update_names = false, -- When using tailwind = 'both', update tailwind names from LSP results.  See tailwind section
       },
       -- parsers can contain values used in `user_default_options`
       sass = { enable = false, parsers = { "css" } }, -- Enable sass colors
+      -- Highlighting mode.  'background'|'foreground'|'virtualtext'
+      mode = "background", -- Set the display mode
       -- Virtualtext character to use
       virtualtext = "■",
-      -- Display virtualtext inline with color
+      -- Display virtualtext inline with color.  boolean|'before'|'after'.  True sets to 'after'
       virtualtext_inline = false,
       -- Virtualtext highlight mode: 'background'|'foreground'
       virtualtext_mode = "foreground",
@@ -166,14 +168,6 @@ library to do custom highlighting themselves.
     },
   })
 ```
-
-Highlighting modes:
-
-- `background`: sets the background text color.
-- `foreground`: sets the foreground text color.
-- `virtualtext`: indicate the color behind the virtualtext.
-
-Virtualtext symbol can be displayed at end of line, or
 
 Setup examples:
 
@@ -379,19 +373,115 @@ are cached and returned on `WinScrolled` event.
 
 ## Testing
 
-For troubleshooting use `test/minimal.lua`.
-Startup neovim with `nvim --clean -u minimal.lua` in the `test` directory.
+### Minimal Colorizer
 
-Alternatively, use the following script from root directory:
+For troubleshooting use `test/minimal-colorizer.lua`.
+Startup neovim with `nvim --clean -u minimal-colorizer.lua` in the `test` directory.
+
+Alternatively,
 
 ```bash
-scripts/start_minimal.sh
+make minimal
+```
+
+or
+
+```bash
+scripts/minimal-colorizer.sh
 ```
 
 To test colorization with your config, edit `test/expect.lua` to see expected
 highlights.
 The returned table of `user_default_options` from `text/expect.lua` will be used
 to conveniently reattach Colorizer to `test/expect.lua` on save.
+
+### Trie
+
+Colorizer uses a space efficient LuaJIT Trie implementation, which starts with
+an initial node capacity of 8 bytes and expands capacity per node when needed.
+
+The trie can be tested and benchmarked using `test/trie/test.lua` and
+`test/trie/benchmark.lua` respectively.
+
+#### Test
+
+```bash
+# runs both trie-test and trie-benchmark targets
+make trie
+```
+
+```bash
+# runs trie test which inserts words and checks longest prefix
+make trie-test
+```
+
+#### Benchmark
+
+```bash
+scripts/trie-test.sh
+```
+
+```bash
+# runs benchmark for different node initial capacity allocation
+make trie-benchmark
+```
+
+```bash
+scripts/trie-benchmark.sh
+```
+
+##### Results
+
+Inserting 7245 words: using uppercase, lowercase, camelcase from `vim.api.nvim_get_color_map()` and Tailwind colors
+
+| Initial Capacity | Resize Count | Insert Time (ms) | Lookup Time (ms) |
+| ---------------- | ------------ | ---------------- | ---------------- |
+| 1                | 3652         | 25               | 16               |
+| 2                | 2056         | 11               | 8                |
+| 4                | 1174         | 6                | 5                |
+| 8                | 576          | 7                | 5                |
+| 16               | 23           | 7                | 5                |
+| 32               | 1            | 8                | 6                |
+| 64               | 0            | 10               | 7                |
+
+Inserting 1000 randomized words
+
+| Initial Capacity | Resize Count | Insert Time (ms) | Lookup Time (ms) |
+| ---------------- | ------------ | ---------------- | ---------------- |
+| 1                | 434          | 1                | 0                |
+| 2                | 234          | 1                | 1                |
+| 4                | 129          | 1                | 0                |
+| 8                | 51           | 1                | 0                |
+| 16               | 17           | 1                | 1                |
+| 32               | 3            | 1                | 2                |
+| 64               | 1            | 2                | 1                |
+| 128              | 0            | 4                | 1                |
+
+Inserting 10,000 randomized words
+
+| Initial Capacity | Resize Count | Insert Time (ms) | Lookup Time (ms) |
+| ---------------- | ------------ | ---------------- | ---------------- |
+| 1                | 4614         | 9                | 7                |
+| 2                | 2106         | 8                | 8                |
+| 4                | 842          | 9                | 7                |
+| 8                | 362          | 9                | 8                |
+| 16               | 208          | 11               | 9                |
+| 32               | 113          | 14               | 11               |
+| 64               | 24           | 21               | 14               |
+| 128              | 0            | 34               | 25               |
+
+Inserting 100,000 randomized words
+
+| Initial Capacity | Resize Count | Insert Time (ms) | Lookup Time (ms) |
+| ---------------- | ------------ | ---------------- | ---------------- |
+| 1                | 40656        | 160              | 117              |
+| 2                | 21367        | 116              | 111              |
+| 4                | 11604        | 122              | 109              |
+| 8                | 5549         | 133              | 113              |
+| 16               | 1954         | 141              | 138              |
+| 32               | 499          | 173              | 158              |
+| 64               | 100          | 233              | 173              |
+| 128              | 0            | 343              | 198              |
 
 ## Extras
 
@@ -402,6 +492,5 @@ Documentation is generated using ldoc. See
 
 - [ ] Add more color types ( var, advanced css functions )
 - [ ] Add more display modes. E.g - sign column
-- [ ] Use a more space efficient trie implementation.
 - [ ] Support custom parsers
 - [ ] Options support providing function to enable/disable instead of just boolean

@@ -23,14 +23,12 @@ local byte_category = ffi.new("uint8_t[256]")
 
 local category_hex = lshift(1, 2)
 local category_alphanum = bor(lshift(1, 1) --[[alpha]], lshift(1, 0) --[[digit]])
-local additional_color_chars = {}
+local additional_color_chars = ""
 
 do
-  -- do not run the loop multiple times
   local b = string.byte
   local byte_values =
     { ["0"] = b("0"), ["9"] = b("9"), ["a"] = b("a"), ["f"] = b("f"), ["z"] = b("z") }
-
   for i = 0, 255 do
     local v = 0
     local lowercase = bor(i, 0x20)
@@ -64,8 +62,7 @@ end
 ---@param byte number The byte to check.
 ---@return boolean: `true` if the byte is alphanumeric, otherwise `false`.
 function M.byte_is_alphanumeric(byte)
-  local category = byte_category[byte]
-  return band(category, category_alphanum) ~= 0
+  return band(byte_category[byte], category_alphanum) ~= 0
 end
 
 --- Checks if a byte represents a hexadecimal character.
@@ -93,24 +90,15 @@ function M.get_non_alphanum_keys(tbl)
 end
 
 --- Adds additional characters to the list of valid color characters.
----@param key string: The key to associate with the additional characters.
 ---@param chars string: The additional characters to add.
 ---@return boolean: `true` if the characters were added, otherwise `false`.
-function M.add_additional_color_chars(key, chars)
-  if type(chars) ~= "string" then
-    vim.api.nvim_err_writeln(
-      string.format("colorizer.utils.add_additional_chars: invalid chars: %s", chars)
-    )
-    return false
-  end
-  if not additional_color_chars[key] then
-    additional_color_chars[key] = ""
-  end
+function M.add_additional_color_chars(chars)
   for i = 1, #chars do
     local char = chars:sub(i, i)
     local char_byte = string.byte(char)
-    if byte_category[char_byte] == 0 then
-      additional_color_chars[key] = additional_color_chars[key] .. char
+    -- It's possible to define `custom_names` with spaces.  Ignore space: it's by empty space that separate things may exist 🧘
+    if char_byte ~= 32 and byte_category[char_byte] == 0 then
+      additional_color_chars = additional_color_chars .. char
       byte_category[char_byte] = 1
     end
   end
@@ -119,19 +107,15 @@ end
 
 --- Checks if a byte is valid as a color character (alphanumeric, dynamically added chars, or hardcoded characters).
 ---@param byte number: The byte to check.
----@param key string|nil: The key for additional characters to validate against.
 ---@return boolean: `true` if the byte is valid, otherwise `false`.
-function M.byte_is_valid_colorchar(byte, key)
-  -- Check alphanumeric characters
+function M.byte_is_valid_color_char(byte)
   if M.byte_is_alphanumeric(byte) then
     return true
   end
   -- Check additional characters for the provided key
-  if additional_color_chars[key] then
-    for i = 1, #additional_color_chars[key] do
-      if byte == additional_color_chars[key]:byte(i) then
-        return true
-      end
+  for i = 1, #additional_color_chars do
+    if byte == additional_color_chars:byte(i) then
+      return true
     end
   end
   return false

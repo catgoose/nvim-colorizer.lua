@@ -6,9 +6,17 @@ local opts = {
     lua = {
       names = true,
       names_opts = {
-        -- strip_digits = false,
+        lowercase = true,
+        camelcase = true,
+        uppercase = true,
+        strip_digits = false,
       },
+      tailwind = true,
       names_custom = {
+        [" NOTE:"] = "#5CA204",
+        ["TODO: "] = "#3457D5",
+        [" WARN: "] = "#EAFE01",
+        ["  FIX:  "] = "#FF0000",
         one_two = "#017dac",
         ["three=four"] = "#3700c2",
         ["five@six"] = "#e9e240",
@@ -20,11 +28,11 @@ local opts = {
   buftypes = { "*", "!prompt", "!popup" },
   user_commands = true,
   user_default_options = {
-    names = false,
+    names = true,
     names_opts = {
       lowercase = true,
       camelcase = true,
-      uppercase = false,
+      uppercase = true,
       strip_digits = false,
     },
     names_custom = function()
@@ -46,6 +54,7 @@ local opts = {
     virtualtext = "■",
     virtualtext_inline = false,
     virtualtext_mode = "foreground",
+    lazy_load = true,
     always_update = false,
   },
 }
@@ -63,7 +72,9 @@ cyan magenta gold chartreuse lightgreen pink violet orange
 lightcoral lightcyan lemonchiffon papayawhip peachpuff
 blue gray lightblue gray100 white gold blue
 Blue LightBlue Gray100 White
-White
+Gray Gray Gray
+gray100     gray20      gray30
+White white blue blue blue pink pink pink
 
 Names options: casing, strip digits
 deepskyblue deepskyblue1
@@ -71,11 +82,25 @@ DeepSkyBlue DeepSkyBlue2
 DEEPSKYBLUE DEEPSKYBLUE3
 
 Extra names:
-oniViolet oniViolet2 crystalBlue springViolet1 springViolet2 springBlue
-lightBlue waveAqua2
+  oniViolet oniViolet2 crystalBlue springViolet1 springViolet2 springBlue
+  lightBlue waveAqua2
 
-Custom names with non-alphanumeric characters
-one_two three=four five@six seven!eight nine!!ten
+Custom names with non-alphanumeric characters:
+  one_two three=four five@six seven!eight nine!!ten
+   NOTE: TODO:  WARN:   FIX:  .
+   NOTE:
+   NOTE:  NOTE:
+   NOTE:  NOTE: note
+  TODO:  todo
+  TODO:  TODO: .
+  TODO:  TODO:  todo
+   WARN:  warn
+   WARN:  WARN:  warn
+    FIX:  .
+    FIX:   fix
+
+Tailwind names:
+  accent-blue-100 bg-gray-200 border-black border-x-zinc-300 border-y-yellow-400 border-t-teal-500 border-r-neutral-600 border-b-blue-700 border-l-lime-800 caret-indigo-900 decoration-sky-950 divide-white fill-violet-950 from-indigo-900 shadow-blue-800 stroke-sky-700 text-cyan-500 to-red-400 via-green-300 ring-emerald-200 ring-offset-violet-100
 
 Hexadecimal:
 #RGB:

@@ -11,7 +11,6 @@ local min, max = math.min, math.max
 
 local parsers = {
   color_name = require("colorizer.parser.names").parser,
-  tailwind_name = require("colorizer.parser.tailwind_names").parser,
   argb_hex = require("colorizer.parser.argb_hex").parser,
   hsl_function = require("colorizer.parser.hsl").parser,
   rgb_function = require("colorizer.parser.rgb").parser,
@@ -61,21 +60,6 @@ local function compile(matchers, matchers_trie)
       end
     end
 
-    -- Color names
-    -- if matchers.color_name_parser and not matchers.tailwind_names_parser then
-    --   return parsers.color_name(line, i, matchers.color_name_parser)
-    -- end
-    -- if not matchers.color_name_parser and matchers.tailwind_names_parser then
-    --   return parsers.tailwind_name(line, i)
-    -- end
-    -- if matchers.color_name_parser and matchers.tailwind_names_parser then
-    --   local length, rgb_hex
-    --   length, rgb_hex = parsers.color_name(line, i, matchers.color_name_parser)
-    --   if length and rgb_hex then
-    --     return length, rgb_hex
-    --   end
-    --   return parsers.tailwind_name(line, i)
-    -- end
     if matchers.color_name_parser then
       return parsers.color_name(line, i, matchers.color_name_parser)
     end
@@ -136,7 +120,7 @@ function M.make(opts)
     + (enable_AARRGGBB and 1024 or 0)
     + (enable_rgb and 2048 or 0)
     + (enable_hsl and 4096 or 0)
-    + ((enable_tailwind == true or enable_tailwind == "normal") and 8192 or 0)
+    + (enable_tailwind == "normal" and 8192 or 0)
     + (enable_tailwind == "lsp" and 16384 or 0)
     + (enable_tailwind == "both" and 32768 or 0)
     + (enable_sass and 65536 or 0)
@@ -153,7 +137,8 @@ function M.make(opts)
   local matchers = {}
   local matchers_prefix = {}
 
-  if enable_names or enable_names_custom then
+  local enable_tailwind_names = enable_tailwind == "normal" or enable_tailwind == "both"
+  if enable_names or enable_names_custom or enable_tailwind_names then
     matchers.color_name_parser = matchers.color_name_parser or {}
     if enable_names then
       matchers.color_name_parser.color_names = enable_names
@@ -166,6 +151,9 @@ function M.make(opts)
     end
     if enable_names_custom then
       matchers.color_name_parser.names_custom = enable_names_custom
+    end
+    if enable_tailwind_names then
+      matchers.color_name_parser.tailwind_names = enable_tailwind_names
     end
   end
 

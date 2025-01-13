@@ -6,9 +6,9 @@ local M = {}
 local color = require("colorizer.color")
 local const = require("colorizer.constants")
 local matcher = require("colorizer.matcher")
+local names = require("colorizer.parser.names")
 local sass = require("colorizer.sass")
 local tailwind = require("colorizer.tailwind")
-local tailwind_names = require("colorizer.parser.tailwind_names")
 local utils = require("colorizer.utils")
 
 local hl_state
@@ -59,6 +59,7 @@ local function create_highlight(rgb_hex, mode)
   if mode == "foreground" then
     vim.api.nvim_set_hl(0, highlight_name, { fg = "#" .. rgb_hex })
   else
+    --  TODO: 2025-01-11 - Should this check for background or virtualtext
     local rr, gg, bb = rgb_hex:sub(1, 2), rgb_hex:sub(3, 4), rgb_hex:sub(5, 6)
     local r, g, b = tonumber(rr, 16), tonumber(gg, 16), tonumber(bb, 16)
     local fg_color = color.is_bright(r, g, b) and "Black" or "White"
@@ -105,7 +106,7 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts, hl_o
             local txt = slice_line(bufnr, linenr, hl.range[1], hl.range[2])
             if txt and not hl_state.updated_colors[txt] then
               hl_state.updated_colors[txt] = true
-              tailwind_names.update_color(txt, hl.rgb_hex)
+              names.update_color(txt, hl.rgb_hex)
             end
           end
         end
@@ -127,7 +128,7 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts, hl_o
             local txt = slice_line(bufnr, linenr, hl.range[1], hl.range[2])
             if txt and not hl_state.updated_colors[txt] then
               hl_state.updated_colors[txt] = true
-              tailwind_names.update_color(txt, hl.rgb_hex)
+              names.update_color(txt, hl.rgb_hex)
             end
           end
         end
@@ -234,15 +235,7 @@ end
 ---@return table|nil
 function M.parse_lines(bufnr, lines, line_start, ud_opts, parse_opts)
   parse_opts = parse_opts or {}
-  local loop_parse_fn
-  local use_tailwind = parse_opts.tailwind == true and ud_opts.tailwind ~= "lsp"
-  if use_tailwind then
-    loop_parse_fn = function(line, i, _bufnr)
-      return tailwind_names.parser(line, i)
-    end
-  else
-    loop_parse_fn = matcher.make(ud_opts)
-  end
+  local loop_parse_fn = matcher.make(ud_opts)
   if not loop_parse_fn then
     return
   end
@@ -253,6 +246,15 @@ function M.parse_lines(bufnr, lines, line_start, ud_opts, parse_opts)
     local i = 1
     while i < #line do
       local length, rgb_hex = loop_parse_fn(line, i, bufnr)
+      if length and not rgb_hex then
+        vim.api.nvim_err_writeln(
+          string.format(
+            "Colorizer: Error parsing line %d, index %d. Please report this issue.",
+            line_nr,
+            i
+          )
+        )
+      end
       if length and rgb_hex then
         data[line_nr] = data[line_nr] or {}
         table.insert(data[line_nr] or {}, { rgb_hex = rgb_hex, range = { i - 1, i + length - 1 } })

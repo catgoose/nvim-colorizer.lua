@@ -1,7 +1,7 @@
--- Run this file as `nvim --clean -u minimal.lua`
+-- Run this file as `nvim --clean -u minimal-colorizer.lua`
 
 local settings = {
-  use_remote = true, -- Use colorizer master or local git directory
+  use_remote = false, -- Use colorizer master or local git directory
   base_dir = "colorizer_repro", -- Directory to clone lazy.nvim
   local_plugin_dir = os.getenv("HOME") .. "/git/nvim-colorizer.lua", -- Local git directory for colorizer.  Used if use_remote is false
   expect = "expect.lua",
@@ -100,5 +100,4 @@ lazy.setup(settings.plugins)
 
 require("colorizer").reload_on_save(settings.expect)
 vim.cmd.edit(settings.expect)
-
 -- ADD INIT.LUA SETTINGS _NECESSARY_ FOR REPRODUCING THE ISSUE

@@ -56,7 +56,7 @@ main() {
   project_name="colorizer"
   if command -v ldoc 1>/dev/null; then
     # html docs
-    ldoc -f discount -p "$project_name" -t "${project_name} Docs" -u lua "${@}" -s doc --date "- $(date +'%B')" || cleanup
+    ldoc -p "$project_name" -t "${project_name} Docs" -u lua "${@}" -s doc --date "- $(date +'%B')" || cleanup
 
     # vim docs
     create_vim_doc "$project_name" lua doc/ldoc_vim.ltp || cleanup

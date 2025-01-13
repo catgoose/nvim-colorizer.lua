@@ -553,11 +553,11 @@ user_default_options                     *colorizer.config.user_default_options*
 	{css} -  boolean: Enables all CSS features (`rgb_fn`, `hsl_fn`, `names`,
 	`RGB`, `RRGGBB`).
 	{css_fn} -  boolean: Enables all CSS functions (`rgb_fn`, `hsl_fn`).
-	{mode} -  'background'|'foreground'|'virtualtext': Display mode
 	{tailwind} -  boolean|string: Enables Tailwind CSS colors (e.g.,
 	`"normal"`, `"lsp"`, `"both"`).
 	{tailwind_opts} -  table: Tailwind options for updating names cache, etc
 	{sass} -  table: Sass color configuration (`enable` flag and `parsers`).
+	{mode} -  'background'|'foreground'|'virtualtext': Display mode
 	{virtualtext} -  string: Character used for virtual text display.
 	{virtualtext_inline} -  boolean|'before'|'after': Shows virtual text
 	inline with color.
@@ -611,8 +611,6 @@ opts                                                     *colorizer.config.opts*
      `RRGGBB`, `hsl_fn`, `rgb_fn`).
    - `css_fn` (boolean): Enables all CSS function-related features (e.g.,
      `rgb_fn`, `hsl_fn`).
-   - `mode` (string): Determines the display mode for highlights. Options are
-     `"background"`, `"foreground"`, and `"virtualtext"`.
    - `tailwind` (boolean|string): Enables Tailwind CSS colors. Accepts `true`,
      `"normal"`, `"lsp"`, or `"both"`.
    - `tailwind_opts` (table): Tailwind options for updating names cache, etc
@@ -623,6 +621,8 @@ opts                                                     *colorizer.config.opts*
    - `sass` (table): Configures Sass color support.
       - `enable` (boolean): Enables Sass color parsing.
       - `parsers` (table): A list of parsers to use, typically includes `"css"`.
+   - `mode` (string): Determines the display mode for highlights. Options are
+     `"background"`, `"foreground"`, and `"virtualtext"`.
    - `virtualtext` (string): Character used for virtual text display of colors
      (default is `"■"`).
    - `virtualtext_inline` (boolean|'before'|'after'): Shows the virtual text
@@ -825,6 +825,8 @@ LUA API                                         *colorizer.parser.names-lua-api*
 Functions: ~
     |reset_cache| - Reset the color names cache.
 
+    |update_color| - Updates the color value for a given color name.
+
     |parser| - Parses a line to identify color names.
 
 
@@ -833,6 +835,15 @@ reset_cache()                               *colorizer.parser.names.reset_cache*
 
      Called from colorizer.setup
 
+
+
+
+update_color({name}, {hex})                *colorizer.parser.names.update_color*
+    Updates the color value for a given color name.
+
+    Parameters: ~
+	{name} -  string: The color name.
+	{hex} -  string: The color value in hex format.
 
 
 
@@ -982,44 +993,6 @@ parser({line}, {i}, {opts})                        *colorizer.parser.rgb.parser*
 
 
 ==============================================================================
-TAILWIND_NAMES                    *colorizer.parser.tailwind_names-introduction*
-
-This module provides a parser that identifies named colors from a given line of
-text.
-
- The module uses a Trie structure for efficient matching of color names to
- #rrggbb values
-
-==============================================================================
-LUA API                                *colorizer.parser.tailwind_names-lua-api*
-
-Functions: ~
-    |reset_cache| - Reset the color names cache.
-
-    |parser| - Parses a line to identify color names.
-
-
-reset_cache()                      *colorizer.parser.tailwind_names.reset_cache*
-    Reset the color names cache.
-
-     Called from colorizer.setup
-
-
-
-
-parser({line}, {i})                     *colorizer.parser.tailwind_names.parser*
-    Parses a line to identify color names.
-
-    Parameters: ~
-	{line} -  string: The text line to parse.
-	{i} -  number: The index to start parsing from.
-
-    returns:~
-	number or nil, string or nil: Length of match and hex value if found.
-
-
-
-==============================================================================
 SASS                                               *colorizer.sass-introduction*
 
 Manages Sass variable parsing and color detection for buffers.
@@ -1118,32 +1091,21 @@ cleanup({bufnr})                                    *colorizer.tailwind.cleanup*
 
 					      *colorizer.tailwind.lsp_highlight*
 lsp_highlight({bufnr}, {ud_opts}, {buf_local_opts}, {add_highlight},
-{on_detach})
+{on_detach}, {line_start}, {line_end})
     Highlight buffer using values returned by tailwindcss
 
     Parameters: ~
 	{bufnr} -  number: Buffer number (0 for current)
 	{ud_opts} -  table: `user_default_options`
 	{buf_local_opts} -  table: Buffer local options
-	{add_highlight} -  function
-	{on_detach} -  function
+	{add_highlight} -  function: Function to add highlights
+	{on_detach} -  function: Function to call when LSP is detached
+	{line_start} -  number: Start line
+	{line_end} -  number: End line
 
     returns:~
 	boolean or nil
 
-
-
-==============================================================================
-TRIE                                               *colorizer.trie-introduction*
-
-Trie implementation in luajit.
-
- This module provides a Trie data structure implemented in LuaJIT with efficient
- memory handling.
- It supports operations such as inserting, searching, finding the longest
- prefix, and converting the Trie into a table format.
- The implementation uses LuaJIT's Foreign Function Interface (FFI) for optimized
- memory allocation.
 
 
 ==============================================================================
@@ -1206,7 +1168,7 @@ Functions: ~
     |add_additional_color_chars| - Adds additional characters to the list of
     valid color characters.
 
-    |byte_is_valid_colorchar| - Checks if a byte is valid as a color character
+    |byte_is_valid_color_char| - Checks if a byte is valid as a color character
     (alphanumeric, dynamically added chars, or hardcoded characters).
 
     |count| - Count the number of character in a string
@@ -1265,13 +1227,10 @@ get_non_alphanum_keys({tbl})             *colorizer.utils.get_non_alphanum_keys*
 
 
 
-
-				    *colorizer.utils.add_additional_color_chars*
-add_additional_color_chars({key}, {chars})
+add_additional_color_chars({chars}) *colorizer.utils.add_additional_color_chars*
     Adds additional characters to the list of valid color characters.
 
     Parameters: ~
-	{key} -  string: The key to associate with the additional characters.
 	{chars} -  string: The additional characters to add.
 
     returns:~
@@ -1279,14 +1238,12 @@ add_additional_color_chars({key}, {chars})
 
 
 
-byte_is_valid_colorchar({byte}, {key}) *colorizer.utils.byte_is_valid_colorchar*
+byte_is_valid_color_char({byte})      *colorizer.utils.byte_is_valid_color_char*
     Checks if a byte is valid as a color character (alphanumeric, dynamically
     added chars, or hardcoded characters).
 
     Parameters: ~
 	{byte} -  number: The byte to check.
-	{key} -  string|nil: The key for additional characters to validate
-	against.
 
     returns:~
 	boolean: `true` if the byte is valid, otherwise `false`.

@@ -82,8 +82,10 @@ end
 ---@param bufnr number: Buffer number (0 for current)
 ---@param ud_opts table: `user_default_options`
 ---@param buf_local_opts table: Buffer local options
----@param add_highlight function
----@param on_detach function
+---@param add_highlight function: Function to add highlights
+---@param on_detach function: Function to call when LSP is detached
+---@param line_start number: Start line
+---@param line_end number: End line
 ---@return boolean|nil
 function M.lsp_highlight(
   bufnr,

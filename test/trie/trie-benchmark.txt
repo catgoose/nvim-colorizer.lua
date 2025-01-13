@@ -1,0 +1,43 @@
+*** Inserting 7245 words: uppercase, lowercase, camelcase from vim.api.nvim_get_color_map() and Tailwind colors ***
+Initial Capacity	Resize Count	Insert Time (ms)	Lookup Time (ms)
+1	3652	13	3
+2	2056	7	2
+4	1174	7	4
+8	576	7	2
+16	23	7	3
+32	1	9	4
+64	0	24	10
+
+*** Inserting 1000 randomized words ***
+Initial Capacity	Resize Count	Insert Time (ms)	Lookup Time (ms)
+1	434	6	1
+2	234	2	1
+4	129	2	0
+8	51	1	0
+16	17	2	1
+32	3	2	1
+64	1	7	1
+128	0	8	1
+
+*** Inserting 10000 randomized words ***
+Initial Capacity	Resize Count	Insert Time (ms)	Lookup Time (ms)
+1	4614	16	4
+2	2106	11	4
+4	842	14	3
+8	362	19	14
+16	208	24	4
+32	113	21	6
+64	24	23	10
+128	0	37	9
+
+*** Inserting 100000 randomized words ***
+Initial Capacity	Resize Count	Insert Time (ms)	Lookup Time (ms)
+1	40656	133	71
+2	21367	130	70
+4	11604	152	68
+8	5549	141	73
+16	1954	155	88
+32	499	201	104
+64	100	251	117
+128	0	360	129
+
