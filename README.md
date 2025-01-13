@@ -20,6 +20,7 @@
     - [Trie](#trie)
       - [Test](#test)
       - [Benchmark](#benchmark)
+        - [Results](#results)
   - [Extras](#extras)
   - [TODO](#todo)
   <!--toc:end-->
@@ -429,6 +430,8 @@ make trie-benchmark
 scripts/trie-benchmark.sh
 ```
 
+##### Results
+
 Inserting 7245 words: using uppercase, lowercase, camelcase from `vim.api.nvim_get_color_map()` and Tailwind colors
 
 | Initial Capacity | Resize Count | Insert Time (ms) | Lookup Time (ms) |
@@ -441,7 +444,7 @@ Inserting 7245 words: using uppercase, lowercase, camelcase from `vim.api.nvim_g
 | 32               | 1            | 8                | 6                |
 | 64               | 0            | 10               | 7                |
 
-Inserting 1000 randomized
+Inserting 1000 randomized words
 
 | Initial Capacity | Resize Count | Insert Time (ms) | Lookup Time (ms) |
 | ---------------- | ------------ | ---------------- | ---------------- |
