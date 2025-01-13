@@ -64,21 +64,10 @@ local Trie_t = ffi.typeof("struct Trie")
 local Trie_ptr_t = ffi.typeof("$ *", Trie_t)
 local Trie_size = ffi.sizeof(Trie_t)
 
---[[
-Testing number of resizes with different starting `initial_capacity` with inserts from `names=true` and `tailwind=true`:
+local initial_capacity = 8
 
-initial_capacity: number of resizes
-1: 3299
-2: 1872
-4: 1110
-8: 550
-16: 23
-
-4 or 8 seem to be good initial values
-]]
-local initial_capacity = 4
-
-local function trie_create()
+local function trie_create(capacity)
+  capacity = capacity or initial_capacity
   local node_ptr = ffi.C.malloc(Trie_size)
   if not node_ptr then
     error("Failed to allocate memory for Trie node")
@@ -89,25 +78,25 @@ local function trie_create()
   ffi.fill(node_ptr, Trie_size)
   local node = ffi.cast(Trie_ptr_t, node_ptr)
   node.is_leaf = false
-  node.capacity = initial_capacity
+  node.capacity = capacity
   node.size = 0
-  node.children =
-    ffi.cast("struct Trie**", ffi.C.malloc(initial_capacity * ffi.sizeof("struct Trie*")))
+  node.children = ffi.cast("struct Trie**", ffi.C.malloc(capacity * ffi.sizeof("struct Trie*")))
   if not node.children then
     ffi.C.free(node_ptr)
     error("Failed to allocate memory for children")
   end
-  ffi.fill(node.children, initial_capacity * ffi.sizeof("struct Trie*"))
-  node.keys = ffi.cast("uint8_t*", ffi.C.malloc(initial_capacity * ffi.sizeof("uint8_t")))
+  ffi.fill(node.children, capacity * ffi.sizeof("struct Trie*"))
+  node.keys = ffi.cast("uint8_t*", ffi.C.malloc(capacity * ffi.sizeof("uint8_t")))
   if not node.keys then
     ffi.C.free(node.children)
     ffi.C.free(node_ptr)
     error("Failed to allocate memory for keys")
   end
-  ffi.fill(node.keys, initial_capacity * ffi.sizeof("uint8_t"))
+  ffi.fill(node.keys, capacity * ffi.sizeof("uint8_t"))
   return node
 end
 
+local resize_count = 0
 local function trie_resize(node)
   local current_capacity = tonumber(node.capacity) -- convert to lua number
   local new_capacity = current_capacity * 2
@@ -126,6 +115,7 @@ local function trie_resize(node)
     node.keys[i] = 0
   end
   node.capacity = new_capacity
+  resize_count = resize_count + 1
 end
 
 local function trie_destroy(node)
@@ -141,7 +131,7 @@ local function trie_destroy(node)
   node = nil
 end
 
-local function trie_insert(node, value)
+local function trie_insert(node, value, capacity)
   if not node or type(value) ~= "string" then
     print("Invalid node or value for insertion")
     return false
@@ -162,7 +152,7 @@ local function trie_insert(node, value)
         trie_resize(current)
       end
       current.keys[current.size] = char_byte
-      current.children[current.size] = trie_create()
+      current.children[current.size] = trie_create(capacity or initial_capacity)
       current.size = current.size + 1
       current = current.children[current.size - 1]
     end
@@ -179,7 +169,7 @@ local function trie_search(node, value)
   for i = 1, #value do
     local char_byte = value:byte(i)
     local found = false
-    for j = 0, current.size - 1 do
+    for j = 0, tonumber(current.size) - 1 do
       if current.keys[j] == char_byte then
         current = current.children[j]
         found = true
@@ -308,9 +298,16 @@ local function trie_to_string(trie)
   return table.concat(print_trie_table(as_table), "\n")
 end
 
+local function trie_resize_count()
+  return resize_count
+end
+
 local Trie_mt = {
-  __new = function(_, init)
-    local trie = trie_create()
+  __new = function(_, init, opts)
+    opts = opts or {}
+    local capacity = opts.initial_capacity or initial_capacity
+    local trie = trie_create(capacity)
+    resize_count = 0
     if type(init) == "table" then
       trie_extend(trie, init)
     end
@@ -322,6 +319,7 @@ local Trie_mt = {
     longest_prefix = trie_longest_prefix,
     extend = trie_extend,
     destroy = trie_destroy,
+    resize_count = trie_resize_count,
   },
   __tostring = trie_to_string,
   __gc = trie_destroy,

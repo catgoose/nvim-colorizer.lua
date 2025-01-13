@@ -1,0 +1,34 @@
+*** Testing trie with small list ***
+list: 
+{ "cat", "car", "celtic", "carb", "carb0", "CART0", "CaRT0", "Cart0", "931", "191", "121", "cardio", "call", "calcium", "calciur", "carry", "dog", "catdog", " spaces ", " catspace", " dog", "dogspace " }
+trie: 
+├─c─a─t*d─o─g*
+│ │ ├─r*b*0*
+│ │ │ ├─d─i─o*
+│ │ │ └─r─y*
+│ │ └─l─l*
+│ │   └─c─i─u─m*
+│ │         └─r*
+│ └─e─l─t─i─c*
+├─C─A─R─T─0*
+│ └─a─R─T─0*
+│   └─r─t─0*
+├─9─3─1*
+├─1─9─1*
+│ └─2─1*
+├─d─o─g*s─p─a─c─e─ *
+│  ─s─p─a─c─e─s─ *
+│ ├─c─a─t─s─p─a─c─e*
+│ └─d─o─g*
+checking longest prefix:
+'ffffff': 'nil'
+'': 'nil'
+'cat': 'cat'
+'catastrophic': 'cat'
+' spaces ': ' spaces '
+' spaces  ': ' spaces '
+' catspace': ' catspace'
+'catspace ': 'cat'
+'dogspace ': 'dogspace '
+' dogspace': ' dog'
+

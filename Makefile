@@ -1,29 +1,35 @@
 # Define variables for script paths
 SCRIPTS_DIR=scripts
-MINIMAL_TRIE_SCRIPT=$(SCRIPTS_DIR)/minimal-trie.sh
+TRIE_TEST_SCRIPT=$(SCRIPTS_DIR)/trie-test.sh
+TRIE_BENCHMARK_SCRIPT=$(SCRIPTS_DIR)/trie-benchmark.sh
 MINIMAL_SCRIPT=$(SCRIPTS_DIR)/minimal-colorizer.sh
 
-# Default target: help
 help:
 	@echo "Available targets:"
-	@echo "  make trie       - Run the minimal-trie script"
-	@echo "  make minimal    - Run the minimal script"
-	@echo "  make clean      - Remove test/colorizer_*"
+	@echo "  make trie              - Run trie test and benchmark"
+	@echo "  make trie-test         - Run trie test"
+	@echo "  make trie-benchmark    - Run trie benchmark"
+	@echo "  make minimal           - Run the minimal script"
+	@echo "  make clean             - Remove test/colorizer_*"
 
-# Target to run the minimal-trie script
-trie:
-	@echo "Running minimal-trie script..."
-	@bash $(MINIMAL_TRIE_SCRIPT)
+trie: trie-test trie-benchmark
 
-# Target to run the minimal script
+trie-test:
+	@echo "Running trie test..."
+	@bash $(TRIE_TEST_SCRIPT)
+
+trie-benchmark:
+	@echo "Running trie benchmark..."
+	@bash $(TRIE_BENCHMARK_SCRIPT)
+
 minimal:
-	@echo "Running minimal script..."
+	@echo "Running minimal config..."
 	@bash $(MINIMAL_SCRIPT)
 
-# Clean target (optional)
 clean:
-	@echo "Removing test/colorizer_*"
-	@rm -rf test/colorizer_*
+	@echo "Removing test/colorizer_repro"
+	@rm -rf test/colorizer_repro
+	@echo "Removing test/trie/colorizer_trie"
+	@rm -rf test/trie/colorizer_trie
 
-# Phony targets
-.PHONY: help trie minimal clean
+.PHONY: help trie trie-test trie-benchmark minimal clean
