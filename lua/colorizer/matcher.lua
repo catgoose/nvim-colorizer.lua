@@ -27,8 +27,6 @@ parsers.prefix = {
   ["_hsla"] = parsers.hsl_function,
 }
 
---  TODO: 2024-12-31 - Return multiple parse_fn for tailwind parser?
-
 ---Form a trie stuct with the given prefixes
 ---@param matchers table: List of prefixes, {"rgb", "hsl"}
 ---@param matchers_trie table: Table containing information regarding non-trie based parsers

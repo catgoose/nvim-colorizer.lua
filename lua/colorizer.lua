@@ -405,6 +405,9 @@ function M.detach_from_buffer(bufnr)
   if bufnr < 0 then
     return -1
   end
+  for _, ns_id in pairs(const.namespace) do
+    vim.api.nvim_buf_clear_namespace(bufnr, ns_id, 0, -1)
+  end
   vim.api.nvim_buf_clear_namespace(bufnr, const.namespace.default, 0, -1)
   if colorizer_state.buffer_local[bufnr] then
     for _, namespace in pairs(colorizer_state.buffer_local[bufnr].__detach.ns_id) do

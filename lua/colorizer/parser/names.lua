@@ -77,9 +77,7 @@ local function handle_names_custom(names_custom)
     if status and type(result) == "table" then
       names = result
     else
-      vim.api.nvim_err_writeln(
-        "Error in names_custom function: " .. (result or "Invalid return value")
-      )
+      utils.log_message("Error in names_custom function: " .. (result or "Invalid return value"))
       return
     end
   end
@@ -92,11 +90,11 @@ local function handle_names_custom(names_custom)
       if normalized_hex:match("^%x%x%x%x%x%x$") then
         add_color(name, normalized_hex)
       else
-        vim.api.nvim_err_writeln("Invalid hex code for '" .. name .. "': " .. normalized_hex)
+        utils.log_message(string.format("Invalid hex code for '%s': %s", name, normalized_hex))
       end
     else
-      vim.api.nvim_err_writeln(
-        "Invalid value for '" .. name .. "': Expected string, got " .. type(hex)
+      utils.log_message(
+        string.format("Invalid value for '%s': Expected string, got %s", name, type(hex))
       )
     end
   end
