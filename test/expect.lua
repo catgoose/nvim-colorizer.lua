@@ -48,7 +48,7 @@ local opts = {
     hsl_fn = true,
     css = true,
     css_fn = true,
-    mode = "virtualtext",
+    mode = "background",
     tailwind = true,
     sass = { enable = true, parsers = { css = true } },
     virtualtext_inline = true,
