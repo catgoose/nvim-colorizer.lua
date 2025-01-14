@@ -37,7 +37,7 @@ local function highlight(bufnr, ud_opts, add_highlight)
     lsp_cache[bufnr].document_params,
     function(err, results, _, _)
       if err ~= nil then
-        vim.api.nvim_err_writeln("tailwind.highlight: Error: " .. err)
+        utils.log_message("tailwind.highlight: Error: " .. err)
       end
       if err == nil and results ~= nil then
         local data, line_start, line_end = {}, nil, nil

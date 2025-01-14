@@ -59,7 +59,6 @@ local function create_highlight(rgb_hex, mode)
   if mode == "foreground" then
     vim.api.nvim_set_hl(0, highlight_name, { fg = "#" .. rgb_hex })
   else
-    --  TODO: 2025-01-11 - Should this check for background or virtualtext
     local rr, gg, bb = rgb_hex:sub(1, 2), rgb_hex:sub(3, 4), rgb_hex:sub(5, 6)
     local r, g, b = tonumber(rr, 16), tonumber(gg, 16), tonumber(bb, 16)
     local fg_color = color.is_bright(r, g, b) and "Black" or "White"
@@ -296,7 +295,7 @@ function M.parse_lines(bufnr, lines, line_start, ud_opts)
     while i < #line do
       local length, rgb_hex = loop_parse_fn(line, i, bufnr)
       if length and not rgb_hex then
-        vim.api.nvim_err_writeln(
+        utils.log_message(
           string.format(
             "Colorizer: Error parsing line %d, index %d. Please report this issue.",
             line_nr,

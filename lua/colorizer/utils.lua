@@ -224,4 +224,12 @@ function M.visible_line_range(bufnr)
   return range[1] - 1, range[2]
 end
 
+function M.log_message(message)
+  if vim.version().minor >= 11 then
+    vim.api.nvim_echo({ { message, "ErrorMsg" } }, true, {})
+  else
+    vim.api.nvim_err_writeln(message)
+  end
+end
+
 return M
