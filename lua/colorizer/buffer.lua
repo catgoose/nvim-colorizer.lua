@@ -129,6 +129,14 @@ local function add_low_priority_highlights(bufnr, extmarks, priority_ns_id, line
   end
 end
 
+local function update_color(bufnr, linenr, hl)
+  local txt = slice_line(bufnr, linenr, hl.range[1], hl.range[2])
+  if txt and not hl_state.updated_colors[txt] then
+    hl_state.updated_colors[txt] = true
+    names.update_color(txt, hl.rgb_hex)
+  end
+end
+
 --- Create highlight and set highlights
 ---@param bufnr number: Buffer number (0 for current)
 ---@param ns_id number: Namespace id for which to create highlights
@@ -143,9 +151,9 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts, hl_o
     return
   end
   hl_opts = hl_opts or {}
+  local tw_both = ud_opts.tailwind == "both" and hl_opts.tailwind_lsp
   vim.api.nvim_buf_clear_namespace(bufnr, ns_id, line_start, line_end)
   if ud_opts.mode == "background" or ud_opts.mode == "foreground" then
-    local tw_both = ud_opts.tailwind == "both" and hl_opts.tailwind_lsp
     for linenr, hls in pairs(data) do
       local marks
       if tw_both then
@@ -162,11 +170,7 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts, hl_o
       end
       for _, hl in ipairs(hls) do
         if tw_both and ud_opts.tailwind_opts.update_names then
-          local txt = slice_line(bufnr, linenr, hl.range[1], hl.range[2])
-          if txt and not hl_state.updated_colors[txt] then
-            hl_state.updated_colors[txt] = true
-            names.update_color(txt, hl.rgb_hex)
-          end
+          update_color(bufnr, linenr, hl)
         end
         local hlname = create_highlight(hl.rgb_hex, ud_opts.mode)
         vim.api.nvim_buf_add_highlight(bufnr, ns_id, hlname, linenr, hl.range[1], hl.range[2])
@@ -177,16 +181,12 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts, hl_o
     end
   elseif ud_opts.mode == "virtualtext" then
     for linenr, hls in pairs(data) do
+      if tw_both then
+        vim.api.nvim_buf_clear_namespace(bufnr, const.namespace.default, linenr, linenr + 1)
+      end
       for _, hl in ipairs(hls) do
-        if ud_opts.tailwind == "both" and hl_opts.tailwind_lsp then
-          vim.api.nvim_buf_clear_namespace(bufnr, ns_id, linenr, linenr + 1)
-          if ud_opts.tailwind_opts.update_names then
-            local txt = slice_line(bufnr, linenr, hl.range[1], hl.range[2])
-            if txt and not hl_state.updated_colors[txt] then
-              hl_state.updated_colors[txt] = true
-              names.update_color(txt, hl.rgb_hex)
-            end
-          end
+        if tw_both and ud_opts.tailwind_opts.update_names then
+          update_color(bufnr, linenr, hl)
         end
         local hlname = create_highlight(hl.rgb_hex, ud_opts.virtualtext_mode)
         local start_col = hl.range[2]
