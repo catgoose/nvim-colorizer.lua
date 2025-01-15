@@ -129,6 +129,53 @@ local function add_low_priority_highlights(bufnr, extmarks, priority_ns_id, line
   end
 end
 
+--- Apply virtual text highlights for non-overlapping ranges
+---@param bufnr number: Buffer number
+---@param extmarks table: List of extmarks (virtual text) to apply
+---@param priority_marks table: List of priority extmarks to check for overlap
+---@param linenr number: Line number
+local function apply_virtual_text_highlights(bufnr, extmarks, priority_marks, linenr)
+  for _, mark in ipairs(extmarks) do
+    local start_col = mark[3]
+    local end_col = mark[4].end_col
+    local virt_text = mark[4].virt_text or {}
+    local virt_text_pos = mark[4].virt_text_pos or "eol"
+    local hl_mode = mark[4].hl_mode or "combine"
+    local priority = mark[4].priority or 0
+    local non_overlapping_ranges = { { start_col, end_col } }
+    for _, priority_mark in ipairs(priority_marks) do
+      local priority_start = priority_mark[3]
+      local priority_end = priority_mark[4].end_col
+      local new_ranges = {}
+      for _, range in ipairs(non_overlapping_ranges) do
+        local range_start, range_end = range[1], range[2]
+        if priority_start <= range_end and priority_end >= range_start then
+          -- Collision detected, split range
+          if range_start < priority_start then
+            table.insert(new_ranges, { range_start, priority_start })
+          end
+          if priority_end < range_end then
+            table.insert(new_ranges, { priority_end, range_end })
+          end
+        else
+          -- No collision, keep range
+          table.insert(new_ranges, { range_start, range_end })
+        end
+      end
+      non_overlapping_ranges = new_ranges
+    end
+    for _, range in ipairs(non_overlapping_ranges) do
+      local opts = {
+        virt_text = virt_text,
+        virt_text_pos = virt_text_pos,
+        hl_mode = hl_mode,
+        priority = priority,
+      }
+      vim.api.nvim_buf_set_extmark(bufnr, mark[4].ns_id, linenr, range[1], opts)
+    end
+  end
+end
+
 local function update_color(bufnr, linenr, hl)
   local txt = slice_line(bufnr, linenr, hl.range[1], hl.range[2])
   if txt and not hl_state.updated_colors[txt] then
@@ -179,9 +226,18 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts, hl_o
         add_low_priority_highlights(bufnr, marks, ns_id, linenr)
       end
     end
+    -- TODO: 2025-01-14 - not working with tailwind = both
   elseif ud_opts.mode == "virtualtext" then
     for linenr, hls in pairs(data) do
+      local marks
       if tw_both then
+        marks = vim.api.nvim_buf_get_extmarks(
+          bufnr,
+          const.namespace.default,
+          { linenr, 0 },
+          { linenr + 1, 0 },
+          { details = true }
+        )
         vim.api.nvim_buf_clear_namespace(bufnr, const.namespace.default, linenr, linenr + 1)
       end
       for _, hl in ipairs(hls) do
@@ -219,6 +275,18 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts, hl_o
         opts.end_col = start_col
         pcall(function()
           vim.api.nvim_buf_set_extmark(bufnr, ns_id, linenr, start_col, opts)
+        end)
+      end
+      if tw_both then
+        pcall(function()
+          local priority_marks = vim.api.nvim_buf_get_extmarks(
+            bufnr,
+            ns_id,
+            { linenr, 0 },
+            { linenr + 1, 0 },
+            { details = true }
+          )
+          apply_virtual_text_highlights(bufnr, marks, priority_marks, linenr)
         end)
       end
     end
