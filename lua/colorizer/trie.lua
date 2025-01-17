@@ -122,13 +122,16 @@ local function trie_destroy(node)
   if not node then
     return
   end
-  for i = 0, node.size - 1 do
-    trie_destroy(node.children[i])
+  if node.children then
+    for i = 0, node.size - 1 do
+      trie_destroy(node.children[i])
+    end
+    ffi.C.free(node.children)
   end
-  ffi.C.free(node.children)
-  ffi.C.free(node.keys)
+  if node.keys then
+    ffi.C.free(node.keys)
+  end
   ffi.C.free(node)
-  node = nil
 end
 
 local function trie_insert(node, value, capacity)
