@@ -4,7 +4,6 @@ and watching files for updates to Sass variable definitions.
 It supports recursive Sass imports, resolving color values for each variable, and caching color definitions.
 ]]
 -- @module colorizer.sass
-
 local M = {}
 
 local utils = require("colorizer.utils")

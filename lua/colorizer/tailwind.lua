@@ -4,7 +4,6 @@ color highlights for Tailwind classes in a buffer. It manages LSP attachment, au
 and maintains state for efficient Tailwind highlighting.
 ]]
 -- @module colorizer.tailwind
-
 local M = {}
 
 local utils = require("colorizer.utils")

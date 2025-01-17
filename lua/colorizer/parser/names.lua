@@ -13,7 +13,8 @@ Namespaces:
 
 The parser dynamically populates the Trie and namespaces based on the provided options.
 Unused namespaces are left empty, avoiding unnecessary memory usage. Color name matching respects
-the configured namespaces and user-defined preferences, such as whether to strip digits. ]]
+the configured namespaces and user-defined preferences, such as whether to strip digits.
+]]
 -- @module colorizer.parser.names
 local M = {}
 

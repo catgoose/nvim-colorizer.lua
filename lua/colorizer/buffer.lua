@@ -1,6 +1,5 @@
----Provides highlighting functions for buffer
+--- Provides highlighting functions for buffer
 --@module colorizer.buffer
-
 local M = {}
 
 local color = require("colorizer.color")

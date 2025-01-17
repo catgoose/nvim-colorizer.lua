@@ -3,7 +3,6 @@ It is commonly used in Android apps for colors with an alpha (transparency) comp
 The function reads the color, applies the alpha to each RGB channel, and returns the resulting RGB hex string.
 ]]
 -- @module colorizer.parser.rgba_hex
-
 local M = {}
 
 local bit = require("bit")

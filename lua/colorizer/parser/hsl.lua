@@ -3,7 +3,6 @@ It supports various CSS color value formats, including degrees (`deg`), turns (`
 This function is useful for syntax highlighting or color recognition in a text editor.
 ]]
 -- @module colorizer.parser.hsl
-
 local M = {}
 
 local count = require("colorizer.utils").count

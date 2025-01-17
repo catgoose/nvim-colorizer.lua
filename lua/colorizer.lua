@@ -64,11 +64,10 @@ DETACH
 
       Detach from buffer with id 22:
           require("colorizer").detach_from_buffer(22)
- ]]
+]]
 -- @see colorizer.setup
 -- @see colorizer.attach_to_buffer
 -- @see colorizer.detach_from_buffer
-
 local M = {}
 
 local buffer = require("colorizer.buffer")

@@ -46,7 +46,6 @@ Memory Management:
 - The implementation includes safeguards to handle allocation failures and ensure proper cleanup.</pre>
 ]]
 -- @module trie
-
 local ffi = require("ffi")
 
 --- Trie Node Structure.

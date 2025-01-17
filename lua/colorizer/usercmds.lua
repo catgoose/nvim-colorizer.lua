@@ -8,7 +8,6 @@ Available commands are:
 - `ColorizerToggle`: Toggles Colorizer attachment to the buffer </pre>
 ]]
 -- @module colorizer.usercmds
-
 local M = {}
 
 --- Helper function to wrap a command function in a Neovim user command.

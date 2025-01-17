@@ -3,7 +3,6 @@ It supports decimal and percentage values for RGB channels, as well as an option
 The function can interpret a variety of CSS syntax variations, making it useful for syntax highlighting or color parsing.
 ]]
 -- @module colorizer.parser.rgb
-
 local M = {}
 
 local utils = require("colorizer.utils")
