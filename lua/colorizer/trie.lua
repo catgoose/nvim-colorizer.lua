@@ -48,7 +48,7 @@ Memory Management:
 -- @module trie
 local ffi = require("ffi")
 
---- Trie Node Structure.
+-- Trie Node Structure.
 ffi.cdef([[
 struct Trie {
   bool is_leaf;

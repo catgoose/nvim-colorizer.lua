@@ -90,24 +90,8 @@ local function populate_names(matcher_opts)
   end
 end
 
---- Handles additional color names provided as a table or function.
----@param names_custom table|function|nil: Additional color names to add.
-local function populate_names_custom(names_custom)
-  if not names_custom then
-    return
-  end
-  local names = {}
-  if type(names_custom) == "table" then
-    names = names_custom
-  elseif type(names_custom) == "function" then
-    local status, result = pcall(names_custom)
-    if status and type(result) == "table" then
-      names = result
-    else
-      utils.log_message("Error in names_custom function: " .. (result or "Invalid return value"))
-      return
-    end
-  end
+--- Adds custom color names provided by user
+local function populate_names_custom(names)
   -- Add additional characters found in names_custom keys
   local chars = utils.get_non_alphanum_keys(names)
   utils.add_additional_color_chars(chars)
@@ -206,6 +190,7 @@ local function needs_population(m_opts)
   for _, ns in ipairs(namespace_list) do
     if
       (ns == "lowercase" or ns == "uppercase" or ns == "camelcase")
+        and m_opts.color_names_opts
         and m_opts.color_names_opts[ns]
         and not next(names_cache.color_map[ns])
       or (ns == "tailwind_names" or ns == "names_custom")

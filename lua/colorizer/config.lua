@@ -2,6 +2,8 @@
 -- @module colorizer.config
 local M = {}
 
+local utils = require("colorizer.utils")
+
 --- Defaults for colorizer options
 local plugin_user_default_options = {
   names = true,
@@ -11,7 +13,7 @@ local plugin_user_default_options = {
     uppercase = false,
     strip_digits = false,
   },
-  names_custom = false,
+  -- names_custom = false,
   RGB = true,
   RGBA = true,
   RRGGBB = true,
@@ -33,19 +35,20 @@ local plugin_user_default_options = {
   always_update = false,
 }
 
---- Default user options for colorizer.
--- This table defines individual options and alias options, allowing configuration of
--- colorizer's behavior for different color formats (e.g., `#RGB`, `#RRGGBB`, `#AARRGGBB`, etc.).
---
--- **Individual Options**: Options like `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn`,
--- `AARRGGBB`, `tailwind`, and `sass` can be enabled or disabled independently.
---
--- **Alias Options**: `css` and `css_fn` enable multiple options at once.
---   - `css_fn = true` enables `hsl_fn` and `rgb_fn`.
---   - `css = true` enables `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, and `rgb_fn`.
---
--- **Option Priority**: Individual options have higher priority than aliases.
--- If both `css` and `css_fn` are true, `css_fn` has more priority over `css`.
+--[[-- Default user options for colorizer.
+This table defines individual options and alias options, allowing configuration of
+colorizer's behavior for different color formats (e.g., `#RGB`, `#RRGGBB`, `#AARRGGBB`, etc.).
+
+Individual Options: Options like `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn`,
+`AARRGGBB`, `tailwind`, and `sass` can be enabled or disabled independently.
+
+Alias Options: `css` and `css_fn` enable multiple options at once.
+  - `css_fn = true` enables `hsl_fn` and `rgb_fn`.
+  - `css = true` enables `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, and `rgb_fn`.
+
+Option Priority: Individual options have higher priority than aliases.
+If both `css` and `css_fn` are true, `css_fn` has more priority over `css`.
+]]
 -- @table user_default_options
 -- @field names boolean: Enables named colors (e.g., "Blue").
 -- @field names_opts table: Names options for customizing casing, digit stripping, etc
@@ -127,6 +130,17 @@ local function validate_options(ud_opts)
   end
   if ud_opts.virtualtext_mode ~= "background" and ud_opts.virtualtext_mode ~= "foreground" then
     ud_opts.virtualtext_mode = plugin_user_default_options.virtualtext_mode
+  end
+  -- Extract table if names_custom is a function
+  if type(ud_opts.names_custom == "function") then
+    local names
+    local status, result = pcall(ud_opts.names_custom)
+    if status and type(result) == "table" then
+      names = result
+    else
+      error("Error in names_custom function: " .. (result or "Invalid return value"))
+    end
+    ud_opts.names_custom = names
   end
 end
 
