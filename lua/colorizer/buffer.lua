@@ -165,7 +165,7 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts, hl_o
           local txt = slice_line(bufnr, linenr, hl.range[1], hl.range[2])
           if txt and not hl_state.updated_colors[txt] then
             hl_state.updated_colors[txt] = true
-            names.update_color(txt, hl.rgb_hex)
+            names.update_color(txt, hl.rgb_hex, "tailwind_names")
           end
         end
         local hlname = create_highlight(hl.rgb_hex, ud_opts.mode)
@@ -184,7 +184,7 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts, hl_o
             local txt = slice_line(bufnr, linenr, hl.range[1], hl.range[2])
             if txt and not hl_state.updated_colors[txt] then
               hl_state.updated_colors[txt] = true
-              names.update_color(txt, hl.rgb_hex)
+              names.update_color(txt, hl.rgb_hex, "tailwind_names")
             end
           end
         end
