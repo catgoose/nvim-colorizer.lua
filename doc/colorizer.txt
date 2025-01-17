@@ -314,7 +314,7 @@ highlight({bufnr}, {ns_id}, {line_start}, {line_end}, {ud_opts},
 
 
 						  *colorizer.buffer.parse_lines*
-parse_lines({bufnr}, {lines}, {line_start}, {ud_opts}, {parse_opts})
+parse_lines({bufnr}, {lines}, {line_start}, {ud_opts})
     Parse the given lines for colors and return a table containing
      rgb_hex and range per line
 
@@ -323,8 +323,6 @@ parse_lines({bufnr}, {lines}, {line_start}, {ud_opts}, {parse_opts})
 	{lines} -  table: Table of lines to parse
 	{line_start} -  number: Buffer line number to start highlighting
 	{ud_opts} -  table: `user_default_options`
-	{parse_opts} -  table|nil: Parsing options
- - tailwind boolean|nil: use tailwind_names parser
 
     returns:~
 	table or nil
@@ -686,7 +684,6 @@ namespace                                        *colorizer.constants.namespace*
 
     Fields: ~
 	{default} -
-	{tailwind_names} -
 	{tailwind_lsp} -
 
 
@@ -750,7 +747,7 @@ reset_cache()                                    *colorizer.matcher.reset_cache*
 
 
 
-make({opts})                                            *colorizer.matcher.make*
+make({ud_opts})                                         *colorizer.matcher.make*
     Parse the given options and return a function with enabled parsers.
 
     if no parsers enabled then return false
@@ -758,7 +755,7 @@ make({opts})                                            *colorizer.matcher.make*
 
 
     Parameters: ~
-	{opts} -  table: options created in `colorizer.setup`
+	{ud_opts} -  table: options created in `colorizer.setup`
 
     returns:~
 	function or boolean: function which will just parse the line for enabled
@@ -816,8 +813,32 @@ NAMES                                      *colorizer.parser.names-introduction*
 This module provides a parser that identifies named colors from a given line of
 text.
 
- The module uses a Trie structure for efficient matching of color names to
- #rrggbb values
+ It uses a Trie structure for efficient prefix-based matching of color names to
+ #rrggbb values.
+ The module supports multiple namespaces, enabling flexible configuration and
+ handling of
+ different types of color names (e.g., lowercase, uppercase, camelcase, custom
+ names, Tailwind names).
+
+ Namespaces:
+ - **lowercase**: Contains color names converted to lowercase (e.g., "red" ->
+   "#ff0000").
+ - **uppercase**: Contains color names converted to uppercase (e.g., "RED" ->
+   "#ff0000").
+ - **camelcase**: Contains color names in camel case (e.g., "LightBlue" ->
+   "#add8e6").
+ - **tailwind_names**: Contains color names based on TailwindCSS conventions,
+   including prefixes.
+ - **names_custom**: Contains user-defined color names, either as a table or a
+   function returning a table.
+
+ The parser dynamically populates the Trie and namespaces based on the provided
+ options.
+ Unused namespaces are left empty, avoiding unnecessary memory usage. Color name
+ matching respects
+ the configured namespaces and user-defined preferences, such as whether to
+ strip digits.
+
 
 ==============================================================================
 LUA API                                         *colorizer.parser.names-lua-api*
@@ -838,22 +859,23 @@ reset_cache()                               *colorizer.parser.names.reset_cache*
 
 
 
-update_color({name}, {hex})                *colorizer.parser.names.update_color*
+update_color({name}, {hex}, {namespace})   *colorizer.parser.names.update_color*
     Updates the color value for a given color name.
 
     Parameters: ~
 	{name} -  string: The color name.
 	{hex} -  string: The color value in hex format.
+	{namespace} -  string: The color map namespace.
 
 
 
-parser({line}, {i}, {opts})                      *colorizer.parser.names.parser*
+parser({line}, {i}, {m_opts})                    *colorizer.parser.names.parser*
     Parses a line to identify color names.
 
     Parameters: ~
 	{line} -  string: The text line to parse.
 	{i} -  number: The index to start parsing from.
-	{opts} -  table: Parsing options.
+	{m_opts} -  table: Matcher opts
 
     returns:~
 	number or nil, string or nil: Length of match and hex value if found.

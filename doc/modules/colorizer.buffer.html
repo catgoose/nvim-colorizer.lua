@@ -81,7 +81,7 @@
 	<td class="summary">Highlight the buffer region.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#parse_lines">parse_lines (bufnr, lines, line_start, ud_opts, parse_opts)</a></td>
+	<td class="name" nowrap><a href="#parse_lines">parse_lines (bufnr, lines, line_start, ud_opts)</a></td>
 	<td class="summary">Parse the given lines for colors and return a table containing
  rgb_hex and range per line</td>
 	</tr>
@@ -193,7 +193,7 @@
 </dd>
     <dt>
     <a name = "parse_lines"></a>
-    <strong>parse_lines (bufnr, lines, line_start, ud_opts, parse_opts)</strong>
+    <strong>parse_lines (bufnr, lines, line_start, ud_opts)</strong>
     </dt>
     <dd>
     Parse the given lines for colors and return a table containing
@@ -213,10 +213,6 @@
         </li>
         <li><span class="parameter">ud_opts</span>
          table: `user_default_options`
-        </li>
-        <li><span class="parameter">parse_opts</span>
-         table|nil: Parsing options
- - tailwind boolean|nil: use tailwind_names parser
         </li>
     </ul>
 
