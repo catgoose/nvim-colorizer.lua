@@ -1,9 +1,9 @@
---- Manages matching and parsing of color patterns in buffers.
--- This module provides functions for setting up and applying color parsers
--- for different color formats such as RGB, HSL, hexadecimal, and named colors.
--- It uses a trie-based structure to optimize prefix-based parsing.
+--[[-- Manages matching and parsing of color patterns in buffers.
+This module provides functions for setting up and applying color parsers
+for different color formats such as RGB, HSL, hexadecimal, and named colors.
+It uses a trie-based structure to optimize prefix-based parsing.
+]]
 -- @module colorizer.matcher
-
 local M = {}
 
 local Trie = require("colorizer.trie")

@@ -1,20 +1,19 @@
---- This module provides a parser that identifies named colors from a given line of text.
--- It uses a Trie structure for efficient prefix-based matching of color names to #rrggbb values.
--- The module supports multiple namespaces, enabling flexible configuration and handling of
--- different types of color names (e.g., lowercase, uppercase, camelcase, custom names, Tailwind names).
---
--- Namespaces:
--- <pre>
--- - lowercase: Contains color names converted to lowercase (e.g., "red" -> "#ff0000").
--- - uppercase: Contains color names converted to uppercase (e.g., "RED" -> "#ff0000").
--- - camelcase: Contains color names in camel case (e.g., "LightBlue" -> "#add8e6").
--- - tailwind_names: Contains color names based on TailwindCSS conventions, including prefixes.
--- - names_custom: Contains user-defined color names, either as a table or a function returning a table.</pre>
---
--- The parser dynamically populates the Trie and namespaces based on the provided options.
--- Unused namespaces are left empty, avoiding unnecessary memory usage. Color name matching respects
--- the configured namespaces and user-defined preferences, such as whether to strip digits.
---
+--[[-- This module provides a parser that identifies named colors from a given line of text.
+It uses a Trie structure for efficient prefix-based matching of color names to #rrggbb values.
+The module supports multiple namespaces, enabling flexible configuration and handling of
+different types of color names (e.g., lowercase, uppercase, camelcase, custom names, Tailwind names).
+
+Namespaces:
+<pre>
+- lowercase: Contains color names converted to lowercase (e.g., "red" -> "#ff0000").
+- uppercase: Contains color names converted to uppercase (e.g., "RED" -> "#ff0000").
+- camelcase: Contains color names in camel case (e.g., "LightBlue" -> "#add8e6").
+- tailwind_names: Contains color names based on TailwindCSS conventions, including prefixes.
+- names_custom: Contains user-defined color names, either as a table or a function returning a table.</pre>
+
+The parser dynamically populates the Trie and namespaces based on the provided options.
+Unused namespaces are left empty, avoiding unnecessary memory usage. Color name matching respects
+the configured namespaces and user-defined preferences, such as whether to strip digits. ]]
 -- @module colorizer.parser.names
 local M = {}
 

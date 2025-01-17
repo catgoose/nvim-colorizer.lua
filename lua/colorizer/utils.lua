@@ -1,8 +1,8 @@
---- Provides utility functions for color handling and file operations.
--- This module contains helper functions for checking byte categories, merging tables,
--- parsing colors, managing file watchers, and handling buffer lines.
+--[[-- Provides utility functions for color handling and file operations.
+This module contains helper functions for checking byte categories, merging tables,
+parsing colors, managing file watchers, and handling buffer lines.
+]]
 -- @module colorizer.utils
-
 local M = {}
 
 local bit, ffi = require("bit"), require("ffi")

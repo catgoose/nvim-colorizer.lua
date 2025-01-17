@@ -1,4 +1,3 @@
--- Copyright © 2019 Ashkan Kiani
 -- This program is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
 -- the Free Software Foundation, either version 3 of the License, or
@@ -12,40 +11,40 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
---- Trie implementation in LuaJIT.
--- This module provides an optimized Trie data structure using LuaJIT's Foreign Function Interface (FFI).
--- It supports operations like insertion, search, finding the longest prefix, and converting the Trie into a table format.
---
--- Dynamic Allocation:
--- <pre>
--- The implementation uses dynamic memory allocation for efficient storage and manipulation of nodes:
--- - Each Trie node dynamically allocates memory for its `children` and `keys` arrays using `ffi.C.malloc` and `ffi.C.realloc`.
--- - Arrays are initially allocated with a small capacity and are resized as needed to accommodate more child nodes.</pre>
---
--- Node Structure:
--- Each Trie node contains the following fields:
--- <pre>
--- - `is_leaf` (boolean): Indicates whether the node represents the end of a string.
--- - `capacity` (number): The current maximum number of children the node can hold.
---   - Starts at a small initial value (e.g., 8) and doubles as needed.
--- - `size` (number): The current number of children the node has.
---   - Always ≤ `capacity`.
--- - `children` (array): A dynamically allocated array of pointers to child nodes.
--- - `keys` (array): A dynamically allocated array of ASCII values corresponding to the `children` nodes.</pre>
---
--- Dynamic Resizing:
--- <pre>
--- - If a node's `size` exceeds its `capacity` during insertion, the `capacity` is doubled.
--- - The `children` and `keys` arrays are reallocated to match the new capacity using `ffi.C.realloc`.
--- - Resizing ensures efficient use of memory while avoiding frequent allocations.</pre>
---
--- Memory Management:
--- <pre>
--- - Memory is manually managed:
---   - Allocation: Done using `ffi.C.malloc` for new nodes and `ffi.C.realloc` for resizing arrays.
---   - Deallocation: Performed recursively for all child nodes using `ffi.C.free`.
--- - The implementation includes safeguards to handle allocation failures and ensure proper cleanup.</pre>
---
+--[[-- Trie implementation in LuaJIT.
+This module provides an optimized Trie data structure using LuaJIT's Foreign Function Interface (FFI).
+It supports operations like insertion, search, finding the longest prefix, and converting the Trie into a table format.
+
+Dynamic Allocation:
+<pre>
+The implementation uses dynamic memory allocation for efficient storage and manipulation of nodes:
+- Each Trie node dynamically allocates memory for its `children` and `keys` arrays using `ffi.C.malloc` and `ffi.C.realloc`.
+- Arrays are initially allocated with a small capacity and are resized as needed to accommodate more child nodes.</pre>
+
+Node Structure:
+Each Trie node contains the following fields:
+<pre>
+- `is_leaf` (boolean): Indicates whether the node represents the end of a string.
+- `capacity` (number): The current maximum number of children the node can hold.
+  - Starts at a small initial value (e.g., 8) and doubles as needed.
+- `size` (number): The current number of children the node has.
+  - Always ≤ `capacity`.
+- `children` (array): A dynamically allocated array of pointers to child nodes.
+- `keys` (array): A dynamically allocated array of ASCII values corresponding to the `children` nodes.</pre>
+
+Dynamic Resizing:
+<pre>
+- If a node's `size` exceeds its `capacity` during insertion, the `capacity` is doubled.
+- The `children` and `keys` arrays are reallocated to match the new capacity using `ffi.C.realloc`.
+- Resizing ensures efficient use of memory while avoiding frequent allocations.</pre>
+
+Memory Management:
+<pre>
+- Memory is manually managed:
+  - Allocation: Done using `ffi.C.malloc` for new nodes and `ffi.C.realloc` for resizing arrays.
+  - Deallocation: Performed recursively for all child nodes using `ffi.C.free`.
+- The implementation includes safeguards to handle allocation failures and ensure proper cleanup.</pre>
+]]
 -- @module trie
 
 local ffi = require("ffi")

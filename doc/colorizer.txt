@@ -8,67 +8,71 @@ USAGE                                                          *colorizer-usage*
 
  Establish the autocmd to highlight all filetypes.
 
-       `lua require("colorizer").setup()`
+      `lua require("colorizer").setup()`
 
- Highlight using all css highlight modes in every filetype
+Highlight using all css highlight modes in every filetype
 
-       `lua require("colorizer").setup(user_default_options = { css = true })`
+      `lua require("colorizer").setup(user_default_options = { css = true })`
 
 ==============================================================================
 USE WITH COMMANDS                                          *colorizer-commands*
 
-   *:ColorizerAttachToBuffer*
+  *:ColorizerAttachToBuffer*
 
-       Attach to the current buffer and start continuously highlighting
-       matched color names and codes.
+      Attach to the current buffer and start continuously highlighting
+      matched color names and codes.
 
-       If the buffer was already attached(i.e. being highlighted), the
-       settings will be reloaded. This is useful for reloading settings for
-       just one buffer.
+      If the buffer was already attached(i.e. being highlighted), the
+      settings will be reloaded. This is useful for reloading settings for
+      just one buffer.
 
-   *:ColorizerDetachFromBuffer*
+  *:ColorizerDetachFromBuffer*
 
-       Stop highlighting the current buffer (detach).
+      Stop highlighting the current buffer (detach).
 
-   *:ColorizerReloadAllBuffers*
+  *:ColorizerReloadAllBuffers*
 
-       Reload all buffers that are being highlighted currently.
-       Calls ColorizerAttachToBuffer on every buffer.
+      Reload all buffers that are being highlighted currently.
+      Calls ColorizerAttachToBuffer on every buffer.
 
-   *:ColorizerToggle*
-       Toggle highlighting of the current buffer.
+  *:ColorizerToggle*
+      Toggle highlighting of the current buffer.
 
 USE WITH LUA
 
 ATTACH
-   Accepts buffer number (0 or nil for current) and an option
-   table of user_default_options from `setup`.  Option table can be nil
-   which defaults to setup options.
+  Accepts buffer number (0 or nil for current) and an option
+  table of user_default_options from `setup`.  Option table can be nil
+  which defaults to setup options.
 
-       Attach to current buffer with local options:
-	   require("colorizer").attach_to_buffer(0, {
-	     mode = "background",
-	     css = false,
-	   })
+      Attach to current buffer with local options:
+	  require("colorizer").attach_to_buffer(0, {
+	    mode = "background",
+	    css = false,
+	  })
 
-       Attach to current buffer with setup options:
-	   require("colorizer").attach_to_buffer()
+      Attach to current buffer with setup options:
+	  require("colorizer").attach_to_buffer()
 
-	   Accepts an optional buffer number (0 or nil for current).  Defaults
-	   to
-	   current buffer.
+	  Accepts an optional buffer number (0 or nil for current).  Defaults to
+	  current buffer.
 
 DETACH
 
-       Detach to buffer with id 22:
-	   require("colorizer").attach_to_buffer(22)
+      Detach to buffer with id 22:
+	  require("colorizer").attach_to_buffer(22)
 
-       Detach from current buffer:
-	   require("colorizer").detach_from_buffer(0)
-	   require("colorizer").detach_from_buffer()
+      Detach from current buffer:
+	  require("colorizer").detach_from_buffer(0)
+	  require("colorizer").detach_from_buffer()
 
-       Detach from buffer with id 22:
-	   require("colorizer").detach_from_buffer(22)
+      Detach from buffer with id 22:
+	  require("colorizer").detach_from_buffer(22)
+
+    See:~
+	|colorizer.setup|
+	|colorizer.attach_to_buffer|
+	|colorizer.detach_from_buffer|
 
 ==============================================================================
 LUA API                                                      *colorizer-lua-api*
@@ -720,9 +724,9 @@ MATCHER                                         *colorizer.matcher-introduction*
 
 Manages matching and parsing of color patterns in buffers.
 
- This module provides functions for setting up and applying color parsers
- for different color formats such as RGB, HSL, hexadecimal, and named colors.
- It uses a trie-based structure to optimize prefix-based parsing.
+This module provides functions for setting up and applying color parsers
+for different color formats such as RGB, HSL, hexadecimal, and named colors.
+It uses a trie-based structure to optimize prefix-based parsing.
 
 ==============================================================================
 LUA API                                              *colorizer.matcher-lua-api*
@@ -762,10 +766,10 @@ HSL                                          *colorizer.parser.hsl-introduction*
 This module provides a parser for identifying and converting `hsl()` and
 `hsla()` CSS functions to RGB hexadecimal format.
 
- It supports various CSS color value formats, including degrees (`deg`), turns
- (`turn`), percentages, and alpha transparency.
- This function is useful for syntax highlighting or color recognition in a text
- editor.
+It supports various CSS color value formats, including degrees (`deg`), turns
+(`turn`), percentages, and alpha transparency.
+This function is useful for syntax highlighting or color recognition in a text
+editor.
 
 ==============================================================================
 LUA API                                           *colorizer.parser.hsl-lua-api*
@@ -806,33 +810,30 @@ NAMES                                      *colorizer.parser.names-introduction*
 This module provides a parser that identifies named colors from a given line of
 text.
 
- It uses a Trie structure for efficient prefix-based matching of color names to
- #rrggbb values.
- The module supports multiple namespaces, enabling flexible configuration and
- handling of
- different types of color names (e.g., lowercase, uppercase, camelcase, custom
- names, Tailwind names).
+It uses a Trie structure for efficient prefix-based matching of color names to
+#rrggbb values.
+The module supports multiple namespaces, enabling flexible configuration and
+handling of
+different types of color names (e.g., lowercase, uppercase, camelcase, custom
+names, Tailwind names).
 
- Namespaces:
- >
- - lowercase: Contains color names converted to lowercase (e.g., "red" ->
-   "#ff0000").
- - uppercase: Contains color names converted to uppercase (e.g., "RED" ->
-   "#ff0000").
- - camelcase: Contains color names in camel case (e.g., "LightBlue" ->
-   "#add8e6").
- - tailwind_names: Contains color names based on TailwindCSS conventions,
-   including prefixes.
- - names_custom: Contains user-defined color names, either as a table or a
-   function returning a table.<
+Namespaces:
+>
+- lowercase: Contains color names converted to lowercase (e.g., "red" ->
+  "#ff0000").
+- uppercase: Contains color names converted to uppercase (e.g., "RED" ->
+  "#ff0000").
+- camelcase: Contains color names in camel case (e.g., "LightBlue" ->
+  "#add8e6").
+- tailwind_names: Contains color names based on TailwindCSS conventions,
+  including prefixes.
+- names_custom: Contains user-defined color names, either as a table or a
+  function returning a table.<
 
- The parser dynamically populates the Trie and namespaces based on the provided
- options.
- Unused namespaces are left empty, avoiding unnecessary memory usage. Color name
- matching respects
- the configured namespaces and user-defined preferences, such as whether to
- strip digits.
-
+The parser dynamically populates the Trie and namespaces based on the provided
+options.
+Unused namespaces are left empty, avoiding unnecessary memory usage. Color name
+matching respects
 
 ==============================================================================
 LUA API                                         *colorizer.parser.names-lua-api*
@@ -882,10 +883,10 @@ RGBA_HEX                                *colorizer.parser.rgba_hex-introduction*
 This module provides a parser for identifying and converting `#RRGGBBAA`
 hexadecimal color values to RGB hexadecimal format.
 
- It is commonly used in Android apps for colors with an alpha (transparency)
- component.
- The function reads the color, applies the alpha to each RGB channel, and
- returns the resulting RGB hex string.
+It is commonly used in Android apps for colors with an alpha (transparency)
+component.
+The function reads the color, applies the alpha to each RGB channel, and returns
+the resulting RGB hex string.
 
 ==============================================================================
 LUA API                                      *colorizer.parser.rgba_hex-lua-api*
@@ -927,10 +928,10 @@ RGB_HEX                                  *colorizer.parser.rgb_hex-introduction*
 This module provides a parser for extracting `0xAARRGGBB` hexadecimal color
 values and converting them to RGB hex.
 
- This format is commonly used in Android apps for color values, where the color
- includes an alpha (transparency) component.
- The function parses the color, applies the alpha value to each RGB channel, and
- returns the resulting RGB hex string.
+This format is commonly used in Android apps for color values, where the color
+includes an alpha (transparency) component.
+The function parses the color, applies the alpha value to each RGB channel, and
+returns the resulting RGB hex string.
 
 ==============================================================================
 LUA API                                       *colorizer.parser.rgb_hex-lua-api*
@@ -970,10 +971,10 @@ RGB                                          *colorizer.parser.rgb-introduction*
 This module provides a parser for identifying and converting `rgb()` and
 `rgba()` CSS functions to RGB hexadecimal format.
 
- It supports decimal and percentage values for RGB channels, as well as an
- optional alpha (transparency) component.
- The function can interpret a variety of CSS syntax variations, making it useful
- for syntax highlighting or color parsing.
+It supports decimal and percentage values for RGB channels, as well as an
+optional alpha (transparency) component.
+The function can interpret a variety of CSS syntax variations, making it useful
+for syntax highlighting or color parsing.
 
 ==============================================================================
 LUA API                                           *colorizer.parser.rgb-lua-api*
@@ -1013,11 +1014,11 @@ SASS                                               *colorizer.sass-introduction*
 
 Manages Sass variable parsing and color detection for buffers.
 
- This module handles the parsing of Sass color variables, managing import
- statements,
- and watching files for updates to Sass variable definitions.
- It supports recursive Sass imports, resolving color values for each variable,
- and caching color definitions.
+This module handles the parsing of Sass color variables, managing import
+statements,
+and watching files for updates to Sass variable definitions.
+It supports recursive Sass imports, resolving color values for each variable,
+and caching color definitions.
 
 ==============================================================================
 LUA API                                                 *colorizer.sass-lua-api*
@@ -1081,11 +1082,11 @@ TAILWIND                                       *colorizer.tailwind-introduction*
 
 Handles Tailwind CSS color highlighting within buffers.
 
- This module integrates with the Tailwind CSS Language Server Protocol (LSP) to
- retrieve and apply
- color highlights for Tailwind classes in a buffer. It manages LSP attachment,
- autocmds for color updates,
- and maintains state for efficient Tailwind highlighting.
+This module integrates with the Tailwind CSS Language Server Protocol (LSP) to
+retrieve and apply
+color highlights for Tailwind classes in a buffer. It manages LSP attachment,
+autocmds for color updates,
+and maintains state for efficient Tailwind highlighting.
 
 ==============================================================================
 LUA API                                             *colorizer.tailwind-lua-api*
@@ -1130,14 +1131,14 @@ USERCMDS                                       *colorizer.usercmds-introduction*
 This module provides functions for creating user commands for the Colorizer
 plugin in Neovim.
 
- It allows the creation of commands to attach, detach, reload, and toggle the
- Colorizer functionality on buffers.
- Available commands are:
- >
- - `ColorizerAttachToBuffer`: Attaches Colorizer to the current buffer
- - `ColorizerDetachFromBuffer`: Detaches Colorizer from the current buffer
- - `ColorizerReloadAllBuffers`: Reloads Colorizer for all buffers
- - `ColorizerToggle`: Toggles Colorizer attachment to the buffer <
+It allows the creation of commands to attach, detach, reload, and toggle the
+Colorizer functionality on buffers.
+Available commands are:
+>
+- `ColorizerAttachToBuffer`: Attaches Colorizer to the current buffer
+- `ColorizerDetachFromBuffer`: Detaches Colorizer from the current buffer
+- `ColorizerReloadAllBuffers`: Reloads Colorizer for all buffers
+- `ColorizerToggle`: Toggles Colorizer attachment to the buffer <
 
 ==============================================================================
 LUA API                                             *colorizer.usercmds-lua-api*
@@ -1164,9 +1165,9 @@ UTILS                                             *colorizer.utils-introduction*
 
 Provides utility functions for color handling and file operations.
 
- This module contains helper functions for checking byte categories, merging
- tables,
- parsing colors, managing file watchers, and handling buffer lines.
+This module contains helper functions for checking byte categories, merging
+tables,
+parsing colors, managing file watchers, and handling buffer lines.
 
 ==============================================================================
 LUA API                                                *colorizer.utils-lua-api*

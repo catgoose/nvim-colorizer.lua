@@ -1,11 +1,12 @@
---- This module provides functions for creating user commands for the Colorizer plugin in Neovim.
--- It allows the creation of commands to attach, detach, reload, and toggle the Colorizer functionality on buffers.
--- Available commands are:
--- <pre>
--- - `ColorizerAttachToBuffer`: Attaches Colorizer to the current buffer
--- - `ColorizerDetachFromBuffer`: Detaches Colorizer from the current buffer
--- - `ColorizerReloadAllBuffers`: Reloads Colorizer for all buffers
--- - `ColorizerToggle`: Toggles Colorizer attachment to the buffer </pre>
+--[[-- This module provides functions for creating user commands for the Colorizer plugin in Neovim.
+It allows the creation of commands to attach, detach, reload, and toggle the Colorizer functionality on buffers.
+Available commands are:
+<pre>
+- `ColorizerAttachToBuffer`: Attaches Colorizer to the current buffer
+- `ColorizerDetachFromBuffer`: Detaches Colorizer from the current buffer
+- `ColorizerReloadAllBuffers`: Reloads Colorizer for all buffers
+- `ColorizerToggle`: Toggles Colorizer attachment to the buffer </pre>
+]]
 -- @module colorizer.usercmds
 
 local M = {}

@@ -1,6 +1,7 @@
---- This module provides a parser for identifying and converting `#RRGGBBAA` hexadecimal color values to RGB hexadecimal format.
--- It is commonly used in Android apps for colors with an alpha (transparency) component.
--- The function reads the color, applies the alpha to each RGB channel, and returns the resulting RGB hex string.
+--[[-- This module provides a parser for identifying and converting `#RRGGBBAA` hexadecimal color values to RGB hexadecimal format.
+It is commonly used in Android apps for colors with an alpha (transparency) component.
+The function reads the color, applies the alpha to each RGB channel, and returns the resulting RGB hex string.
+]]
 -- @module colorizer.parser.rgba_hex
 
 local M = {}

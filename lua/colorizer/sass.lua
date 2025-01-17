@@ -1,7 +1,8 @@
---- Manages Sass variable parsing and color detection for buffers.
--- This module handles the parsing of Sass color variables, managing import statements,
--- and watching files for updates to Sass variable definitions.
--- It supports recursive Sass imports, resolving color values for each variable, and caching color definitions.
+--[[-- Manages Sass variable parsing and color detection for buffers.
+This module handles the parsing of Sass color variables, managing import statements,
+and watching files for updates to Sass variable definitions.
+It supports recursive Sass imports, resolving color values for each variable, and caching color definitions.
+]]
 -- @module colorizer.sass
 
 local M = {}

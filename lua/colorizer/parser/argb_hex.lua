@@ -1,6 +1,7 @@
---- This module provides a parser for extracting `0xAARRGGBB` hexadecimal color values and converting them to RGB hex.
--- This format is commonly used in Android apps for color values, where the color includes an alpha (transparency) component.
--- The function parses the color, applies the alpha value to each RGB channel, and returns the resulting RGB hex string.
+--[[-- This module provides a parser for extracting `0xAARRGGBB` hexadecimal color values and converting them to RGB hex.
+This format is commonly used in Android apps for color values, where the color includes an alpha (transparency) component.
+The function parses the color, applies the alpha value to each RGB channel, and returns the resulting RGB hex string.
+]]
 -- @module colorizer.parser.rgb_hex
 local M = {}
 

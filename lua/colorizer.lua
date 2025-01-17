@@ -1,71 +1,70 @@
---- Requires Neovim >= 0.7.0 and `set termguicolors`
---
---Highlights terminal CSI ANSI color codes.
--- @module colorizer
--- @usage Establish the autocmd to highlight all filetypes.
---
---       `lua require("colorizer").setup()`
---
--- Highlight using all css highlight modes in every filetype
---
---       `lua require("colorizer").setup(user_default_options = { css = true })`
---
---==============================================================================
---USE WITH COMMANDS                                          *colorizer-commands*
---
---   *:ColorizerAttachToBuffer*
---
---       Attach to the current buffer and start continuously highlighting
---       matched color names and codes.
---
---       If the buffer was already attached(i.e. being highlighted), the
---       settings will be reloaded. This is useful for reloading settings for
---       just one buffer.
---
---   *:ColorizerDetachFromBuffer*
---
---       Stop highlighting the current buffer (detach).
---
---   *:ColorizerReloadAllBuffers*
---
---       Reload all buffers that are being highlighted currently.
---       Calls ColorizerAttachToBuffer on every buffer.
---
---   *:ColorizerToggle*
---       Toggle highlighting of the current buffer.
---
---USE WITH LUA
---
---ATTACH
---   Accepts buffer number (0 or nil for current) and an option
---   table of user_default_options from `setup`.  Option table can be nil
---   which defaults to setup options.
---
---       Attach to current buffer with local options:
---           require("colorizer").attach_to_buffer(0, {
---             mode = "background",
---             css = false,
---           })
---
---       Attach to current buffer with setup options:
---           require("colorizer").attach_to_buffer()
---
---           Accepts an optional buffer number (0 or nil for current).  Defaults to
---           current buffer.
---
---DETACH
---
---       Detach to buffer with id 22:
---           require("colorizer").attach_to_buffer(22)
---
---       Detach from current buffer:
---           require("colorizer").detach_from_buffer(0)
---           require("colorizer").detach_from_buffer()
---
---       Detach from buffer with id 22:
---           require("colorizer").detach_from_buffer(22)
---
+--[[-- Requires Neovim >= 0.7.0 and `set termguicolors`
 
+Highlights terminal CSI ANSI color codes.
+@module colorizer
+@usage Establish the autocmd to highlight all filetypes.
+
+      `lua require("colorizer").setup()`
+
+Highlight using all css highlight modes in every filetype
+
+      `lua require("colorizer").setup(user_default_options = { css = true })`
+
+==============================================================================
+USE WITH COMMANDS                                          *colorizer-commands*
+
+  *:ColorizerAttachToBuffer*
+
+      Attach to the current buffer and start continuously highlighting
+      matched color names and codes.
+
+      If the buffer was already attached(i.e. being highlighted), the
+      settings will be reloaded. This is useful for reloading settings for
+      just one buffer.
+
+  *:ColorizerDetachFromBuffer*
+
+      Stop highlighting the current buffer (detach).
+
+  *:ColorizerReloadAllBuffers*
+
+      Reload all buffers that are being highlighted currently.
+      Calls ColorizerAttachToBuffer on every buffer.
+
+  *:ColorizerToggle*
+      Toggle highlighting of the current buffer.
+
+USE WITH LUA
+
+ATTACH
+  Accepts buffer number (0 or nil for current) and an option
+  table of user_default_options from `setup`.  Option table can be nil
+  which defaults to setup options.
+
+      Attach to current buffer with local options:
+          require("colorizer").attach_to_buffer(0, {
+            mode = "background",
+            css = false,
+          })
+
+      Attach to current buffer with setup options:
+          require("colorizer").attach_to_buffer()
+
+          Accepts an optional buffer number (0 or nil for current).  Defaults to
+          current buffer.
+
+DETACH
+
+      Detach to buffer with id 22:
+          require("colorizer").attach_to_buffer(22)
+
+      Detach from current buffer:
+          require("colorizer").detach_from_buffer(0)
+          require("colorizer").detach_from_buffer()
+
+      Detach from buffer with id 22:
+          require("colorizer").detach_from_buffer(22)
+ ]]
 -- @see colorizer.setup
 -- @see colorizer.attach_to_buffer
 -- @see colorizer.detach_from_buffer
