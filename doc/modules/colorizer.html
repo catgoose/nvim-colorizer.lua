@@ -100,47 +100,35 @@ USE WITH COMMANDS                                          *colorizer-commands*
 
 USE WITH LUA
 
-Attach
-       Accepts buffer number (0 or nil for current) and an option
-       table of user_default_options from `setup`.  Option table can be nil
-       which defaults to setup options
+ATTACH
+   Accepts buffer number (0 or nil for current) and an option
+   table of user_default_options from `setup`.  Option table can be nil
+   which defaults to setup options.
 
-       Attach to current buffer with local options &lt;pre&gt;
+       Attach to current buffer with local options:
            require(&quot;colorizer&quot;).attach_to_buffer(0, {
              mode = &quot;background&quot;,
              css = false,
            })
-&lt;/pre&gt;
 
-       Attach to current buffer with setup options &lt;pre&gt;
-           require(&quot;colorizer&quot;).attach_to_buffer(0, {
-             mode = &quot;background&quot;,
-             css = false,
-           })
-&lt;/pre&gt;
+       Attach to current buffer with setup options:
+           require(&quot;colorizer&quot;).attach_to_buffer()
 
-       Accepts an optional buffer number (0 or nil for current).  Defaults to
-       current buffer.
+           Accepts an optional buffer number (0 or nil for current).  Defaults to
+           current buffer.
 
-Detach
+DETACH
 
-       Detach to buffer with id 22 &lt;pre&gt;
+       Detach to buffer with id 22:
            require(&quot;colorizer&quot;).attach_to_buffer(22)
-&lt;/pre&gt;
 
-       Detach from current buffer &lt;pre&gt;
+       Detach from current buffer:
            require(&quot;colorizer&quot;).detach_from_buffer(0)
            require(&quot;colorizer&quot;).detach_from_buffer()
-&lt;/pre&gt;
 
-       Detach from buffer with id 22 &lt;pre&gt;
+       Detach from buffer with id 22:
            require(&quot;colorizer&quot;).detach_from_buffer(22)
-&lt;/pre&gt;
 </pre>
-    </ul>
-    <h3>Info:</h3>
-    <ul>
-        <li><strong>Author</strong>: Ashkan Kiani <from-nvim-colorizer.lua@kiani.io></li>
     </ul>
 
 

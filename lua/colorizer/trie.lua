@@ -17,30 +17,34 @@
 -- It supports operations like insertion, search, finding the longest prefix, and converting the Trie into a table format.
 --
 -- Dynamic Allocation:
+-- <pre>
 -- The implementation uses dynamic memory allocation for efficient storage and manipulation of nodes:
 -- - Each Trie node dynamically allocates memory for its `children` and `keys` arrays using `ffi.C.malloc` and `ffi.C.realloc`.
--- - Arrays are initially allocated with a small capacity and are resized as needed to accommodate more child nodes.
+-- - Arrays are initially allocated with a small capacity and are resized as needed to accommodate more child nodes.</pre>
 --
 -- Node Structure:
 -- Each Trie node contains the following fields:
--- - **`is_leaf`** (boolean): Indicates whether the node represents the end of a string.
--- - **`capacity`** (number): The current maximum number of children the node can hold.
+-- <pre>
+-- - `is_leaf` (boolean): Indicates whether the node represents the end of a string.
+-- - `capacity` (number): The current maximum number of children the node can hold.
 --   - Starts at a small initial value (e.g., 8) and doubles as needed.
--- - **`size`** (number): The current number of children the node has.
+-- - `size` (number): The current number of children the node has.
 --   - Always ≤ `capacity`.
--- - **`children`** (array): A dynamically allocated array of pointers to child nodes.
--- - **`keys`** (array): A dynamically allocated array of ASCII values corresponding to the `children` nodes.
+-- - `children` (array): A dynamically allocated array of pointers to child nodes.
+-- - `keys` (array): A dynamically allocated array of ASCII values corresponding to the `children` nodes.</pre>
 --
 -- Dynamic Resizing:
+-- <pre>
 -- - If a node's `size` exceeds its `capacity` during insertion, the `capacity` is doubled.
 -- - The `children` and `keys` arrays are reallocated to match the new capacity using `ffi.C.realloc`.
--- - Resizing ensures efficient use of memory while avoiding frequent allocations.
+-- - Resizing ensures efficient use of memory while avoiding frequent allocations.</pre>
 --
 -- Memory Management:
+-- <pre>
 -- - Memory is manually managed:
---   - **Allocation**: Done using `ffi.C.malloc` for new nodes and `ffi.C.realloc` for resizing arrays.
---   - **Deallocation**: Performed recursively for all child nodes using `ffi.C.free`.
--- - The implementation includes safeguards to handle allocation failures and ensure proper cleanup.
+--   - Allocation: Done using `ffi.C.malloc` for new nodes and `ffi.C.realloc` for resizing arrays.
+--   - Deallocation: Performed recursively for all child nodes using `ffi.C.free`.
+-- - The implementation includes safeguards to handle allocation failures and ensure proper cleanup.</pre>
 --
 -- @module trie
 
@@ -52,7 +56,7 @@ struct Trie {
   bool is_leaf;
   size_t capacity; // Current capacity of the character array
   size_t size;     // Number of children currently in use
-  struct Trie** children; // Dynamically allocated array of children
+  struct Trie children; // Dynamically allocated array of children
   uint8_t* keys;   // Array of corresponding ASCII keys
 };
 void *malloc(size_t size);
@@ -80,7 +84,7 @@ local function trie_create(capacity)
   node.is_leaf = false
   node.capacity = capacity
   node.size = 0
-  node.children = ffi.cast("struct Trie**", ffi.C.malloc(capacity * ffi.sizeof("struct Trie*")))
+  node.children = ffi.cast("struct Trie", ffi.C.malloc(capacity * ffi.sizeof("struct Trie*")))
   if not node.children then
     ffi.C.free(node_ptr)
     error("Failed to allocate memory for children")
@@ -104,7 +108,7 @@ local function trie_resize(node)
   if not new_children then
     error("Failed to reallocate memory for children")
   end
-  node.children = ffi.cast("struct Trie**", new_children)
+  node.children = ffi.cast("struct Trie", new_children)
   local new_keys = ffi.C.realloc(node.keys, new_capacity * ffi.sizeof("uint8_t"))
   if not new_keys then
     error("Failed to reallocate memory for keys")

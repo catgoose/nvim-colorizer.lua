@@ -2,7 +2,6 @@
 
 Highlights terminal CSI ANSI color codes.
 
-Author: Ashkan Kiani <from-nvim-colorizer.lua@kiani.io>
 
 ==============================================================================
 USAGE                                                          *colorizer-usage*
@@ -41,42 +40,35 @@ USE WITH COMMANDS                                          *colorizer-commands*
 
 USE WITH LUA
 
-Attach
-       Accepts buffer number (0 or nil for current) and an option
-       table of user_default_options from `setup`.  Option table can be nil
-       which defaults to setup options
+ATTACH
+   Accepts buffer number (0 or nil for current) and an option
+   table of user_default_options from `setup`.  Option table can be nil
+   which defaults to setup options.
 
-       Attach to current buffer with local options >
+       Attach to current buffer with local options:
 	   require("colorizer").attach_to_buffer(0, {
 	     mode = "background",
 	     css = false,
 	   })
-<
 
-       Attach to current buffer with setup options >
-	   require("colorizer").attach_to_buffer(0, {
-	     mode = "background",
-	     css = false,
-	   })
-<
+       Attach to current buffer with setup options:
+	   require("colorizer").attach_to_buffer()
 
-       Accepts an optional buffer number (0 or nil for current).  Defaults to
-       current buffer.
+	   Accepts an optional buffer number (0 or nil for current).  Defaults
+	   to
+	   current buffer.
 
-Detach
+DETACH
 
-       Detach to buffer with id 22 >
+       Detach to buffer with id 22:
 	   require("colorizer").attach_to_buffer(22)
-<
 
-       Detach from current buffer >
+       Detach from current buffer:
 	   require("colorizer").detach_from_buffer(0)
 	   require("colorizer").detach_from_buffer()
-<
 
-       Detach from buffer with id 22 >
+       Detach from buffer with id 22:
 	   require("colorizer").detach_from_buffer(22)
-<
 
 ==============================================================================
 LUA API                                                      *colorizer-lua-api*
@@ -584,9 +576,10 @@ opts                                                     *colorizer.config.opts*
     Configuration options for the `setup` function.
 
     Fields: ~
-	{filetypes} -  table A list of file types where colorizer should be
+	{filetypes} -  table: A list of file types where colorizer should be
 	enabled. Use `"*"` for all file types.
-	{user_default_options} -  table Default options for color handling.
+	{user_default_options} -  table: Default options for color handling.
+ >
    - `names` (boolean): Enables named color codes like `"Blue"`.
    - `names_opts` (table): Names options for customizing casing, digit
      stripping, etc
@@ -623,12 +616,12 @@ opts                                                     *colorizer.config.opts*
      `"background"`, `"foreground"`, and `"virtualtext"`.
    - `virtualtext` (string): Character used for virtual text display of colors
      (default is `"■"`).
-   - `virtualtext_inline` (boolean|'before'|'after'): Shows the virtual text
-     inline with the color.  True defaults to 'before'.  False or nil disables.
- - `virtualtext_mode` ('background'|'foreground'): Determines the display mode
-   for virtual text.
-   - `always_update` (boolean): If true, updates color values even if the buffer
-     is not focused.
+  - `virtualtext_inline` (boolean|'before'|'after'): Shows the virtual text
+    inline with the color.  True defaults to 'before'.  False or nil disables.
+  - `virtualtext_mode` ('background'|'foreground'): Determines the display mode
+    for virtual text.
+  - `always_update` (boolean): If true, updates color values even if the buffer
+    is not focused.<
 	{buftypes} -  (table|nil): Optional. A list of buffer types where
 	colorizer should be enabled. Defaults to all buffer types if not
 	provided.
@@ -821,16 +814,17 @@ text.
  names, Tailwind names).
 
  Namespaces:
- - **lowercase**: Contains color names converted to lowercase (e.g., "red" ->
+ >
+ - lowercase: Contains color names converted to lowercase (e.g., "red" ->
    "#ff0000").
- - **uppercase**: Contains color names converted to uppercase (e.g., "RED" ->
+ - uppercase: Contains color names converted to uppercase (e.g., "RED" ->
    "#ff0000").
- - **camelcase**: Contains color names in camel case (e.g., "LightBlue" ->
+ - camelcase: Contains color names in camel case (e.g., "LightBlue" ->
    "#add8e6").
- - **tailwind_names**: Contains color names based on TailwindCSS conventions,
+ - tailwind_names: Contains color names based on TailwindCSS conventions,
    including prefixes.
- - **names_custom**: Contains user-defined color names, either as a table or a
-   function returning a table.
+ - names_custom: Contains user-defined color names, either as a table or a
+   function returning a table.<
 
  The parser dynamically populates the Trie and namespaces based on the provided
  options.
@@ -1138,6 +1132,12 @@ plugin in Neovim.
 
  It allows the creation of commands to attach, detach, reload, and toggle the
  Colorizer functionality on buffers.
+ Available commands are:
+ >
+ - `ColorizerAttachToBuffer`: Attaches Colorizer to the current buffer
+ - `ColorizerDetachFromBuffer`: Detaches Colorizer from the current buffer
+ - `ColorizerReloadAllBuffers`: Reloads Colorizer for all buffers
+ - `ColorizerToggle`: Toggles Colorizer attachment to the buffer <
 
 ==============================================================================
 LUA API                                             *colorizer.usercmds-lua-api*
@@ -1151,11 +1151,6 @@ make({cmds})                                           *colorizer.usercmds.make*
 
      This function defines and registers Colorizer commands based on the
      provided list.
-     Available commands are:
-     - `ColorizerAttachToBuffer`: Attaches Colorizer to the current buffer
-     - `ColorizerDetachFromBuffer`: Detaches Colorizer from the current buffer
-     - `ColorizerReloadAllBuffers`: Reloads Colorizer for all buffers
-     - `ColorizerToggle`: Toggles Colorizer attachment to the buffer
 
 
     Parameters: ~

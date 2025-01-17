@@ -175,8 +175,9 @@ end
 
 --- Configuration options for the `setup` function.
 -- @table opts
--- @field filetypes table A list of file types where colorizer should be enabled. Use `"*"` for all file types.
--- @field user_default_options table Default options for color handling.
+-- @field filetypes table: A list of file types where colorizer should be enabled. Use `"*"` for all file types.
+-- @field user_default_options table: Default options for color handling.
+-- <pre>
 --   - `names` (boolean): Enables named color codes like `"Blue"`.
 --   - `names_opts` (table): Names options for customizing casing, digit stripping, etc
 --     - `lowercase` (boolean): Converts color names to lowercase.
@@ -201,9 +202,9 @@ end
 --      - `parsers` (table): A list of parsers to use, typically includes `"css"`.
 --   - `mode` (string): Determines the display mode for highlights. Options are `"background"`, `"foreground"`, and `"virtualtext"`.
 --   - `virtualtext` (string): Character used for virtual text display of colors (default is `"■"`).
---   - `virtualtext_inline` (boolean|'before'|'after'): Shows the virtual text inline with the color.  True defaults to 'before'.  False or nil disables.
--- - `virtualtext_mode` ('background'|'foreground'): Determines the display mode for virtual text.
---   - `always_update` (boolean): If true, updates color values even if the buffer is not focused.
+--  - `virtualtext_inline` (boolean|'before'|'after'): Shows the virtual text inline with the color.  True defaults to 'before'.  False or nil disables.
+--  - `virtualtext_mode` ('background'|'foreground'): Determines the display mode for virtual text.
+--  - `always_update` (boolean): If true, updates color values even if the buffer is not focused.</pre>
 -- @field buftypes (table|nil): Optional. A list of buffer types where colorizer should be enabled. Defaults to all buffer types if not provided.
 -- @field user_commands (boolean|table): If true, enables all user commands for colorizer. If `false`, disables user commands. Alternatively, provide a table of specific commands to enable:
 --   - `"ColorizerAttachToBuffer"`

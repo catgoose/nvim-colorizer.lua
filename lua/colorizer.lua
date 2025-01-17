@@ -2,7 +2,6 @@
 --
 --Highlights terminal CSI ANSI color codes.
 -- @module colorizer
--- @author Ashkan Kiani <from-nvim-colorizer.lua@kiani.io>
 -- @usage Establish the autocmd to highlight all filetypes.
 --
 --       `lua require("colorizer").setup()`
@@ -37,42 +36,35 @@
 --
 --USE WITH LUA
 --
---Attach
---       Accepts buffer number (0 or nil for current) and an option
---       table of user_default_options from `setup`.  Option table can be nil
---       which defaults to setup options
+--ATTACH
+--   Accepts buffer number (0 or nil for current) and an option
+--   table of user_default_options from `setup`.  Option table can be nil
+--   which defaults to setup options.
 --
---       Attach to current buffer with local options <pre>
+--       Attach to current buffer with local options:
 --           require("colorizer").attach_to_buffer(0, {
 --             mode = "background",
 --             css = false,
 --           })
---</pre>
 --
---       Attach to current buffer with setup options <pre>
---           require("colorizer").attach_to_buffer(0, {
---             mode = "background",
---             css = false,
---           })
---</pre>
+--       Attach to current buffer with setup options:
+--           require("colorizer").attach_to_buffer()
 --
---       Accepts an optional buffer number (0 or nil for current).  Defaults to
---       current buffer.
+--           Accepts an optional buffer number (0 or nil for current).  Defaults to
+--           current buffer.
 --
---Detach
+--DETACH
 --
---       Detach to buffer with id 22 <pre>
+--       Detach to buffer with id 22:
 --           require("colorizer").attach_to_buffer(22)
---</pre>
 --
---       Detach from current buffer <pre>
+--       Detach from current buffer:
 --           require("colorizer").detach_from_buffer(0)
 --           require("colorizer").detach_from_buffer()
---</pre>
 --
---       Detach from buffer with id 22 <pre>
+--       Detach from buffer with id 22:
 --           require("colorizer").detach_from_buffer(22)
---</pre>
+--
 
 -- @see colorizer.setup
 -- @see colorizer.attach_to_buffer
