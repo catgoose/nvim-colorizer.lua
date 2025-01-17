@@ -54,7 +54,7 @@ struct Trie {
   bool is_leaf;
   size_t capacity; // Current capacity of the character array
   size_t size;     // Number of children currently in use
-  struct Trie children; // Dynamically allocated array of children
+  struct Trie** children; // Dynamically allocated array of children
   uint8_t* keys;   // Array of corresponding ASCII keys
 };
 void *malloc(size_t size);
@@ -82,7 +82,7 @@ local function trie_create(capacity)
   node.is_leaf = false
   node.capacity = capacity
   node.size = 0
-  node.children = ffi.cast("struct Trie", ffi.C.malloc(capacity * ffi.sizeof("struct Trie*")))
+  node.children = ffi.cast("struct Trie**", ffi.C.malloc(capacity * ffi.sizeof("struct Trie*")))
   if not node.children then
     ffi.C.free(node_ptr)
     error("Failed to allocate memory for children")
@@ -106,7 +106,7 @@ local function trie_resize(node)
   if not new_children then
     error("Failed to reallocate memory for children")
   end
-  node.children = ffi.cast("struct Trie", new_children)
+  node.children = ffi.cast("struct Trie**", new_children)
   local new_keys = ffi.C.realloc(node.keys, new_capacity * ffi.sizeof("uint8_t"))
   if not new_keys then
     error("Failed to reallocate memory for keys")

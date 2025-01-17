@@ -38,7 +38,9 @@ function M.reset_cache()
       names_custom = {},
     },
     trie = nil,
-    -- TODO: 2025-01-16 - Should name_{min|max}len be stored in each color_map namespace?
+    -- The `name_minlen` and `name_maxlen` are calculated globally across all namespaces
+    -- because the Trie lookup operates independently of namespaces. Namespaces are only
+    -- used for final validation after the Trie finds a match.
     name_minlen = nil,
     name_maxlen = nil,
   }
