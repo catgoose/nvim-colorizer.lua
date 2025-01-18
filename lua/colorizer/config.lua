@@ -143,7 +143,7 @@ local function validate_options(ud_opts)
     ud_opts.virtualtext_mode = plugin_user_default_options.virtualtext_mode
   end
   -- Extract table if names_custom is a function
-  if ud_opts.names and type(ud_opts.names_custom == "function") then
+  if ud_opts.names_custom and type(ud_opts.names_custom == "function") then
     local names
     local status, result = pcall(ud_opts.names_custom)
     if status and type(result) == "table" then
