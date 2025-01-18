@@ -67,39 +67,45 @@ end
 ---@param name string: The color name.
 ---@param val string: The color value in hex format.
 ---@param namespace string: The color map namespace.
-local function add_color(name, val, namespace)
-  names_cache.name_minlen = names_cache.name_minlen and min(#name, names_cache.name_minlen) or #name
-  names_cache.name_maxlen = names_cache.name_maxlen and max(#name, names_cache.name_maxlen) or #name
-  names_cache.color_map[namespace][name] = val
-  names_cache.trie:insert(name)
+---@param hash? string: Use namespace hash key
+local function add_color(name, val, namespace, hash)
+  local nc = names_cache
+  nc.name_minlen = nc.name_minlen and min(#name, nc.name_minlen) or #name
+  nc.name_maxlen = nc.name_maxlen and max(#name, nc.name_maxlen) or #name
+  local tbl = hash and nc.color_map[namespace][hash] or nc.color_map[namespace]
+  tbl[name] = val
+  nc.trie:insert(name)
 end
 
 --- Handles Vim's color map and adds colors to the Trie and map.
-local function populate_names(matcher_opts)
+local function populate_names(m_opts)
   for name, value in pairs(vim.api.nvim_get_color_map()) do
     local rgb_hex = tohex(value, 6)
-    if matcher_opts.lowercase then
+    if m_opts.color_names_opts.lowercase then
       add_color(name:lower(), rgb_hex, "lowercase")
     end
-    if matcher_opts.camelcase then
+    if m_opts.color_names_opts.camelcase then
       add_color(name, rgb_hex, "camelcase")
     end
-    if matcher_opts.uppercase then
+    if m_opts.color_names_opts.uppercase then
       add_color(name:upper(), rgb_hex, "uppercase")
     end
   end
 end
 
 --- Adds custom color names provided by user
-local function populate_names_custom(names)
+local function populate_names_custom(m_opts)
   -- Add additional characters found in names_custom keys
-  local chars = utils.get_non_alphanum_keys(names)
+  local chars = utils.get_non_alphanum_keys(m_opts.names_custom)
   utils.add_additional_color_chars(chars)
-  for name, hex in pairs(names) do
+  -- Initialize hash key
+  local hash = m_opts.names_custom_hash
+  names_cache.color_map.names_custom[hash] = names_cache.color_map.names_custom[hash] or {}
+  for name, hex in pairs(m_opts.names_custom) do
     if type(hex) == "string" then
       local normalized_hex = hex:gsub("^#", ""):gsub("%s", "")
       if normalized_hex:match("^%x%x%x%x%x%x$") then
-        add_color(name, normalized_hex, "names_custom")
+        add_color(name, normalized_hex, "names_custom", hash)
       else
         utils.log_message(string.format("Invalid hex code for '%s': %s", name, normalized_hex))
       end
@@ -133,11 +139,11 @@ local function populate_colors(m_opts)
   names_cache.name_maxlen = names_cache.name_maxlen or nil
   -- Add Vim's color map
   if m_opts.color_names then
-    populate_names(m_opts.color_names_opts)
+    populate_names(m_opts)
   end
   -- Add custom names
   if m_opts.names_custom then
-    populate_names_custom(m_opts.names_custom)
+    populate_names_custom(m_opts)
   end
   -- Add tailwind names
   if m_opts.tailwind_names then
@@ -173,12 +179,26 @@ local function resolve_color_entry(prefix, m_opts)
   }
   for _, nsl in ipairs(namespace_lookup) do
     if nsl.enabled then
-      local color_entry = names_cache.color_map[nsl.key] and names_cache.color_map[nsl.key][prefix]
+      -- check hash against keys stored in custom_names color_map
       if
-        color_entry
-        and not (nsl.vimcolor and m_opts.color_names_opts.strip_digits and prefix:match("%d+$"))
+        nsl.key == "names_custom"
+        and m_opts.names_custom_hash
+        and next(names_cache.color_map[nsl.key][m_opts.names_custom_hash])
       then
-        return color_entry
+        local color_entry = names_cache.color_map[nsl.key][m_opts.names_custom_hash][prefix]
+        if color_entry then
+          return color_entry
+        end
+      else
+        local color_entry = names_cache.color_map[nsl.key]
+          and names_cache.color_map[nsl.key][prefix]
+        if
+          color_entry
+          -- strip digits by matching against digits
+          and not (nsl.vimcolor and m_opts.color_names_opts.strip_digits and prefix:match("%d+$"))
+        then
+          return color_entry
+        end
       end
     end
   end
@@ -190,7 +210,6 @@ local function needs_population(m_opts)
       (ns == "lowercase" or ns == "uppercase" or ns == "camelcase")
       and m_opts.color_names
       and m_opts.color_names_opts
-      and m_opts.color_names_opts[ns]
       and not next(names_cache.color_map[ns])
     then
       return true
@@ -198,7 +217,12 @@ local function needs_population(m_opts)
     if ns == "tailwind_names" and m_opts.tailwind_names and not next(names_cache.color_map[ns]) then
       return true
     end
-    if ns == "names_custom" and m_opts.names_custom and not next(names_cache.color_map[ns]) then
+    if
+      ns == "names_custom"
+      and m_opts.names_custom
+      and m_opts.names_custom_hash
+      and not names_cache.color_map[ns][m_opts.names_custom_hash]
+    then
       return true
     end
   end
@@ -229,7 +253,7 @@ function M.parser(line, i, m_opts)
       -- early return if next byte is not a valid color character
       return
     end
-    -- if prefix is found in try, check if the color name to rgb map exists for enabled namespaces
+    -- if prefix is found in trie, check if the color name to rgb map exists for enabled namespaces
     local color_entry = resolve_color_entry(prefix, m_opts)
     if color_entry then
       return #prefix, color_entry

@@ -27,10 +27,8 @@ parsers.prefix = {
   ["_hsla"] = parsers.hsl_function,
 }
 
+---@param tbl table: Lua table to be hashed
 local function hash_table(tbl)
-  if not tbl then
-    return "nil"
-  end
   local json_string = vim.json.encode(tbl, { sort_keys = true })
   return vim.fn.sha256(json_string)
 end
@@ -136,8 +134,8 @@ function M.make(ud_opts)
   end
 
   -- Append a SHA256 hash of names_custom to the matcher key
-  local names_custom_hash = hash_table(enable_names_custom)
-  local cache_key = enable_names_custom and string.format("%d|%s", matcher_mask, names_custom_hash)
+  local names_custom_hash = enable_names_custom and hash_table(enable_names_custom)
+  local cache_key = names_custom_hash and string.format("%d|%s", matcher_mask, names_custom_hash)
     or matcher_mask
 
   local loop_parse_fn = matcher_cache[cache_key]
