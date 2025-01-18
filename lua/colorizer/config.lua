@@ -49,37 +49,48 @@ Alias Options: `css` and `css_fn` enable multiple options at once.
 Option Priority: Individual options have higher priority than aliases.
 If both `css` and `css_fn` are true, `css_fn` has more priority over `css`.
 ]]
--- @table user_default_options
--- @field names boolean: Enables named colors (e.g., "Blue").
--- @field names_opts table: Names options for customizing casing, digit stripping, etc
--- @field names_custom table|function|false|nil: Custom color name to RGB value mappings
+---@class colorizer.options.user_default_options.names_opts
+---@field lowercase boolean
+---@field camelcase boolean
+---@field uppercase boolean
+---@field strip_digits boolean
+
+---@class colorizer.options.user_default_options
+---@field names? boolean: Enables named colors (e.g., "Blue").
+---@field names_opts? colorizer.options.user_default_options.names_opts: Names options for customizing casing, digit stripping, etc
+---@field names_custom? table|function|false|nil: Custom color name to RGB value mappings
 -- should return a table of color names to RGB value pairs
--- @field RGB boolean: Enables `#RGB` hex codes.
--- @field RGBA boolean: Enables `#RGBA` hex codes.
--- @field RRGGBB boolean: Enables `#RRGGBB` hex codes.
--- @field RRGGBBAA boolean: Enables `#RRGGBBAA` hex codes.
--- @field AARRGGBB boolean: Enables `0xAARRGGBB` hex codes.
--- @field rgb_fn boolean: Enables CSS `rgb()` and `rgba()` functions.
--- @field hsl_fn boolean: Enables CSS `hsl()` and `hsla()` functions.
--- @field css boolean: Enables all CSS features (`rgb_fn`, `hsl_fn`, `names`, `RGB`, `RRGGBB`).
--- @field css_fn boolean: Enables all CSS functions (`rgb_fn`, `hsl_fn`).
--- @field tailwind boolean|string: Enables Tailwind CSS colors (e.g., `"normal"`, `"lsp"`, `"both"`).
--- @field tailwind_opts table: Tailwind options for updating names cache, etc
--- @field sass table: Sass color configuration (`enable` flag and `parsers`).
--- @field mode 'background'|'foreground'|'virtualtext': Display mode
--- @field virtualtext string: Character used for virtual text display.
--- @field virtualtext_inline boolean|'before'|'after': Shows virtual text inline with color.
--- @field virtualtext_mode 'background'|'foreground': Mode for virtual text display.
--- @field always_update boolean: Always update color values, even if buffer is not focused.
+---@field RGB? boolean: Enables `#RGB` hex codes.
+---@field RGBA? boolean: Enables `#RGBA` hex codes.
+---@field RRGGBB? boolean: Enables `#RRGGBB` hex codes.
+---@field RRGGBBAA? boolean: Enables `#RRGGBBAA` hex codes.
+---@field AARRGGBB? boolean: Enables `0xAARRGGBB` hex codes.
+---@field rgb_fn? boolean: Enables CSS `rgb()` and `rgba()` functions.
+---@field hsl_fn? boolean: Enables CSS `hsl()` and `hsla()` functions.
+---@field css? boolean: Enables all CSS features (`rgb_fn`, `hsl_fn`, `names`, `RGB`, `RRGGBB`).
+---@field css_fn? boolean: Enables all CSS functions (`rgb_fn`, `hsl_fn`).
+---@field tailwind? boolean|string: Enables Tailwind CSS colors (e.g., `"normal"`, `"lsp"`, `"both"`).
+---@field tailwind_opts? table: Tailwind options for updating names cache, etc
+---@field sass? {enable: boolean, parsers: table<string, boolean>} : Sass color configuration (`enable` flag and `parsers`).
+---@field mode? 'background'|'foreground'|'virtualtext': Display mode
+---@field virtualtext? string: Character used for virtual text display.
+---@field virtualtext_inline? boolean|'before'|'after': Shows virtual text inline with color.
+---@field virtualtext_mode? 'background'|'foreground': Mode for virtual text display.
+---@field always_update? boolean: Always update color values, even if buffer is not focused.
+
+---@alias FileTypeConfig {[string]: colorizer.options.user_default_options}
 
 --- Options for colorizer that were passed in to setup function
---@field filetypes
---@field buftypes
---@field user_commands
---@field lazy_load
---@field user_default_options
---@field exclusions
---@field all
+---@class colorizer.options
+---@field filetypes? string[]|FileTypeConfig List of filetypes where colorizer should be enabled
+---@field buftypes? string[] List of buffer types where colorizer should be enabled
+---@field user_commands? boolean|string[] Enable all user commands or specify which ones to enable
+---@field lazy_load? boolean Whether to lazily schedule buffer highlighting setup
+---@field user_default_options? colorizer.options.user_default_options Default options for color handling
+---@field exclusions? {buftype: string[], filetype: string[]} Filetypes and buftypes to exclude
+---@field all? {buftype: boolean, filetype: boolean} Whether to enable for all buftypes/filetypes
+
+---@type colorizer.options
 M.options = {}
 local function init_options()
   M.options = {
@@ -132,7 +143,7 @@ local function validate_options(ud_opts)
     ud_opts.virtualtext_mode = plugin_user_default_options.virtualtext_mode
   end
   -- Extract table if names_custom is a function
-  if type(ud_opts.names_custom == "function") then
+  if ud_opts.names and type(ud_opts.names_custom == "function") then
     local names
     local status, result = pcall(ud_opts.names_custom)
     if status and type(result) == "table" then
@@ -147,15 +158,15 @@ end
 --- Set options for a specific buffer or file type.
 ---@param bo_type 'buftype'|'filetype': The type of buffer option
 ---@param val string: The specific value to set.
----@param ud_opts table: `user_default_options`
+---@param ud_opts colorizer.options.user_default_options: `user_default_options`
 function M.set_bo_value(bo_type, val, ud_opts)
   validate_options(ud_opts)
   options_cache[bo_type][val] = ud_opts
 end
 
 --- Parse and apply alias options to the user options.
----@param ud_opts table: user_default_options
----@return table
+---@param ud_opts colorizer.options.user_default_options: user_default_options
+---@return colorizer.options.user_default_options
 function M.apply_alias_options(ud_opts)
   local aliases = {
     --  TODO: 2024-12-24 - Should aliases be configurable?
@@ -182,7 +193,7 @@ function M.apply_alias_options(ud_opts)
     end
   end
 
-  ud_opts = vim.tbl_deep_extend("force", M.options.user_default_options, ud_opts)
+  ud_opts = vim.tbl_deep_extend("force", M.options.user_default_options or {}, ud_opts)
   validate_options(ud_opts)
   return ud_opts
 end
