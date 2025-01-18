@@ -132,15 +132,15 @@ local function validate_options(ud_opts)
     ud_opts.virtualtext_mode = plugin_user_default_options.virtualtext_mode
   end
   -- Extract table if names_custom is a function
-  if type(ud_opts.names_custom == "function") then
-    local names
-    local status, result = pcall(ud_opts.names_custom)
-    if status and type(result) == "table" then
-      names = result
-    else
-      error("Error in names_custom function: " .. (result or "Invalid return value"))
+  if ud_opts.names_custom and type(ud_opts.names_custom) == "function" then
+    local status, names = pcall(ud_opts.names_custom)
+    if not (status and type(names) == "table") then
+      error(string.format("Error in names_custom function: %s", names or "Invalid return value"))
     end
     ud_opts.names_custom = names
+  end
+  if ud_opts.names_custom and not type(ud_opts.names_custom) == "table" then
+    error(string.format("Error in names_custom table: %s", vim.inspect(ud_opts.names_custom)))
   end
 end
 

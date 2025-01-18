@@ -124,23 +124,23 @@ local function populate_tailwind_names()
 end
 
 --- Populates the Trie and map with colors based on options.
----@param opts table Configuration options for color names.
-local function populate_colors(opts)
+---@param m_opts table Configuration options for color names.
+local function populate_colors(m_opts)
   if not names_cache.trie then
     names_cache.trie = Trie()
   end
   names_cache.name_minlen = names_cache.name_minlen or nil
   names_cache.name_maxlen = names_cache.name_maxlen or nil
   -- Add Vim's color map
-  if opts.color_names then
-    populate_names(opts.color_names_opts)
+  if m_opts.color_names then
+    populate_names(m_opts.color_names_opts)
   end
   -- Add custom names
-  if opts.names_custom then
-    populate_names_custom(opts.names_custom)
+  if m_opts.names_custom then
+    populate_names_custom(m_opts.names_custom)
   end
   -- Add tailwind names
-  if opts.tailwind_names then
+  if m_opts.tailwind_names then
     populate_tailwind_names()
   end
 end
@@ -165,12 +165,10 @@ local function resolve_color_entry(prefix, m_opts)
     {
       key = "names_custom",
       enabled = m_opts.names_custom,
-      vimcolor = false,
     },
     {
       key = "tailwind_names",
       enabled = m_opts.tailwind_names,
-      vimcolor = false,
     },
   }
   for _, nsl in ipairs(namespace_lookup) do
@@ -190,13 +188,17 @@ local function needs_population(m_opts)
   for _, ns in ipairs(namespace_list) do
     if
       (ns == "lowercase" or ns == "uppercase" or ns == "camelcase")
-        and m_opts.color_names_opts
-        and m_opts.color_names_opts[ns]
-        and not next(names_cache.color_map[ns])
-      or (ns == "tailwind_names" or ns == "names_custom")
-        and m_opts[ns]
-        and not next(names_cache.color_map[ns])
+      and m_opts.color_names
+      and m_opts.color_names_opts
+      and m_opts.color_names_opts[ns]
+      and not next(names_cache.color_map[ns])
     then
+      return true
+    end
+    if ns == "tailwind_names" and m_opts.tailwind_names and not next(names_cache.color_map[ns]) then
+      return true
+    end
+    if ns == "names_custom" and m_opts.names_custom and not next(names_cache.color_map[ns]) then
       return true
     end
   end

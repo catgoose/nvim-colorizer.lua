@@ -27,6 +27,14 @@ parsers.prefix = {
   ["_hsla"] = parsers.hsl_function,
 }
 
+local function hash_table(tbl)
+  if not tbl then
+    return "nil"
+  end
+  local json_string = vim.json.encode(tbl, { sort_keys = true })
+  return vim.fn.sha256(json_string)
+end
+
 ---Form a trie stuct with the given prefixes
 ---@param matchers table: List of prefixes, {"rgb", "hsl"}
 ---@param matchers_trie table: Table containing information regarding non-trie based parsers
@@ -104,7 +112,7 @@ function M.make(ud_opts)
 
   -- Rather than use bit.lshift or calculate 2^x, use precalculated values to
   -- create unique bitmask
-  local matcher_key = 0
+  local matcher_mask = 0
     + (enable_names and 1 or 0)
     + (enable_names_lowercase and 2 or 0)
     + (enable_names_camelcase and 4 or 0)
@@ -123,11 +131,16 @@ function M.make(ud_opts)
     + (enable_tailwind == "both" and 32768 or 0)
     + (enable_sass and 65536 or 0)
 
-  if matcher_key == 0 then
+  if matcher_mask == 0 then
     return false
   end
 
-  local loop_parse_fn = matcher_cache[matcher_key]
+  -- Append a SHA256 hash of names_custom to the matcher key
+  local names_custom_hash = hash_table(enable_names_custom)
+  local cache_key = enable_names_custom and string.format("%d|%s", matcher_mask, names_custom_hash)
+    or matcher_mask
+
+  local loop_parse_fn = matcher_cache[cache_key]
   if loop_parse_fn then
     return loop_parse_fn
   end
@@ -149,6 +162,7 @@ function M.make(ud_opts)
     end
     if enable_names_custom then
       matchers.color_name_parser.names_custom = enable_names_custom
+      matchers.color_name_parser.names_custom_hash = names_custom_hash
     end
     if enable_tailwind_names then
       matchers.color_name_parser.tailwind_names = enable_tailwind_names
@@ -195,7 +209,7 @@ function M.make(ud_opts)
   end
 
   loop_parse_fn = compile(matchers, matchers_prefix)
-  matcher_cache[matcher_key] = loop_parse_fn
+  matcher_cache[matcher_mask] = loop_parse_fn
 
   return loop_parse_fn
 end
