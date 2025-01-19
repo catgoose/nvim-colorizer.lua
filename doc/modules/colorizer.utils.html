@@ -118,6 +118,10 @@ parsing colors, managing file watchers, and handling buffer lines.</p>
 	<td class="name" nowrap><a href="#visible_line_range">visible_line_range (bufnr)</a></td>
 	<td class="summary">Returns range of visible lines</td>
 	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#hash_table">hash_table (tbl)</a></td>
+	<td class="summary">Returns sha256 hash of lua table</td>
+	</tr>
 </table>
 
 <br/>
@@ -433,6 +437,26 @@ parsing colors, managing file watchers, and handling buffer lines.</p>
 
         number, number: Start (0-index) and end (exclusive) range of lines in viewport
     </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "hash_table"></a>
+    <strong>hash_table (tbl)</strong>
+    </dt>
+    <dd>
+    Returns sha256 hash of lua table
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">tbl</span>
+         table: Table to be hashed
+        </li>
+    </ul>
+
 
 
 

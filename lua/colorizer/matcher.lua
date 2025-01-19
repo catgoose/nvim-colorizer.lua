@@ -7,6 +7,7 @@ It uses a trie-based structure to optimize prefix-based parsing.
 local M = {}
 
 local Trie = require("colorizer.trie")
+local utils = require("colorizer.utils")
 local min, max = math.min, math.max
 
 local parsers = {
@@ -26,12 +27,6 @@ parsers.prefix = {
   ["_hsl"] = parsers.hsl_function,
   ["_hsla"] = parsers.hsl_function,
 }
-
----@param tbl table: Lua table to be hashed
-local function hash_table(tbl)
-  local json_string = vim.json.encode(tbl, { sort_keys = true })
-  return vim.fn.sha256(json_string)
-end
 
 ---Form a trie stuct with the given prefixes
 ---@param matchers table: List of prefixes, {"rgb", "hsl"}
@@ -97,7 +92,7 @@ function M.make(ud_opts)
   local enable_names_camelcase = ud_opts.names_opts and ud_opts.names_opts.camelcase
   local enable_names_uppercase = ud_opts.names_opts and ud_opts.names_opts.uppercase
   local enable_names_strip_digits = ud_opts.names_opts and ud_opts.names_opts.strip_digits
-  local enable_names_custom = ud_opts.names_custom
+  local enable_names_custom = ud_opts.names_custom_hashed
   local enable_sass = ud_opts.sass and ud_opts.sass.enable
   local enable_tailwind = ud_opts.tailwind
   local enable_RGB = ud_opts.RGB
@@ -133,12 +128,11 @@ function M.make(ud_opts)
     return false
   end
 
-  -- Append a SHA256 hash of names_custom to the matcher key
-  local names_custom_hash = enable_names_custom and hash_table(enable_names_custom)
-  local cache_key = names_custom_hash and string.format("%d|%s", matcher_mask, names_custom_hash)
+  local matcher_key = enable_names_custom
+      and string.format("%d|%s", matcher_mask, enable_names_custom.hash)
     or matcher_mask
 
-  local loop_parse_fn = matcher_cache[cache_key]
+  local loop_parse_fn = matcher_cache[matcher_key]
   if loop_parse_fn then
     return loop_parse_fn
   end
@@ -160,7 +154,6 @@ function M.make(ud_opts)
     end
     if enable_names_custom then
       matchers.color_name_parser.names_custom = enable_names_custom
-      matchers.color_name_parser.names_custom_hash = names_custom_hash
     end
     if enable_tailwind_names then
       matchers.color_name_parser.tailwind_names = enable_tailwind_names

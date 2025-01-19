@@ -232,4 +232,11 @@ function M.log_message(message)
   end
 end
 
+--- Returns sha256 hash of lua table
+---@param tbl table: Table to be hashed
+function M.hash_table(tbl)
+  local json_string = vim.json.encode(tbl, { sort_keys = true })
+  return vim.fn.sha256(json_string)
+end
+
 return M
