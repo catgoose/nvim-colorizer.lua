@@ -2,6 +2,8 @@
 -- @module colorizer.config
 local M = {}
 
+local utils = require("colorizer.utils")
+
 --- Defaults for colorizer options
 local plugin_user_default_options = {
   names = true,
@@ -33,23 +35,24 @@ local plugin_user_default_options = {
   always_update = false,
 }
 
---- Default user options for colorizer.
--- This table defines individual options and alias options, allowing configuration of
--- colorizer's behavior for different color formats (e.g., `#RGB`, `#RRGGBB`, `#AARRGGBB`, etc.).
---
--- **Individual Options**: Options like `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn`,
--- `AARRGGBB`, `tailwind`, and `sass` can be enabled or disabled independently.
---
--- **Alias Options**: `css` and `css_fn` enable multiple options at once.
---   - `css_fn = true` enables `hsl_fn` and `rgb_fn`.
---   - `css = true` enables `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, and `rgb_fn`.
---
--- **Option Priority**: Individual options have higher priority than aliases.
--- If both `css` and `css_fn` are true, `css_fn` has more priority over `css`.
+--[[-- Default user options for colorizer.
+This table defines individual options and alias options, allowing configuration of
+colorizer's behavior for different color formats (e.g., `#RGB`, `#RRGGBB`, `#AARRGGBB`, etc.).
+
+Individual Options: Options like `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn`,
+`AARRGGBB`, `tailwind`, and `sass` can be enabled or disabled independently.
+
+Alias Options: `css` and `css_fn` enable multiple options at once.
+  - `css_fn = true` enables `hsl_fn` and `rgb_fn`.
+  - `css = true` enables `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, and `rgb_fn`.
+
+Option Priority: Individual options have higher priority than aliases.
+If both `css` and `css_fn` are true, `css_fn` has more priority over `css`.
+]]
 -- @table user_default_options
 -- @field names boolean: Enables named colors (e.g., "Blue").
 -- @field names_opts table: Names options for customizing casing, digit stripping, etc
--- @field names_custom table|function|false|nil: Custom color name to RGB value mappings
+-- @field names_custom table|function|false: Custom color name to RGB value mappings
 -- should return a table of color names to RGB value pairs
 -- @field RGB boolean: Enables `#RGB` hex codes.
 -- @field RGBA boolean: Enables `#RGBA` hex codes.
@@ -128,6 +131,35 @@ local function validate_options(ud_opts)
   if ud_opts.virtualtext_mode ~= "background" and ud_opts.virtualtext_mode ~= "foreground" then
     ud_opts.virtualtext_mode = plugin_user_default_options.virtualtext_mode
   end
+  -- Set names_custom to false if it's an empty table
+  if
+    ud_opts.names_custom
+    and type(ud_opts.names_custom) == "table"
+    and not next(ud_opts.names_custom)
+  then
+    ud_opts.names_custom = false
+  end
+  -- Extract table if names_custom is a function
+  if ud_opts.names_custom then
+    if type(ud_opts.names_custom) == "function" then
+      local status, names = pcall(ud_opts.names_custom)
+      if not (status and type(names) == "table") then
+        error(string.format("Error in names_custom function: %s", names or "Invalid return value"))
+      end
+      ud_opts.names_custom = names
+    end
+    if type(ud_opts.names_custom) ~= "table" then
+      error(string.format("Error in names_custom table: %s", vim.inspect(ud_opts.names_custom)))
+    end
+    -- Calculate hash to be used as key in names parser color_map
+    -- Use a new key (names_custom_hashed) in case `hash` or `names` were defined as custom colors
+    -- Make sure this key is checked in matcher and not `names_custom`
+    ud_opts.names_custom_hashed = {
+      hash = utils.hash_table(ud_opts.names_custom),
+      names = ud_opts.names_custom,
+    }
+    ud_opts.names_custom = false
+  end
 end
 
 --- Set options for a specific buffer or file type.
@@ -174,16 +206,17 @@ function M.apply_alias_options(ud_opts)
 end
 
 --- Configuration options for the `setup` function.
--- @table opts
--- @field filetypes table A list of file types where colorizer should be enabled. Use `"*"` for all file types.
--- @field user_default_options table Default options for color handling.
+-- @table ud_opts
+-- @field filetypes (table|nil): Optional.  A list of file types where colorizer should be enabled. Use `"*"` for all file types.
+-- @field user_default_options table: Default options for color handling.
+-- <pre>
 --   - `names` (boolean): Enables named color codes like `"Blue"`.
 --   - `names_opts` (table): Names options for customizing casing, digit stripping, etc
 --     - `lowercase` (boolean): Converts color names to lowercase.
 --     - `camelcase` (boolean): Converts color names to camelCase.  This is the default naming scheme for colors returned from `vim.api.nvim_get_color_map`
 --     - `uppercase` (boolean): Converts color names to uppercase.
 --     - `strip_digits` (boolean): Removes digits from color names.
---   - `names_custom` (table|function|false|nil): Custom color name to RGB value mappings
+--   - `names_custom` (table|function|false): Custom color name to RGB value mappings
 --   - `RGB` (boolean): Enables support for `#RGB` hex codes.
 --   - `RGBA` (boolean): Enables support for `#RGBA` hex codes.
 --   - `RRGGBB` (boolean): Enables support for `#RRGGBB` hex codes.
@@ -201,9 +234,9 @@ end
 --      - `parsers` (table): A list of parsers to use, typically includes `"css"`.
 --   - `mode` (string): Determines the display mode for highlights. Options are `"background"`, `"foreground"`, and `"virtualtext"`.
 --   - `virtualtext` (string): Character used for virtual text display of colors (default is `"■"`).
---   - `virtualtext_inline` (boolean|'before'|'after'): Shows the virtual text inline with the color.  True defaults to 'before'.  False or nil disables.
--- - `virtualtext_mode` ('background'|'foreground'): Determines the display mode for virtual text.
---   - `always_update` (boolean): If true, updates color values even if the buffer is not focused.
+--  - `virtualtext_inline` (boolean|'before'|'after'): Shows the virtual text inline with the color.  True defaults to 'before'.
+--  - `virtualtext_mode` ('background'|'foreground'): Determines the display mode for virtual text.
+--  - `always_update` (boolean): If true, updates color values even if the buffer is not focused.</pre>
 -- @field buftypes (table|nil): Optional. A list of buffer types where colorizer should be enabled. Defaults to all buffer types if not provided.
 -- @field user_commands (boolean|table): If true, enables all user commands for colorizer. If `false`, disables user commands. Alternatively, provide a table of specific commands to enable:
 --   - `"ColorizerAttachToBuffer"`

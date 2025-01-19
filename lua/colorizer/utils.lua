@@ -1,8 +1,8 @@
---- Provides utility functions for color handling and file operations.
--- This module contains helper functions for checking byte categories, merging tables,
--- parsing colors, managing file watchers, and handling buffer lines.
+--[[-- Provides utility functions for color handling and file operations.
+This module contains helper functions for checking byte categories, merging tables,
+parsing colors, managing file watchers, and handling buffer lines.
+]]
 -- @module colorizer.utils
-
 local M = {}
 
 local bit, ffi = require("bit"), require("ffi")
@@ -230,6 +230,13 @@ function M.log_message(message)
   else
     vim.api.nvim_err_writeln(message)
   end
+end
+
+--- Returns sha256 hash of lua table
+---@param tbl table: Table to be hashed
+function M.hash_table(tbl)
+  local json_string = vim.json.encode(tbl, { sort_keys = true })
+  return vim.fn.sha256(json_string)
 end
 
 return M

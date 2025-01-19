@@ -20,7 +20,6 @@
     - [Trie](#trie)
       - [Test](#test)
       - [Benchmark](#benchmark)
-        - [Results](#results)
   - [Extras](#extras)
   - [TODO](#todo)
   <!--toc:end-->
@@ -135,8 +134,8 @@ library to do custom highlighting themselves.
       },
       -- Expects a table of color name to #RRGGBB value pairs.  # is optional
       -- Example: { cool = "#107dac", ["notcool"] = "ee9240" }
-      -- Set to false|nil to disable, for example when setting filetype options
-      names_custom = false, -- Custom names to be highlighted: table|function|false|nil
+      -- Set to false to disable, for example when setting filetype options
+      names_custom = false, -- Custom names to be highlighted: table|function|false
       RGB = true, -- #RGB hex codes
       RGBA = true, -- #RGBA hex codes
       RRGGBB = true, -- #RRGGBB hex codes
@@ -229,6 +228,7 @@ require("colorizer").setup({
 })
 
 -- Apply names_custom from theme
+-- names_custom are stored by hashed key to allow filetype to override `user_default_options`
 require("colorizer").setup({
   names = true,
   names_custom = function()
@@ -429,8 +429,6 @@ make trie-benchmark
 ```bash
 scripts/trie-benchmark.sh
 ```
-
-##### Results
 
 Inserting 7245 words: using uppercase, lowercase, camelcase from `vim.api.nvim_get_color_map()` and Tailwind colors
 

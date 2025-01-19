@@ -105,7 +105,7 @@
 	<td class="summary">Options for colorizer that were passed in to setup function</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#opts">opts</a></td>
+	<td class="name" nowrap><a href="#ud_opts">ud_opts</a></td>
 	<td class="summary">Configuration options for the `setup` function.</td>
 	</tr>
 </table>
@@ -274,15 +274,15 @@
     </dt>
     <dd>
     Default user options for colorizer.
- This table defines individual options and alias options, allowing configuration of
- colorizer's behavior for different color formats (e.g., `#RGB`, `#RRGGBB`, `#AARRGGBB`, etc.).
-<p> **Individual Options**: Options like `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn`,
- `AARRGGBB`, `tailwind`, and `sass` can be enabled or disabled independently.
-<p> **Alias Options**: `css` and `css_fn` enable multiple options at once.
-   - `css_fn = true` enables `hsl_fn` and `rgb_fn`.
-   - `css = true` enables `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, and `rgb_fn`.
-<p> **Option Priority**: Individual options have higher priority than aliases.
- If both `css` and `css_fn` are true, `css_fn` has more priority over `css`.
+This table defines individual options and alias options, allowing configuration of
+colorizer's behavior for different color formats (e.g., `#RGB`, `#RRGGBB`, `#AARRGGBB`, etc.).
+<p>Individual Options: Options like `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn`,
+`AARRGGBB`, `tailwind`, and `sass` can be enabled or disabled independently.
+<p>Alias Options: `css` and `css_fn` enable multiple options at once.
+  - `css_fn = true` enables `hsl_fn` and `rgb_fn`.
+  - `css = true` enables `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, and `rgb_fn`.
+<p>Option Priority: Individual options have higher priority than aliases.
+If both `css` and `css_fn` are true, `css_fn` has more priority over `css`.
 
 
     <h3>Fields:</h3>
@@ -294,7 +294,7 @@
          table: Names options for customizing casing, digit stripping, etc
         </li>
         <li><span class="parameter">names_custom</span>
-         table|function|false|nil: Custom color name to RGB value mappings
+         table|function|false: Custom color name to RGB value mappings
  should return a table of color names to RGB value pairs
         </li>
         <li><span class="parameter">RGB</span>
@@ -394,8 +394,8 @@
 
 </dd>
     <dt>
-    <a name = "opts"></a>
-    <strong>opts</strong>
+    <a name = "ud_opts"></a>
+    <strong>ud_opts</strong>
     </dt>
     <dd>
     Configuration options for the `setup` function.
@@ -404,17 +404,18 @@
     <h3>Fields:</h3>
     <ul>
         <li><span class="parameter">filetypes</span>
-         table A list of file types where colorizer should be enabled. Use `"*"` for all file types.
+         (table|nil): Optional.  A list of file types where colorizer should be enabled. Use `"*"` for all file types.
         </li>
         <li><span class="parameter">user_default_options</span>
-         table Default options for color handling.
+         table: Default options for color handling.
+ <pre>
    - `names` (boolean): Enables named color codes like `"Blue"`.
    - `names_opts` (table): Names options for customizing casing, digit stripping, etc
      - `lowercase` (boolean): Converts color names to lowercase.
      - `camelcase` (boolean): Converts color names to camelCase.  This is the default naming scheme for colors returned from `vim.api.nvim_get_color_map`
      - `uppercase` (boolean): Converts color names to uppercase.
      - `strip_digits` (boolean): Removes digits from color names.
-   - `names_custom` (table|function|false|nil): Custom color name to RGB value mappings
+   - `names_custom` (table|function|false): Custom color name to RGB value mappings
    - `RGB` (boolean): Enables support for `#RGB` hex codes.
    - `RGBA` (boolean): Enables support for `#RGBA` hex codes.
    - `RRGGBB` (boolean): Enables support for `#RRGGBB` hex codes.
@@ -432,9 +433,9 @@
       - `parsers` (table): A list of parsers to use, typically includes `"css"`.
    - `mode` (string): Determines the display mode for highlights. Options are `"background"`, `"foreground"`, and `"virtualtext"`.
    - `virtualtext` (string): Character used for virtual text display of colors (default is `"■"`).
-   - `virtualtext_inline` (boolean|'before'|'after'): Shows the virtual text inline with the color.  True defaults to 'before'.  False or nil disables.
- - `virtualtext_mode` ('background'|'foreground'): Determines the display mode for virtual text.
-   - `always_update` (boolean): If true, updates color values even if the buffer is not focused.
+  - `virtualtext_inline` (boolean|'before'|'after'): Shows the virtual text inline with the color.  True defaults to 'before'.
+  - `virtualtext_mode` ('background'|'foreground'): Determines the display mode for virtual text.
+  - `always_update` (boolean): If true, updates color values even if the buffer is not focused.</pre>
         </li>
         <li><span class="parameter">buftypes</span>
          (table|nil): Optional. A list of buffer types where colorizer should be enabled. Defaults to all buffer types if not provided.

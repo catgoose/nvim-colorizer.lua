@@ -1,8 +1,8 @@
---- This module provides a parser for identifying and converting `rgb()` and `rgba()` CSS functions to RGB hexadecimal format.
--- It supports decimal and percentage values for RGB channels, as well as an optional alpha (transparency) component.
--- The function can interpret a variety of CSS syntax variations, making it useful for syntax highlighting or color parsing.
+--[[-- This module provides a parser for identifying and converting `rgb()` and `rgba()` CSS functions to RGB hexadecimal format.
+It supports decimal and percentage values for RGB channels, as well as an optional alpha (transparency) component.
+The function can interpret a variety of CSS syntax variations, making it useful for syntax highlighting or color parsing.
+]]
 -- @module colorizer.parser.rgb
-
 local M = {}
 
 local utils = require("colorizer.utils")

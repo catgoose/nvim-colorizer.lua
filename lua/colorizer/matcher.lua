@@ -1,12 +1,13 @@
---- Manages matching and parsing of color patterns in buffers.
--- This module provides functions for setting up and applying color parsers
--- for different color formats such as RGB, HSL, hexadecimal, and named colors.
--- It uses a trie-based structure to optimize prefix-based parsing.
+--[[-- Manages matching and parsing of color patterns in buffers.
+This module provides functions for setting up and applying color parsers
+for different color formats such as RGB, HSL, hexadecimal, and named colors.
+It uses a trie-based structure to optimize prefix-based parsing.
+]]
 -- @module colorizer.matcher
-
 local M = {}
 
 local Trie = require("colorizer.trie")
+local utils = require("colorizer.utils")
 local min, max = math.min, math.max
 
 local parsers = {
@@ -79,32 +80,32 @@ end
 ---Parse the given options and return a function with enabled parsers.
 --if no parsers enabled then return false
 --Do not try make the function again if it is present in the cache
----@param opts table: options created in `colorizer.setup`
+---@param ud_opts table: options created in `colorizer.setup`
 ---@return function|boolean: function which will just parse the line for enabled parsers
-function M.make(opts)
-  if not opts then
+function M.make(ud_opts)
+  if not ud_opts then
     return false
   end
 
-  local enable_names = opts.names
-  local enable_names_lowercase = opts.names_opts and opts.names_opts.lowercase
-  local enable_names_camelcase = opts.names_opts and opts.names_opts.camelcase
-  local enable_names_uppercase = opts.names_opts and opts.names_opts.uppercase
-  local enable_names_strip_digits = opts.names_opts and opts.names_opts.strip_digits
-  local enable_names_custom = opts.names_custom
-  local enable_sass = opts.sass and opts.sass.enable
-  local enable_tailwind = opts.tailwind
-  local enable_RGB = opts.RGB
-  local enable_RGBA = opts.RGBA
-  local enable_RRGGBB = opts.RRGGBB
-  local enable_RRGGBBAA = opts.RRGGBBAA
-  local enable_AARRGGBB = opts.AARRGGBB
-  local enable_rgb = opts.rgb_fn
-  local enable_hsl = opts.hsl_fn
+  local enable_names = ud_opts.names
+  local enable_names_lowercase = ud_opts.names_opts and ud_opts.names_opts.lowercase
+  local enable_names_camelcase = ud_opts.names_opts and ud_opts.names_opts.camelcase
+  local enable_names_uppercase = ud_opts.names_opts and ud_opts.names_opts.uppercase
+  local enable_names_strip_digits = ud_opts.names_opts and ud_opts.names_opts.strip_digits
+  local enable_names_custom = ud_opts.names_custom_hashed
+  local enable_sass = ud_opts.sass and ud_opts.sass.enable
+  local enable_tailwind = ud_opts.tailwind
+  local enable_RGB = ud_opts.RGB
+  local enable_RGBA = ud_opts.RGBA
+  local enable_RRGGBB = ud_opts.RRGGBB
+  local enable_RRGGBBAA = ud_opts.RRGGBBAA
+  local enable_AARRGGBB = ud_opts.AARRGGBB
+  local enable_rgb = ud_opts.rgb_fn
+  local enable_hsl = ud_opts.hsl_fn
 
   -- Rather than use bit.lshift or calculate 2^x, use precalculated values to
   -- create unique bitmask
-  local matcher_key = 0
+  local matcher_mask = 0
     + (enable_names and 1 or 0)
     + (enable_names_lowercase and 2 or 0)
     + (enable_names_camelcase and 4 or 0)
@@ -123,9 +124,13 @@ function M.make(opts)
     + (enable_tailwind == "both" and 32768 or 0)
     + (enable_sass and 65536 or 0)
 
-  if matcher_key == 0 then
+  if matcher_mask == 0 then
     return false
   end
+
+  local matcher_key = enable_names_custom
+      and string.format("%d|%s", matcher_mask, enable_names_custom.hash)
+    or matcher_mask
 
   local loop_parse_fn = matcher_cache[matcher_key]
   if loop_parse_fn then
@@ -194,9 +199,8 @@ function M.make(opts)
     matchers[value] = { prefix = value }
   end
 
-  --  TODO: 2024-12-31 - How to return tailwind matcher for tailwind namespace?
   loop_parse_fn = compile(matchers, matchers_prefix)
-  matcher_cache[matcher_key] = loop_parse_fn
+  matcher_cache[matcher_mask] = loop_parse_fn
 
   return loop_parse_fn
 end

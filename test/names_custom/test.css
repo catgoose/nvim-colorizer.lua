@@ -1,0 +1,13 @@
+.bg-red {
+  background-color: red;
+}
+
+.text-blue {
+  color: blue;
+}
+/*
+html: html1 html2 html3 html4 html5 html6
+lua: lua1 lua2 lua3 lua4
+css: css1 css2
+all: html1 html2 html3 html4 html5 html6 lua1 lua2 lua3 lua4 css1 css2
+ */

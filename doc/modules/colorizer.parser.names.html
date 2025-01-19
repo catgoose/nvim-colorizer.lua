@@ -64,7 +64,19 @@
 <h1>Module <code>colorizer.parser.names</code></h1>
 <p>This module provides a parser that identifies named colors from a given line of text.</p>
 <p>
- The module uses a Trie structure for efficient matching of color names to #rrggbb values</p>
+It uses a Trie structure for efficient prefix-based matching of color names to #rrggbb values.
+The module supports multiple namespaces, enabling flexible configuration and handling of
+different types of color names (e.g., lowercase, uppercase, camelcase, custom names, Tailwind names).
+<p>Namespaces:
+<pre>
+- lowercase: Contains color names converted to lowercase (e.g., "red" -> "#ff0000").
+- uppercase: Contains color names converted to uppercase (e.g., "RED" -> "#ff0000").
+- camelcase: Contains color names in camel case (e.g., "LightBlue" -> "#add8e6").
+- tailwind_names: Contains color names based on TailwindCSS conventions, including prefixes.
+- names_custom: Contains user-defined color names, either as a table or a function returning a table.</pre>
+<p>The parser dynamically populates the Trie and namespaces based on the provided options.
+Unused namespaces are left empty, avoiding unnecessary memory usage. Color name matching respects
+the configured namespaces and user-defined preferences, such as whether to strip digits.</p>
 
 
 <h2><a href="#Functions">Functions</a></h2>
@@ -74,11 +86,11 @@
 	<td class="summary">Reset the color names cache.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#update_color">update_color (name, hex)</a></td>
+	<td class="name" nowrap><a href="#update_color">update_color (name, hex, namespace)</a></td>
 	<td class="summary">Updates the color value for a given color name.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#parser">parser (line, i, opts)</a></td>
+	<td class="name" nowrap><a href="#parser">parser (line, i, m_opts)</a></td>
 	<td class="summary">Parses a line to identify color names.</td>
 	</tr>
 </table>
@@ -107,7 +119,7 @@
 </dd>
     <dt>
     <a name = "update_color"></a>
-    <strong>update_color (name, hex)</strong>
+    <strong>update_color (name, hex, namespace)</strong>
     </dt>
     <dd>
     Updates the color value for a given color name.
@@ -121,6 +133,9 @@
         <li><span class="parameter">hex</span>
          string: The color value in hex format.
         </li>
+        <li><span class="parameter">namespace</span>
+         string: The color map namespace.
+        </li>
     </ul>
 
 
@@ -130,7 +145,7 @@
 </dd>
     <dt>
     <a name = "parser"></a>
-    <strong>parser (line, i, opts)</strong>
+    <strong>parser (line, i, m_opts)</strong>
     </dt>
     <dd>
     Parses a line to identify color names.
@@ -144,8 +159,8 @@
         <li><span class="parameter">i</span>
          number: The index to start parsing from.
         </li>
-        <li><span class="parameter">opts</span>
-         table: Parsing options.
+        <li><span class="parameter">m_opts</span>
+         table: Matcher opts
         </li>
     </ul>
 

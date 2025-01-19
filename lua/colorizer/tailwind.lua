@@ -1,9 +1,9 @@
---- Handles Tailwind CSS color highlighting within buffers.
--- This module integrates with the Tailwind CSS Language Server Protocol (LSP) to retrieve and apply
--- color highlights for Tailwind classes in a buffer. It manages LSP attachment, autocmds for color updates,
--- and maintains state for efficient Tailwind highlighting.
+--[[-- Handles Tailwind CSS color highlighting within buffers.
+This module integrates with the Tailwind CSS Language Server Protocol (LSP) to retrieve and apply
+color highlights for Tailwind classes in a buffer. It manages LSP attachment, autocmds for color updates,
+and maintains state for efficient Tailwind highlighting.
+]]
 -- @module colorizer.tailwind
-
 local M = {}
 
 local utils = require("colorizer.utils")
