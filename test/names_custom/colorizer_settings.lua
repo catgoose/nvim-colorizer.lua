@@ -1,3 +1,4 @@
+-- https://github.com/catgoose/nvim-colorizer.lua/issues/134
 local opts = {
   filetypes = {
     "*",
