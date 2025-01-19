@@ -131,12 +131,16 @@ local function validate_options(ud_opts)
   if ud_opts.virtualtext_mode ~= "background" and ud_opts.virtualtext_mode ~= "foreground" then
     ud_opts.virtualtext_mode = plugin_user_default_options.virtualtext_mode
   end
-  -- nilify names_custom if empty table
-  if ud_opts.names_custom and not next(ud_opts.names_custom) then
-    ud_opts.names_custom = nil
+  -- Set names_custom to false if it's an empty table
+  if
+    ud_opts.names_custom
+    and type(ud_opts.names_custom) == "table"
+    and not next(ud_opts.names_custom)
+  then
+    ud_opts.names_custom = false
   end
   -- Extract table if names_custom is a function
-  if ud_opts.names_custom and not ud_opts.names_custom_hashed then
+  if ud_opts.names_custom then
     if type(ud_opts.names_custom) == "function" then
       local status, names = pcall(ud_opts.names_custom)
       if not (status and type(names) == "table") then
@@ -154,7 +158,7 @@ local function validate_options(ud_opts)
       hash = utils.hash_table(ud_opts.names_custom),
       names = ud_opts.names_custom,
     }
-    ud_opts.names_custom = nil
+    ud_opts.names_custom = false
   end
 end
 
