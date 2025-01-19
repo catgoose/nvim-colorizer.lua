@@ -149,6 +149,7 @@ local function validate_options(ud_opts)
     end
     -- Calculate hash to be used as key in names parser color_map
     -- Use a new key (names_custom_hashed) in case `hash` or `names` were defined as custom colors
+    -- Make sure this key is checked in matcher and not `names_custom`
     ud_opts.names_custom_hashed = {
       hash = utils.hash_table(ud_opts.names_custom),
       names = ud_opts.names_custom,
