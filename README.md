@@ -12,6 +12,8 @@
     - [Lua API](#lua-api)
   - [Why another highlighter?](#why-another-highlighter)
   - [Customization](#customization)
+    - [Hooks](#hooks)
+    - [Setup Examples](#setup-examples)
     - [Updating color even when buffer is not focused](#updating-color-even-when-buffer-is-not-focused)
     - [Lazyload Colorizer with Lazy.nvim](#lazyload-colorizer-with-lazynvim)
     - [Tailwind](#tailwind)
@@ -164,11 +166,33 @@ library to do custom highlighting themselves.
       -- update color values even if buffer is not focused
       -- example use: cmp_menu, cmp_docs
       always_update = false,
+      -- hooks to invert control of colorizer
+      hooks = {
+        -- called before line parsing.  Set to function that returns a boolean and accepts the following parameters.  See hooks section.
+        do_lines_parse = false,
+      },
     },
   })
 ```
 
-Setup examples:
+### Hooks
+
+Hooks into colorizer can be defined to customize colorization behavior.
+
+`do_lines_parse`: Expects a function that returns a boolean. The function is called before line parsing with the following function signature:
+
+```lua
+---@param line string: Line's contents
+---@param bufnr number: Buffer number
+---@line_num number: Line number (0-indexed).  Ad 1 to get the line number in buffer
+---@return boolean: Return true if current line should be parsed for highlighting.
+function(line, bufnr, line_num)
+  -- Treesitter could also be used, but be warned it will be quite laggy unless you are caching results somehow
+  return string.sub(line, 1, 2) ~= "--"
+end
+```
+
+### Setup Examples
 
 ```lua
 -- Attaches to every FileType with default options
