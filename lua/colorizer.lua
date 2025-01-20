@@ -254,10 +254,8 @@ function M.reload_on_save(pattern)
 
           vim.schedule(function()
             -- mimic bo_type_setup() function within colorizer.setup
-            local filetype = vim.bo.filetype
-            local buftype = vim.bo.buftype
             local bo_type = "filetype"
-            local ud_opts = config.get_bo_options(bo_type, buftype, filetype)
+            local ud_opts = config.get_bo_options(bo_type, vim.bo.buftype, vim.bo.filetype)
             M.attach_to_buffer(evt.buf, ud_opts, bo_type)
             vim.notify(
               "Colorizer reloaded with updated options from " .. evt.match,
