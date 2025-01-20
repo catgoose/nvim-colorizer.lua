@@ -82,10 +82,12 @@ DeepSkyBlue DeepSkyBlue2
 DEEPSKYBLUE DEEPSKYBLUE3
 
 Extra names:
+From function defined in `user_default_options`
   oniViolet oniViolet2 crystalBlue springViolet1 springViolet2 springBlue
   lightBlue waveAqua2
 
 Custom names with non-alphanumeric characters:
+From table in filetype definiton (lua)
   one_two three=four five@six seven!eight nine!!ten
    NOTE: TODO:  WARN:   FIX:  .
    NOTE:

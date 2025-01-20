@@ -98,11 +98,16 @@ end
 local options_cache
 --- Reset the cache for buffer options.
 -- Called from colorizer.setup
-function M.reset_cache()
+local function init_cache()
   options_cache = { buftype = {}, filetype = {} }
 end
+
+local function init_config()
+  init_options()
+  init_cache()
+end
 do
-  M.reset_cache()
+  init_config()
 end
 
 --- Validate user options and set defaults.
@@ -251,7 +256,7 @@ end
 ---@param opts table|nil: Configuration options for colorizer.
 ---@return table: Final settings after merging user and default options.
 function M.get_setup_options(opts)
-  init_options()
+  init_config()
   opts = opts or {}
   opts.user_default_options = opts.user_default_options or plugin_user_default_options
   opts.user_default_options = M.apply_alias_options(opts.user_default_options)
