@@ -378,9 +378,16 @@ function M.attach_to_buffer(bufnr, ud_opts, bo_type)
   vim.api.nvim_create_autocmd({ "BufUnload", "BufDelete" }, {
     group = colorizer_state.augroup,
     buffer = bufnr,
-    callback = function()
+    callback = function(evt)
       if colorizer_state.buffer_options[bufnr] then
-        M.detach_from_buffer(bufnr)
+        if
+          evt.event == "BufDelete"
+          and not (vim.api.nvim_buf_is_valid(evt.buf) or vim.api.nvim_buf_is_loaded(evt.buf))
+        then
+          M.detach_from_buffer(bufnr)
+        elseif evt.event ~= "BufDelete" then
+          M.detach_from_buffer(bufnr)
+        end
       end
       colorizer_state.buffer_local[bufnr].__init = nil
     end,
