@@ -415,8 +415,6 @@ Provides configuration options and utilities for setting up colorizer.
 LUA API                                               *colorizer.config-lua-api*
 
 Functions: ~
-    |reset_cache| - Reset the cache for buffer options.
-
     |set_bo_value| - Set options for a specific buffer or file type.
 
     |apply_alias_options| - Parse and apply alias options to the user options.
@@ -434,14 +432,6 @@ Tables: ~
     |options| - Options for colorizer that were passed in to setup function
 
     |ud_opts| - Configuration options for the `setup` function.
-
-
-reset_cache()                                     *colorizer.config.reset_cache*
-    Reset the cache for buffer options.
-
-     Called from colorizer.setup
-
-
 
 
 set_bo_value({bo_type}, {val}, {ud_opts})        *colorizer.config.set_bo_value*

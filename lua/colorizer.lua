@@ -253,7 +253,10 @@ function M.reload_on_save(pattern)
           colorizer_state.buffer_reload = buffer_reload
 
           vim.schedule(function()
-            M.attach_to_buffer()
+            -- mimic bo_type_setup() function within colorizer.setup
+            local bo_type = "filetype"
+            local ud_opts = config.get_bo_options(bo_type, vim.bo.buftype, vim.bo.filetype)
+            M.attach_to_buffer(evt.buf, ud_opts, bo_type)
             vim.notify(
               "Colorizer reloaded with updated options from " .. evt.match,
               vim.log.levels.INFO
@@ -461,12 +464,11 @@ function M.setup(opts)
   require("colorizer.matcher").reset_cache()
   require("colorizer.parser.names").reset_cache()
   require("colorizer.buffer").reset_cache()
-  require("colorizer.config").reset_cache()
 
   local s = config.get_setup_options(opts)
 
   -- Setup the buffer with the correct options
-  local function setup(bo_type)
+  local function bo_type_setup(bo_type)
     local filetype = vim.bo.filetype
     local buftype = vim.bo.buftype
     local bufnr = utils.bufme()
@@ -532,10 +534,10 @@ function M.setup(opts)
       callback = function()
         if s.lazy_load then
           vim.schedule(function()
-            setup(bo_type)
+            bo_type_setup(bo_type)
           end)
         else
-          setup(bo_type)
+          bo_type_setup(bo_type)
         end
       end,
     })
