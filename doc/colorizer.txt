@@ -549,8 +549,8 @@ user_default_options                     *colorizer.config.user_default_options*
 	{always_update} -  boolean: Always update color values, even if buffer
 	is not focused.
 	hooks -  table: Table of hook functions
-	{do_parse_line} -  function: Returns boolean which controls if line
-	should be parsed for highlights
+	{disable_line_highlight} -  function: Returns boolean which controls if
+	line should be parsed for highlights
 
 
 
@@ -619,8 +619,8 @@ ud_opts                                               *colorizer.config.ud_opts*
   - `always_update` (boolean): If true, updates color values even if the buffer
     is not focused.<
  - `hooks` (table): Table of hook functions
-    - `do_parse_line` (function): Returns a boolean that controls if the line
-      should be parsed for highlights. Called  with 3 parameters:
+    - `disable_line_highlight` (function): Returns a boolean that controls if
+      the line should be parsed for highlights. Called  with 3 parameters:
       - `line` (string): The line's contents.
       - `bufnr` (number): The buffer number.
       - `line_num` (number): The line number (0-indexed).  Add 1 to get the line

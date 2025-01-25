@@ -331,7 +331,7 @@ If both `css` and `css_fn` are true, `css_fn` has more priority over `css`.
         </li>
         <li><span class="parameter">hooks</span> table: Table of hook functions
         <ul>
-        <li><span class="parameter">do_parse_line</span>
+        <li><span class="parameter">disable_line_highlight</span>
          function: Returns boolean which controls if line should be parsed for highlights
         </li>
         </li></ul>
@@ -424,7 +424,7 @@ If both `css` and `css_fn` are true, `css_fn` has more priority over `css`.
   - `virtualtext_mode` ('background'|'foreground'): Determines the display mode for virtual text.
   - `always_update` (boolean): If true, updates color values even if the buffer is not focused.</pre>
  - `hooks` (table): Table of hook functions
-    - `do_parse_line` (function): Returns a boolean that controls if the line should be parsed for highlights. Called  with 3 parameters:
+    - `disable_line_highlight` (function): Returns a boolean that controls if the line should be parsed for highlights. Called  with 3 parameters:
       - `line` (string): The line's contents.
       - `bufnr` (number): The buffer number.
       - `line_num` (number): The line number (0-indexed).  Add 1 to get the line number in the buffer.

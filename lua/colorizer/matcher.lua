@@ -31,13 +31,17 @@ parsers.prefix = {
 ---@param matchers table: List of prefixes, {"rgb", "hsl"}
 ---@param matchers_trie table: Table containing information regarding non-trie based parsers
 ---@param hooks? table: Table of hook functions
--- hooks.do_parse_line: function to be called after parsing the line
+-- hooks.disable_line_highlight: function to be called after parsing the line
 ---@return function: function which will just parse the line for enabled parsers
 local function compile(matchers, matchers_trie, hooks)
   local trie = Trie(matchers_trie)
 
   local function parse_fn(line, i, bufnr, line_nr)
-    if hooks and hooks.do_parse_line and not hooks.do_parse_line(line, line_nr, bufnr) then
+    if
+      hooks
+      and hooks.disable_line_highlight
+      and hooks.disable_line_highlight(line, line_nr, bufnr)
+    then
       return
     end
 

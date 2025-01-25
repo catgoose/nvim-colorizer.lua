@@ -34,7 +34,7 @@ local plugin_user_default_options = {
   virtualtext_mode = "foreground",
   always_update = false,
   hooks = {
-    do_parse_line = false,
+    disable_line_highlight = false,
   },
 }
 
@@ -75,7 +75,7 @@ If both `css` and `css_fn` are true, `css_fn` has more priority over `css`.
 -- @field virtualtext_mode 'background'|'foreground': Mode for virtual text display.
 -- @field always_update boolean: Always update color values, even if buffer is not focused.
 -- @field hooks table: Table of hook functions
--- @field hooks.do_parse_line function: Returns boolean which controls if line should be parsed for highlights
+-- @field hooks.disable_line_highlight function: Returns boolean which controls if line should be parsed for highlights
 
 --- Options for colorizer that were passed in to setup function
 --@field filetypes
@@ -171,8 +171,8 @@ local function validate_options(ud_opts)
     ud_opts.names_custom = false
   end
   if ud_opts.hooks then
-    if type(ud_opts.hooks.do_parse_line) ~= "function" then
-      ud_opts.hooks.do_parse_line = false
+    if type(ud_opts.hooks.disable_line_highlight) ~= "function" then
+      ud_opts.hooks.disable_line_highlight = false
     end
   end
 end
@@ -253,7 +253,7 @@ end
 --  - `virtualtext_mode` ('background'|'foreground'): Determines the display mode for virtual text.
 --  - `always_update` (boolean): If true, updates color values even if the buffer is not focused.</pre>
 -- - `hooks` (table): Table of hook functions
---    - `do_parse_line` (function): Returns a boolean that controls if the line should be parsed for highlights. Called  with 3 parameters:
+--    - `disable_line_highlight` (function): Returns a boolean that controls if the line should be parsed for highlights. Called  with 3 parameters:
 --      - `line` (string): The line's contents.
 --      - `bufnr` (number): The buffer number.
 --      - `line_num` (number): The line number (0-indexed).  Add 1 to get the line number in the buffer.
