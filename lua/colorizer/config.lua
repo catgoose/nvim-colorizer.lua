@@ -33,6 +33,9 @@ local plugin_user_default_options = {
   virtualtext_inline = false,
   virtualtext_mode = "foreground",
   always_update = false,
+  hooks = {
+    disable_line_highlight = false,
+  },
 }
 
 --[[-- Default user options for colorizer.
@@ -71,6 +74,8 @@ If both `css` and `css_fn` are true, `css_fn` has more priority over `css`.
 -- @field virtualtext_inline boolean|'before'|'after': Shows virtual text inline with color.
 -- @field virtualtext_mode 'background'|'foreground': Mode for virtual text display.
 -- @field always_update boolean: Always update color values, even if buffer is not focused.
+-- @field hooks table: Table of hook functions
+-- @field hooks.disable_line_highlight function: Returns boolean which controls if line should be parsed for highlights
 
 --- Options for colorizer that were passed in to setup function
 --@field filetypes
@@ -165,6 +170,11 @@ local function validate_options(ud_opts)
     }
     ud_opts.names_custom = false
   end
+  if ud_opts.hooks then
+    if type(ud_opts.hooks.disable_line_highlight) ~= "function" then
+      ud_opts.hooks.disable_line_highlight = false
+    end
+  end
 end
 
 --- Set options for a specific buffer or file type.
@@ -242,6 +252,11 @@ end
 --  - `virtualtext_inline` (boolean|'before'|'after'): Shows the virtual text inline with the color.  True defaults to 'before'.
 --  - `virtualtext_mode` ('background'|'foreground'): Determines the display mode for virtual text.
 --  - `always_update` (boolean): If true, updates color values even if the buffer is not focused.</pre>
+-- - `hooks` (table): Table of hook functions
+--    - `disable_line_highlight` (function): Returns a boolean that controls if the line should be parsed for highlights. Called  with 3 parameters:
+--      - `line` (string): The line's contents.
+--      - `bufnr` (number): The buffer number.
+--      - `line_num` (number): The line number (0-indexed).  Add 1 to get the line number in the buffer.
 -- @field buftypes (table|nil): Optional. A list of buffer types where colorizer should be enabled. Defaults to all buffer types if not provided.
 -- @field user_commands (boolean|table): If true, enables all user commands for colorizer. If `false`, disables user commands. Alternatively, provide a table of specific commands to enable:
 --   - `"ColorizerAttachToBuffer"`

@@ -292,7 +292,7 @@ function M.parse_lines(bufnr, lines, line_start, ud_opts)
     line_nr = line_nr - 1 + line_start
     local i = 1
     while i < #line do
-      local length, rgb_hex = loop_parse_fn(line, i, bufnr)
+      local length, rgb_hex = loop_parse_fn(line, i, bufnr, line_nr)
       if length and not rgb_hex then
         utils.log_message(
           string.format(

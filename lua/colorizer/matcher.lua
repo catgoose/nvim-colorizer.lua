@@ -7,7 +7,6 @@ It uses a trie-based structure to optimize prefix-based parsing.
 local M = {}
 
 local Trie = require("colorizer.trie")
-local utils = require("colorizer.utils")
 local min, max = math.min, math.max
 
 local parsers = {
@@ -31,11 +30,21 @@ parsers.prefix = {
 ---Form a trie stuct with the given prefixes
 ---@param matchers table: List of prefixes, {"rgb", "hsl"}
 ---@param matchers_trie table: Table containing information regarding non-trie based parsers
+---@param hooks? table: Table of hook functions
+-- hooks.disable_line_highlight: function to be called after parsing the line
 ---@return function: function which will just parse the line for enabled parsers
-local function compile(matchers, matchers_trie)
+local function compile(matchers, matchers_trie, hooks)
   local trie = Trie(matchers_trie)
 
-  local function parse_fn(line, i, bufnr)
+  local function parse_fn(line, i, bufnr, line_nr)
+    if
+      hooks
+      and hooks.disable_line_highlight
+      and hooks.disable_line_highlight(line, line_nr, bufnr)
+    then
+      return
+    end
+
     -- prefix #
     if matchers.rgba_hex_parser then
       if line:byte(i) == ("#"):byte() then
@@ -199,7 +208,7 @@ function M.make(ud_opts)
     matchers[value] = { prefix = value }
   end
 
-  loop_parse_fn = compile(matchers, matchers_prefix)
+  loop_parse_fn = compile(matchers, matchers_prefix, ud_opts.hooks)
   matcher_cache[matcher_mask] = loop_parse_fn
 
   return loop_parse_fn
