@@ -209,7 +209,7 @@ local function sass_parse_lines(bufnr, line_start, content, name)
 
                     require("colorizer").rehighlight(
                       bufnr,
-                      state[bufnr].options,
+                      state[bufnr].ud_opts,
                       state[bufnr].local_options,
                       { use_local_lines = true }
                     )
