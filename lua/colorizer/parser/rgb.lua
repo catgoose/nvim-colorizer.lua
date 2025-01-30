@@ -73,6 +73,9 @@ function M.parser(line, i, opts)
     a = 1
   else
     a = tonumber(a)
+    if not a then
+      return
+    end
     -- Convert percentage alpha to decimal if applicable
     if unit_a == "%" then
       a = a / 100
