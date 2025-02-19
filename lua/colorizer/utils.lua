@@ -97,7 +97,12 @@ function M.add_additional_color_chars(chars)
     local char = chars:sub(i, i)
     local char_byte = string.byte(char)
     -- It's possible to define `custom_names` with spaces.  Ignore space: it's by empty space that separate things may exist 🧘
-    if char_byte ~= 32 and byte_category[char_byte] == 0 then
+    if
+      char_byte ~= 32
+      and char_byte ~= ("'"):byte()
+      and char_byte ~= ('"'):byte()
+      and byte_category[char_byte] == 0
+    then
       additional_color_chars = additional_color_chars .. char
       byte_category[char_byte] = 1
     end
@@ -235,8 +240,10 @@ end
 --- Returns sha256 hash of lua table
 ---@param tbl table: Table to be hashed
 function M.hash_table(tbl)
+  -- local json_string = vim.json.encode(tbl, { escape_slash = true })
   local json_string = vim.json.encode(tbl)
-  return vim.fn.sha256(json_string)
+  local hash = vim.fn.sha256(json_string)
+  return hash
 end
 
 return M

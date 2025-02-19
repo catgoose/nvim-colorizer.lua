@@ -22,6 +22,22 @@ local opts = {
         ["five@six"] = "#e9e240",
         ["seven!eight"] = "#a9e042",
         ["nine!!ten"] = "#09e392",
+        ["'r'"] = "#FF0000",
+        ['"r"'] = "#FF0000",
+        ["'g'"] = "#00FF00",
+        ['"g"'] = "#00FF00",
+        ["'b'"] = "#0000FF",
+        ['"b"'] = "#0000FF",
+        ["'c'"] = "#00FFFF",
+        ['"c"'] = "#00FFFF",
+        ["'m'"] = "#FF00FF",
+        ['"m"'] = "#FF00FF",
+        ["'y'"] = "#FFFF00",
+        ['"y"'] = "#FFFF00",
+        ["'k'"] = "#000000",
+        ['"k"'] = "#000000",
+        ["'w'"] = "#FFFFFF",
+        ['"w"'] = "#FFFFFF",
       },
     },
   },
@@ -100,6 +116,10 @@ From table in filetype definiton (lua)
    WARN:  WARN:  warn
     FIX:  .
     FIX:   fix
+
+'r' 'g' 'b' 'c' 'm' 'y' 'k' 'w'
+"r" "g" "b" "c" "m" "y" "k" "w"
+r g b c m y k w
 
 Tailwind names:
   accent-blue-100 bg-gray-200 border-black border-x-zinc-300 border-y-yellow-400 border-t-teal-500 border-r-neutral-600 border-b-blue-700 border-l-lime-800 caret-indigo-900 decoration-sky-950 divide-white fill-violet-950 from-indigo-900 shadow-blue-800 stroke-sky-700 text-cyan-500 to-red-400 via-green-300 ring-emerald-200 ring-offset-violet-100
