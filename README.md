@@ -168,8 +168,9 @@ library to do custom highlighting themselves.
       always_update = false,
       -- hooks to invert control of colorizer
       hooks = {
-        -- called before line parsing.  Set to function that returns a boolean and accepts the following parameters.  See hooks section.
-        do_lines_parse = false,
+        -- called before line parsing.  Accepts boolean or function that returns boolean
+        -- see hooks section below
+        disable_line_highlight = false,
       },
     },
   })
@@ -179,12 +180,12 @@ library to do custom highlighting themselves.
 
 Hooks into colorizer can be defined to customize colorization behavior.
 
-`do_lines_parse`: Expects a function that returns a boolean. The function is called before line parsing with the following function signature:
+`disable_line_highlight`: Expects a function that returns a boolean. The function is called before line parsing with the following function signature:
 
 ```lua
 ---@param line string: Line's contents
 ---@param bufnr number: Buffer number
----@line_num number: Line number (0-indexed).  Ad 1 to get the line number in buffer
+---@line_num number: Line number (0-indexed).  Add 1 to get the line number in buffer
 ---@return boolean: Return true if current line should be parsed for highlighting.
 function(line, bufnr, line_num)
   -- Treesitter could also be used, but be warned it will be quite laggy unless you are caching results somehow
