@@ -15,6 +15,7 @@
     - [Hooks](#hooks)
     - [Setup Examples](#setup-examples)
     - [Updating color even when buffer is not focused](#updating-color-even-when-buffer-is-not-focused)
+    - [Xterm 256-color support](#xterm-256-color-support)
     - [Lazyload Colorizer with Lazy.nvim](#lazyload-colorizer-with-lazynvim)
     - [Tailwind](#tailwind)
   - [Testing](#testing)
@@ -155,6 +156,7 @@ library to do custom highlighting themselves.
       },
       -- parsers can contain values used in `user_default_options`
       sass = { enable = false, parsers = { "css" } }, -- Enable sass colors
+      xterm = false, -- Enable xterm 256-color codes (#xNN, \e[38;5;NNNm)
       -- Highlighting mode.  'background'|'foreground'|'virtualtext'
       mode = "background", -- Set the display mode
       -- Virtualtext character to use
@@ -270,13 +272,20 @@ require("colorizer").setup({
     },
   },
 })
+
+-- Enable support for xterm 256-color codes (`#xNN`, `\e[38;5;NNNm`) by setting the `xterm` option:
+require("colorizer").setup({
+  user_default_options = {
+    xterm = true,
+  },
+})
 ```
 
 In `user_default_options`, there are 2 types of options
 
 1. Individual options - `names`, `names_opts`, `names_custom`, `RGB`, `RGBA`,
    `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn`, `RRGGBBAA`, `AARRGGBB`, `tailwind`,
-   `sass`
+   `sass`, `xterm`
 
 1. Alias options - `css`, `css_fn`
 
