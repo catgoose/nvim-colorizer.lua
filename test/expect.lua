@@ -64,6 +64,7 @@ local opts = {
     hsl_fn = true,
     css = true,
     css_fn = true,
+    xterm = true,
     mode = "background",
     tailwind = true,
     sass = { enable = true, parsers = { css = true } },
@@ -82,6 +83,80 @@ return opts
 0xFFFFFFF1 -- why does this highlight?
 
 SUCCESS CASES:
+-- Xterm 256-color codes:
+#x0      -- black         #000000
+#x1      -- maroon        #800000
+#x2      -- green         #008000
+#x3      -- olive         #808000
+#x4      -- navy          #000080
+#x5      -- purple        #800080
+#x6      -- teal          #008080
+#x7      -- silver        #c0c0c0
+#x8      -- grey          #808080
+#x9      -- red           #ff0000
+#x10     -- lime          #00ff00
+#x11     -- yellow        #ffff00
+#x12     -- blue          #0000ff
+#x13     -- fuchsia       #ff00ff
+#x14     -- aqua          #00ffff
+#x15     -- white         #ffffff
+#x16     -- start of color cube #000000
+#x17     -- color cube #00005f
+#x21     -- color cube #0000ff
+#x51     -- color cube #00ff00
+#x88     -- color cube #870000
+#x160    -- color cube #d70000
+#x231    -- color cube #ffffff
+#x232    -- grayscale ramp #080808
+#x243    -- grayscale ramp #767676
+#x254    -- grayscale ramp #e4e4e4
+#x255    -- last grayscale #eeeeee
+#x000 #000000
+#x099 #5fafd7
+#x42 #00d75f #x43 #00d787
+#x42, #00d75f
+#x42 #00d75f #x43 #00d787
+
+-- Xterm ANSI escape codes:
+\e[38;5;0m #000000
+\e[38;5;1m #800000
+\e[38;5;2m #008000
+\e[38;5;3m #808000
+\e[38;5;4m #000080
+\e[38;5;5m #800080
+\e[38;5;6m #008080
+\e[38;5;7m #c0c0c0
+\e[38;5;15m #ffffff
+\e[38;5;16m #000000
+\e[38;5;21m #0000ff
+\e[38;5;51m #00ff00
+\e[38;5;42m #00d75f
+\e[38;5;43m #00d787
+\e[38;5;88m #870000
+\e[38;5;160m #d70000
+\e[38;5;231m #ffffff
+\e[38;5;232m #080808
+\e[38;5;243m #767676
+\e[38;5;254m #e4e4e4
+\e[38;5;255m #eeeeee
+\e[38;5;99m #af5f87
+\e[38;5;200m #ff00af
+\e[38;5;201m #ff00d7
+\e[38;5;202m #ff005f
+\e[38;5;220m #ffff00
+\e[38;5;226m #ffff5f
+\e[38;5;250m #c6c6c6
+\e[38;5;251m #d0d0d0
+\e[38;5;252m #dadada
+\e[38;5;253m #e4e4e4
+\e[38;5;000m #000000
+\e[38;5;099m #5fafd7
+\e[38;5;42m #00d75f \e[38;5;43m #00d787
+\e[38;5;42m, #00d75f
+\e[38;5;42m #00d75f \e[38;5;43m #00d787
+
+[38;5;42m #00d75f
+
 CSS Named Colors:
 olive -- do not remove
 cyan magenta gold chartreuse lightgreen pink violet orange

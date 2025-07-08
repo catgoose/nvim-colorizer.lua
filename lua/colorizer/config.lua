@@ -28,6 +28,7 @@ local plugin_user_default_options = {
     update_names = false,
   },
   sass = { enable = false, parsers = { css = true } },
+  xterm = false,
   mode = "background",
   virtualtext = "■",
   virtualtext_inline = false,
@@ -76,6 +77,7 @@ If both `css` and `css_fn` are true, `css_fn` has more priority over `css`.
 -- @field always_update boolean: Always update color values, even if buffer is not focused.
 -- @field hooks table: Table of hook functions
 -- @field hooks.disable_line_highlight function: Returns boolean which controls if line should be parsed for highlights
+-- @field xterm boolean: Enables xterm 256-color codes (#xNN, \e[38;5;NNNm)
 
 --- Options for colorizer that were passed in to setup function
 --@field filetypes
