@@ -40,7 +40,7 @@ local function compile(matchers, matchers_trie, hooks)
     if
       hooks
       and hooks.disable_line_highlight
-      and hooks.disable_line_highlight(line, line_nr, bufnr)
+      and hooks.disable_line_highlight(line, bufnr, line_nr)
     then
       return
     end
