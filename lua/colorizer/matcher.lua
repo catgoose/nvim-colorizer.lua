@@ -17,6 +17,7 @@ local parsers = {
   rgba_hex = require("colorizer.parser.rgba_hex").parser,
   --  TODO: 2024-12-21 - Should this be moved into parsers module?
   sass_name = require("colorizer.sass").parser,
+  xterm = require("colorizer.parser.xterm").parser,
 }
 
 parsers.prefix = {
@@ -48,6 +49,12 @@ local function compile(matchers, matchers_trie, hooks)
     -- prefix #
     if matchers.rgba_hex_parser then
       if line:byte(i) == ("#"):byte() then
+        if matchers.xterm_enabled then
+          local len, rgb_hex = parsers.xterm(line, i)
+          if len and rgb_hex then
+            return len, rgb_hex
+          end
+        end
         return parsers.rgba_hex(line, i, matchers.rgba_hex_parser)
       end
     end
@@ -56,6 +63,13 @@ local function compile(matchers, matchers_trie, hooks)
     if matchers.sass_name_parser then
       if line:byte(i) == ("$"):byte() then
         return parsers.sass_name(line, i, bufnr)
+      end
+    end
+    -- xterm ANSI escape: \e[38;5;NNNm
+    if matchers.xterm_enabled then
+      local len, rgb_hex = parsers.xterm(line, i)
+      if len and rgb_hex then
+        return len, rgb_hex
       end
     end
 
@@ -111,6 +125,7 @@ function M.make(ud_opts)
   local enable_AARRGGBB = ud_opts.AARRGGBB
   local enable_rgb = ud_opts.rgb_fn
   local enable_hsl = ud_opts.hsl_fn
+  local enable_xterm = ud_opts.xterm
 
   -- Rather than use bit.lshift or calculate 2^x, use precalculated values to
   -- create unique bitmask
@@ -132,6 +147,7 @@ function M.make(ud_opts)
     + (enable_tailwind == "lsp" and 16384 or 0)
     + (enable_tailwind == "both" and 32768 or 0)
     + (enable_sass and 65536 or 0)
+    + (enable_xterm and 131072 or 0)
 
   if matcher_mask == 0 then
     return false
@@ -148,6 +164,7 @@ function M.make(ud_opts)
 
   local matchers = {}
   local matchers_prefix = {}
+  matchers.xterm_enabled = enable_xterm
 
   local enable_tailwind_names = enable_tailwind == "normal" or enable_tailwind == "both"
   if enable_names or enable_names_custom or enable_tailwind_names then
