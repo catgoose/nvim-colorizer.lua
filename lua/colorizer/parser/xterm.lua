@@ -1,3 +1,8 @@
+--[[-- This module provides a parser for identifying and converting xterm color codes to RGB hexadecimal format.
+It supports both #xNN format (decimal, 0-255) and ANSI escape sequences \e[38;5;NNNm for xterm 256-color palette.
+The function reads the color code and returns the corresponding RGB hex string from the xterm color palette.
+]]
+-- @module colorizer.parser.xterm
 local M = {}
 
 -- Xterm 256-color palette (0-255) as RGB hex strings
@@ -22,10 +27,13 @@ for i = 0, 23 do
   xterm_palette[233 + i] = string.format("%02x%02x%02x", level, level, level)
 end
 
---- Parses #xNN and \e[38;5;NNNm xterm color codes and returns (length, rgb_hex)
----@param line string: The line of text
----@param i number: The index to start parsing from
----@return number|nil, string|nil: Length of match and RGB hex string
+--- Parses xterm color codes and converts them to RGB hex format.
+-- This function matches both #xNN format (decimal, 0-255) and ANSI escape sequences \e[38;5;NNNm
+-- for xterm 256-color palette. It returns the corresponding RGB hex string from the xterm color palette.
+---@param line string: The line of text to parse for xterm color codes
+---@param i number: The starting index within the line where parsing should begin
+---@return number|nil: The end index of the parsed xterm color code within the line, or `nil` if parsing failed
+---@return string|nil: The RGB hexadecimal color from the xterm palette, or `nil` if parsing failed
 function M.parser(line, i)
   -- #xNN (decimal, 0-255)
   local hash_x = line:sub(i, i + 1)
