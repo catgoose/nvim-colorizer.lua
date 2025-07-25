@@ -116,7 +116,7 @@ function M.lsp_highlight(
           if ok and client then
             if
               client.name == "tailwindcss"
-              and client.supports_method("textDocument/documentColor", bufnr)
+              and client:supports_method("textDocument/documentColor", bufnr)
             then
               lsp_cache[bufnr].client = client
               highlight(bufnr, ud_opts, add_highlight)

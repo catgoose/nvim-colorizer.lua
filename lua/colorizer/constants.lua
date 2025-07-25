@@ -24,7 +24,7 @@ M.autocmd = {
   },
 }
 
---- Highlight mode names.  Used to create highlight names to be used with vim.api.nvim_buf_add_highlight
+--- Highlight mode names.  Used to create highlight names to be used with vim.hl.range
 -- - background - Background mode
 -- - foreground - Foreground mode
 -- - virtualtext - Virtual text mode

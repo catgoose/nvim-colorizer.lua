@@ -116,13 +116,12 @@ local function add_low_priority_highlights(bufnr, extmarks, priority_ns_id, line
       non_overlapping_ranges = new_ranges
     end
     for _, range in ipairs(non_overlapping_ranges) do
-      vim.api.nvim_buf_add_highlight(
+      vim.hl.range(
         bufnr,
         default_mark[4].ns_id, -- Original namespace
         hl_group,
-        linenr,
-        range[1],
-        range[2]
+        {linenr, range[1]},
+        {linenr, range[2]}
       )
     end
   end
@@ -145,6 +144,40 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts, hl_o
   vim.api.nvim_buf_clear_namespace(bufnr, ns_id, line_start, line_end)
   if ud_opts.mode == "background" or ud_opts.mode == "foreground" then
     local tw_both = ud_opts.tailwind == "both" and hl_opts.tailwind_lsp
+    local tw_lsp = ud_opts.tailwind == "lsp" and hl_opts.tailwind_lsp
+    
+    -- For tailwind = "lsp", clear overlapping areas in default namespace before applying LSP highlights
+    if tw_lsp then
+      for linenr, hls in pairs(data) do
+        -- Get existing highlights from default namespace for this line
+        local existing_marks = vim.api.nvim_buf_get_extmarks(
+          bufnr,
+          const.namespace.default,
+          { linenr, 0 },
+          { linenr + 1, 0 },
+          { details = true }
+        )
+        
+        -- Clear ranges that would overlap with LSP highlights
+        for _, hl in ipairs(hls) do
+          local lsp_start = hl.range[1]
+          local lsp_end = hl.range[2]
+          
+          for _, existing_mark in ipairs(existing_marks) do
+            local existing_start = existing_mark[3]
+            local existing_end = existing_mark[4].end_col
+            
+            -- Check if there's an overlap
+            if lsp_start <= existing_end and lsp_end >= existing_start then
+              -- Clear the overlapping range in default namespace
+              vim.api.nvim_buf_clear_namespace(bufnr, const.namespace.default, linenr, linenr + 1)
+              break -- Clear the whole line if there's any overlap
+            end
+          end
+        end
+      end
+    end
+    
     for linenr, hls in pairs(data) do
       local marks
       if tw_both then
@@ -168,13 +201,47 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts, hl_o
           end
         end
         local hlname = create_highlight(hl.rgb_hex, ud_opts.mode)
-        vim.api.nvim_buf_add_highlight(bufnr, ns_id, hlname, linenr, hl.range[1], hl.range[2])
+        vim.hl.range(bufnr, ns_id, hlname, {linenr, hl.range[1]}, {linenr, hl.range[2]})
       end
       if tw_both then
         add_low_priority_highlights(bufnr, marks, ns_id, linenr)
       end
     end
   elseif ud_opts.mode == "virtualtext" then
+    local tw_lsp = ud_opts.tailwind == "lsp" and hl_opts.tailwind_lsp
+    
+    -- For tailwind = "lsp", clear overlapping areas in default namespace before applying LSP highlights
+    if tw_lsp then
+      for linenr, hls in pairs(data) do
+        -- Get existing highlights from default namespace for this line
+        local existing_marks = vim.api.nvim_buf_get_extmarks(
+          bufnr,
+          const.namespace.default,
+          { linenr, 0 },
+          { linenr + 1, 0 },
+          { details = true }
+        )
+        
+        -- Clear ranges that would overlap with LSP highlights
+        for _, hl in ipairs(hls) do
+          local lsp_start = hl.range[1]
+          local lsp_end = hl.range[2]
+          
+          for _, existing_mark in ipairs(existing_marks) do
+            local existing_start = existing_mark[3]
+            local existing_end = existing_mark[4].end_col
+            
+            -- Check if there's an overlap
+            if lsp_start <= existing_end and lsp_end >= existing_start then
+              -- Clear the overlapping range in default namespace
+              vim.api.nvim_buf_clear_namespace(bufnr, const.namespace.default, linenr, linenr + 1)
+              break -- Clear the whole line if there's any overlap
+            end
+          end
+        end
+      end
+    end
+    
     for linenr, hls in pairs(data) do
       for _, hl in ipairs(hls) do
         if ud_opts.tailwind == "both" and hl_opts.tailwind_lsp then
@@ -256,9 +323,11 @@ function M.highlight(bufnr, ns_id, line_start, line_end, ud_opts, buf_local_opts
     )
   end
 
-  -- Parse lines from matcher
+  -- Parse lines from matcher for regular highlighting (including named colors)
   local data = M.parse_lines(bufnr, lines, line_start, ud_opts) or {}
   M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts)
+  
+  -- Apply LSP highlighting with priority over regular highlights
   if ud_opts.tailwind == "lsp" or ud_opts.tailwind == "both" then
     tailwind.lsp_highlight(
       bufnr,
