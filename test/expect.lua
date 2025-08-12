@@ -103,7 +103,7 @@ SUCCESS CASES:
 #x16     -- start of color cube #000000
 #x17     -- color cube #00005f
 #x21     -- color cube #0000ff
-#x51     -- color cube #00ff00
+#x51     -- color cube #00ffff
 #x88     -- color cube #870000
 #x160    -- color cube #d70000
 #x231    -- color cube #ffffff
