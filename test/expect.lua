@@ -157,6 +157,25 @@ SUCCESS CASES:
 
 [38;5;42m #00d75f
 
+\e[30;0m #000000
+\e[31;0m #800000
+\e[32;0m #008000
+\e[33;0m #808000
+\e[34;0m #000080
+\e[35;0m #800080
+\e[36;0m #008080
+\e[37;0m #c0c0c0
+\e[30;1m #808080
+\e[31;1m #ff0000
+\e[32;1m #00ff00
+\e[33;1m #ffff00
+\e[34;1m #0000ff
+\e[35;1m #ff00ff
+\e[36;1m #00ffff
+\e[37;1m #ffffff
+
+\e[1;37m #ffffff
+
 CSS Named Colors:
 olive -- do not remove
 cyan magenta gold chartreuse lightgreen pink violet orange
