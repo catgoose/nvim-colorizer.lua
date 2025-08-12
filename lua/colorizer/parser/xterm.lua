@@ -43,8 +43,8 @@ function M.parser(line, i)
   if hash_x == "#x" then
     local num = line:sub(i + 2):match("^(%d?%d?%d)")
     if num then
-      local idx = tonumber(num)
-      if idx and idx >= 0 and idx <= 255 then
+      local idx = tonumber(num) or -1
+      if idx >= 0 and idx <= 255 then
         local next_char = line:sub(i + 2 + #num, i + 2 + #num)
         if next_char == "" or not next_char:match("%w") then
           return 2 + #num, xterm_palette[idx + 1]
@@ -61,8 +61,8 @@ function M.parser(line, i)
   for _, esc_pat in ipairs(ansi_256_patterns) do
     local esc_match = line:sub(i):match(esc_pat)
     if esc_match then
-      local idx = tonumber(esc_match)
-      if idx and idx >= 0 and idx <= 255 then
+      local idx = tonumber(esc_match) or -1
+      if idx >= 0 and idx <= 255 then
         -- Use string.find to get the end index of the match
         local _, end_idx = line:sub(i):find(esc_pat)
         if end_idx then
