@@ -28,8 +28,11 @@ for i = 0, 23 do
 end
 
 --- Parses xterm color codes and converts them to RGB hex format.
--- This function matches both #xNN format (decimal, 0-255) and ANSI escape sequences \e[38;5;NNNm
--- for xterm 256-color palette. It returns the corresponding RGB hex string from the xterm color palette.
+-- This function matches following color codes:
+--   1. #xNN format (decimal, 0-255).
+--   2. ANSI escape sequences \e[38;5;NNNm for xterm 256-color palette.
+--   3. ANSI escape sequences \e[X;Ym for xterm 16-color palette.
+-- It returns the corresponding RGB hex string from the xterm color palette.
 ---@param line string: The line of text to parse for xterm color codes
 ---@param i number: The starting index within the line where parsing should begin
 ---@return number|nil: The end index of the parsed xterm color code within the line, or `nil` if parsing failed
@@ -40,8 +43,8 @@ function M.parser(line, i)
   if hash_x == "#x" then
     local num = line:sub(i + 2):match("^(%d?%d?%d)")
     if num then
-      local idx = tonumber(num)
-      if idx and idx >= 0 and idx <= 255 then
+      local idx = tonumber(num) or -1
+      if idx >= 0 and idx <= 255 then
         local next_char = line:sub(i + 2 + #num, i + 2 + #num)
         if next_char == "" or not next_char:match("%w") then
           return 2 + #num, xterm_palette[idx + 1]
@@ -50,16 +53,16 @@ function M.parser(line, i)
     end
   end
   -- \e[38;5;NNNm (decimal, 0-255), support both literal '\e' and actual escape char
-  local ansi_patterns = {
+  local ansi_256_patterns = {
     "^\\e%[38;5;(%d?%d?%d)m",   -- literal '\e'
     "^\27%[38;5;(%d?%d?%d)m",    -- ASCII 27
     "^\x1b%[38;5;(%d?%d?%d)m",   -- hex escape
   }
-  for _, esc_pat in ipairs(ansi_patterns) do
+  for _, esc_pat in ipairs(ansi_256_patterns) do
     local esc_match = line:sub(i):match(esc_pat)
     if esc_match then
-      local idx = tonumber(esc_match)
-      if idx and idx >= 0 and idx <= 255 then
+      local idx = tonumber(esc_match) or -1
+      if idx >= 0 and idx <= 255 then
         -- Use string.find to get the end index of the match
         local _, end_idx = line:sub(i):find(esc_pat)
         if end_idx then
@@ -70,7 +73,26 @@ function M.parser(line, i)
       end
     end
   end
+  -- \e[X;Ym for xterm 16-color palette, support foreground colors (30-37) with brightness (0-1)
+  -- TODO: Support background colors and other patterns
+  local ansi_16_patterns = {
+    "^\\e%[(%d+);(%d+)m",   -- literal '\e'
+    "^\27%[(%d+);(%d+)m",    -- ASCII 27
+    "^\x1b%[(%d+);(%d+)m",   -- hex escape
+  }
+  for _, esc_pat in ipairs(ansi_16_patterns) do
+    local match_x, match_y = line:sub(i):match(esc_pat)
+    if match_x and match_y then
+      local x, y = tonumber(match_x) or -1, tonumber(match_y) or -1
+      -- Color and brightness positions are interchangeable
+      local color, brightness = math.max(x, y), math.min(x, y)
+      if color >= 30 and color <= 37 and brightness >= 0 and brightness <= 1 then
+        color = color - 30
+        return 5 + #match_x + #match_y, xterm_palette[color + 1 + brightness * 8]
+      end
+    end
+  end
   return nil
 end
 
-return M 
+return M
