@@ -78,4 +78,67 @@ function M.is_bright(r, g, b)
   end
 end
 
+--- Converts an OKLCH color value to RGB.
+-- OKLCH is a perceptual color space that provides better uniformity than HSL.
+-- Accepts lightness, chroma, and hue values and converts them to RGB.
+--
+-- References:
+--   - OKLCH/OKLab specification: https://bottosson.github.io/posts/oklab/
+--   - W3C CSS Color Module Level 4: https://www.w3.org/TR/css-color-4/#ok-lab
+--   - Conversion algorithms: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value/oklch
+--
+---@param L number: Lightness, in the range [0, 1].
+---@param C number: Chroma, typically in the range [0, 0.4] but can be higher.
+---@param H number: Hue, in degrees [0, 360].
+---@return number|nil,number|nil,number|nil: Returns red, green, and blue values
+--         scaled to [0, 255], or nil if any input value is out of range.
+function M.oklch_to_rgb(L, C, H)
+  if L > 1 or C < 0 then
+    return
+  end
+
+  local min, max = math.min, math.max
+
+  -- OKLCH to OKLab: convert cylindrical (LCh) to cartesian (Lab) coordinates
+  local h_rad = H * (math.pi / 180)
+  local a = C * math.cos(h_rad)
+  local b_oklab = C * math.sin(h_rad)
+
+  -- OKLab to LMS': apply M2 inverse matrix to get cone response values
+  -- LMS represents Long, Medium, Short cone responses in human vision
+  local l_ = L + 0.3963377774 * a + 0.2158037573 * b_oklab
+  local m_ = L - 0.1055613458 * a - 0.0638541728 * b_oklab
+  local s_ = L - 0.0894841775 * a - 1.2914855480 * b_oklab
+
+  -- LMS' to LMS: undo the cube root non-linearity
+  local l = l_ * l_ * l_
+  local m = m_ * m_ * m_
+  local s = s_ * s_ * s_
+
+  -- LMS to Linear RGB: apply M1 inverse matrix
+  local r_lin = 4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s
+  local g_lin = -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s
+  local b_lin = -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s
+
+  -- Linear RGB to sRGB: apply gamma correction with standard sRGB transfer function
+  local function linear_to_srgb(c)
+    if c <= 0.0031308 then
+      return 12.92 * c
+    else
+      return 1.055 * (c ^ (1 / 2.4)) - 0.055
+    end
+  end
+
+  local r = linear_to_srgb(r_lin)
+  local g = linear_to_srgb(g_lin)
+  local b = linear_to_srgb(b_lin)
+
+  -- Clamp to 0-1 range and convert to 0-255
+  r = max(0, min(1, r)) * 255
+  g = max(0, min(1, g)) * 255
+  b = max(0, min(1, b)) * 255
+
+  return r, g, b
+end
+
 return M

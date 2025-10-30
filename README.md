@@ -146,9 +146,10 @@ library to do custom highlighting themselves.
       AARRGGBB = false, -- 0xAARRGGBB hex codes
       rgb_fn = false, -- CSS rgb() and rgba() functions
       hsl_fn = false, -- CSS hsl() and hsla() functions
+      oklch_fn = false, -- CSS oklch() function
       css = false, -- Enable all CSS *features*:
-      -- names, RGB, RGBA, RRGGBB, RRGGBBAA, AARRGGBB, rgb_fn, hsl_fn
-      css_fn = false, -- Enable all CSS *functions*: rgb_fn, hsl_fn
+      -- names, RGB, RGBA, RRGGBB, RRGGBBAA, AARRGGBB, rgb_fn, hsl_fn, oklch_fn
+      css_fn = false, -- Enable all CSS *functions*: rgb_fn, hsl_fn, oklch_fn
       -- Tailwind colors.  boolean|'normal'|'lsp'|'both'.  True sets to 'normal'
       tailwind = false, -- Enable tailwind colors
       tailwind_opts = { -- Options for highlighting tailwind names
@@ -227,7 +228,7 @@ require("colorizer").setup({
 require("colorizer").setup({
   filetypes = {
     "*", -- Highlight all files, but customize some others.
-    css = { rgb_fn = true }, -- Enable parsing rgb(...) functions in css.
+    css = { rgb_fn = true, oklch_fn = true }, -- Enable parsing rgb(...) and oklch(...) functions in css.
     html = { names = false }, -- Disable parsing "names" like Blue or Gray
   },
 })
@@ -284,14 +285,14 @@ require("colorizer").setup({
 In `user_default_options`, there are 2 types of options
 
 1. Individual options - `names`, `names_opts`, `names_custom`, `RGB`, `RGBA`,
-   `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn`, `RRGGBBAA`, `AARRGGBB`, `tailwind`,
+   `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn`, `oklch_fn`, `RRGGBBAA`, `AARRGGBB`, `tailwind`,
    `sass`, `xterm`
 
 1. Alias options - `css`, `css_fn`
 
-If `css_fn` is true `hsl_fn`, `rgb_fn` becomes `true`
+If `css_fn` is true `hsl_fn`, `rgb_fn`, `oklch_fn` becomes `true`
 
-If `css` is true `names`, `RGB`, `RGBA`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn`
+If `css` is true `names`, `RGB`, `RGBA`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn`, `oklch_fn`
 becomes `true`
 
 These options have a priority, Individual options have the highest priority,
@@ -299,7 +300,7 @@ then alias options
 
 For alias, `css_fn` has more priority over `css`
 
-e.g: Here `RGB`, `RGBA`, `RRGGBB`, `RRGGBBAA`, `AARRGGBB`, `hsl_fn`, `rgb_fn` is
+e.g: Here `RGB`, `RGBA`, `RRGGBB`, `RRGGBBAA`, `AARRGGBB`, `hsl_fn`, `rgb_fn`, `oklch_fn` is
 enabled but not `names`
 
 ```lua
@@ -312,7 +313,7 @@ require("colorizer").setup({
 ```
 
 e.g: Here `names`, `RGB`, `RGBA`, `RRGGBB`, `RRGGBBAA`, `AARRGGBB` is enabled but
-not `rgb_fn` and `hsl_fn`
+not `rgb_fn`, `hsl_fn`, and `oklch_fn`
 
 ```lua
 require("colorizer").setup({

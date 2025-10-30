@@ -15,6 +15,7 @@ local parsers = {
   hsl_function = require("colorizer.parser.hsl").parser,
   rgb_function = require("colorizer.parser.rgb").parser,
   rgba_hex = require("colorizer.parser.rgba_hex").parser,
+  oklch_function = require("colorizer.parser.oklch").parser,
   --  TODO: 2024-12-21 - Should this be moved into parsers module?
   sass_name = require("colorizer.sass").parser,
   xterm = require("colorizer.parser.xterm").parser,
@@ -26,6 +27,7 @@ parsers.prefix = {
   ["_rgba"] = parsers.rgb_function,
   ["_hsl"] = parsers.hsl_function,
   ["_hsla"] = parsers.hsl_function,
+  ["_oklch"] = parsers.oklch_function,
 }
 
 ---Form a trie stuct with the given prefixes
@@ -125,6 +127,7 @@ function M.make(ud_opts)
   local enable_AARRGGBB = ud_opts.AARRGGBB
   local enable_rgb = ud_opts.rgb_fn
   local enable_hsl = ud_opts.hsl_fn
+  local enable_oklch = ud_opts.oklch_fn
   local enable_xterm = ud_opts.xterm
 
   -- Rather than use bit.lshift or calculate 2^x, use precalculated values to
@@ -148,6 +151,7 @@ function M.make(ud_opts)
     + (enable_tailwind == "both" and 32768 or 0)
     + (enable_sass and 65536 or 0)
     + (enable_xterm and 131072 or 0)
+    + (enable_oklch and 262144 or 0)
 
   if matcher_mask == 0 then
     return false
@@ -209,18 +213,28 @@ function M.make(ud_opts)
   if enable_AARRGGBB then
     table.insert(matchers_prefix, "0x")
   end
-  if enable_rgb and enable_hsl then
-    table.insert(matchers_prefix, "hsla")
-    table.insert(matchers_prefix, "rgba")
-    table.insert(matchers_prefix, "rgb")
-    table.insert(matchers_prefix, "hsl")
-  elseif enable_rgb then
-    table.insert(matchers_prefix, "rgba")
-    table.insert(matchers_prefix, "rgb")
-  elseif enable_hsl then
-    table.insert(matchers_prefix, "hsla")
-    table.insert(matchers_prefix, "hsl")
+
+  -- Add CSS function prefixes based on enabled flags
+  -- Will be sorted by length to ensure correct Trie matching (longer prefixes first)
+  local css_function_prefixes = {
+    oklch = enable_oklch,
+    hsla = enable_hsl,
+    hsl = enable_hsl,
+    rgba = enable_rgb,
+    rgb = enable_rgb,
+  }
+
+  for prefix, enabled in pairs(css_function_prefixes) do
+    if enabled then
+      table.insert(matchers_prefix, prefix)
+    end
   end
+
+  -- Sort by length (descending) to ensure longer prefixes are checked before shorter ones
+  -- This is critical for Trie matching: "hsla" must match before "hsl", "rgba" before "rgb"
+  table.sort(matchers_prefix, function(a, b)
+    return #a > #b
+  end)
   for _, value in ipairs(matchers_prefix) do
     matchers[value] = { prefix = value }
   end
