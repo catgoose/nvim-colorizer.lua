@@ -342,6 +342,8 @@ Functions: ~
     |is_bright| - Determines whether a color is bright, helping decide text
     color.
 
+    |oklch_to_rgb| - Converts an OKLCH color value to RGB.
+
 
 hsl_to_rgb({h}, {s}, {l})                           *colorizer.color.hsl_to_rgb*
     Converts an HSL color value to RGB.
@@ -402,6 +404,33 @@ is_bright({r}, {g}, {b})                             *colorizer.color.is_bright*
 
     returns:~
 	boolean: `true` if the color is bright, `false` if it's dark.
+
+
+
+oklch_to_rgb({L}, {C}, {H})                       *colorizer.color.oklch_to_rgb*
+    Converts an OKLCH color value to RGB.
+
+     OKLCH is a perceptual color space that provides better uniformity than HSL.
+     Accepts lightness, chroma, and hue values and converts them to RGB.
+
+     References:
+       - OKLCH/OKLab specification: https://bottosson.github.io/posts/oklab/
+       - W3C CSS Color Module Level 4: https://www.w3.org/TR/css-color-4/#ok-lab
+       - Conversion algorithms:
+	 https://developer.mozilla.org/en-US/docs/Web/CSS/color_value/oklch
+
+
+
+    Parameters: ~
+	{L} -  number: Lightness, in the range [0, 1].
+	{C} -  number: Chroma, typically in the range [0, 0.4] but can be
+	higher.
+	{H} -  number: Hue, in degrees [0, 360].
+
+    returns:~
+	number or nil,number or nil,number or nil: Returns red, green, and blue
+	values
+	 scaled to [0, 255], or nil if any input value is out of range.
 
 
 
@@ -508,12 +537,13 @@ user_default_options                     *colorizer.config.user_default_options*
 
     Individual Options: Options like `names`, `RGB`, `RRGGBB`, `RRGGBBAA`,
     `hsl_fn`, `rgb_fn`,
-    `AARRGGBB`, `tailwind`, and `sass` can be enabled or disabled independently.
+    `oklch_fn`, `AARRGGBB`, `tailwind`, and `sass` can be enabled or disabled
+    independently.
 
     Alias Options: `css` and `css_fn` enable multiple options at once.
-      - `css_fn = true` enables `hsl_fn` and `rgb_fn`.
-      - `css = true` enables `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, and
-	`rgb_fn`.
+      - `css_fn = true` enables `hsl_fn`, `rgb_fn`, and `oklch_fn`.
+      - `css = true` enables `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`,
+	`rgb_fn`, and `oklch_fn`.
 
     Option Priority: Individual options have higher priority than aliases.
     If both `css` and `css_fn` are true, `css_fn` has more priority over `css`.
@@ -533,9 +563,11 @@ user_default_options                     *colorizer.config.user_default_options*
 	{AARRGGBB} -  boolean: Enables `0xAARRGGBB` hex codes.
 	{rgb_fn} -  boolean: Enables CSS `rgb()` and `rgba()` functions.
 	{hsl_fn} -  boolean: Enables CSS `hsl()` and `hsla()` functions.
-	{css} -  boolean: Enables all CSS features (`rgb_fn`, `hsl_fn`, `names`,
-	`RGB`, `RRGGBB`).
-	{css_fn} -  boolean: Enables all CSS functions (`rgb_fn`, `hsl_fn`).
+	{oklch_fn} -  boolean: Enables CSS `oklch()` function.
+	{css} -  boolean: Enables all CSS features (`rgb_fn`, `hsl_fn`,
+	`oklch_fn`, `names`, `RGB`, `RRGGBB`).
+	{css_fn} -  boolean: Enables all CSS functions (`rgb_fn`, `hsl_fn`,
+	`oklch_fn`).
 	{tailwind} -  boolean|string: Enables Tailwind CSS colors (e.g.,
 	`"normal"`, `"lsp"`, `"both"`).
 	{tailwind_opts} -  table: Tailwind options for updating names cache, etc
@@ -595,10 +627,11 @@ ud_opts                                               *colorizer.config.ud_opts*
    - `AARRGGBB` (boolean): Enables support for `0xAARRGGBB` hex codes.
    - `rgb_fn` (boolean): Enables CSS `rgb()` and `rgba()` functions.
    - `hsl_fn` (boolean): Enables CSS `hsl()` and `hsla()` functions.
+   - `oklch_fn` (boolean): Enables CSS `oklch()` function.
    - `css` (boolean): Enables all CSS-related features (e.g., `names`, `RGB`,
-     `RRGGBB`, `hsl_fn`, `rgb_fn`).
+     `RRGGBB`, `hsl_fn`, `rgb_fn`, `oklch_fn`).
    - `css_fn` (boolean): Enables all CSS function-related features (e.g.,
-     `rgb_fn`, `hsl_fn`).
+     `rgb_fn`, `hsl_fn`, `oklch_fn`).
    - `tailwind` (boolean|string): Enables Tailwind CSS colors. Accepts `true`,
      `"normal"`, `"lsp"`, or `"both"`.
    - `tailwind_opts` (table): Tailwind options for updating names cache, etc
@@ -880,6 +913,50 @@ parser({line}, {i}, {m_opts})                    *colorizer.parser.names.parser*
 
 
 ==============================================================================
+OKLCH                                      *colorizer.parser.oklch-introduction*
+
+This module provides a parser for identifying and converting `oklch()` CSS
+functions to RGB hexadecimal format.
+
+OKLCH is a perceptual color space that provides better uniformity than HSL.
+It supports lightness as both decimal (0-1) and percentage (0-100%),
+chroma values, hue in degrees, and optional alpha transparency.
+This function is useful for syntax highlighting or color recognition in a text
+editor.
+
+==============================================================================
+LUA API                                         *colorizer.parser.oklch-lua-api*
+
+Functions: ~
+    |parser| - Parses `oklch()` CSS functions and converts them to RGB
+    hexadecimal format.
+
+
+parser({line}, {i}, {_})                         *colorizer.parser.oklch.parser*
+    Parses `oklch()` CSS functions and converts them to RGB hexadecimal format.
+
+     This function matches `oklch()` functions within a line of text, extracting
+     and converting
+     the lightness, chroma, and hue to an RGB color. It handles lightness as
+     decimal or percentage,
+     and an optional alpha (transparency) value.
+
+
+    Parameters: ~
+	{line} -  string: The line of text to parse
+	{i} -  number: The starting index within the line where parsing should
+	begin
+	{_} -  table: Parsing options (unused, included for API consistency)
+
+    returns:~
+	number or nil: The end index of the parsed `oklch` function within the
+	line, or `nil` if no match was found.
+	string or nil: The RGB hexadecimal color (e.g., "ff0000" for red), or
+	`nil` if parsing failed
+
+
+
+==============================================================================
 RGBA_HEX                                *colorizer.parser.rgba_hex-introduction*
 
 This module provides a parser for identifying and converting `#RRGGBBAA`
@@ -1032,10 +1109,11 @@ Functions: ~
 parser({line}, {i})                              *colorizer.parser.xterm.parser*
     Parses xterm color codes and converts them to RGB hex format.
 
-     This function matches both #xNN format (decimal, 0-255) and ANSI escape
-     sequences \e[38;5;NNNm
-     for xterm 256-color palette. It returns the corresponding RGB hex string
-     from the xterm color palette.
+     This function matches following color codes:
+       1. #xNN format (decimal, 0-255).
+       2. ANSI escape sequences \e[38;5;NNNm for xterm 256-color palette.
+       3. ANSI escape sequences \e[X;Ym for xterm 16-color palette.
+     It returns the corresponding RGB hex string from the xterm color palette.
 
 
     Parameters: ~
