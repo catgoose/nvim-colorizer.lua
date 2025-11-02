@@ -21,6 +21,7 @@ local plugin_user_default_options = {
   AARRGGBB = false,
   rgb_fn = false,
   hsl_fn = false,
+  oklch_fn = false,
   css = false,
   css_fn = false,
   tailwind = false,
@@ -44,11 +45,11 @@ This table defines individual options and alias options, allowing configuration 
 colorizer's behavior for different color formats (e.g., `#RGB`, `#RRGGBB`, `#AARRGGBB`, etc.).
 
 Individual Options: Options like `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn`,
-`AARRGGBB`, `tailwind`, and `sass` can be enabled or disabled independently.
+`oklch_fn`, `AARRGGBB`, `tailwind`, and `sass` can be enabled or disabled independently.
 
 Alias Options: `css` and `css_fn` enable multiple options at once.
-  - `css_fn = true` enables `hsl_fn` and `rgb_fn`.
-  - `css = true` enables `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, and `rgb_fn`.
+  - `css_fn = true` enables `hsl_fn`, `rgb_fn`, and `oklch_fn`.
+  - `css = true` enables `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn`, and `oklch_fn`.
 
 Option Priority: Individual options have higher priority than aliases.
 If both `css` and `css_fn` are true, `css_fn` has more priority over `css`.
@@ -65,8 +66,9 @@ If both `css` and `css_fn` are true, `css_fn` has more priority over `css`.
 -- @field AARRGGBB boolean: Enables `0xAARRGGBB` hex codes.
 -- @field rgb_fn boolean: Enables CSS `rgb()` and `rgba()` functions.
 -- @field hsl_fn boolean: Enables CSS `hsl()` and `hsla()` functions.
--- @field css boolean: Enables all CSS features (`rgb_fn`, `hsl_fn`, `names`, `RGB`, `RRGGBB`).
--- @field css_fn boolean: Enables all CSS functions (`rgb_fn`, `hsl_fn`).
+-- @field oklch_fn boolean: Enables CSS `oklch()` function.
+-- @field css boolean: Enables all CSS features (`rgb_fn`, `hsl_fn`, `oklch_fn`, `names`, `RGB`, `RRGGBB`).
+-- @field css_fn boolean: Enables all CSS functions (`rgb_fn`, `hsl_fn`, `oklch_fn`).
 -- @field tailwind boolean|string: Enables Tailwind CSS colors (e.g., `"normal"`, `"lsp"`, `"both"`).
 -- @field tailwind_opts table: Tailwind options for updating names cache, etc
 -- @field sass table: Sass color configuration (`enable` flag and `parsers`).
@@ -194,8 +196,8 @@ end
 function M.apply_alias_options(ud_opts)
   local aliases = {
     --  TODO: 2024-12-24 - Should aliases be configurable?
-    ["css"] = { "names", "RGB", "RGBA", "RRGGBB", "RRGGBBAA", "hsl_fn", "rgb_fn" },
-    ["css_fn"] = { "hsl_fn", "rgb_fn" },
+    ["css"] = { "names", "RGB", "RGBA", "RRGGBB", "RRGGBBAA", "hsl_fn", "rgb_fn", "oklch_fn" },
+    ["css_fn"] = { "hsl_fn", "rgb_fn", "oklch_fn" },
   }
   local function handle_alias(name, opts)
     if not aliases[name] then
@@ -241,8 +243,9 @@ end
 --   - `AARRGGBB` (boolean): Enables support for `0xAARRGGBB` hex codes.
 --   - `rgb_fn` (boolean): Enables CSS `rgb()` and `rgba()` functions.
 --   - `hsl_fn` (boolean): Enables CSS `hsl()` and `hsla()` functions.
---   - `css` (boolean): Enables all CSS-related features (e.g., `names`, `RGB`, `RRGGBB`, `hsl_fn`, `rgb_fn`).
---   - `css_fn` (boolean): Enables all CSS function-related features (e.g., `rgb_fn`, `hsl_fn`).
+--   - `oklch_fn` (boolean): Enables CSS `oklch()` function.
+--   - `css` (boolean): Enables all CSS-related features (e.g., `names`, `RGB`, `RRGGBB`, `hsl_fn`, `rgb_fn`, `oklch_fn`).
+--   - `css_fn` (boolean): Enables all CSS function-related features (e.g., `rgb_fn`, `hsl_fn`, `oklch_fn`).
 --   - `tailwind` (boolean|string): Enables Tailwind CSS colors. Accepts `true`, `"normal"`, `"lsp"`, or `"both"`.
 --   - `tailwind_opts` (table): Tailwind options for updating names cache, etc
 --      - `update_names` (boolean): Updates Tailwind "normal" names cache from LSP results.  This provides a smoother highlighting experience when tailwind = "both" is used.  Highlighting on non-tailwind lsp buffers (like cmp) becomes more consistent.
