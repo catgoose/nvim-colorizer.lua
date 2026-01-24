@@ -236,12 +236,18 @@ do
 	function css_fn.rgb(line, i)
 		if #line < i + CSS_RGB_FN_MINIMUM_LENGTH then return end
 		local r, g, b, match_end = line:sub(i):match("^rgb%(%s*(%d+%%?)%s*,%s*(%d+%%?)%s*,%s*(%d+%%?)%s*%)()")
-		if not match_end then return end
-		r = percent_or_hex(r) if not r then return end
-		g = percent_or_hex(g) if not g then return end
-		b = percent_or_hex(b) if not b then return end
-		local rgb_hex = tohex(bor(lshift(r, 16), lshift(g, 8), b), 6)
-		return match_end - 1, rgb_hex
+		if match_end then
+			r = percent_or_hex(r) if not r then return end
+			g = percent_or_hex(g) if not g then return end
+			b = percent_or_hex(b) if not b then return end
+			local rgb_hex = tohex(bor(lshift(r, 16), lshift(g, 8), b), 6)
+			return match_end - 1, rgb_hex
+		end
+		local rgb_hex
+		rgb_hex, match_end = line:sub(i):match("^rgb%((%x%x%x%x%x%x)%)()")
+		if match_end then
+			return match_end - 1, rgb_hex:lower()
+		end
 	end
 	function css_fn.hsl(line, i)
 		if #line < i + CSS_HSL_FN_MINIMUM_LENGTH then return end
@@ -258,13 +264,24 @@ do
 	function css_fn.rgba(line, i)
 		if #line < i + CSS_RGBA_FN_MINIMUM_LENGTH then return end
 		local r, g, b, a, match_end = line:sub(i):match("^rgba%(%s*(%d+%%?)%s*,%s*(%d+%%?)%s*,%s*(%d+%%?)%s*,%s*([.%d]+)%s*%)()")
-		if not match_end then return end
-		a = tonumber(a) if not a or a > 1 then return end
-		r = percent_or_hex(r) if not r then return end
-		g = percent_or_hex(g) if not g then return end
-		b = percent_or_hex(b) if not b then return end
-		local rgb_hex = tohex(bor(lshift(floor(r*a), 16), lshift(floor(g*a), 8), floor(b*a)), 6)
-		return match_end - 1, rgb_hex
+		if match_end then
+			a = tonumber(a) if not a or a > 1 then return end
+			r = percent_or_hex(r) if not r then return end
+			g = percent_or_hex(g) if not g then return end
+			b = percent_or_hex(b) if not b then return end
+			local rgb_hex = tohex(bor(lshift(floor(r*a), 16), lshift(floor(g*a), 8), floor(b*a)), 6)
+			return match_end - 1, rgb_hex
+		end
+		local hex_str
+		hex_str, match_end = line:sub(i):match("^rgba%((%x%x%x%x%x%x%x%x)%)()")
+		if match_end then
+			local r = tonumber(hex_str:sub(1,2), 16)
+			local g = tonumber(hex_str:sub(3,4), 16)
+			local b = tonumber(hex_str:sub(5,6), 16)
+			local a = tonumber(hex_str:sub(7,8), 16) / 255
+			local rgb_hex = tohex(bor(lshift(floor(r*a), 16), lshift(floor(g*a), 8), floor(b*a)), 6)
+			return match_end - 1, rgb_hex
+		end
 	end
 	function css_fn.hsla(line, i)
 		if #line < i + CSS_HSLA_FN_MINIMUM_LENGTH then return end
