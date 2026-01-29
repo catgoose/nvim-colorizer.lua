@@ -34,8 +34,8 @@ function M.parser(line, i, opts)
   local r, unit1, ssep1, csep1, g, unit2, ssep2, csep2, b, unit3, sep3, a, unit_a, match_end =
     line:sub(i):match(pattern)
   if not match_end then
-    -- Reuse this function to avoid inefficiencies in trie parsing with similar prefixes (rgb/rgba)
-    -- Hyperlang format: rgb(RRGGBB) or rgba(RRGGBBAA)
+    -- Reuse this function to avoid inefficiencies in trie parsing with identical prefixes (rgb/rgba)
+    -- Hyprlang format: rgb(RRGGBB) or rgba(RRGGBBAA)
     local hex_pattern
     if opts.prefix == "rgb" then
       hex_pattern = "^rgb%(%s*(%x%x%x%x%x%x)%s*%)()"
