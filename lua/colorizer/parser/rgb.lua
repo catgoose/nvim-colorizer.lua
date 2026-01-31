@@ -34,6 +34,31 @@ function M.parser(line, i, opts)
   local r, unit1, ssep1, csep1, g, unit2, ssep2, csep2, b, unit3, sep3, a, unit_a, match_end =
     line:sub(i):match(pattern)
   if not match_end then
+    -- Reuse this function to avoid inefficiencies in trie parsing with identical prefixes (rgb/rgba)
+    -- Hyprlang format: rgb(RRGGBB) or rgba(RRGGBBAA)
+    local hex_pattern
+    if opts.prefix == "rgb" then
+      hex_pattern = "^rgb%(%s*(%x%x%x%x%x%x)%s*%)()"
+    elseif opts.prefix == "rgba" then
+      hex_pattern = "^rgba%(%s*(%x%x%x%x%x%x%x%x)%s*%)()"
+    end
+
+    if hex_pattern then
+      local hex_val, hex_end = line:sub(i):match(hex_pattern)
+      if hex_val then
+        if opts.prefix == "rgb" then
+          return hex_end - 1, hex_val:lower()
+        else
+          local r = tonumber(hex_val:sub(1, 2), 16)
+          local g = tonumber(hex_val:sub(3, 4), 16)
+          local b = tonumber(hex_val:sub(5, 6), 16)
+          local a = tonumber(hex_val:sub(7, 8), 16) / 255
+          local floor = math.floor
+          return hex_end - 1, utils.rgb_to_hex(floor(r * a), floor(g * a), floor(b * a))
+        end
+      end
+    end
+
     return
   end
 
