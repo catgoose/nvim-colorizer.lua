@@ -275,6 +275,12 @@ rgba(240, 180, 120, 0.6) rgba(255, 200, 80, 0.9) rgba(255, 180, 100, 0.7)
 rgba(255, 255, 255, 1)
 rgba(255000, 255000, 255000, 1000)
 
+Hyprlang RGB:
+rgb(ff0000) rgb(00ff00) rgb(0000ff)
+rgb(ffffff) rgb(000000)
+rgba(ff0000ff) rgba(00ff00ff) rgba(0000ffff)
+rgba(ff000000) rgba(ffffff80)
+
 HSL:
 hsl(300 50% 50%) hsl(300 50% 50% / 1) hsl(100 80% 50% / 0.4)
 hsl(990 80% 50% / 0.4) hsl(720 80% 50% / 0.4)
@@ -367,4 +373,8 @@ oklch(0.5 0.2) oklch(0.5, 0.2, 180) oklch()
 oklch(,0.2,180) oklch(0.5,,180) oklch(0.5,0.2,)
 oklch (0.5 0.2 180)
 oklch(0.5  0.2  180  1)
+
+Invalid Hyprlang:
+rgb(12345) rgb(1234567) rgb(gggggg)
+rgba(123456) rgba(1234567) rgba(123456789) rgba(gggggggg)
 ]]
