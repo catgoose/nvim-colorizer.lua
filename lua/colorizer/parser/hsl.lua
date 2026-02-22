@@ -24,7 +24,7 @@ function M.parser(line, i, opts)
   local min_commas, min_spaces = 2, 2
   local pattern = "^"
     .. opts.prefix
-    .. "%(%s*([.%d]+)([deg]*)([turn]*)(%s?)%s*(,?)%s*(%d+)%%(%s?)%s*(,?)%s*(%d+)%%%s*(/?,?)%s*([.%d]*)([%%]?)%s*%)()"
+    .. "%(%s*([.%d]+)([deg]*)([turn]*)(%s?)%s*(,?)%s*([.%d]+)%%(%s?)%s*(,?)%s*([.%d]+)%%%s*(/?,?)%s*([.%d]*)([%%]?)%s*%)()"
 
   if opts.prefix == "hsl" then
     min_len = #"hsl(0,0%,0%)" - 1
