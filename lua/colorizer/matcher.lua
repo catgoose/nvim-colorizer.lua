@@ -193,7 +193,7 @@ function M.make(ud_opts)
   matchers.sass_name_parser = enable_sass or nil
 
   local valid_lengths =
-    { [3] = enable_RGB, [4] = enable_RGBA, [6] = enable_RRGGBB, [8] = enable_RRGGBBAA }
+    { [3] = enable_RGB, [4] = enable_RGBA, [6] = enable_RRGGBB, [8] = enable_RRGGBBAA or enable_AARRGGBB }
   local minlen, maxlen
   for k, v in pairs(valid_lengths) do
     if v then
@@ -206,6 +206,7 @@ function M.make(ud_opts)
       valid_lengths = valid_lengths,
       minlen = minlen,
       maxlen = maxlen,
+      aarrggbb = enable_AARRGGBB and not enable_RRGGBBAA,
     }
   end
 

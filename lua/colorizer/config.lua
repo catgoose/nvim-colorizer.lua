@@ -42,7 +42,7 @@ local plugin_user_default_options = {
 
 --[[-- Default user options for colorizer.
 This table defines individual options and alias options, allowing configuration of
-colorizer's behavior for different color formats (e.g., `#RGB`, `#RRGGBB`, `#AARRGGBB`, etc.).
+colorizer's behavior for different color formats (e.g., `#RGB`, `#RRGGBB`, `0xAARRGGBB`, etc.).
 
 Individual Options: Options like `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn`,
 `oklch_fn`, `AARRGGBB`, `tailwind`, and `sass` can be enabled or disabled independently.
@@ -63,7 +63,7 @@ If both `css` and `css_fn` are true, `css_fn` has more priority over `css`.
 -- @field RGBA boolean: Enables `#RGBA` hex codes.
 -- @field RRGGBB boolean: Enables `#RRGGBB` hex codes.
 -- @field RRGGBBAA boolean: Enables `#RRGGBBAA` hex codes.
--- @field AARRGGBB boolean: Enables `0xAARRGGBB` hex codes.
+-- @field AARRGGBB boolean: Enables `0xAARRGGBB` and `#AARRGGBB` hex codes.
 -- @field rgb_fn boolean: Enables CSS `rgb()` and `rgba()` functions.
 -- @field hsl_fn boolean: Enables CSS `hsl()` and `hsla()` functions.
 -- @field oklch_fn boolean: Enables CSS `oklch()` function.
@@ -240,7 +240,7 @@ end
 --   - `RGBA` (boolean): Enables support for `#RGBA` hex codes.
 --   - `RRGGBB` (boolean): Enables support for `#RRGGBB` hex codes.
 --   - `RRGGBBAA` (boolean): Enables support for `#RRGGBBAA` hex codes.
---   - `AARRGGBB` (boolean): Enables support for `0xAARRGGBB` hex codes.
+--   - `AARRGGBB` (boolean): Enables support for `0xAARRGGBB` and `#AARRGGBB` hex codes. When both `RRGGBBAA` and `AARRGGBB` are enabled, `#` prefix uses RRGGBBAA byte order; AARRGGBB always works via `0x` prefix.
 --   - `rgb_fn` (boolean): Enables CSS `rgb()` and `rgba()` functions.
 --   - `hsl_fn` (boolean): Enables CSS `hsl()` and `hsla()` functions.
 --   - `oklch_fn` (boolean): Enables CSS `oklch()` function.

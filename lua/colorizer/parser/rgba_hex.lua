@@ -11,8 +11,9 @@ local band, rshift, lshift = bit.band, bit.rshift, bit.lshift
 
 local utils = require("colorizer.utils")
 
---- Parses `#RRGGBBAA` hexadecimal colors and converts them to RGB hex format.
--- This function matches `#RRGGBBAA` format colors within a line, handling alpha transparency if specified.
+--- Parses `#RRGGBBAA` or `#AARRGGBB` hexadecimal colors and converts them to RGB hex format.
+-- This function matches `#RRGGBBAA` (or `#AARRGGBB` when `opts.aarrggbb` is set) format colors
+-- within a line, handling alpha transparency if specified.
 -- It checks the length of the color string to match expected valid lengths (e.g., 4, 7, 9 characters).
 ---@param line string: The line of text to parse for the hex color
 ---@param i number: The starting index within the line where parsing should begin
@@ -36,7 +37,7 @@ function M.parser(line, i, opts)
   end
 
   local j = i + 1
-  local v, alpha = 0, 0
+  local v = 0
 
   -- Parse valid hex characters
   while j <= math.min(i + maxlen, line_length) do
@@ -44,13 +45,7 @@ function M.parser(line, i, opts)
     if not utils.byte_is_hex(b) then
       break
     end
-    if j - i >= 7 then
-      -- Parsing alpha component for #RRGGBBAA
-      alpha = utils.parse_hex(b) + lshift(alpha, 4)
-    else
-      -- Parsing RGB components
-      v = utils.parse_hex(b) + lshift(v, 4)
-    end
+    v = utils.parse_hex(b) + lshift(v, 4)
     j = j + 1
   end
 
@@ -75,14 +70,23 @@ function M.parser(line, i, opts)
     local r = utils.parse_hex(line:byte(i + 1)) * 17
     local g = utils.parse_hex(line:byte(i + 2)) * 17
     local b = utils.parse_hex(line:byte(i + 3)) * 17
-    alpha = utils.parse_hex(line:byte(i + 4)) / 15
+    local alpha = utils.parse_hex(line:byte(i + 4)) / 15
     return 5, utils.rgb_to_hex(floor(r * alpha), floor(g * alpha), floor(b * alpha))
   elseif parsed_length == 9 then
-    -- Handle #RRGGBBAA
-    alpha = alpha / 255
-    local r = floor(band(rshift(v, 16), 0xFF) * alpha)
-    local g = floor(band(rshift(v, 8), 0xFF) * alpha)
-    local b = floor(band(v, 0xFF) * alpha)
+    local alpha, r, g, b
+    if opts.aarrggbb then
+      -- Handle #AARRGGBB
+      alpha = band(rshift(v, 24), 0xFF) / 255
+      r = floor(band(rshift(v, 16), 0xFF) * alpha)
+      g = floor(band(rshift(v, 8), 0xFF) * alpha)
+      b = floor(band(v, 0xFF) * alpha)
+    else
+      -- Handle #RRGGBBAA
+      alpha = band(v, 0xFF) / 255
+      r = floor(band(rshift(v, 24), 0xFF) * alpha)
+      g = floor(band(rshift(v, 16), 0xFF) * alpha)
+      b = floor(band(rshift(v, 8), 0xFF) * alpha)
+    end
     return 9, utils.rgb_to_hex(r, g, b)
   end
 
