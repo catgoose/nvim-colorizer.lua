@@ -39,7 +39,7 @@ Which includes Linux, OSX, and Windows.
 
 ## Installation and Usage
 
-Requires Neovim >= 0.7.0 and `set termguicolors`.
+Requires Neovim >= 0.10.0 and `set termguicolors` (enabled by default in 0.10+).
 
 ### Plugin managers
 

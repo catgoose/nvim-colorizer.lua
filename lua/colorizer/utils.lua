@@ -5,6 +5,7 @@ parsing colors, managing file watchers, and handling buffer lines.
 -- @module colorizer.utils
 local M = {}
 
+local uv = vim.uv or vim.loop
 local bit, ffi = require("bit"), require("ffi")
 local band, bor, rshift, lshift = bit.band, bit.bor, bit.rshift, bit.lshift
 
@@ -138,13 +139,13 @@ end
 ---@param path string: file path
 ---@return number|nil: modified time
 function M.get_last_modified(path)
-  local fd = vim.loop.fs_open(path, "r", 438)
+  local fd = uv.fs_open(path, "r", 438)
   if not fd then
     return
   end
 
-  local stat = vim.loop.fs_fstat(fd)
-  vim.loop.fs_close(fd)
+  local stat = uv.fs_fstat(fd)
+  uv.fs_close(fd)
   if stat then
     return stat.mtime.nsec
   else
@@ -169,7 +170,7 @@ function M.watch_file(path, callback, ...)
     return
   end
 
-  local fullpath = vim.loop.fs_realpath(path)
+  local fullpath = uv.fs_realpath(path)
   if not fullpath then
     return
   end
@@ -177,7 +178,7 @@ function M.watch_file(path, callback, ...)
   local start
   local args = { ... }
 
-  local handle = vim.loop.new_fs_event()
+  local handle = uv.new_fs_event()
   if not handle then
     return
   end
@@ -192,7 +193,7 @@ function M.watch_file(path, callback, ...)
   end
 
   function start()
-    vim.loop.fs_event_start(
+    uv.fs_event_start(
       handle,
       fullpath,
       {},

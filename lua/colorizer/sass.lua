@@ -6,6 +6,7 @@ It supports recursive Sass imports, resolving color values for each variable, an
 -- @module colorizer.sass
 local M = {}
 
+local uv = vim.uv or vim.loop
 local utils = require("colorizer.utils")
 
 local state = {}
@@ -20,7 +21,7 @@ local function remove_unused_imports(bufnr, import_name)
   state[bufnr].definitions_linewise[import_name] = nil
   state[bufnr].imports[import_name] = nil
   -- stop the watch handler
-  pcall(vim.loop.fs_event_stop, state[bufnr].watch_imports[import_name])
+  pcall(uv.fs_event_stop, state[bufnr].watch_imports[import_name])
   state[bufnr].watch_imports[import_name] = nil
 end
 
@@ -158,7 +159,7 @@ local function sass_parse_lines(bufnr, line_start, content, name)
             local last_modified = utils.get_last_modified(v)
             if last_modified then
               -- grab the full path
-              v = vim.loop.fs_realpath(v)
+              v = uv.fs_realpath(v)
               if v then
                 state[bufnr].current_imports[name][v or ""] = true
 
@@ -220,7 +221,7 @@ local function sass_parse_lines(bufnr, line_start, content, name)
             else
               -- if file does not exists then remove related variables
               state[bufnr].imports[name][v] = nil
-              pcall(vim.loop.fs_event_stop, state[bufnr].watch_imports[name][v])
+              pcall(uv.fs_event_stop, state[bufnr].watch_imports[name][v])
               state[bufnr].watch_imports[name][v] = nil
             end
           end -- process imported files

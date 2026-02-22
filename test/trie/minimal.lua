@@ -9,7 +9,7 @@ function M.setup(opts)
     plugins = {},
   })
 
-  if not vim.loop.fs_stat(opts.base_dir) then
+  if not (vim.uv or vim.loop).fs_stat(opts.base_dir) then
     vim.fn.system({
       "git",
       "clone",

@@ -16,7 +16,7 @@ local settings = {
   },
 }
 
-if not vim.loop.fs_stat(settings.base_dir) then
+if not (vim.uv or vim.loop).fs_stat(settings.base_dir) then
   vim.fn.system({
     "git",
     "clone",

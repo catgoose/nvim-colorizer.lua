@@ -102,9 +102,7 @@ function M.lsp_highlight(
   lsp_cache[bufnr] = lsp_cache[bufnr] or {}
   lsp_cache[bufnr].au_id = lsp_cache[bufnr].au_id or {}
 
-  if
-    vim.version().minor >= 8 and not lsp_cache[bufnr].client or lsp_cache[bufnr].client.is_stopped()
-  then
+  if not lsp_cache[bufnr].client or lsp_cache[bufnr].client.is_stopped() then
     -- create the autocmds so tailwind colors only activate when tailwindcss lsp is active
     if not lsp_cache[bufnr].au_created then
       vim.api.nvim_buf_clear_namespace(bufnr, tw_ns_id, 0, -1)
@@ -112,11 +110,12 @@ function M.lsp_highlight(
         group = buf_local_opts.__augroup_id,
         buffer = bufnr,
         callback = function(args)
-          local ok, client = pcall(vim.lsp.get_client_by_id, args.data.client_id)
-          if ok and client then
+          local clients = vim.lsp.get_clients({ id = args.data.client_id })
+          local client = clients[1]
+          if client then
             if
               client.name == "tailwindcss"
-              and client.supports_method("textDocument/documentColor", bufnr)
+              and client:supports_method("textDocument/documentColor", bufnr)
             then
               lsp_cache[bufnr].client = client
               highlight(bufnr, ud_opts, add_highlight)
