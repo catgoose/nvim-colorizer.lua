@@ -1,7 +1,7 @@
 -- Run this file as `nvim --clean -u benchmark.lua`
 
 local opts = {
-  use_remote = true,
+  use_remote = false,
 }
 require("minimal").setup(opts)
 
@@ -56,11 +56,12 @@ local function get_time_in_ms()
   return tv.tv_sec * 1000 + tv.tv_usec / 1000
 end
 
---- Benchmark Trie insertions and lookups.
+--- Benchmark Trie insertions and lookups across initial capacities.
 ---@param file file*: file handle for writing results
 ---@param data table: list of strings to insert and search
 ---@param description string: description of the dataset
-local function benchmark_trie(file, data, description)
+---@param growth_factor number|nil: growth factor to use (default: 2)
+local function benchmark_trie(file, data, description, growth_factor)
   file:write(string.format("*** %s ***\n", description))
   file:write("Initial Capacity\tResize Count\tInsert Time (ms)\tLookup Time (ms)\n")
 
@@ -69,13 +70,13 @@ local function benchmark_trie(file, data, description)
 
   while resizing do
     local initial_capacity = bit.lshift(1, shift_bit - 1)
-    local trie = Trie({}, { initial_capacity = initial_capacity })
+    local trie = Trie({}, { initial_capacity = initial_capacity, growth_factor = growth_factor })
 
     -- Measure insertion time
     local insert_start = get_time_in_ms()
     for _, name in ipairs(data) do
       ---@diagnostic disable-next-line: undefined-field
-      trie:insert(name, initial_capacity)
+      trie:insert(name)
     end
     local insert_stop = get_time_in_ms()
 

@@ -52,10 +52,11 @@ local ffi = require("ffi")
 ffi.cdef([[
 struct Trie {
   bool is_leaf;
-  size_t capacity; // Current capacity of the character array
-  size_t size;     // Number of children currently in use
+  size_t capacity;      // Current capacity of the character array
+  size_t size;          // Number of children currently in use
+  size_t _resize_count; // Number of resizes performed (tracked on root node)
   struct Trie** children; // Dynamically allocated array of children
-  uint8_t* keys;   // Array of corresponding ASCII keys
+  uint8_t* keys;        // Array of corresponding ASCII keys
 };
 void *malloc(size_t size);
 void *realloc(void *ptr, size_t size);
@@ -65,11 +66,17 @@ void free(void *ptr);
 local Trie_t = ffi.typeof("struct Trie")
 local Trie_ptr_t = ffi.typeof("$ *", Trie_t)
 local Trie_size = ffi.sizeof(Trie_t)
+local Trie_ptr_size = ffi.sizeof("struct Trie*")
 
-local initial_capacity = 8
+local DEFAULT_INITIAL_CAPACITY = 2
+local DEFAULT_GROWTH_FACTOR = 2
+
+--- Per-instance configuration stored Lua-side to avoid adding float to FFI struct.
+-- Keyed by root cdata identity.
+local trie_opts = {}
 
 local function trie_create(capacity)
-  capacity = capacity or initial_capacity
+  capacity = capacity or DEFAULT_INITIAL_CAPACITY
   local node_ptr = ffi.C.malloc(Trie_size)
   if not node_ptr then
     error("Failed to allocate memory for Trie node")
@@ -82,6 +89,7 @@ local function trie_create(capacity)
   node.is_leaf = false
   node.capacity = capacity
   node.size = 0
+  node._resize_count = 0
   node.children = ffi.cast("struct Trie**", ffi.C.malloc(capacity * ffi.sizeof("struct Trie*")))
   if not node.children then
     ffi.C.free(node_ptr)
@@ -98,49 +106,101 @@ local function trie_create(capacity)
   return node
 end
 
-local resize_count = 0
-local function trie_resize(node)
+local function trie_resize(node, root)
   local current_capacity = tonumber(node.capacity) -- convert to lua number
-  local new_capacity = current_capacity * 2
+  local opts = root and trie_opts[root]
+  local growth_factor = opts and opts.growth_factor or DEFAULT_GROWTH_FACTOR
+  local new_capacity = math.max(current_capacity + 1, math.floor(current_capacity * growth_factor))
+  -- Perform both reallocs before committing either pointer to avoid
+  -- leaking the old keys buffer if the second realloc fails
   local new_children = ffi.C.realloc(node.children, new_capacity * ffi.sizeof("struct Trie*"))
-  if not new_children then
-    error("Failed to reallocate memory for children")
+  local new_keys = ffi.C.realloc(node.keys, new_capacity * ffi.sizeof("uint8_t"))
+  if not new_children or not new_keys then
+    -- If one succeeded, realloc back (realloc with original size is safe)
+    if new_children then
+      ffi.C.realloc(new_children, current_capacity * ffi.sizeof("struct Trie*"))
+    end
+    if new_keys then
+      ffi.C.realloc(new_keys, current_capacity * ffi.sizeof("uint8_t"))
+    end
+    error("Failed to reallocate memory during trie resize")
   end
   node.children = ffi.cast("struct Trie**", new_children)
-  local new_keys = ffi.C.realloc(node.keys, new_capacity * ffi.sizeof("uint8_t"))
-  if not new_keys then
-    error("Failed to reallocate memory for keys")
-  end
   node.keys = ffi.cast("uint8_t*", new_keys)
-  for i = current_capacity, new_capacity - 1 do
-    node.children[i] = nil
-    node.keys[i] = 0
-  end
+  local added = new_capacity - current_capacity
+  ffi.fill(node.children + current_capacity, added * ffi.sizeof("struct Trie*"))
+  ffi.fill(node.keys + current_capacity, added * ffi.sizeof("uint8_t"))
   node.capacity = new_capacity
-  resize_count = resize_count + 1
+  if root then
+    root._resize_count = root._resize_count + 1
+  end
 end
 
+--- Recursively free a node and all its descendants (including the node itself).
+-- Used for child nodes that were allocated with malloc.
+local function trie_free_recursive(node)
+  if not node then
+    return
+  end
+  if node.children ~= nil then
+    for i = 0, tonumber(node.size) - 1 do
+      trie_free_recursive(node.children[i])
+    end
+    ffi.C.free(node.children)
+    node.children = nil
+  end
+  if node.keys ~= nil then
+    ffi.C.free(node.keys)
+    node.keys = nil
+  end
+  node.size = 0
+  ffi.C.free(node)
+end
+
+--- Public destroy: free children and keys but not the root node itself.
+-- The root is managed by LuaJIT's GC via __gc, which calls trie_gc.
 local function trie_destroy(node)
   if not node then
     return
   end
-  if node.children then
-    for i = 0, node.size - 1 do
-      trie_destroy(node.children[i])
-    end
-    ffi.C.free(node.children)
+  trie_opts[node] = nil
+  if node.children == nil then
+    return
   end
-  if node.keys then
+  for i = 0, tonumber(node.size) - 1 do
+    trie_free_recursive(node.children[i])
+  end
+  ffi.C.free(node.children)
+  node.children = nil
+  if node.keys ~= nil then
     ffi.C.free(node.keys)
+    node.keys = nil
   end
+  node.size = 0
+end
+
+--- GC destructor: if destroy() was already called, just free the root.
+-- Otherwise do full recursive cleanup.
+local function trie_gc(node)
+  if not node then
+    return
+  end
+  trie_opts[node] = nil
+  if node.children == nil and node.keys == nil then
+    ffi.C.free(node)
+    return
+  end
+  -- destroy() was never called, do full cleanup
+  trie_destroy(node)
   ffi.C.free(node)
 end
 
 local function trie_insert(node, value, capacity)
   if not node or type(value) ~= "string" then
-    print("Invalid node or value for insertion")
     return false
   end
+  local opts = trie_opts[node]
+  local child_capacity = capacity or (opts and opts.initial_capacity) or DEFAULT_INITIAL_CAPACITY
   local current = node
   for i = 1, #value do
     local char_byte = value:byte(i)
@@ -154,10 +214,10 @@ local function trie_insert(node, value, capacity)
     end
     if not found then
       if current.size >= current.capacity then
-        trie_resize(current)
+        trie_resize(current, node)
       end
       current.keys[current.size] = char_byte
-      current.children[current.size] = trie_create(capacity or initial_capacity)
+      current.children[current.size] = trie_create(child_capacity)
       current.size = current.size + 1
       current = current.children[current.size - 1]
     end
@@ -303,16 +363,42 @@ local function trie_to_string(trie)
   return table.concat(print_trie_table(as_table), "\n")
 end
 
-local function trie_resize_count()
-  return resize_count
+local function trie_resize_count(node)
+  return tonumber(node._resize_count)
+end
+
+--- Recursively compute memory usage in bytes and node count.
+local function trie_memory_stats(node)
+  if not node then
+    return 0, 0
+  end
+  local cap = tonumber(node.capacity)
+  -- This node: struct + children array + keys array
+  local bytes = Trie_size + cap * Trie_ptr_size + cap
+  local nodes = 1
+  for i = 0, tonumber(node.size) - 1 do
+    local child_bytes, child_nodes = trie_memory_stats(node.children[i])
+    bytes = bytes + child_bytes
+    nodes = nodes + child_nodes
+  end
+  return bytes, nodes
+end
+
+--- Return total memory usage in bytes and number of nodes.
+---@return number bytes, number nodes
+local function trie_memory_usage(node)
+  return trie_memory_stats(node)
 end
 
 local Trie_mt = {
   __new = function(_, init, opts)
     opts = opts or {}
-    local capacity = opts.initial_capacity or initial_capacity
+    local capacity = opts.initial_capacity or DEFAULT_INITIAL_CAPACITY
     local trie = trie_create(capacity)
-    resize_count = 0
+    trie_opts[trie] = {
+      initial_capacity = capacity,
+      growth_factor = opts.growth_factor or DEFAULT_GROWTH_FACTOR,
+    }
     if type(init) == "table" then
       trie_extend(trie, init)
     end
@@ -325,9 +411,10 @@ local Trie_mt = {
     extend = trie_extend,
     destroy = trie_destroy,
     resize_count = trie_resize_count,
+    memory_usage = trie_memory_usage,
   },
   __tostring = trie_to_string,
-  __gc = trie_destroy,
+  __gc = trie_gc,
 }
 
 return ffi.metatype("struct Trie", Trie_mt)
