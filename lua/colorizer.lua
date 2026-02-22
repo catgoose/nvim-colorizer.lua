@@ -1,4 +1,4 @@
---[[-- Requires Neovim >= 0.7.0 and `set termguicolors`
+--[[-- Requires Neovim >= 0.10.0 and `set termguicolors`
 
 Highlights terminal CSI ANSI color codes.
 @module colorizer
@@ -446,7 +446,7 @@ end
 ---@usage `require("colorizer").setup()`
 ---@see colorizer.config
 function M.setup(opts)
-  if not vim.opt.termguicolors then
+  if not vim.o.termguicolors then
     vim.schedule(function()
       vim.notify("Colorizer: Error: &termguicolors must be set", 4)
     end)
