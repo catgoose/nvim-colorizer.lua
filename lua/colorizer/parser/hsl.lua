@@ -20,14 +20,14 @@ local utils = require("colorizer.utils")
 ---@return number|nil: The end index of the parsed `hsl/hsla` function within the line, or `nil` if no match was found.
 ---@return string|nil: The RGB hexadecimal color (e.g., "ff0000" for red), or `nil` if parsing failed
 function M.parser(line, i, opts)
-  local min_len = #"hsla(0,0%,0%)" - 1
+  local min_len = #"hsla(0,0,0)" - 1
   local min_commas, min_spaces = 2, 2
   local pattern = "^"
     .. opts.prefix
-    .. "%(%s*([.%d]+)([deg]*)([turn]*)(%s?)%s*(,?)%s*([.%d]+)%%(%s?)%s*(,?)%s*([.%d]+)%%%s*(/?,?)%s*([.%d]*)([%%]?)%s*%)()"
+    .. "%(%s*([.%d]+)([deg]*)([turn]*)(%s?)%s*(,?)%s*([.%d]+)%%?(%s?)%s*(,?)%s*([.%d]+)%%?%s*(/?,?)%s*([.%d]*)([%%]?)%s*%)()"
 
   if opts.prefix == "hsl" then
-    min_len = #"hsl(0,0%,0%)" - 1
+    min_len = #"hsl(0,0,0)" - 1
   end
 
   if #line < i + min_len then
