@@ -215,18 +215,25 @@ function M.bufme(bufnr)
     or vim.api.nvim_get_current_buf()
 end
 
---- Returns range of visible lines
+--- Returns range of visible lines across all windows showing the buffer
 ---@param bufnr number: Buffer number
 ---@return number, number: Start (0-index) and end (exclusive) range of lines in viewport
 function M.visible_line_range(bufnr)
   bufnr = M.bufme(bufnr)
-  local range = vim.api.nvim_buf_call(bufnr, function()
-    return {
-      vim.fn.line("w0"),
-      vim.fn.line("w$"),
-    }
-  end)
-  return range[1] - 1, range[2]
+  local wins = vim.fn.win_findbuf(bufnr)
+  if not wins or #wins == 0 then
+    return 0, 0
+  end
+  local min_line, max_line
+  for _, winid in ipairs(wins) do
+    local range = vim.api.nvim_win_call(winid, function()
+      return { vim.fn.line("w0"), vim.fn.line("w$") }
+    end)
+    local w0, w_end = range[1], range[2]
+    min_line = min_line and math.min(min_line, w0) or w0
+    max_line = max_line and math.max(max_line, w_end) or w_end
+  end
+  return min_line - 1, max_line
 end
 
 function M.log_message(message)
