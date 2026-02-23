@@ -114,6 +114,17 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts, hl_o
       end
     end
   elseif ud_opts.mode == "virtualtext" then
+    -- Reuse a single opts table across iterations to reduce allocations
+    local extmark_opts = {
+      virt_text = nil,
+      hl_mode = "combine",
+      priority = 0,
+      virt_text_pos = nil,
+      end_col = nil,
+    }
+    -- Reuse a single inner table for virt_text entries
+    local virt_text_entry = { "", "" }
+    local virt_text_list = { virt_text_entry }
     for linenr, hls in pairs(data) do
       for _, hl in ipairs(hls) do
         if ud_opts.tailwind == "both" and hl_opts.tailwind_lsp then
@@ -128,35 +139,30 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts, hl_o
         end
         local hlname = create_highlight(hl.rgb_hex, ud_opts.virtualtext_mode)
         local start_col = hl.range[2]
-        local opts = {
-          virt_text = { { ud_opts.virtualtext or const.defaults.virtualtext, hlname } },
-          hl_mode = "combine",
-          priority = 0,
-        }
+        virt_text_entry[2] = hlname
         if ud_opts.virtualtext_inline then
-          opts.virt_text_pos = "inline"
-          opts.virt_text = {
-            {
-              string.format(
-                "%s%s%s",
-                ud_opts.virtualtext_inline == "before"
-                    and (ud_opts.virtualtext or const.defaults.virtualtext)
-                  or " ",
-                ud_opts.virtualtext_inline == "before" and " " or "",
-                ud_opts.virtualtext_inline == "after"
-                    and (ud_opts.virtualtext or const.defaults.virtualtext)
-                  or ""
-              ),
-              hlname,
-            },
-          }
+          extmark_opts.virt_text_pos = "inline"
+          virt_text_entry[1] = string.format(
+            "%s%s%s",
+            ud_opts.virtualtext_inline == "before"
+                and (ud_opts.virtualtext or const.defaults.virtualtext)
+              or " ",
+            ud_opts.virtualtext_inline == "before" and " " or "",
+            ud_opts.virtualtext_inline == "after"
+                and (ud_opts.virtualtext or const.defaults.virtualtext)
+              or ""
+          )
           if ud_opts.virtualtext_inline == "before" then
             start_col = hl.range[1]
           end
+        else
+          extmark_opts.virt_text_pos = nil
+          virt_text_entry[1] = ud_opts.virtualtext or const.defaults.virtualtext
         end
-        opts.end_col = start_col
+        extmark_opts.virt_text = virt_text_list
+        extmark_opts.end_col = start_col
         pcall(function()
-          vim.api.nvim_buf_set_extmark(bufnr, ns_id, linenr, start_col, opts)
+          vim.api.nvim_buf_set_extmark(bufnr, ns_id, linenr, start_col, extmark_opts)
         end)
       end
     end
@@ -242,8 +248,12 @@ function M.parse_lines(bufnr, lines, line_start, ud_opts)
         )
       end
       if length and rgb_hex then
-        data[line_nr] = data[line_nr] or {}
-        table.insert(data[line_nr] or {}, { rgb_hex = rgb_hex, range = { i - 1, i + length - 1 } })
+        local line_data = data[line_nr]
+        if not line_data then
+          line_data = {}
+          data[line_nr] = line_data
+        end
+        line_data[#line_data + 1] = { rgb_hex = rgb_hex, range = { i - 1, i + length - 1 } }
         i = i + length
       else
         i = i + 1

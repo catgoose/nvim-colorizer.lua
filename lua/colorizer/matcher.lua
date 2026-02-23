@@ -9,6 +9,9 @@ local M = {}
 local Trie = require("colorizer.trie")
 local min, max = math.min, math.max
 
+local BYTE_HASH = 0x23   -- string.byte("#")
+local BYTE_DOLLAR = 0x24 -- string.byte("$")
+
 local parsers = {
   color_name = require("colorizer.parser.names").parser,
   argb_hex = require("colorizer.parser.argb_hex").parser,
@@ -39,6 +42,12 @@ parsers.prefix = {
 local function compile(matchers, matchers_trie, hooks)
   local trie = Trie(matchers_trie)
 
+  -- Pre-build underscore-prefixed keys for trie prefix lookup
+  local prefix_keys = {}
+  for _, p in ipairs(matchers_trie) do
+    prefix_keys[p] = "_" .. p
+  end
+
   local function parse_fn(line, i, bufnr, line_nr)
     if
       hooks
@@ -50,7 +59,7 @@ local function compile(matchers, matchers_trie, hooks)
 
     -- prefix #
     if matchers.rgba_hex_parser then
-      if line:byte(i) == ("#"):byte() then
+      if line:byte(i) == BYTE_HASH then
         if matchers.xterm_enabled then
           local len, rgb_hex = parsers.xterm(line, i)
           if len and rgb_hex then
@@ -63,7 +72,7 @@ local function compile(matchers, matchers_trie, hooks)
 
     -- prefix $, SASS Color names
     if matchers.sass_name_parser then
-      if line:byte(i) == ("$"):byte() then
+      if line:byte(i) == BYTE_DOLLAR then
         return parsers.sass_name(line, i, bufnr)
       end
     end
@@ -78,7 +87,7 @@ local function compile(matchers, matchers_trie, hooks)
     -- Prefix 0x, rgba, rgb, hsla, hsl
     local prefix = trie:longest_prefix(line, i)
     if prefix then
-      local fn = "_" .. prefix
+      local fn = prefix_keys[prefix]
       if parsers.prefix[fn] then
         return parsers.prefix[fn](line, i, matchers[prefix])
       end

@@ -10,6 +10,8 @@ local floor = math.floor
 local hsl_to_rgb = require("colorizer.color").hsl_to_rgb
 local utils = require("colorizer.utils")
 
+local pattern_cache = {}
+
 --- Parses `hsl()` and `hsla()` CSS functions and converts them to RGB hexadecimal format.
 -- This function matches `hsl()` or `hsla()` functions within a line of text, extracting and converting the hue, saturation, and luminance
 -- to an RGB color. It handles angles in degrees and turns, percentages, and an optional alpha (transparency) value.
@@ -22,9 +24,13 @@ local utils = require("colorizer.utils")
 function M.parser(line, i, opts)
   local min_len = #"hsla(0,0%,0%)" - 1
   local min_commas, min_spaces = 2, 2
-  local pattern = "^"
-    .. opts.prefix
-    .. "%(%s*([.%d]+)([deg]*)([turn]*)(%s?)%s*(,?)%s*([.%d]+)%%(%s?)%s*(,?)%s*([.%d]+)%%%s*(/?,?)%s*([.%d]*)([%%]?)%s*%)()"
+  local pattern = pattern_cache[opts.prefix]
+  if not pattern then
+    pattern = "^"
+      .. opts.prefix
+      .. "%(%s*([.%d]+)([deg]*)([turn]*)(%s?)%s*(,?)%s*([.%d]+)%%(%s?)%s*(,?)%s*([.%d]+)%%%s*(/?,?)%s*([.%d]*)([%%]?)%s*%)()"
+    pattern_cache[opts.prefix] = pattern
+  end
 
   if opts.prefix == "hsl" then
     min_len = #"hsl(0,0%,0%)" - 1

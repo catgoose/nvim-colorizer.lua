@@ -11,6 +11,10 @@ local floor = math.floor
 local oklch_to_rgb = require("colorizer.color").oklch_to_rgb
 local utils = require("colorizer.utils")
 
+-- oklch has a single hardcoded pattern, cache it at module level
+local oklch_pattern =
+  "^oklch%(%s*(-?%d*%.?%d+)(%%?)%s+(-?%d*%.?%d+)(%%?)%s+(-?%d*%.?%d+)([%a]?[%a]?[%a]?[%a]?)%s*(/?)%s*(-?%d*%.?%d*)(%%?)%s*%)()"
+
 --- Parses `oklch()` CSS functions and converts them to RGB hexadecimal format.
 -- This function matches `oklch()` functions within a line of text, extracting and converting
 -- the lightness, chroma, and hue to an RGB color. It handles lightness as decimal or percentage,
@@ -39,7 +43,7 @@ function M.parser(line, i, _)
   -- Alpha (optional): -?%d*%.?%d* (all parts optional since alpha itself is optional)
   -- Units: [%a]?[%a]?[%a]?[%a]? (0-4 letters for deg/rad/turn/grad, validated later)
   local l, l_percent, c, c_percent, h, h_unit, sep, a, a_percent, match_end = line:sub(i):match(
-    "^oklch%(%s*(-?%d*%.?%d+)(%%?)%s+(-?%d*%.?%d+)(%%?)%s+(-?%d*%.?%d+)([%a]?[%a]?[%a]?[%a]?)%s*(/?)%s*(-?%d*%.?%d*)(%%?)%s*%)()"
+    oklch_pattern
   )
 
   if not match_end then

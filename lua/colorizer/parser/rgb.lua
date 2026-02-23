@@ -7,6 +7,9 @@ local M = {}
 
 local utils = require("colorizer.utils")
 
+local pattern_cache = {}
+local hex_pattern_cache = {}
+
 --- Parses `rgb()` and `rgba()` CSS functions and converts them to RGB hexadecimal format.
 -- This function matches `rgb()` or `rgba()` functions in a line of text, extracting RGB and optional alpha values.
 -- It supports decimal and percentage formats, alpha transparency, and comma or space-separated CSS syntax.
@@ -19,9 +22,13 @@ local utils = require("colorizer.utils")
 function M.parser(line, i, opts)
   local min_len = #"rgba(0,0,0)" - 1
   local min_commas, min_spaces, min_percent = 2, 2, 3
-  local pattern = "^"
-    .. opts.prefix
-    .. "%(%s*([.%d]+)([%%]?)(%s?)%s*(,?)%s*([.%d]+)([%%]?)(%s?)%s*(,?)%s*([.%d]+)([%%]?)%s*(/?,?)%s*([.%d]*)([%%]?)%s*%)()"
+  local pattern = pattern_cache[opts.prefix]
+  if not pattern then
+    pattern = "^"
+      .. opts.prefix
+      .. "%(%s*([.%d]+)([%%]?)(%s?)%s*(,?)%s*([.%d]+)([%%]?)(%s?)%s*(,?)%s*([.%d]+)([%%]?)%s*(/?,?)%s*([.%d]*)([%%]?)%s*%)()"
+    pattern_cache[opts.prefix] = pattern
+  end
 
   if opts.prefix == "rgb" then
     min_len = #"rgb(0,0,0)" - 1
@@ -36,14 +43,19 @@ function M.parser(line, i, opts)
   if not match_end then
     -- Reuse this function to avoid inefficiencies in trie parsing with identical prefixes (rgb/rgba)
     -- Hyprlang format: rgb(RRGGBB) or rgba(RRGGBBAA)
-    local hex_pattern
-    if opts.prefix == "rgb" then
-      hex_pattern = "^rgb%(%s*(%x%x%x%x%x%x)%s*%)()"
-    elseif opts.prefix == "rgba" then
-      hex_pattern = "^rgba%(%s*(%x%x%x%x%x%x%x%x)%s*%)()"
+    local hex_pattern = hex_pattern_cache[opts.prefix]
+    if hex_pattern == nil then
+      if opts.prefix == "rgb" then
+        hex_pattern = "^rgb%(%s*(%x%x%x%x%x%x)%s*%)()"
+      elseif opts.prefix == "rgba" then
+        hex_pattern = "^rgba%(%s*(%x%x%x%x%x%x%x%x)%s*%)()"
+      else
+        hex_pattern = false
+      end
+      hex_pattern_cache[opts.prefix] = hex_pattern
     end
 
-    if hex_pattern then
+    if hex_pattern then ---@cast hex_pattern string
       local hex_val, hex_end = line:sub(i):match(hex_pattern)
       if hex_val then
         if opts.prefix == "rgb" then

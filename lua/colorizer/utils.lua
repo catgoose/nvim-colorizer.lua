@@ -112,19 +112,12 @@ function M.add_additional_color_chars(chars)
 end
 
 --- Checks if a byte is valid as a color character (alphanumeric, dynamically added chars, or hardcoded characters).
+-- Additional chars added via add_additional_color_chars set byte_category[byte] = 1 (bit 0),
+-- which is caught by the alphanumeric check (bits 0-1). So a single non-zero check suffices.
 ---@param byte number: The byte to check.
 ---@return boolean: `true` if the byte is valid, otherwise `false`.
 function M.byte_is_valid_color_char(byte)
-  if M.byte_is_alphanumeric(byte) then
-    return true
-  end
-  -- Check additional characters for the provided key
-  for i = 1, #additional_color_chars do
-    if byte == additional_color_chars:byte(i) then
-      return true
-    end
-  end
-  return false
+  return byte_category[byte] ~= 0
 end
 
 ---Count the number of character in a string
