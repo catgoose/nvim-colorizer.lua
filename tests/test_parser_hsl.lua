@@ -132,9 +132,10 @@ end
 
 T["hsl invalid"] = new_set()
 
-T["hsl invalid"]["missing percent on saturation"] = function()
-  local len = parser("hsl(300, 50, 50)", 1, hsl_opts)
-  eq(nil, len)
+T["hsl invalid"]["percent on saturation is optional"] = function()
+  local len, hex = parser("hsl(300, 50, 50)", 1, hsl_opts)
+  eq(true, len ~= nil)
+  eq(true, hex ~= nil)
 end
 
 T["hsl invalid"]["empty hsl()"] = function()
@@ -157,9 +158,10 @@ T["hsl invalid"]["mixed separators (space and alpha without slash)"] = function(
   eq(nil, len)
 end
 
-T["hsl invalid"]["missing percent on lightness"] = function()
-  local len = parser("hsl(300 50% 50 / 1)", 1, hsl_opts)
-  eq(nil, len)
+T["hsl invalid"]["percent on lightness is optional"] = function()
+  local len, hex = parser("hsl(300 50% 50 / 1)", 1, hsl_opts)
+  eq(true, len ~= nil)
+  eq(true, hex ~= nil)
 end
 
 return T

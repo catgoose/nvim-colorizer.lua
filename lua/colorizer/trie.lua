@@ -66,8 +66,8 @@ local DEFAULT_INITIAL_CAPACITY = 2
 local DEFAULT_GROWTH_FACTOR = 2
 
 --- Per-instance configuration stored Lua-side to avoid adding float to FFI struct.
--- Keyed by root cdata identity.
-local trie_opts = {}
+-- Keyed by root cdata identity.  Weak keys so orphaned tries can be GC'd.
+local trie_opts = setmetatable({}, { __mode = "k" })
 
 local function trie_create(capacity)
   capacity = capacity or DEFAULT_INITIAL_CAPACITY
@@ -110,12 +110,16 @@ local function trie_resize(node, root)
   local new_children = ffi.C.realloc(node.children, new_capacity * ffi.sizeof("struct Trie*"))
   local new_keys = ffi.C.realloc(node.keys, new_capacity * ffi.sizeof("uint8_t"))
   if not new_children or not new_keys then
-    -- If one succeeded, realloc back (realloc with original size is safe)
+    -- After a successful realloc the old pointer is invalid, so we must
+    -- update node.children/keys even on the rollback path.
     if new_children then
-      ffi.C.realloc(new_children, current_capacity * ffi.sizeof("struct Trie*"))
+      local rolled = ffi.C.realloc(new_children, current_capacity * ffi.sizeof("struct Trie*"))
+      -- Use the rolled-back pointer if possible, otherwise keep the enlarged one
+      node.children = ffi.cast("struct Trie**", rolled ~= nil and rolled or new_children)
     end
     if new_keys then
-      ffi.C.realloc(new_keys, current_capacity * ffi.sizeof("uint8_t"))
+      local rolled = ffi.C.realloc(new_keys, current_capacity * ffi.sizeof("uint8_t"))
+      node.keys = ffi.cast("uint8_t*", rolled ~= nil and rolled or new_keys)
     end
     error("Failed to reallocate memory during trie resize")
   end
@@ -152,7 +156,7 @@ local function trie_free_recursive(node)
 end
 
 --- Public destroy: free children and keys but not the root node itself.
--- The root is managed by LuaJIT's GC via __gc, which calls trie_gc.
+-- The root is freed by the ffi.gc finalizer when the cdata is collected.
 local function trie_destroy(node)
   if not node then
     return
@@ -173,10 +177,10 @@ local function trie_destroy(node)
   node.size = 0
 end
 
---- GC destructor: if destroy() was already called, just free the root.
--- Otherwise do full recursive cleanup.
+--- GC finalizer (registered via ffi.gc): if destroy() was already called,
+-- just free the root.  Otherwise do full recursive cleanup.
 local function trie_gc(node)
-  if not node then
+  if node == nil then
     return
   end
   trie_opts[node] = nil
@@ -389,6 +393,8 @@ local Trie_mt = {
     opts = opts or {}
     local capacity = opts.initial_capacity or DEFAULT_INITIAL_CAPACITY
     local trie = trie_create(capacity)
+    -- Register GC finalizer via ffi.gc (metatype __gc does not fire in LuaJIT)
+    trie = ffi.gc(trie, trie_gc)
     trie_opts[trie] = {
       initial_capacity = capacity,
       growth_factor = opts.growth_factor or DEFAULT_GROWTH_FACTOR,
@@ -408,7 +414,6 @@ local Trie_mt = {
     memory_usage = trie_memory_usage,
   },
   __tostring = trie_to_string,
-  __gc = trie_gc,
 }
 
 return ffi.metatype("struct Trie", Trie_mt)

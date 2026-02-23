@@ -29,7 +29,7 @@ function M.parser(line, i, opts)
   if not pattern then
     pattern = "^"
       .. opts.prefix
-      .. "%(%s*([.%d]+)([deg]*)([turn]*)(%s?)%s*(,?)%s*([.%d]+)%%(%s?)%s*(,?)%s*([.%d]+)%%%s*(/?,?)%s*([.%d]*)([%%]?)%s*%)()"
+      .. "%(%s*([.%d]+)([deg]*)([turn]*)(%s?)%s*(,?)%s*([.%d]+)%%?(%s?)%s*(,?)%s*([.%d]+)%%?%s*(/?,?)%s*([.%d]*)([%%]?)%s*%)()"
     pattern_cache[opts.prefix] = pattern
   end
 

@@ -250,7 +250,7 @@ function M.make(ud_opts)
   end
 
   loop_parse_fn = compile(matchers, matchers_prefix, ud_opts.hooks)
-  matcher_cache[matcher_mask] = loop_parse_fn
+  matcher_cache[matcher_key] = loop_parse_fn
 
   return loop_parse_fn
 end
