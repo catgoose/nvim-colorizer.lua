@@ -23,7 +23,7 @@ local pattern_cache = {}
 ---@return number|nil The end index of the parsed `hsl/hsla` function within the line, or `nil` if no match was found.
 ---@return string|nil The RGB hexadecimal color (e.g., "ff0000" for red), or `nil` if parsing failed
 function M.parser(line, i, opts)
-  local min_len = #"hsla(0,0%,0%)" - 1
+  local min_len = #"hsla(0,0,0)" - 1
   local min_commas, min_spaces = 2, 2
   local pattern = pattern_cache[opts.prefix]
   if not pattern then
@@ -34,7 +34,7 @@ function M.parser(line, i, opts)
   end
 
   if opts.prefix == "hsl" then
-    min_len = #"hsl(0,0%,0%)" - 1
+    min_len = #"hsl(0,0,0)" - 1
   end
 
   if #line < i + min_len then
