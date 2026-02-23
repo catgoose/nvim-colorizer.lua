@@ -1,73 +1,74 @@
---[[-- Requires Neovim >= 0.10.0 and `set termguicolors`
-
-Highlights terminal CSI ANSI color codes.
-@module colorizer
-@usage Establish the autocmd to highlight all filetypes.
-
-      `lua require("colorizer").setup()`
-
-Highlight using all css highlight modes in every filetype
-
-      `lua require("colorizer").setup(user_default_options = { css = true })`
-
-==============================================================================
-USE WITH COMMANDS                                          *colorizer-commands*
-
-  *:ColorizerAttachToBuffer*
-
-      Attach to the current buffer and start continuously highlighting
-      matched color names and codes.
-
-      If the buffer was already attached(i.e. being highlighted), the
-      settings will be reloaded. This is useful for reloading settings for
-      just one buffer.
-
-  *:ColorizerDetachFromBuffer*
-
-      Stop highlighting the current buffer (detach).
-
-  *:ColorizerReloadAllBuffers*
-
-      Reload all buffers that are being highlighted currently.
-      Calls ColorizerAttachToBuffer on every buffer.
-
-  *:ColorizerToggle*
-      Toggle highlighting of the current buffer.
-
-USE WITH LUA
-
-ATTACH
-  Accepts buffer number (0 or nil for current) and an option
-  table of user_default_options from `setup`.  Option table can be nil
-  which defaults to setup options.
-
-      Attach to current buffer with local options:
-          require("colorizer").attach_to_buffer(0, {
-            mode = "background",
-            css = false,
-          })
-
-      Attach to current buffer with setup options:
-          require("colorizer").attach_to_buffer()
-
-          Accepts an optional buffer number (0 or nil for current).  Defaults to
-          current buffer.
-
-DETACH
-
-      Detach to buffer with id 22:
-          require("colorizer").attach_to_buffer(22)
-
-      Detach from current buffer:
-          require("colorizer").detach_from_buffer(0)
-          require("colorizer").detach_from_buffer()
-
-      Detach from buffer with id 22:
-          require("colorizer").detach_from_buffer(22)
-]]
--- @see colorizer.setup
--- @see colorizer.attach_to_buffer
--- @see colorizer.detach_from_buffer
+---@mod colorizer Colorizer
+---@tag colorizer.nvim
+---@brief [[
+---Requires Neovim >= 0.10.0 and `set termguicolors`
+---
+---Highlights terminal CSI ANSI color codes.
+---
+---Usage: Establish the autocmd to highlight all filetypes.
+---
+--->lua
+---  require("colorizer").setup()
+---<
+---
+---Highlight using all css highlight modes in every filetype
+---
+--->lua
+---  require("colorizer").setup({ user_default_options = { css = true } })
+---<
+---
+---USE WITH COMMANDS ~
+---
+---  `:ColorizerAttachToBuffer`
+---      Attach to the current buffer and start continuously highlighting
+---      matched color names and codes.
+---      If the buffer was already attached(i.e. being highlighted), the
+---      settings will be reloaded. This is useful for reloading settings for
+---      just one buffer.
+---
+---  `:ColorizerDetachFromBuffer`
+---      Stop highlighting the current buffer (detach).
+---
+---  `:ColorizerReloadAllBuffers`
+---      Reload all buffers that are being highlighted currently.
+---      Calls ColorizerAttachToBuffer on every buffer.
+---
+---  `:ColorizerToggle`
+---      Toggle highlighting of the current buffer.
+---
+---USE WITH LUA ~
+---
+---ATTACH
+---  Accepts buffer number (0 or nil for current) and an option
+---  table of user_default_options from `setup`.  Option table can be nil
+---  which defaults to setup options.
+---
+--->lua
+---  -- Attach to current buffer with local options:
+---  require("colorizer").attach_to_buffer(0, {
+---    mode = "background",
+---    css = false,
+---  })
+---
+---  -- Attach to current buffer with setup options:
+---  require("colorizer").attach_to_buffer()
+---<
+---
+---DETACH
+---
+--->lua
+---  -- Detach from current buffer:
+---  require("colorizer").detach_from_buffer(0)
+---  require("colorizer").detach_from_buffer()
+---
+---  -- Detach from buffer with id 22:
+---  require("colorizer").detach_from_buffer(22)
+---<
+---
+---@brief ]]
+---@see colorizer.setup
+---@see colorizer.attach_to_buffer
+---@see colorizer.detach_from_buffer
 local M = {}
 
 local buffer = require("colorizer.buffer")
@@ -104,7 +105,7 @@ local colorizer_state = {
 M.highlight_buffer = buffer.highlight
 
 --- Get the row range of the current window
----@param bufnr number: Buffer number
+---@param bufnr number Buffer number
 local function row_range(bufnr)
   colorizer_state.buffer_lines[bufnr] = colorizer_state.buffer_lines[bufnr] or {}
   local new_min, new_max = utils.visible_line_range(bufnr)
@@ -143,12 +144,12 @@ local function row_range(bufnr)
 end
 
 --- Rehighlight the buffer if colorizer is active
----@param bufnr number: Buffer number (0 for current)
----@param ud_opts table: `user_default_options`
----@param buf_local_opts table|nil: Buffer local options
----@param hl_opts table|nil: Highlighting options
+---@param bufnr number Buffer number (0 for current)
+---@param ud_opts table `user_default_options`
+---@param buf_local_opts table|nil Buffer local options
+---@param hl_opts table|nil Highlighting options
 --- - use_local_lines: boolean: Use `buf_local_opts` __startline and __endline for lines
----@return table: Detach settings table to use when cleaning up buffer state in `colorizer.detach_from_buffer`
+---@return table Detach settings table to use when cleaning up buffer state in `colorizer.detach_from_buffer`
 --- - ns_id number: Table of namespace ids to clear
 --- - functions function: Table of detach functions to call
 function M.rehighlight(bufnr, ud_opts, buf_local_opts, hl_opts)
@@ -178,8 +179,8 @@ function M.rehighlight(bufnr, ud_opts, buf_local_opts, hl_opts)
 end
 
 ---Get attached bufnr
----@param bufnr number|nil: buffer number (0 for current)
----@return number: Returns attached bufnr. Returns -1 if buffer is not attached to colorizer.
+---@param bufnr number|nil buffer number (0 for current)
+---@return number Returns attached bufnr. Returns -1 if buffer is not attached to colorizer.
 ---@see colorizer.buffer.highlight
 function M.get_attached_bufnr(bufnr)
   if bufnr == 0 or not bufnr then
@@ -202,14 +203,14 @@ function M.get_attached_bufnr(bufnr)
 end
 
 ---Check if buffer is attached to colorizer
----@param bufnr number|nil: buffer number (0 for current)
----@return boolean: Returns `true` if buffer is attached to colorizer.
+---@param bufnr number|nil buffer number (0 for current)
+---@return boolean Returns `true` if buffer is attached to colorizer.
 function M.is_buffer_attached(bufnr)
   return M.get_attached_bufnr(bufnr) > -1
 end
 
 --- Return buffer options if buffer is attached to colorizer.
----@param bufnr number: Buffer number (0 for current)
+---@param bufnr number Buffer number (0 for current)
 ---@return table|nil
 local function get_attached_buffer_options(bufnr)
   local attached_bufnr = M.get_attached_bufnr(bufnr)
@@ -227,7 +228,7 @@ function M.reload_all_buffers()
 end
 
 --- Reload file on save; used for dev, to edit expect.txt and apply highlights from returned setup table
----@param pattern string: pattern to match file name
+---@param pattern string pattern to match file name
 function M.reload_on_save(pattern)
   local bufnr = utils.bufme()
   if colorizer_state.buffer_reload[bufnr] then
@@ -269,9 +270,9 @@ function M.reload_on_save(pattern)
 end
 
 ---Attach to a buffer and continuously highlight changes.
----@param bufnr number|nil: buffer number (0 for current)
----@param ud_opts table|nil: `user_default_options`
----@param bo_type 'buftype'|'filetype'|nil: The type of buffer option
+---@param bufnr number|nil buffer number (0 for current)
+---@param ud_opts table|nil `user_default_options`
+---@param bo_type 'buftype'|'filetype'|nil The type of buffer option
 function M.attach_to_buffer(bufnr, ud_opts, bo_type)
   bufnr = utils.bufme(bufnr)
   if not vim.api.nvim_buf_is_valid(bufnr) then
@@ -390,8 +391,8 @@ function M.attach_to_buffer(bufnr, ud_opts, bo_type)
 end
 
 --- Stop highlighting the current buffer.
----@param bufnr number|nil: buffer number (0 for current)
----@return number: returns -1 if buffer is not attached, otherwise returns bufnr
+---@param bufnr number|nil buffer number (0 for current)
+---@return number returns -1 if buffer is not attached, otherwise returns bufnr
 function M.detach_from_buffer(bufnr)
   bufnr = utils.bufme(bufnr)
   bufnr = M.get_attached_bufnr(bufnr)
@@ -442,8 +443,8 @@ end
 --    }
 --</pre>
 ---Setup colorizer with user options
----@param opts table|nil: User provided options
----@usage `require("colorizer").setup()`
+---@param opts table|nil User provided options
+--- `require("colorizer").setup()`
 ---@see colorizer.config
 function M.setup(opts)
   if not vim.o.termguicolors then

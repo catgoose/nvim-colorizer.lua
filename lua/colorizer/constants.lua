@@ -1,5 +1,7 @@
---- This module provides constants that are required across the application
--- @module colorizer.constants
+---@mod colorizer.constants Constants
+---@brief [[
+---This module provides constants that are required across the application.
+---@brief ]]
 local M = {}
 
 --- Plugin name

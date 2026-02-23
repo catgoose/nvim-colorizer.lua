@@ -1,5 +1,7 @@
---- Provides highlighting functions for buffer
---@module colorizer.buffer
+---@mod colorizer.buffer Buffer
+---@brief [[
+---Provides highlighting functions for buffer.
+---@brief ]]
 local M = {}
 
 local color = require("colorizer.color")
@@ -29,8 +31,8 @@ local function make_highlight_name(rgb, mode)
 end
 
 --- Create a highlight with the given rgb_hex and mode
----@param rgb_hex string: RGB hex code
----@param mode 'background'|'foreground': Mode of the highlight
+---@param rgb_hex string RGB hex code
+---@param mode 'background'|'foreground' Mode of the highlight
 local function create_highlight(rgb_hex, mode)
   mode = mode or "background"
   --  TODO: 2024-12-20 - validate rgb format
@@ -79,13 +81,13 @@ local function slice_line(bufnr, line, start_col, end_col)
 end
 
 --- Create highlight and set highlights
----@param bufnr number: Buffer number (0 for current)
----@param ns_id number: Namespace id for which to create highlights
----@param line_start number: Line_start should be 0-indexed
----@param line_end number: Last line to highlight
----@param data table: Table output of `parse_lines`
----@param ud_opts table: `user_default_options`
----@param hl_opts table|nil: Highlight options:
+---@param bufnr number Buffer number (0 for current)
+---@param ns_id number Namespace id for which to create highlights
+---@param line_start number Line_start should be 0-indexed
+---@param line_end number Last line to highlight
+---@param data table Table output of `parse_lines`
+---@param ud_opts table `user_default_options`
+---@param hl_opts table|nil Highlight options:
 --- - tailwind_lsp boolean: Clear tailwind_names namespace when applying Tailwind LSP highlighting
 function M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts, hl_opts)
   if not vim.api.nvim_buf_is_valid(bufnr) then
@@ -172,13 +174,13 @@ end
 --- Highlight the buffer region.
 -- Highlight starting from `line_start` (0-indexed) for each line described by `lines` in the
 -- buffer id `bufnr` and attach it to the namespace id `ns_id`.
----@param bufnr number: Buffer number, 0 for current
----@param ns_id number: Namespace id, default is "colorizer" created with vim.api.nvim_create_namespace
----@param line_start number: line_start should be 0-indexed
----@param line_end number: Last line to highlight
----@param ud_opts table: `user_default_options`
----@param buf_local_opts table: Buffer local options
----@return table: Detach settings table to use when cleaning up buffer state in `colorizer.detach_from_buffer`
+---@param bufnr number Buffer number, 0 for current
+---@param ns_id number Namespace id, default is "colorizer" created with vim.api.nvim_create_namespace
+---@param line_start number line_start should be 0-indexed
+---@param line_end number Last line to highlight
+---@param ud_opts table `user_default_options`
+---@param buf_local_opts table Buffer local options
+---@return table Detach settings table to use when cleaning up buffer state in `colorizer.detach_from_buffer`
 --- - ns_id number: Table of namespace ids to clear
 --- - functions function: Table of detach functions to call
 function M.highlight(bufnr, ns_id, line_start, line_end, ud_opts, buf_local_opts)
@@ -221,10 +223,10 @@ end
 
 --- Parse the given lines for colors and return a table containing
 -- rgb_hex and range per line
----@param bufnr number: Buffer number (0 for current)
----@param lines table: Table of lines to parse
----@param line_start number: Buffer line number to start highlighting
----@param ud_opts table: `user_default_options`
+---@param bufnr number Buffer number (0 for current)
+---@param lines table Table of lines to parse
+---@param line_start number Buffer line number to start highlighting
+---@param ud_opts table `user_default_options`
 ---@return table|nil
 function M.parse_lines(bufnr, lines, line_start, ud_opts)
   local loop_parse_fn = matcher.make(ud_opts)

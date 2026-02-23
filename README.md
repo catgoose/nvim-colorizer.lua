@@ -27,8 +27,6 @@
   - [TODO](#todo)
   <!--toc:end-->
 
-[![luadoc](https://img.shields.io/badge/luadoc-0.1-blue)](https://catgoose.github.io/nvim-colorizer.lua/)
-
 A high-performance color highlighter for Neovim which has **no external
 dependencies**! Written in performant Luajit.
 
@@ -358,9 +356,7 @@ require("colorizer").setup(
 )
 ```
 
-For lower level interface, see
-[LuaDocs for API details](https://catgoose.github.io/nvim-colorizer.lua/modules/colorizer.html)
-or use `:h colorizer` once installed.
+For lower level interface, use `:h colorizer` once installed.
 
 ### Lazyload Colorizer with Lazy.nvim
 
@@ -556,8 +552,9 @@ Inserting 100,000 randomized words
 
 ## Extras
 
-Documentation is generated using ldoc. See
-[scripts/gen_docs.sh](https://github.com/colorizer/nvim-colorizer.lua/blob/master/scripts/gen_docs.sh)
+Documentation is generated using [lemmy-help](https://github.com/numToStr/lemmy-help).
+See [scripts/gen_docs.sh](https://github.com/catgoose/nvim-colorizer.lua/blob/master/scripts/gen_docs.sh).
+Use `:help colorizer` in Neovim to view the docs.
 
 ## TODO
 

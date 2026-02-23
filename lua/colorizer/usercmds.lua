@@ -1,19 +1,19 @@
---[[-- This module provides functions for creating user commands for the Colorizer plugin in Neovim.
-It allows the creation of commands to attach, detach, reload, and toggle the Colorizer functionality on buffers.
-Available commands are:
-<pre>
-- `ColorizerAttachToBuffer`: Attaches Colorizer to the current buffer
-- `ColorizerDetachFromBuffer`: Detaches Colorizer from the current buffer
-- `ColorizerReloadAllBuffers`: Reloads Colorizer for all buffers
-- `ColorizerToggle`: Toggles Colorizer attachment to the buffer </pre>
-]]
--- @module colorizer.usercmds
+---@mod colorizer.usercmds User Commands
+---@brief [[
+---This module provides functions for creating user commands for the Colorizer plugin in Neovim.
+---It allows the creation of commands to attach, detach, reload, and toggle the Colorizer functionality on buffers.
+---Available commands are:
+---- `ColorizerAttachToBuffer`: Attaches Colorizer to the current buffer
+---- `ColorizerDetachFromBuffer`: Detaches Colorizer from the current buffer
+---- `ColorizerReloadAllBuffers`: Reloads Colorizer for all buffers
+---- `ColorizerToggle`: Toggles Colorizer attachment to the buffer
+---@brief ]]
 local M = {}
 
 --- Helper function to wrap a command function in a Neovim user command.
 -- Creates a user command with the given name and function.
--- @param name string The name of the command to create
--- @param f function The function to execute when the command is run
+---@param name string The name of the command to create
+---@param f function The function to execute when the command is run
 local wrap = function(name, f)
   vim.api.nvim_create_user_command(name, function()
     f()

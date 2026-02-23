@@ -1,9 +1,10 @@
---[[-- Manages matching and parsing of color patterns in buffers.
-This module provides functions for setting up and applying color parsers
-for different color formats such as RGB, HSL, hexadecimal, and named colors.
-It uses a trie-based structure to optimize prefix-based parsing.
-]]
--- @module colorizer.matcher
+---@mod colorizer.matcher Matcher
+---@brief [[
+---Manages matching and parsing of color patterns in buffers.
+---This module provides functions for setting up and applying color parsers
+---for different color formats such as RGB, HSL, hexadecimal, and named colors.
+---It uses a trie-based structure to optimize prefix-based parsing.
+---@brief ]]
 local M = {}
 
 local Trie = require("colorizer.trie")
@@ -34,11 +35,11 @@ parsers.prefix = {
 }
 
 ---Form a trie stuct with the given prefixes
----@param matchers table: List of prefixes, {"rgb", "hsl"}
----@param matchers_trie table: Table containing information regarding non-trie based parsers
----@param hooks? table: Table of hook functions
+---@param matchers table List of prefixes, {"rgb", "hsl"}
+---@param matchers_trie table Table containing information regarding non-trie based parsers
+---@param hooks? table Table of hook functions
 -- hooks.disable_line_highlight: function to be called after parsing the line
----@return function: function which will just parse the line for enabled parsers
+---@return function function which will just parse the line for enabled parsers
 local function compile(matchers, matchers_trie, hooks)
   local trie = Trie(matchers_trie)
 
@@ -114,8 +115,8 @@ end
 ---Parse the given options and return a function with enabled parsers.
 --if no parsers enabled then return false
 --Do not try make the function again if it is present in the cache
----@param ud_opts table: options created in `colorizer.setup`
----@return function|boolean: function which will just parse the line for enabled parsers
+---@param ud_opts table options created in `colorizer.setup`
+---@return function|boolean function which will just parse the line for enabled parsers
 function M.make(ud_opts)
   if not ud_opts then
     return false

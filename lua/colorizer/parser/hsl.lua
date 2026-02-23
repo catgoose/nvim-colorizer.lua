@@ -1,8 +1,9 @@
---[[-- This module provides a parser for identifying and converting `hsl()` and `hsla()` CSS functions to RGB hexadecimal format.
-It supports various CSS color value formats, including degrees (`deg`), turns (`turn`), percentages, and alpha transparency.
-This function is useful for syntax highlighting or color recognition in a text editor.
-]]
--- @module colorizer.parser.hsl
+---@mod colorizer.parser.hsl HSL Parser
+---@brief [[
+---This module provides a parser for identifying and converting `hsl()` and `hsla()` CSS functions to RGB hexadecimal format.
+---It supports various CSS color value formats, including degrees (`deg`), turns (`turn`), percentages, and alpha transparency.
+---This function is useful for syntax highlighting or color recognition in a text editor.
+---@brief ]]
 local M = {}
 
 local count = require("colorizer.utils").count
@@ -15,12 +16,12 @@ local pattern_cache = {}
 --- Parses `hsl()` and `hsla()` CSS functions and converts them to RGB hexadecimal format.
 -- This function matches `hsl()` or `hsla()` functions within a line of text, extracting and converting the hue, saturation, and luminance
 -- to an RGB color. It handles angles in degrees and turns, percentages, and an optional alpha (transparency) value.
----@param line string: The line of text to parse
----@param i number: The starting index within the line where parsing should begin
----@param opts table: Parsing options, including:
+---@param line string The line of text to parse
+---@param i number The starting index within the line where parsing should begin
+---@param opts table Parsing options, including:
 ---  - `prefix` (string): "hsl" or "hsla" to specify the CSS function type.
----@return number|nil: The end index of the parsed `hsl/hsla` function within the line, or `nil` if no match was found.
----@return string|nil: The RGB hexadecimal color (e.g., "ff0000" for red), or `nil` if parsing failed
+---@return number|nil The end index of the parsed `hsl/hsla` function within the line, or `nil` if no match was found.
+---@return string|nil The RGB hexadecimal color (e.g., "ff0000" for red), or `nil` if parsing failed
 function M.parser(line, i, opts)
   local min_len = #"hsla(0,0%,0%)" - 1
   local min_commas, min_spaces = 2, 2

@@ -1,21 +1,21 @@
---[[-- This module provides a parser that identifies named colors from a given line of text.
-It uses a Trie structure for efficient prefix-based matching of color names to #rrggbb values.
-The module supports multiple namespaces, enabling flexible configuration and handling of
-different types of color names (e.g., lowercase, uppercase, camelcase, custom names, Tailwind names).
-
-Namespaces:
-<pre>
-- lowercase: Contains color names converted to lowercase (e.g., "red" -> "#ff0000").
-- uppercase: Contains color names converted to uppercase (e.g., "RED" -> "#ff0000").
-- camelcase: Contains color names in camel case (e.g., "LightBlue" -> "#add8e6").
-- tailwind_names: Contains color names based on TailwindCSS conventions, including prefixes.
-- names_custom: Contains user-defined color names, either as a table or a function returning a table.</pre>
-
-The parser dynamically populates the Trie and namespaces based on the provided options.
-Unused namespaces are left empty, avoiding unnecessary memory usage. Color name matching respects
-the configured namespaces and user-defined preferences, such as whether to strip digits.
-]]
--- @module colorizer.parser.names
+---@mod colorizer.parser.names Names Parser
+---@brief [[
+---This module provides a parser that identifies named colors from a given line of text.
+---It uses a Trie structure for efficient prefix-based matching of color names to #rrggbb values.
+---The module supports multiple namespaces, enabling flexible configuration and handling of
+---different types of color names (e.g., lowercase, uppercase, camelcase, custom names, Tailwind names).
+---
+---Namespaces:
+---- lowercase: Contains color names converted to lowercase (e.g., "red" -> "#ff0000").
+---- uppercase: Contains color names converted to uppercase (e.g., "RED" -> "#ff0000").
+---- camelcase: Contains color names in camel case (e.g., "LightBlue" -> "#add8e6").
+---- tailwind_names: Contains color names based on TailwindCSS conventions, including prefixes.
+---- names_custom: Contains user-defined color names, either as a table or a function returning a table.
+---
+---The parser dynamically populates the Trie and namespaces based on the provided options.
+---Unused namespaces are left empty, avoiding unnecessary memory usage. Color name matching respects
+---the configured namespaces and user-defined preferences, such as whether to strip digits.
+---@brief ]]
 local M = {}
 
 local Trie = require("colorizer.trie")
@@ -64,9 +64,9 @@ local function is_namespace_set(namespace)
 end
 
 --- Updates the color value for a given color name.
----@param name string: The color name.
----@param hex string: The color value in hex format.
----@param namespace string: The color map namespace.
+---@param name string The color name.
+---@param hex string The color value in hex format.
+---@param namespace string The color map namespace.
 function M.update_color(name, hex, namespace)
   if not name or not hex then
     return
@@ -78,10 +78,10 @@ function M.update_color(name, hex, namespace)
 end
 
 --- Internal function to add a color to the Trie and map.
----@param name string: The color name.
----@param val string: The color value in hex format.
----@param namespace string: The color map namespace.
----@param hash? string: Use namespace hash key
+---@param name string The color name.
+---@param val string The color value in hex format.
+---@param namespace string The color map namespace.
+---@param hash? string Use namespace hash key
 local function add_color(name, val, namespace, hash)
   local nc = names_cache
   nc.name_minlen = nc.name_minlen and math.min(#name, nc.name_minlen) or #name
@@ -265,10 +265,10 @@ local function needs_population(m_opts)
 end
 
 --- Parses a line to identify color names.
----@param line string: The text line to parse.
----@param i number: The index to start parsing from.
----@param m_opts table: Matcher opts
----@return number|nil, string|nil: Length of match and hex value if found.
+---@param line string The text line to parse.
+---@param i number The index to start parsing from.
+---@param m_opts table Matcher opts
+---@return number|nil, string|nil Length of match and hex value if found.
 function M.parser(line, i, m_opts)
   if not names_cache.trie or needs_population(m_opts) then
     populate_colors(m_opts)

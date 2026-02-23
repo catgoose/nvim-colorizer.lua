@@ -1,8 +1,9 @@
---[[-- This module provides a parser for identifying and converting `rgb()` and `rgba()` CSS functions to RGB hexadecimal format.
-It supports decimal and percentage values for RGB channels, as well as an optional alpha (transparency) component.
-The function can interpret a variety of CSS syntax variations, making it useful for syntax highlighting or color parsing.
-]]
--- @module colorizer.parser.rgb
+---@mod colorizer.parser.rgb RGB Parser
+---@brief [[
+---This module provides a parser for identifying and converting `rgb()` and `rgba()` CSS functions to RGB hexadecimal format.
+---It supports decimal and percentage values for RGB channels, as well as an optional alpha (transparency) component.
+---The function can interpret a variety of CSS syntax variations, making it useful for syntax highlighting or color parsing.
+---@brief ]]
 local M = {}
 
 local utils = require("colorizer.utils")
@@ -13,12 +14,12 @@ local hex_pattern_cache = {}
 --- Parses `rgb()` and `rgba()` CSS functions and converts them to RGB hexadecimal format.
 -- This function matches `rgb()` or `rgba()` functions in a line of text, extracting RGB and optional alpha values.
 -- It supports decimal and percentage formats, alpha transparency, and comma or space-separated CSS syntax.
----@param line string: The line of text to parse for the color function
----@param i number: The starting index within the line where parsing should begin
----@param opts table: Parsing options, including:
+---@param line string The line of text to parse for the color function
+---@param i number The starting index within the line where parsing should begin
+---@param opts table Parsing options, including:
 --  - `prefix` (string): "rgb" or "rgba" to specify the CSS function type
----@return number|nil: The end index of the parsed `rgb/rgba` function within the line, or `nil` if parsing failed
----@return string|nil: The RGB hexadecimal color (e.g., "ff0000" for red), or `nil` if parsing failed
+---@return number|nil The end index of the parsed `rgb/rgba` function within the line, or `nil` if parsing failed
+---@return string|nil The RGB hexadecimal color (e.g., "ff0000" for red), or `nil` if parsing failed
 function M.parser(line, i, opts)
   local min_len = #"rgba(0,0,0)" - 1
   local min_commas, min_spaces, min_percent = 2, 2, 3

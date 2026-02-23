@@ -1,8 +1,9 @@
---[[-- This module provides a parser for identifying and converting xterm color codes to RGB hexadecimal format.
-It supports both #xNN format (decimal, 0-255) and ANSI escape sequences \e[38;5;NNNm for xterm 256-color palette.
-The function reads the color code and returns the corresponding RGB hex string from the xterm color palette.
-]]
--- @module colorizer.parser.xterm
+---@mod colorizer.parser.xterm Xterm Parser
+---@brief [[
+---This module provides a parser for identifying and converting xterm color codes to RGB hexadecimal format.
+---It supports both #xNN format (decimal, 0-255) and ANSI escape sequences \e[38;5;NNNm for xterm 256-color palette.
+---The function reads the color code and returns the corresponding RGB hex string from the xterm color palette.
+---@brief ]]
 local M = {}
 
 -- Xterm 256-color palette (0-255) as RGB hex strings
@@ -48,10 +49,10 @@ local BYTE_x = 0x78    -- 'x'
 --   2. ANSI escape sequences \e[38;5;NNNm for xterm 256-color palette.
 --   3. ANSI escape sequences \e[X;Ym for xterm 16-color palette.
 -- It returns the corresponding RGB hex string from the xterm color palette.
----@param line string: The line of text to parse for xterm color codes
----@param i number: The starting index within the line where parsing should begin
----@return number|nil: The end index of the parsed xterm color code within the line, or `nil` if parsing failed
----@return string|nil: The RGB hexadecimal color from the xterm palette, or `nil` if parsing failed
+---@param line string The line of text to parse for xterm color codes
+---@param i number The starting index within the line where parsing should begin
+---@return number|nil The end index of the parsed xterm color code within the line, or `nil` if parsing failed
+---@return string|nil The RGB hexadecimal color from the xterm palette, or `nil` if parsing failed
 function M.parser(line, i)
   -- #xNN (decimal, 0-255)
   if line:byte(i) == BYTE_HASH and line:byte(i + 1) == BYTE_x then

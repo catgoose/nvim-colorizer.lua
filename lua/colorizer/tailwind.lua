@@ -1,9 +1,10 @@
---[[-- Handles Tailwind CSS color highlighting within buffers.
-This module integrates with the Tailwind CSS Language Server Protocol (LSP) to retrieve and apply
-color highlights for Tailwind classes in a buffer. It manages LSP attachment, autocmds for color updates,
-and maintains state for efficient Tailwind highlighting.
-]]
--- @module colorizer.tailwind
+---@mod colorizer.tailwind Tailwind
+---@brief [[
+---Handles Tailwind CSS color highlighting within buffers.
+---This module integrates with the Tailwind CSS Language Server Protocol (LSP) to retrieve and apply
+---color highlights for Tailwind classes in a buffer. It manages LSP attachment, autocmds for color updates,
+---and maintains state for efficient Tailwind highlighting.
+---@brief ]]
 local M = {}
 
 local utils = require("colorizer.utils")
@@ -12,7 +13,7 @@ local tw_ns_id = require("colorizer.constants").namespace.tailwind_lsp
 local lsp_cache = {}
 
 --- Cleanup tailwind variables and autocmd
----@param bufnr number|nil: buffer number (0 for current)
+---@param bufnr number|nil buffer number (0 for current)
 function M.cleanup(bufnr)
   bufnr = utils.bufme(bufnr)
   if lsp_cache[bufnr] and lsp_cache[bufnr].au_id and lsp_cache[bufnr].au_id[1] then
@@ -79,13 +80,13 @@ local function highlight(bufnr, ud_opts, add_highlight)
 end
 
 --- Highlight buffer using values returned by tailwindcss
----@param bufnr number: Buffer number (0 for current)
----@param ud_opts table: `user_default_options`
----@param buf_local_opts table: Buffer local options
----@param add_highlight function: Function to add highlights
----@param on_detach function: Function to call when LSP is detached
----@param line_start number: Start line
----@param line_end number: End line
+---@param bufnr number Buffer number (0 for current)
+---@param ud_opts table `user_default_options`
+---@param buf_local_opts table Buffer local options
+---@param add_highlight function Function to add highlights
+---@param on_detach function Function to call when LSP is detached
+---@param line_start number Start line
+---@param line_end number End line
 ---@return boolean|nil
 function M.lsp_highlight(
   bufnr,

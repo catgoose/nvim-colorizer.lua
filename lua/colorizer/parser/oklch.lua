@@ -1,10 +1,11 @@
---[[-- This module provides a parser for identifying and converting `oklch()` CSS functions to RGB hexadecimal format.
-OKLCH is a perceptual color space that provides better uniformity than HSL.
-It supports lightness as both decimal (0-1) and percentage (0-100%),
-chroma values, hue in degrees, and optional alpha transparency.
-This function is useful for syntax highlighting or color recognition in a text editor.
-]]
--- @module colorizer.parser.oklch
+---@mod colorizer.parser.oklch OKLCH Parser
+---@brief [[
+---This module provides a parser for identifying and converting `oklch()` CSS functions to RGB hexadecimal format.
+---OKLCH is a perceptual color space that provides better uniformity than HSL.
+---It supports lightness as both decimal (0-1) and percentage (0-100%),
+---chroma values, hue in degrees, and optional alpha transparency.
+---This function is useful for syntax highlighting or color recognition in a text editor.
+---@brief ]]
 local M = {}
 
 local floor = math.floor
@@ -19,11 +20,11 @@ local oklch_pattern =
 -- This function matches `oklch()` functions within a line of text, extracting and converting
 -- the lightness, chroma, and hue to an RGB color. It handles lightness as decimal or percentage,
 -- and an optional alpha (transparency) value.
----@param line string: The line of text to parse
----@param i number: The starting index within the line where parsing should begin
----@param _ table: Parsing options (unused, included for API consistency)
----@return number|nil: The end index of the parsed `oklch` function within the line, or `nil` if no match was found.
----@return string|nil: The RGB hexadecimal color (e.g., "ff0000" for red), or `nil` if parsing failed
+---@param line string The line of text to parse
+---@param i number The starting index within the line where parsing should begin
+---@param _ table Parsing options (unused, included for API consistency)
+---@return number|nil The end index of the parsed `oklch` function within the line, or `nil` if no match was found.
+---@return string|nil The RGB hexadecimal color (e.g., "ff0000" for red), or `nil` if parsing failed
 function M.parser(line, i, _)
   local min_len = #"oklch(0 0 0)" - 1
   local min, max = math.min, math.max

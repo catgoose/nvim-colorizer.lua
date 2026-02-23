@@ -1,9 +1,10 @@
---[[-- Manages Sass variable parsing and color detection for buffers.
-This module handles the parsing of Sass color variables, managing import statements,
-and watching files for updates to Sass variable definitions.
-It supports recursive Sass imports, resolving color values for each variable, and caching color definitions.
-]]
--- @module colorizer.sass
+---@mod colorizer.sass Sass
+---@brief [[
+---Manages Sass variable parsing and color detection for buffers.
+---This module handles the parsing of Sass color variables, managing import statements,
+---and watching files for updates to Sass variable definitions.
+---It supports recursive Sass imports, resolving color values for each variable, and caching color definitions.
+---@brief ]]
 local M = {}
 
 local uv = vim.uv or vim.loop
@@ -34,9 +35,9 @@ end
 
 --- Parse the given line for sass color names
 -- check for value in state[buf].definitions_all
----@param line string: Line to parse
----@param i number: Index of line from where to start parsing
----@param bufnr number: Buffer number
+---@param line string Line to parse
+---@param i number Index of line from where to start parsing
+---@param bufnr number Buffer number
 ---@return number|nil, string|nil
 function M.parser(line, i, bufnr)
   local variable_name = line:match("^%$([%w_-]+)", i)
@@ -242,13 +243,13 @@ end -- sass_parse_lines end
 --- Parse the given lines for sass variabled and add to `sass_state[buf].definitions_all`.
 -- which is then used in |sass_name_parser|
 -- If lines are not given, then fetch the lines with line_start and line_end
----@param bufnr number: Buffer number
+---@param bufnr number Buffer number
 ---@param line_start number
 ---@param line_end number
 ---@param lines table|nil
 ---@param color_parser function|boolean
----@param ud_opts table: `user_default_options`
----@param buf_local_opts table|nil: Buffer local options
+---@param ud_opts table `user_default_options`
+---@param buf_local_opts table|nil Buffer local options
 function M.update_variables(
   bufnr,
   line_start,

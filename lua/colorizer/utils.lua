@@ -1,8 +1,9 @@
---[[-- Provides utility functions for color handling and file operations.
-This module contains helper functions for checking byte categories, merging tables,
-parsing colors, managing file watchers, and handling buffer lines.
-]]
--- @module colorizer.utils
+---@mod colorizer.utils Utilities
+---@brief [[
+---Provides utility functions for color handling and file operations.
+---This module contains helper functions for checking byte categories, merging tables,
+---parsing colors, managing file watchers, and handling buffer lines.
+---@brief ]]
 local M = {}
 
 local uv = vim.uv or vim.loop
@@ -51,9 +52,9 @@ do
 end
 
 --- Returns HEX format from RGB values
----@param r number: Red value
----@param g number: Green value
----@param b number: Blue value
+---@param r number Red value
+---@param g number Green value
+---@param b number Blue value
 function M.rgb_to_hex(r, g, b)
   local rgb_hex = string.format("%02x%02x%02x", r, g, b)
   return rgb_hex
@@ -61,21 +62,21 @@ end
 
 --- Checks if a byte represents an alphanumeric character.
 ---@param byte number The byte to check.
----@return boolean: `true` if the byte is alphanumeric, otherwise `false`.
+---@return boolean `true` if the byte is alphanumeric, otherwise `false`.
 function M.byte_is_alphanumeric(byte)
   return band(byte_category[byte], category_alphanum) ~= 0
 end
 
 --- Checks if a byte represents a hexadecimal character.
 ---@param byte number The byte to check.
----@return boolean: `true` if the byte is hexadecimal, otherwise `false`.
+---@return boolean `true` if the byte is hexadecimal, otherwise `false`.
 function M.byte_is_hex(byte)
   return band(byte_category[byte], category_hex) ~= 0
 end
 
 --- Extract non-alphanumeric characters to add as a valid index in the Trie
----@param tbl table: The table to extract non-alphanumeric characters from.
----@return string: The extracted non-alphanumeric characters.
+---@param tbl table The table to extract non-alphanumeric characters from.
+---@return string The extracted non-alphanumeric characters.
 function M.get_non_alphanum_keys(tbl)
   local non_alphanum_chars = {}
   for key, _ in pairs(tbl) do
@@ -91,8 +92,8 @@ function M.get_non_alphanum_keys(tbl)
 end
 
 --- Adds additional characters to the list of valid color characters.
----@param chars string: The additional characters to add.
----@return boolean: `true` if the characters were added, otherwise `false`.
+---@param chars string The additional characters to add.
+---@return boolean `true` if the characters were added, otherwise `false`.
 function M.add_additional_color_chars(chars)
   for i = 1, #chars do
     local char = chars:sub(i, i)
@@ -114,8 +115,8 @@ end
 --- Checks if a byte is valid as a color character (alphanumeric, dynamically added chars, or hardcoded characters).
 -- Additional chars added via add_additional_color_chars set byte_category[byte] = 1 (bit 0),
 -- which is caught by the alphanumeric check (bits 0-1). So a single non-zero check suffices.
----@param byte number: The byte to check.
----@return boolean: `true` if the byte is valid, otherwise `false`.
+---@param byte number The byte to check.
+---@return boolean `true` if the byte is valid, otherwise `false`.
 function M.byte_is_valid_color_char(byte)
   return byte_category[byte] ~= 0
 end
@@ -129,8 +130,8 @@ function M.count(str, pattern)
 end
 
 --- Get last modified time of a file
----@param path string: file path
----@return number|nil: modified time
+---@param path string file path
+---@return number|nil modified time
 function M.get_last_modified(path)
   local fd = uv.fs_open(path, "r", 438)
   if not fd then
@@ -148,15 +149,15 @@ end
 
 --- Parses a hexadecimal byte.
 ---@param byte number The byte to parse.
----@return number: The parsed hexadecimal value of the byte.
+---@return number The parsed hexadecimal value of the byte.
 function M.parse_hex(byte)
   return rshift(byte_category[byte], 4)
 end
 
 --- Watch a file for changes and execute callback
----@param path string: File path
----@param callback function: Callback to execute
----@param ... table: params for callback
+---@param path string File path
+---@param callback function Callback to execute
+---@param ... table params for callback
 ---@return uv_fs_event_t|nil
 function M.watch_file(path, callback, ...)
   if not path or type(callback) ~= "function" then
@@ -202,16 +203,16 @@ end
 
 --- Validates and returns a buffer number.
 -- If the provided buffer number is invalid, defaults to the current buffer.
----@param bufnr number|nil: The buffer number to validate.
----@return number: The validated buffer number.
+---@param bufnr number|nil The buffer number to validate.
+---@return number The validated buffer number.
 function M.bufme(bufnr)
   return bufnr and bufnr ~= 0 and vim.api.nvim_buf_is_valid(bufnr) and bufnr
     or vim.api.nvim_get_current_buf()
 end
 
 --- Returns range of visible lines
----@param bufnr number: Buffer number
----@return number, number: Start (0-index) and end (exclusive) range of lines in viewport
+---@param bufnr number Buffer number
+---@return number, number Start (0-index) and end (exclusive) range of lines in viewport
 function M.visible_line_range(bufnr)
   bufnr = M.bufme(bufnr)
   local range = vim.api.nvim_buf_call(bufnr, function()
@@ -232,7 +233,7 @@ function M.log_message(message)
 end
 
 --- Returns sha256 hash of lua table
----@param tbl table: Table to be hashed
+---@param tbl table Table to be hashed
 function M.hash_table(tbl)
   -- local json_string = vim.json.encode(tbl, { escape_slash = true })
   local json_string = vim.json.encode(tbl)
