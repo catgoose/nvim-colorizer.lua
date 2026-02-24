@@ -16,6 +16,8 @@ help:
 	@echo "  make trie-test         - Run trie test"
 	@echo "  make trie-benchmark    - Run trie benchmark"
 	@echo "  make minimal           - Run the minimal script"
+	@echo "  make docs              - Generate vimdoc and HTML docs"
+	@echo "  make docs-html         - Generate HTML docs only"
 	@echo "  make clean             - Remove test/colorizer_*"
 
 trie: trie-test trie-benchmark
@@ -46,4 +48,11 @@ test-file:
 	@echo "Running test file: $(FILE)"
 	@bash $(TEST_SCRIPT) $(FILE)
 
-.PHONY: help test test-file trie trie-test trie-benchmark minimal clean
+docs: docs-html
+	@bash $(SCRIPTS_DIR)/gen_docs.sh
+
+docs-html:
+	@echo "Generating HTML docs..."
+	@bash $(SCRIPTS_DIR)/gen_html.sh
+
+.PHONY: help test test-file trie trie-test trie-benchmark minimal clean docs docs-html

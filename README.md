@@ -556,6 +556,8 @@ Documentation is generated using [lemmy-help](https://github.com/numToStr/lemmy-
 See [scripts/gen_docs.sh](https://github.com/catgoose/nvim-colorizer.lua/blob/master/scripts/gen_docs.sh).
 Use `:help colorizer` in Neovim to view the docs.
 
+Full API documentation is available at [catgoose.github.io/nvim-colorizer.lua](https://catgoose.github.io/nvim-colorizer.lua/).
+
 ## TODO
 
 - [ ] Add more color types ( var, advanced css functions )

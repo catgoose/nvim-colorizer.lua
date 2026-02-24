@@ -1,4 +1,4 @@
-name: Generate vimdoc
+name: Documentation
 
 on:
   push:
@@ -8,31 +8,58 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 jobs:
   vimdoc:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Install lemmy-help
         run: |
+          mkdir -p deps
           LEMMY_VERSION="v0.13.2"
           curl -fsSL "https://github.com/numToStr/lemmy-help/releases/download/${LEMMY_VERSION}/lemmy-help-x86_64-unknown-linux-gnu.tar.gz" \
-            | tar xz -C /usr/local/bin
+            | tar xz -C deps/
+          chmod +x deps/lemmy-help
 
       - name: Generate vimdoc
-        run: bash scripts/gen_docs.sh
+        run: scripts/gen_docs.sh
 
-      - name: Commit doc changes
+      - name: Commit vimdoc
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "docs: auto-generate vimdoc"
+          file_pattern: doc/colorizer.txt
+
+  html-docs:
+    runs-on: ubuntu-latest
+    needs: vimdoc
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Lua and LDoc
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add doc/colorizer.txt
-          if git diff --cached --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "docs: update vimdoc"
-            git push
-          fi
+          sudo apt-get update
+          sudo apt-get install -y lua5.4 luarocks
+          sudo luarocks install ldoc
+
+      - name: Generate HTML docs
+        run: scripts/gen_html.sh
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: doc/html
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

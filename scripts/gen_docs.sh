@@ -10,8 +10,15 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 OUTPUT="$PROJECT_DIR/doc/colorizer.txt"
 
-if ! command -v lemmy-help &>/dev/null; then
-  echo "Error: lemmy-help not found. Install with: cargo install lemmy-help --features=cli"
+# Check for lemmy-help
+if command -v lemmy-help &>/dev/null; then
+  LEMMY=lemmy-help
+elif [ -x "$PROJECT_DIR/deps/lemmy-help" ]; then
+  LEMMY="$PROJECT_DIR/deps/lemmy-help"
+else
+  echo "lemmy-help not found. Install via:"
+  echo "  cargo install lemmy-help --features=cli"
+  echo "  or download from https://github.com/numToStr/lemmy-help/releases"
   exit 1
 fi
 
@@ -19,7 +26,9 @@ mkdir -p "$PROJECT_DIR/doc"
 
 # List source files in logical order: main module first, then config,
 # then remaining modules, then parsers
-lemmy-help \
+echo "Generating vimdoc with $LEMMY..."
+
+$LEMMY \
   "$PROJECT_DIR/lua/colorizer.lua" \
   "$PROJECT_DIR/lua/colorizer/config.lua" \
   "$PROJECT_DIR/lua/colorizer/buffer.lua" \

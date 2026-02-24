@@ -1,0 +1,210 @@
+/* nvim-colorizer.lua LDoc custom theme */
+
+:root {
+  --bg: #1a1b26;
+  --bg-alt: #24283b;
+  --fg: #c0caf5;
+  --fg-dim: #565f89;
+  --accent: #7aa2f7;
+  --accent-dim: #3d59a1;
+  --border: #3b4261;
+  --code-bg: #1f2335;
+  --success: #9ece6a;
+  --warning: #e0af68;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--fg);
+  background-color: var(--bg);
+  margin: 0;
+  padding: 0;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+#navigation {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 260px;
+  height: 100vh;
+  overflow-y: auto;
+  background-color: var(--bg-alt);
+  border-right: 1px solid var(--border);
+  padding: 1.5rem 1rem;
+}
+
+#navigation h1 {
+  font-size: 1.2rem;
+  margin: 0 0 1rem 0;
+  color: var(--accent);
+}
+
+#navigation ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#navigation li {
+  margin: 0.3rem 0;
+}
+
+#navigation a {
+  color: var(--fg-dim);
+  font-size: 0.9rem;
+}
+
+#navigation a:hover,
+#navigation a.active {
+  color: var(--accent);
+}
+
+#content {
+  margin-left: 260px;
+  padding: 2rem 3rem;
+  max-width: 900px;
+}
+
+h1 {
+  font-size: 1.8rem;
+  color: var(--accent);
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 0.5rem;
+}
+
+h2 {
+  font-size: 1.4rem;
+  color: var(--fg);
+  margin-top: 2rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.3rem;
+}
+
+h3 {
+  font-size: 1.1rem;
+  color: var(--fg);
+}
+
+code, pre {
+  font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
+  font-size: 0.9em;
+}
+
+code {
+  background-color: var(--code-bg);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+}
+
+pre {
+  background-color: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+pre code {
+  background: none;
+  padding: 0;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1rem 0;
+}
+
+th, td {
+  border: 1px solid var(--border);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+
+th {
+  background-color: var(--bg-alt);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+tr:nth-child(even) {
+  background-color: var(--bg-alt);
+}
+
+.summary {
+  margin: 1rem 0;
+}
+
+.function_name {
+  font-weight: 700;
+  color: var(--success);
+}
+
+.parameter {
+  color: var(--warning);
+  font-style: italic;
+}
+
+dt {
+  font-weight: 600;
+  margin-top: 0.8rem;
+  color: var(--fg);
+}
+
+dd {
+  margin-left: 1.5rem;
+  color: var(--fg-dim);
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 2rem 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  #navigation {
+    position: static;
+    width: 100%;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  #content {
+    margin-left: 0;
+    padding: 1rem;
+  }
+}
+
+/* Light mode override */
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f8f9fa;
+    --bg-alt: #e9ecef;
+    --fg: #212529;
+    --fg-dim: #6c757d;
+    --accent: #0d6efd;
+    --accent-dim: #6ea8fe;
+    --border: #dee2e6;
+    --code-bg: #e9ecef;
+    --success: #198754;
+    --warning: #fd7e14;
+  }
+}
