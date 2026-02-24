@@ -26,9 +26,10 @@ fi
 
 # Strip LuaCATS-only annotations that clash with LDoc
 find "$WORK_DIR/lua" -name '*.lua' -exec sed -i \
-  -e 's/^---@class/-- @class/' \
-  -e 's/^---@field/-- @field/' \
-  -e 's/^---@alias/-- @alias/' \
+  -e '/^---@class/d' \
+  -e '/^---@field/d' \
+  -e '/^---@alias/d' \
+  -e 's/ *---@cast.*//' \
   {} +
 
 echo "Generating HTML docs with ldoc..."
