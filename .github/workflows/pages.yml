@@ -20,7 +20,7 @@ jobs:
       - name: Install lemmy-help
         run: |
           mkdir -p deps
-          LEMMY_VERSION="v0.13.2"
+          LEMMY_VERSION="v0.11.0"
           curl -fsSL "https://github.com/numToStr/lemmy-help/releases/download/${LEMMY_VERSION}/lemmy-help-x86_64-unknown-linux-gnu.tar.gz" \
             | tar xz -C deps/
           chmod +x deps/lemmy-help
