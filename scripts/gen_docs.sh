@@ -28,7 +28,7 @@ mkdir -p "$PROJECT_DIR/doc"
 # then remaining modules, then parsers
 echo "Generating vimdoc with $LEMMY..."
 
-$LEMMY \
+$LEMMY -f \
   "$PROJECT_DIR/lua/colorizer.lua" \
   "$PROJECT_DIR/lua/colorizer/config.lua" \
   "$PROJECT_DIR/lua/colorizer/buffer.lua" \
