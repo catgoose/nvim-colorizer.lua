@@ -34,19 +34,81 @@ parsers.prefix = {
   ["_oklch"] = parsers.oklch_function,
 }
 
+--- Per-buffer custom parser state
+local buffer_parser_state = {}
+
+--- Get or create per-buffer state for a custom parser
+---@param bufnr number
+---@param parser_name string
+---@return table
+function M.get_buffer_parser_state(bufnr, parser_name)
+  buffer_parser_state[bufnr] = buffer_parser_state[bufnr] or {}
+  return buffer_parser_state[bufnr][parser_name]
+end
+
+--- Initialize per-buffer state for custom parsers
+---@param bufnr number
+---@param custom_parsers table List of custom parser definitions
+function M.init_buffer_parser_state(bufnr, custom_parsers)
+  if not custom_parsers or #custom_parsers == 0 then
+    return
+  end
+  buffer_parser_state[bufnr] = buffer_parser_state[bufnr] or {}
+  for _, parser_def in ipairs(custom_parsers) do
+    if parser_def.state_factory and not buffer_parser_state[bufnr][parser_def.name] then
+      buffer_parser_state[bufnr][parser_def.name] = parser_def.state_factory()
+    end
+  end
+end
+
+--- Clean up per-buffer custom parser state
+---@param bufnr number
+function M.cleanup_buffer_parser_state(bufnr)
+  buffer_parser_state[bufnr] = nil
+end
+
 ---Form a trie stuct with the given prefixes
 ---@param matchers table List of prefixes, {"rgb", "hsl"}
 ---@param matchers_trie table Table containing information regarding non-trie based parsers
 ---@param hooks? table Table of hook functions
 -- hooks.disable_line_highlight: function to be called after parsing the line
+---@param custom_parsers? table List of custom parser definitions
 ---@return function function which will just parse the line for enabled parsers
-local function compile(matchers, matchers_trie, hooks)
+local function compile(matchers, matchers_trie, hooks, custom_parsers)
   local trie = Trie(matchers_trie)
 
   -- Pre-build underscore-prefixed keys for trie prefix lookup
   local prefix_keys = {}
   for _, p in ipairs(matchers_trie) do
     prefix_keys[p] = "_" .. p
+  end
+
+  -- Build custom parser lookup structures
+  local custom_prefix_trie_entries = {}
+  local custom_prefix_parsers = {}
+  local custom_byte_parsers = {}
+  if custom_parsers and #custom_parsers > 0 then
+    for _, parser_def in ipairs(custom_parsers) do
+      if parser_def.prefixes then
+        for _, pfx in ipairs(parser_def.prefixes) do
+          table.insert(custom_prefix_trie_entries, pfx)
+          custom_prefix_parsers[pfx] = parser_def
+        end
+      end
+      if parser_def.prefix_bytes then
+        for _, byte_val in ipairs(parser_def.prefix_bytes) do
+          custom_byte_parsers[byte_val] = custom_byte_parsers[byte_val] or {}
+          table.insert(custom_byte_parsers[byte_val], parser_def)
+        end
+      end
+    end
+  end
+
+  -- Build custom prefix trie if we have custom prefixes
+  local custom_trie
+  if #custom_prefix_trie_entries > 0 then
+    table.sort(custom_prefix_trie_entries, function(a, b) return #a > #b end)
+    custom_trie = Trie(custom_prefix_trie_entries)
   end
 
   local function parse_fn(line, i, bufnr, line_nr)
@@ -58,9 +120,29 @@ local function compile(matchers, matchers_trie, hooks)
       return
     end
 
+    local byte = line:byte(i)
+
+    -- Check custom byte-triggered parsers first
+    if custom_byte_parsers[byte] then
+      for _, parser_def in ipairs(custom_byte_parsers[byte]) do
+        local state = buffer_parser_state[bufnr] and buffer_parser_state[bufnr][parser_def.name]
+        local ctx = {
+          line = line,
+          col = i,
+          bufnr = bufnr,
+          line_nr = line_nr,
+          state = state or {},
+        }
+        local len, rgb_hex = parser_def.parse(ctx)
+        if len and rgb_hex then
+          return len, rgb_hex
+        end
+      end
+    end
+
     -- prefix #
     if matchers.rgba_hex_parser then
-      if line:byte(i) == BYTE_HASH then
+      if byte == BYTE_HASH then
         if matchers.xterm_enabled then
           local len, rgb_hex = parsers.xterm(line, i)
           if len and rgb_hex then
@@ -73,7 +155,7 @@ local function compile(matchers, matchers_trie, hooks)
 
     -- prefix $, SASS Color names
     if matchers.sass_name_parser then
-      if line:byte(i) == BYTE_DOLLAR then
+      if byte == BYTE_DOLLAR then
         return parsers.sass_name(line, i, bufnr)
       end
     end
@@ -82,6 +164,26 @@ local function compile(matchers, matchers_trie, hooks)
       local len, rgb_hex = parsers.xterm(line, i)
       if len and rgb_hex then
         return len, rgb_hex
+      end
+    end
+
+    -- Check custom prefix-triggered parsers
+    if custom_trie then
+      local custom_prefix = custom_trie:longest_prefix(line, i)
+      if custom_prefix and custom_prefix_parsers[custom_prefix] then
+        local parser_def = custom_prefix_parsers[custom_prefix]
+        local state = buffer_parser_state[bufnr] and buffer_parser_state[bufnr][parser_def.name]
+        local ctx = {
+          line = line,
+          col = i,
+          bufnr = bufnr,
+          line_nr = line_nr,
+          state = state or {},
+        }
+        local len, rgb_hex = parser_def.parse(ctx)
+        if len and rgb_hex then
+          return len, rgb_hex
+        end
       end
     end
 
@@ -97,6 +199,26 @@ local function compile(matchers, matchers_trie, hooks)
     if matchers.color_name_parser then
       return parsers.color_name(line, i, matchers.color_name_parser)
     end
+
+    -- Last resort: custom parsers without specific prefix/byte triggers
+    if custom_parsers then
+      for _, parser_def in ipairs(custom_parsers) do
+        if not parser_def.prefixes and not parser_def.prefix_bytes then
+          local state = buffer_parser_state[bufnr] and buffer_parser_state[bufnr][parser_def.name]
+          local ctx = {
+            line = line,
+            col = i,
+            bufnr = bufnr,
+            line_nr = line_nr,
+            state = state or {},
+          }
+          local len, rgb_hex = parser_def.parse(ctx)
+          if len and rgb_hex then
+            return len, rgb_hex
+          end
+        end
+      end
+    end
   end
 
   return parse_fn
@@ -107,6 +229,7 @@ local matcher_cache
 -- Called from colorizer.setup
 function M.reset_cache()
   matcher_cache = {}
+  buffer_parser_state = {}
 end
 do
   M.reset_cache()
@@ -115,39 +238,75 @@ end
 ---Parse the given options and return a function with enabled parsers.
 --if no parsers enabled then return false
 --Do not try make the function again if it is present in the cache
----@param ud_opts table options created in `colorizer.setup`
+---@param opts table New-format options (with opts.parsers) or legacy flat ud_opts
 ---@return function|boolean function which will just parse the line for enabled parsers
-function M.make(ud_opts)
-  if not ud_opts then
+function M.make(opts)
+  if not opts then
     return false
   end
 
-  local enable_names = ud_opts.names
-  local enable_names_lowercase = ud_opts.names_opts and ud_opts.names_opts.lowercase
-  local enable_names_camelcase = ud_opts.names_opts and ud_opts.names_opts.camelcase
-  local enable_names_uppercase = ud_opts.names_opts and ud_opts.names_opts.uppercase
-  local enable_names_strip_digits = ud_opts.names_opts and ud_opts.names_opts.strip_digits
-  local enable_names_custom = ud_opts.names_custom_hashed
-  local enable_sass = ud_opts.sass and ud_opts.sass.enable
-  local enable_tailwind = ud_opts.tailwind
-  local enable_RGB = ud_opts.RGB
-  local enable_RGBA = ud_opts.RGBA
-  local enable_RRGGBB = ud_opts.RRGGBB
-  local enable_RRGGBBAA = ud_opts.RRGGBBAA
-  local enable_AARRGGBB = ud_opts.AARRGGBB
-  local enable_rgb = ud_opts.rgb_fn
-  local enable_hsl = ud_opts.hsl_fn
-  local enable_oklch = ud_opts.oklch_fn
-  local enable_xterm = ud_opts.xterm
+  -- Read from new format (opts.parsers.*) or fall back to legacy flat keys
+  local p = opts.parsers
+  local enable_names, enable_names_lowercase, enable_names_camelcase
+  local enable_names_uppercase, enable_names_strip_digits, enable_names_custom
+  local enable_sass, enable_tailwind, enable_tailwind_mode
+  local enable_RGB, enable_RGBA, enable_RRGGBB, enable_RRGGBBAA, enable_AARRGGBB
+  local enable_rgb, enable_hsl, enable_oklch, enable_xterm
+  local custom_parsers, hooks
+
+  if p then
+    -- New format
+    enable_names = p.names.enable
+    enable_names_lowercase = p.names.lowercase
+    enable_names_camelcase = p.names.camelcase
+    enable_names_uppercase = p.names.uppercase
+    enable_names_strip_digits = p.names.strip_digits
+    enable_names_custom = p.names.custom_hashed
+    enable_sass = p.sass and p.sass.enable
+    enable_tailwind = p.tailwind.enable
+    enable_tailwind_mode = p.tailwind.enable and p.tailwind.mode or false
+    enable_RGB = p.hex.enable and p.hex.rgb
+    enable_RGBA = p.hex.enable and p.hex.rgba
+    enable_RRGGBB = p.hex.enable and p.hex.rrggbb
+    enable_RRGGBBAA = p.hex.enable and p.hex.rrggbbaa
+    enable_AARRGGBB = p.hex.enable and p.hex.aarrggbb
+    enable_rgb = p.rgb.enable
+    enable_hsl = p.hsl.enable
+    enable_oklch = p.oklch.enable
+    enable_xterm = p.xterm.enable
+    custom_parsers = p.custom and #p.custom > 0 and p.custom or nil
+    hooks = opts.hooks
+  else
+    -- Legacy flat format (backward compat)
+    enable_names = opts.names
+    enable_names_lowercase = opts.names_opts and opts.names_opts.lowercase
+    enable_names_camelcase = opts.names_opts and opts.names_opts.camelcase
+    enable_names_uppercase = opts.names_opts and opts.names_opts.uppercase
+    enable_names_strip_digits = opts.names_opts and opts.names_opts.strip_digits
+    enable_names_custom = opts.names_custom_hashed
+    enable_sass = opts.sass and opts.sass.enable
+    enable_tailwind = opts.tailwind and opts.tailwind ~= false
+    enable_tailwind_mode = opts.tailwind
+    enable_RGB = opts.RGB
+    enable_RGBA = opts.RGBA
+    enable_RRGGBB = opts.RRGGBB
+    enable_RRGGBBAA = opts.RRGGBBAA
+    enable_AARRGGBB = opts.AARRGGBB
+    enable_rgb = opts.rgb_fn
+    enable_hsl = opts.hsl_fn
+    enable_oklch = opts.oklch_fn
+    enable_xterm = opts.xterm
+    hooks = opts.hooks
+  end
 
   -- Rather than use bit.lshift or calculate 2^x, use precalculated values to
   -- create unique bitmask
   local matcher_mask = 0
     + (enable_names and 1 or 0)
-    + (enable_names_lowercase and 2 or 0)
-    + (enable_names_camelcase and 4 or 0)
-    + (enable_names_uppercase and 8 or 0)
-    + (enable_names_strip_digits and 16 or 0)
+    + (enable_names and enable_names_lowercase and 2 or 0)
+    + (enable_names and enable_names_camelcase and 4 or 0)
+    + (enable_names and enable_names_uppercase and 8 or 0)
+    + (enable_names and enable_names_strip_digits and 16 or 0)
     + (enable_names_custom and 32 or 0)
     + (enable_RGB and 64 or 0)
     + (enable_RGBA and 128 or 0)
@@ -156,19 +315,33 @@ function M.make(ud_opts)
     + (enable_AARRGGBB and 1024 or 0)
     + (enable_rgb and 2048 or 0)
     + (enable_hsl and 4096 or 0)
-    + (enable_tailwind == "normal" and 8192 or 0)
-    + (enable_tailwind == "lsp" and 16384 or 0)
-    + (enable_tailwind == "both" and 32768 or 0)
+    + (enable_tailwind_mode == "normal" and 8192 or 0)
+    + (enable_tailwind_mode == "lsp" and 16384 or 0)
+    + (enable_tailwind_mode == "both" and 32768 or 0)
     + (enable_sass and 65536 or 0)
     + (enable_xterm and 131072 or 0)
     + (enable_oklch and 262144 or 0)
+
+  -- Add custom parser names to mask
+  local custom_parser_key = ""
+  if custom_parsers then
+    matcher_mask = matcher_mask + 524288
+    local names = {}
+    for _, cp in ipairs(custom_parsers) do
+      table.insert(names, cp.name)
+    end
+    table.sort(names)
+    custom_parser_key = table.concat(names, ",")
+  end
 
   if matcher_mask == 0 then
     return false
   end
 
   local matcher_key = enable_names_custom
-      and string.format("%d|%s", matcher_mask, enable_names_custom.hash)
+      and string.format("%d|%s|%s", matcher_mask, enable_names_custom.hash, custom_parser_key)
+    or custom_parser_key ~= ""
+      and string.format("%d|%s", matcher_mask, custom_parser_key)
     or matcher_mask
 
   local loop_parse_fn = matcher_cache[matcher_key]
@@ -180,7 +353,7 @@ function M.make(ud_opts)
   local matchers_prefix = {}
   matchers.xterm_enabled = enable_xterm
 
-  local enable_tailwind_names = enable_tailwind == "normal" or enable_tailwind == "both"
+  local enable_tailwind_names = enable_tailwind_mode == "normal" or enable_tailwind_mode == "both"
   if enable_names or enable_names_custom or enable_tailwind_names then
     matchers.color_name_parser = matchers.color_name_parser or {}
     if enable_names then
@@ -249,7 +422,7 @@ function M.make(ud_opts)
     matchers[value] = { prefix = value }
   end
 
-  loop_parse_fn = compile(matchers, matchers_prefix, ud_opts.hooks)
+  loop_parse_fn = compile(matchers, matchers_prefix, hooks, custom_parsers)
   matcher_cache[matcher_key] = loop_parse_fn
 
   return loop_parse_fn

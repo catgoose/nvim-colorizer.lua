@@ -46,16 +46,16 @@ end
 
 T["new_bo_options"] = new_set()
 
-T["new_bo_options"]["returns user_default_options for unknown filetype"] = function()
+T["new_bo_options"]["returns default options for unknown filetype"] = function()
   config.get_setup_options(nil)
   local buf = vim.api.nvim_create_buf(false, true)
   -- Set a filetype that has no cached options
   vim.api.nvim_set_option_value("filetype", "zzz_unknown_ft", { buf = buf })
   local result = config.new_bo_options(buf, "filetype")
   eq(true, result ~= nil)
-  -- Should match user_default_options
-  eq(config.options.user_default_options.names, result.names)
-  eq(config.options.user_default_options.RGB, result.RGB)
+  -- Should match the canonical new-format options
+  eq(config.options.options.parsers.names.enable, result.parsers.names.enable)
+  eq(config.options.options.parsers.hex.rgb, result.parsers.hex.rgb)
   vim.api.nvim_buf_delete(buf, { force = true })
 end
 

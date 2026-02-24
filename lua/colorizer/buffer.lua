@@ -5,6 +5,7 @@
 local M = {}
 
 local color = require("colorizer.color")
+local config = require("colorizer.config")
 local const = require("colorizer.constants")
 local matcher = require("colorizer.matcher")
 local names = require("colorizer.parser.names")
@@ -80,34 +81,75 @@ local function slice_line(bufnr, line, start_col, end_col)
   return string.sub(lines[1], start_col + 1, end_col)
 end
 
+--- Read display/tailwind options from either new or legacy format
+---@param opts table Options (new or legacy format)
+---@return table display_opts { mode, virtualtext_char, virtualtext_position, virtualtext_hl_mode }
+---@return table tailwind_opts { enable, mode, update_names }
+local function read_display_opts(opts)
+  local display, tw
+  if opts.display then
+    -- New format
+    local d = opts.display
+    display = {
+      mode = d.mode,
+      virtualtext_char = d.virtualtext.char,
+      virtualtext_position = d.virtualtext.position,
+      virtualtext_hl_mode = d.virtualtext.hl_mode,
+    }
+    local p = opts.parsers.tailwind
+    tw = {
+      enable = p.enable,
+      mode = p.enable and p.mode or false,
+      update_names = p.update_names,
+    }
+  else
+    -- Legacy flat format
+    display = {
+      mode = opts.mode,
+      virtualtext_char = opts.virtualtext,
+      virtualtext_position = opts.virtualtext_inline,
+      virtualtext_hl_mode = opts.virtualtext_mode,
+    }
+    tw = {
+      enable = opts.tailwind and opts.tailwind ~= false,
+      mode = opts.tailwind,
+      update_names = opts.tailwind_opts and opts.tailwind_opts.update_names,
+    }
+  end
+  return display, tw
+end
+
 --- Create highlight and set highlights
 ---@param bufnr number Buffer number (0 for current)
 ---@param ns_id number Namespace id for which to create highlights
 ---@param line_start number Line_start should be 0-indexed
 ---@param line_end number Last line to highlight
 ---@param data table Table output of `parse_lines`
----@param ud_opts table `user_default_options`
+---@param opts table Options (new format or legacy `user_default_options`)
 ---@param hl_opts table|nil Highlight options:
 --- - tailwind_lsp boolean: Clear tailwind_names namespace when applying Tailwind LSP highlighting
-function M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts, hl_opts)
+function M.add_highlight(bufnr, ns_id, line_start, line_end, data, opts, hl_opts)
   if not vim.api.nvim_buf_is_valid(bufnr) then
     return
   end
   hl_opts = hl_opts or {}
   vim.api.nvim_buf_clear_namespace(bufnr, ns_id, line_start, line_end)
   local priority = hl_opts.tailwind_lsp and PRIORITY_LSP or PRIORITY_DEFAULT
-  if ud_opts.mode == "background" or ud_opts.mode == "foreground" then
-    local tw_both = ud_opts.tailwind == "both" and hl_opts.tailwind_lsp
+
+  local d, tw = read_display_opts(opts)
+
+  if d.mode == "background" or d.mode == "foreground" then
+    local tw_both = tw.mode == "both" and hl_opts.tailwind_lsp
     for linenr, hls in pairs(data) do
       for _, hl in ipairs(hls) do
-        if tw_both and ud_opts.tailwind_opts.update_names then
+        if tw_both and tw.update_names then
           local txt = slice_line(bufnr, linenr, hl.range[1], hl.range[2])
           if txt and not hl_state.updated_colors[txt] then
             hl_state.updated_colors[txt] = true
             names.update_color(txt, hl.rgb_hex, "tailwind_names")
           end
         end
-        local hlname = create_highlight(hl.rgb_hex, ud_opts.mode)
+        local hlname = create_highlight(hl.rgb_hex, d.mode)
         vim.api.nvim_buf_set_extmark(bufnr, ns_id, linenr, hl.range[1], {
           end_col = hl.range[2],
           hl_group = hlname,
@@ -115,7 +157,7 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts, hl_o
         })
       end
     end
-  elseif ud_opts.mode == "virtualtext" then
+  elseif d.mode == "virtualtext" then
     -- Reuse a single opts table across iterations to reduce allocations
     local extmark_opts = {
       virt_text = nil,
@@ -129,9 +171,9 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts, hl_o
     local virt_text_list = { virt_text_entry }
     for linenr, hls in pairs(data) do
       for _, hl in ipairs(hls) do
-        if ud_opts.tailwind == "both" and hl_opts.tailwind_lsp then
+        if tw.mode == "both" and hl_opts.tailwind_lsp then
           vim.api.nvim_buf_clear_namespace(bufnr, ns_id, linenr, linenr + 1)
-          if ud_opts.tailwind_opts.update_names then
+          if tw.update_names then
             local txt = slice_line(bufnr, linenr, hl.range[1], hl.range[2])
             if txt and not hl_state.updated_colors[txt] then
               hl_state.updated_colors[txt] = true
@@ -139,27 +181,24 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts, hl_o
             end
           end
         end
-        local hlname = create_highlight(hl.rgb_hex, ud_opts.virtualtext_mode)
+        local hlname = create_highlight(hl.rgb_hex, d.virtualtext_hl_mode)
         local start_col = hl.range[2]
         virt_text_entry[2] = hlname
-        if ud_opts.virtualtext_inline then
+        if d.virtualtext_position then
           extmark_opts.virt_text_pos = "inline"
+          local vt_char = d.virtualtext_char or const.defaults.virtualtext
           virt_text_entry[1] = string.format(
             "%s%s%s",
-            ud_opts.virtualtext_inline == "before"
-                and (ud_opts.virtualtext or const.defaults.virtualtext)
-              or " ",
-            ud_opts.virtualtext_inline == "before" and " " or "",
-            ud_opts.virtualtext_inline == "after"
-                and (ud_opts.virtualtext or const.defaults.virtualtext)
-              or ""
+            d.virtualtext_position == "before" and vt_char or " ",
+            d.virtualtext_position == "before" and " " or "",
+            d.virtualtext_position == "after" and vt_char or ""
           )
-          if ud_opts.virtualtext_inline == "before" then
+          if d.virtualtext_position == "before" then
             start_col = hl.range[1]
           end
         else
           extmark_opts.virt_text_pos = nil
-          virt_text_entry[1] = ud_opts.virtualtext or const.defaults.virtualtext
+          virt_text_entry[1] = d.virtualtext_char or const.defaults.virtualtext
         end
         extmark_opts.virt_text = virt_text_list
         extmark_opts.end_col = start_col
@@ -178,38 +217,66 @@ end
 ---@param ns_id number Namespace id, default is "colorizer" created with vim.api.nvim_create_namespace
 ---@param line_start number line_start should be 0-indexed
 ---@param line_end number Last line to highlight
----@param ud_opts table `user_default_options`
+---@param opts table Options (new format or legacy `user_default_options`)
 ---@param buf_local_opts table Buffer local options
 ---@return table Detach settings table to use when cleaning up buffer state in `colorizer.detach_from_buffer`
 --- - ns_id number: Table of namespace ids to clear
 --- - functions function: Table of detach functions to call
-function M.highlight(bufnr, ns_id, line_start, line_end, ud_opts, buf_local_opts)
+function M.highlight(bufnr, ns_id, line_start, line_end, opts, buf_local_opts)
   ns_id = ns_id or const.namespace.default
   bufnr = utils.bufme(bufnr)
   local detach = { ns_id = {}, functions = {} }
   local lines = vim.api.nvim_buf_get_lines(bufnr, line_start, line_end, false)
 
+  -- Read sass config from new or legacy format
+  local sass_enable, sass_parsers_cfg
+  if opts.parsers then
+    sass_enable = opts.parsers.sass and opts.parsers.sass.enable
+    sass_parsers_cfg = opts.parsers.sass and opts.parsers.sass.parsers
+  else
+    sass_enable = opts.sass and opts.sass.enable
+    sass_parsers_cfg = opts.sass and opts.sass.parsers
+  end
+
   -- only update sass varibles when text is changed
-  if buf_local_opts.__event ~= "WinScrolled" and ud_opts.sass and ud_opts.sass.enable then
+  if buf_local_opts.__event ~= "WinScrolled" and sass_enable then
     table.insert(detach.functions, sass.cleanup)
+
+    -- Build matcher options for sass color parsing
+    local sass_matcher_opts
+    if opts.parsers then
+      sass_matcher_opts = config.expand_sass_parsers(sass_parsers_cfg)
+    else
+      sass_matcher_opts = sass_parsers_cfg
+    end
+
     sass.update_variables(
       bufnr,
       0,
       -1,
       nil,
-      matcher.make(ud_opts.sass.parsers),
-      ud_opts,
+      matcher.make(sass_matcher_opts),
+      opts,
       buf_local_opts
     )
   end
 
   -- Parse lines from matcher
-  local data = M.parse_lines(bufnr, lines, line_start, ud_opts) or {}
-  M.add_highlight(bufnr, ns_id, line_start, line_end, data, ud_opts)
-  if ud_opts.tailwind == "lsp" or ud_opts.tailwind == "both" then
+  local data = M.parse_lines(bufnr, lines, line_start, opts) or {}
+  M.add_highlight(bufnr, ns_id, line_start, line_end, data, opts)
+
+  -- Read tailwind mode from new or legacy format
+  local tw_mode
+  if opts.parsers then
+    tw_mode = opts.parsers.tailwind.enable and opts.parsers.tailwind.mode or false
+  else
+    tw_mode = opts.tailwind
+  end
+
+  if tw_mode == "lsp" or tw_mode == "both" then
     tailwind.lsp_highlight(
       bufnr,
-      ud_opts,
+      opts,
       buf_local_opts,
       M.add_highlight,
       tailwind.cleanup,
@@ -226,10 +293,10 @@ end
 ---@param bufnr number Buffer number (0 for current)
 ---@param lines table Table of lines to parse
 ---@param line_start number Buffer line number to start highlighting
----@param ud_opts table `user_default_options`
+---@param opts table Options (new format or legacy `user_default_options`)
 ---@return table|nil
-function M.parse_lines(bufnr, lines, line_start, ud_opts)
-  local loop_parse_fn = matcher.make(ud_opts)
+function M.parse_lines(bufnr, lines, line_start, opts)
+  local loop_parse_fn = matcher.make(opts)
   if not loop_parse_fn then
     return
   end

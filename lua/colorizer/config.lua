@@ -1,12 +1,80 @@
 ---@mod colorizer.config Configuration
 ---@brief [[
 ---Provides configuration options and utilities for setting up colorizer.
+---
+---Colorizer supports two configuration formats:
+---
+---1. **New structured format** (recommended): Uses the `options` key with
+---   logically grouped settings under `parsers`, `display`, and `hooks`.
+---
+---2. **Legacy flat format**: Uses the `user_default_options` key with flat
+---   keys like `RGB`, `RRGGBB`, `rgb_fn`, `mode`, etc. This format is
+---   automatically translated to the new format and will continue to work.
+---
+---NEW FORMAT EXAMPLE ~
+---
+--->lua
+---  require("colorizer").setup({
+---    options = {
+---      parsers = {
+---        css = true,  -- preset: enables names, hex, rgb, hsl, oklch
+---        tailwind = { enable = true, mode = "normal" },
+---      },
+---      display = {
+---        mode = "virtualtext",
+---        virtualtext = { position = "after" },
+---      },
+---    },
+---  })
+---<
+---
+---LEGACY FORMAT EXAMPLE ~
+---
+--->lua
+---  require("colorizer").setup({
+---    user_default_options = {
+---      css = true,
+---      tailwind = "normal",
+---      mode = "virtualtext",
+---      virtualtext_inline = "after",
+---    },
+---  })
+---<
+---
+---PRESETS ~
+---
+---  `parsers.css = true` enables: names, hex (all), rgb, hsl, oklch
+---  `parsers.css_fn = true` enables: rgb, hsl, oklch
+---
+---  Individual settings always override presets:
+--->lua
+---  parsers = { css = true, rgb = { enable = false } }
+---  -- rgb is disabled despite css preset
+---<
+---
+---CUSTOM PARSERS ~
+---
+---  Register custom parsers via `parsers.custom`:
+--->lua
+---  parsers = {
+---    custom = {
+---      {
+---        name = "my_parser",
+---        prefixes = { "Color." },
+---        parse = function(ctx)
+---          -- return length, rgb_hex or nil
+---        end,
+---      },
+---    },
+---  }
+---<
+---
 ---@brief ]]
 local M = {}
 
 local utils = require("colorizer.utils")
 
---- Defaults for colorizer options
+--- Legacy defaults for colorizer options (old flat format)
 local plugin_user_default_options = {
   names = true,
   names_opts = {
@@ -41,6 +109,131 @@ local plugin_user_default_options = {
     disable_line_highlight = false,
   },
 }
+
+--- Default options in the new structured format.
+---
+--- The `options` table is organized into logical groups:
+--- - `parsers`: Which color formats to detect
+--- - `display`: How to render detected colors
+--- - `hooks`: Functions to customize behavior
+--- - `always_update`: Whether to update unfocused buffers
+---
+---@class colorizer.NewOptions
+---@field parsers colorizer.ParsersOptions Parser configuration
+---@field display colorizer.DisplayOptions Display configuration
+---@field hooks colorizer.Hooks Hook functions
+---@field always_update boolean Update color values even if buffer is not focused
+
+---@class colorizer.ParsersOptions
+---@field css boolean Preset: enables names, hex (all), rgb, hsl, oklch. Individual settings override.
+---@field css_fn boolean Preset: enables rgb, hsl, oklch. Individual settings override.
+---@field names colorizer.ParsersNames Named color options
+---@field hex colorizer.ParsersHex Hex color options
+---@field rgb colorizer.ParsersSimple rgb()/rgba() function parser
+---@field hsl colorizer.ParsersSimple hsl()/hsla() function parser
+---@field oklch colorizer.ParsersSimple oklch() function parser
+---@field tailwind colorizer.ParsersTailwind Tailwind CSS color options
+---@field sass colorizer.ParsersSass Sass variable color options
+---@field xterm colorizer.ParsersSimple xterm 256-color code parser
+---@field custom colorizer.CustomParserDef[] List of custom parser definitions
+
+---@class colorizer.ParsersNames
+---@field enable boolean Enable named colors (e.g. "Blue", "red")
+---@field lowercase boolean Match lowercase names (e.g. "blue")
+---@field camelcase boolean Match camelCase names (e.g. "LightBlue")
+---@field uppercase boolean Match UPPERCASE names (e.g. "BLUE")
+---@field strip_digits boolean Ignore names with digits (e.g. skip "blue3")
+---@field custom table|function|false Custom name-to-RGB mappings. Table of `{name = "#rrggbb"}` or function returning one.
+
+---@class colorizer.ParsersHex
+---@field enable boolean Master switch for all hex formats
+---@field rgb boolean #RGB (3-digit)
+---@field rgba boolean #RGBA (4-digit)
+---@field rrggbb boolean #RRGGBB (6-digit)
+---@field rrggbbaa boolean #RRGGBBAA (8-digit)
+---@field aarrggbb boolean 0xAARRGGBB
+
+---@class colorizer.ParsersSimple
+---@field enable boolean Enable this parser
+
+---@class colorizer.ParsersTailwind
+---@field enable boolean Enable Tailwind CSS colors
+---@field mode 'normal'|'lsp'|'both' "normal" parses names, "lsp" uses LSP, "both" combines
+---@field update_names boolean Update tailwind_names color mapping from LSP results
+
+---@class colorizer.ParsersSass
+---@field enable boolean Enable Sass color variable parsing
+---@field parsers table Parsers for sass color values (e.g. `{ css = true }`)
+
+---@class colorizer.DisplayOptions
+---@field mode 'background'|'foreground'|'virtualtext' How to display detected colors
+---@field virtualtext colorizer.DisplayVirtualtext Virtual text display settings
+
+---@class colorizer.DisplayVirtualtext
+---@field char string Character used for virtual text (default "■")
+---@field position false|'before'|'after' Inline virtualtext position. `false` for end-of-line.
+---@field hl_mode 'background'|'foreground' Highlight mode for virtual text
+local default_options = {
+  parsers = {
+    css = false,
+    css_fn = false,
+
+    names = {
+      enable = false,
+      lowercase = true,
+      camelcase = true,
+      uppercase = false,
+      strip_digits = false,
+      custom = false,
+    },
+
+    hex = {
+      enable = false,
+      rgb = true,
+      rgba = true,
+      rrggbb = true,
+      rrggbbaa = false,
+      aarrggbb = false,
+    },
+
+    rgb = { enable = false },
+    hsl = { enable = false },
+    oklch = { enable = false },
+
+    tailwind = {
+      enable = false,
+      mode = "normal",
+      update_names = false,
+    },
+
+    sass = {
+      enable = false,
+      parsers = { css = true },
+    },
+
+    xterm = { enable = false },
+
+    custom = {},
+  },
+
+  display = {
+    mode = "background",
+    virtualtext = {
+      char = "■",
+      position = false,
+      hl_mode = "foreground",
+    },
+  },
+
+  hooks = {
+    disable_line_highlight = false,
+  },
+
+  always_update = false,
+}
+
+--- Expose default_options for external use
+M.default_options = default_options
 
 --- Default user options for colorizer.
 ---
@@ -97,15 +290,36 @@ local plugin_user_default_options = {
 ---@class colorizer.Hooks
 ---@field disable_line_highlight function|false Returns boolean which controls if line should be parsed for highlights.
 
---- Options for colorizer that were passed in to setup function
+---@class colorizer.CustomParserDef
+---@field name string unique identifier
+---@field prefixes? string[] trie prefixes, e.g. {"color("}
+---@field prefix_bytes? number[] raw byte triggers, e.g. {0x23} for '#'
+---@field parse fun(ctx: colorizer.ParserContext): (number?, string?)
+---@field setup? fun(ctx: colorizer.ParserContext) called once per buffer attach
+---@field teardown? fun(ctx: colorizer.ParserContext) called on buffer detach
+---@field state_factory? fun(): table returns initial per-buffer state
+
+---@class colorizer.ParserContext
+---@field line string current line text
+---@field col number 1-indexed column position
+---@field bufnr number
+---@field line_nr number 0-indexed line number
+---@field opts table full resolved options for this buffer
+---@field parser_opts table this parser's config subtable
+---@field state table per-buffer persistent state
+
+--- Options for colorizer that were passed in to setup function.
+--- After setup(), `M.options.options` holds the canonical new-format config.
+--- `M.options.user_default_options` holds a backward-compatible flat view.
 ---@class colorizer.Options
----@field filetypes table
----@field buftypes table
----@field user_commands boolean|table
----@field lazy_load boolean
----@field user_default_options colorizer.UserDefaultOptions
----@field exclusions table
----@field all table
+---@field filetypes table File types to highlight
+---@field buftypes table Buffer types to highlight
+---@field user_commands boolean|table User commands to enable
+---@field lazy_load boolean Lazily schedule buffer highlighting
+---@field user_default_options colorizer.UserDefaultOptions Legacy flat options (backward compat)
+---@field options colorizer.NewOptions Canonical structured options
+---@field exclusions table Excluded filetypes/buftypes
+---@field all table Whether all filetypes/buftypes are enabled
 M.options = {}
 local function init_options()
   M.options = {
@@ -115,6 +329,7 @@ local function init_options()
     user_commands = true,
     lazy_load = false,
     user_default_options = plugin_user_default_options,
+    options = vim.deepcopy(default_options),
     -- shortcuts for filetype, buftype inclusion, exclusion settings
     exclusions = { buftype = {}, filetype = {} },
     all = { buftype = false, filetype = false },
@@ -136,7 +351,507 @@ do
   init_config()
 end
 
---- Validate user options and set defaults.
+-- Keys that indicate legacy (old flat) format
+local legacy_keys = {
+  "RGB", "RGBA", "RRGGBB", "RRGGBBAA", "AARRGGBB",
+  "rgb_fn", "hsl_fn", "oklch_fn",
+  "names", "names_opts", "names_custom",
+  "css", "css_fn",
+  "tailwind", "tailwind_opts",
+  "sass", "xterm",
+  "mode", "virtualtext", "virtualtext_inline", "virtualtext_mode",
+  "always_update",
+}
+
+--- Detect if options are in legacy (old flat) format.
+---@param opts table Options to check
+---@return boolean true if options appear to be in legacy format
+function M.is_legacy_options(opts)
+  if not opts then
+    return false
+  end
+  for _, key in ipairs(legacy_keys) do
+    if opts[key] ~= nil then
+      return true
+    end
+  end
+  return false
+end
+
+--- Translate legacy flat options to new structured format.
+-- Returns a partial new-format table containing only the values present in old_opts.
+---@param old_opts table Legacy flat options
+---@return table Partial new-format options
+function M.translate_options(old_opts)
+  local new = { parsers = {} }
+
+  -- parsers.names
+  if old_opts.names ~= nil or old_opts.names_opts or old_opts.names_custom ~= nil then
+    new.parsers.names = {}
+    if old_opts.names ~= nil then
+      new.parsers.names.enable = old_opts.names
+    end
+    if old_opts.names_opts then
+      for k, v in pairs(old_opts.names_opts) do
+        new.parsers.names[k] = v
+      end
+    end
+    if old_opts.names_custom ~= nil then
+      new.parsers.names.custom = old_opts.names_custom
+    end
+  end
+
+  -- parsers.hex
+  local hex_keys = { RGB = "rgb", RGBA = "rgba", RRGGBB = "rrggbb", RRGGBBAA = "rrggbbaa", AARRGGBB = "aarrggbb" }
+  local has_hex = false
+  for old_key, new_key in pairs(hex_keys) do
+    if old_opts[old_key] ~= nil then
+      new.parsers.hex = new.parsers.hex or {}
+      new.parsers.hex[new_key] = old_opts[old_key]
+      if old_opts[old_key] then
+        has_hex = true
+      end
+    end
+  end
+  if has_hex then
+    new.parsers.hex = new.parsers.hex or {}
+    if new.parsers.hex.enable == nil then
+      new.parsers.hex.enable = true
+    end
+  end
+
+  -- parsers.rgb/hsl/oklch
+  if old_opts.rgb_fn ~= nil then
+    new.parsers.rgb = { enable = old_opts.rgb_fn }
+  end
+  if old_opts.hsl_fn ~= nil then
+    new.parsers.hsl = { enable = old_opts.hsl_fn }
+  end
+  if old_opts.oklch_fn ~= nil then
+    new.parsers.oklch = { enable = old_opts.oklch_fn }
+  end
+
+  -- Presets
+  if old_opts.css ~= nil then
+    new.parsers.css = old_opts.css
+  end
+  if old_opts.css_fn ~= nil then
+    new.parsers.css_fn = old_opts.css_fn
+  end
+
+  -- Tailwind
+  if old_opts.tailwind ~= nil then
+    new.parsers.tailwind = {}
+    if old_opts.tailwind == false then
+      new.parsers.tailwind.enable = false
+    elseif old_opts.tailwind == true then
+      new.parsers.tailwind.enable = true
+      new.parsers.tailwind.mode = "normal"
+    elseif type(old_opts.tailwind) == "string" then
+      new.parsers.tailwind.enable = true
+      new.parsers.tailwind.mode = old_opts.tailwind
+    end
+  end
+  if old_opts.tailwind_opts then
+    new.parsers.tailwind = new.parsers.tailwind or {}
+    if old_opts.tailwind_opts.update_names ~= nil then
+      new.parsers.tailwind.update_names = old_opts.tailwind_opts.update_names
+    end
+  end
+
+  -- Sass
+  if old_opts.sass then
+    new.parsers.sass = {}
+    if old_opts.sass.enable ~= nil then
+      new.parsers.sass.enable = old_opts.sass.enable
+    end
+    if old_opts.sass.parsers ~= nil then
+      new.parsers.sass.parsers = old_opts.sass.parsers
+    end
+  end
+
+  -- Xterm
+  if old_opts.xterm ~= nil then
+    new.parsers.xterm = { enable = old_opts.xterm }
+  end
+
+  -- Display
+  if old_opts.mode ~= nil or old_opts.virtualtext ~= nil
+      or old_opts.virtualtext_inline ~= nil or old_opts.virtualtext_mode ~= nil then
+    new.display = {}
+    if old_opts.mode ~= nil then
+      new.display.mode = old_opts.mode
+    end
+    if old_opts.virtualtext ~= nil or old_opts.virtualtext_inline ~= nil or old_opts.virtualtext_mode ~= nil then
+      new.display.virtualtext = {}
+      if old_opts.virtualtext ~= nil then
+        new.display.virtualtext.char = old_opts.virtualtext
+      end
+      if old_opts.virtualtext_inline ~= nil then
+        if old_opts.virtualtext_inline == true then
+          new.display.virtualtext.position = "after"
+        elseif old_opts.virtualtext_inline == "before" then
+          new.display.virtualtext.position = "before"
+        elseif old_opts.virtualtext_inline == "after" then
+          new.display.virtualtext.position = "after"
+        else
+          new.display.virtualtext.position = false
+        end
+      end
+      if old_opts.virtualtext_mode ~= nil then
+        new.display.virtualtext.hl_mode = old_opts.virtualtext_mode
+      end
+    end
+  end
+
+  -- Hooks
+  if old_opts.hooks then
+    new.hooks = {}
+    for k, v in pairs(old_opts.hooks) do
+      new.hooks[k] = v
+    end
+  end
+
+  -- Always update
+  if old_opts.always_update ~= nil then
+    new.always_update = old_opts.always_update
+  end
+
+  return new
+end
+
+--- Translate old polymorphic filetypes/buftypes format to new structured format.
+---@param old_ft table Old format filetypes/buftypes
+---@return table New format { enable, exclude, overrides }
+function M.translate_filetypes(old_ft)
+  if not old_ft then
+    return { enable = {}, exclude = {}, overrides = {} }
+  end
+
+  -- Already new format
+  if old_ft.enable or old_ft.exclude or old_ft.overrides then
+    -- Fill in missing keys
+    old_ft.enable = old_ft.enable or {}
+    old_ft.exclude = old_ft.exclude or {}
+    old_ft.overrides = old_ft.overrides or {}
+    return old_ft
+  end
+
+  -- Check if it's a plain list (all numeric keys, all strings)
+  local is_plain_list = true
+  for k, v in pairs(old_ft) do
+    if type(k) ~= "number" then
+      is_plain_list = false
+      break
+    end
+    if type(v) ~= "string" then
+      is_plain_list = false
+      break
+    end
+  end
+
+  -- Plain list without "!" entries: shorthand for { enable = {...} }
+  if is_plain_list then
+    local has_exclusions = false
+    for _, v in ipairs(old_ft) do
+      if v:sub(1, 1) == "!" then
+        has_exclusions = true
+        break
+      end
+    end
+    if not has_exclusions then
+      return { enable = old_ft, exclude = {}, overrides = {} }
+    end
+  end
+
+  -- Mixed format: strings go to enable/exclude, tables go to overrides
+  local new = { enable = {}, exclude = {}, overrides = {} }
+  for k, v in pairs(old_ft) do
+    if type(k) == "number" then
+      if type(v) == "string" then
+        if v:sub(1, 1) == "!" then
+          table.insert(new.exclude, v:sub(2))
+        else
+          table.insert(new.enable, v)
+        end
+      end
+    elseif type(k) == "string" then
+      if type(v) == "table" then
+        new.overrides[k] = M.translate_options(v)
+      end
+    end
+  end
+
+  return new
+end
+
+--- Apply preset expansions to user-provided parsers config.
+-- Expands css/css_fn presets into individual parser enables, but only
+-- for parsers that the user hasn't explicitly configured.
+-- Operates on the user's raw options BEFORE merging with defaults.
+---@param user_parsers table|nil The user's raw parsers config
+function M.apply_presets(user_parsers)
+  if not user_parsers then
+    return
+  end
+
+  -- css preset: enables names, hex (all), rgb, hsl, oklch
+  if user_parsers.css then
+    if not user_parsers.names then
+      user_parsers.names = { enable = true }
+    elseif user_parsers.names.enable == nil then
+      user_parsers.names.enable = true
+    end
+    if not user_parsers.hex then
+      user_parsers.hex = { enable = true }
+    elseif user_parsers.hex.enable == nil then
+      user_parsers.hex.enable = true
+    end
+    if not user_parsers.rgb then
+      user_parsers.rgb = { enable = true }
+    elseif user_parsers.rgb.enable == nil then
+      user_parsers.rgb.enable = true
+    end
+    if not user_parsers.hsl then
+      user_parsers.hsl = { enable = true }
+    elseif user_parsers.hsl.enable == nil then
+      user_parsers.hsl.enable = true
+    end
+    if not user_parsers.oklch then
+      user_parsers.oklch = { enable = true }
+    elseif user_parsers.oklch.enable == nil then
+      user_parsers.oklch.enable = true
+    end
+  end
+
+  -- css_fn preset: enables rgb, hsl, oklch
+  if user_parsers.css_fn then
+    if not user_parsers.rgb then
+      user_parsers.rgb = { enable = true }
+    elseif user_parsers.rgb.enable == nil then
+      user_parsers.rgb.enable = true
+    end
+    if not user_parsers.hsl then
+      user_parsers.hsl = { enable = true }
+    elseif user_parsers.hsl.enable == nil then
+      user_parsers.hsl.enable = true
+    end
+    if not user_parsers.oklch then
+      user_parsers.oklch = { enable = true }
+    elseif user_parsers.oklch.enable == nil then
+      user_parsers.oklch.enable = true
+    end
+  end
+
+  -- Remove preset keys after expansion
+  user_parsers.css = nil
+  user_parsers.css_fn = nil
+end
+
+--- Validate new-format options. Validates enums, processes names.custom, checks hook types.
+---@param opts table New-format options (fully merged with defaults)
+function M.validate_new_options(opts)
+  -- Validate display.mode enum
+  local valid_modes = { background = true, foreground = true, virtualtext = true }
+  if not valid_modes[opts.display.mode] then
+    opts.display.mode = default_options.display.mode
+  end
+
+  -- Validate tailwind.mode enum
+  local valid_tw_modes = { normal = true, lsp = true, both = true }
+  if opts.parsers.tailwind.enable and not valid_tw_modes[opts.parsers.tailwind.mode] then
+    opts.parsers.tailwind.mode = default_options.parsers.tailwind.mode
+  end
+
+  -- Validate virtualtext.position
+  local valid_vt_pos = { ["before"] = true, ["after"] = true, [false] = true }
+  if not valid_vt_pos[opts.display.virtualtext.position] then
+    opts.display.virtualtext.position = default_options.display.virtualtext.position
+  end
+
+  -- Validate virtualtext.hl_mode
+  local valid_vt_mode = { background = true, foreground = true }
+  if not valid_vt_mode[opts.display.virtualtext.hl_mode] then
+    opts.display.virtualtext.hl_mode = default_options.display.virtualtext.hl_mode
+  end
+
+  -- Process names.custom (function -> table, compute hash)
+  local custom = opts.parsers.names.custom
+  if custom and type(custom) == "table" and not next(custom) then
+    opts.parsers.names.custom = false
+    custom = false
+  end
+  if custom then
+    if type(custom) == "function" then
+      local status, names = pcall(custom)
+      if not (status and type(names) == "table") then
+        error(string.format("Error in parsers.names.custom function: %s", names or "Invalid return value"))
+      end
+      custom = names
+    end
+    if type(custom) ~= "table" then
+      error(string.format("Error in parsers.names.custom: %s", vim.inspect(custom)))
+    end
+    opts.parsers.names.custom_hashed = {
+      hash = utils.hash_table(custom),
+      names = custom,
+    }
+    opts.parsers.names.custom = false
+  end
+
+  -- Validate hooks
+  if opts.hooks then
+    if type(opts.hooks.disable_line_highlight) ~= "function" then
+      opts.hooks.disable_line_highlight = false
+    end
+  end
+
+  -- Validate custom parsers
+  if opts.parsers.custom then
+    for i, parser_def in ipairs(opts.parsers.custom) do
+      if type(parser_def) ~= "table" or not parser_def.name or type(parser_def.parse) ~= "function" then
+        error(string.format("Invalid custom parser at index %d: must have 'name' and 'parse' function", i))
+      end
+    end
+  end
+end
+
+--- Convert new-format options back to legacy flat format.
+-- Used for backward compatibility with code that hasn't been updated yet.
+---@param opts table New-format options
+---@return table Legacy flat options
+function M.as_flat(opts)
+  local flat = {}
+  local p = opts.parsers
+  local d = opts.display
+
+  -- Names
+  flat.names = p.names.enable
+  flat.names_opts = {
+    lowercase = p.names.lowercase,
+    camelcase = p.names.camelcase,
+    uppercase = p.names.uppercase,
+    strip_digits = p.names.strip_digits,
+  }
+  flat.names_custom = p.names.custom
+  flat.names_custom_hashed = p.names.custom_hashed or false
+
+  -- Hex: AND enable with individual flags
+  flat.RGB = p.hex.enable and p.hex.rgb or false
+  flat.RGBA = p.hex.enable and p.hex.rgba or false
+  flat.RRGGBB = p.hex.enable and p.hex.rrggbb or false
+  flat.RRGGBBAA = p.hex.enable and p.hex.rrggbbaa or false
+  flat.AARRGGBB = p.hex.enable and p.hex.aarrggbb or false
+
+  -- CSS functions
+  flat.rgb_fn = p.rgb.enable
+  flat.hsl_fn = p.hsl.enable
+  flat.oklch_fn = p.oklch.enable
+
+  -- Presets (already expanded)
+  flat.css = false
+  flat.css_fn = false
+
+  -- Tailwind
+  if p.tailwind.enable then
+    flat.tailwind = p.tailwind.mode
+  else
+    flat.tailwind = false
+  end
+  flat.tailwind_opts = {
+    update_names = p.tailwind.update_names,
+  }
+
+  -- Sass
+  flat.sass = {
+    enable = p.sass.enable,
+    parsers = p.sass.parsers,
+  }
+
+  -- Xterm
+  flat.xterm = p.xterm.enable
+
+  -- Display
+  flat.mode = d.mode
+  flat.virtualtext = d.virtualtext.char
+  if d.virtualtext.position then
+    flat.virtualtext_inline = d.virtualtext.position
+  else
+    flat.virtualtext_inline = false
+  end
+  flat.virtualtext_mode = d.virtualtext.hl_mode
+
+  -- Hooks
+  flat.hooks = opts.hooks and vim.deepcopy(opts.hooks) or { disable_line_highlight = false }
+
+  -- Always update
+  flat.always_update = opts.always_update
+
+  return flat
+end
+
+--- Resolve options from any format to canonical new format.
+-- Accepts new-format options, legacy flat options, or nil (returns defaults).
+-- Applies presets and validation.
+---@param opts table|nil Options in any format
+---@param user_opts table|nil The raw user-provided options (before merge), for preset priority
+---@return table Canonical new-format options
+function M.resolve_options(opts, user_opts)
+  if not opts then
+    return vim.deepcopy(default_options)
+  end
+
+  -- Already new format (has parsers key)
+  if opts.parsers then
+    local user_parsers = user_opts and user_opts.parsers or opts.parsers
+    M.apply_presets(user_parsers)
+    local merged = vim.tbl_deep_extend("force", vim.deepcopy(default_options), opts)
+    M.validate_new_options(merged)
+    return merged
+  end
+
+  -- Legacy flat format: translate, apply presets, merge, validate
+  if M.is_legacy_options(opts) then
+    local translated = M.translate_options(opts)
+    M.apply_presets(translated.parsers)
+    local merged = vim.tbl_deep_extend("force", vim.deepcopy(default_options), translated)
+    M.validate_new_options(merged)
+    return merged
+  end
+
+  return vim.deepcopy(default_options)
+end
+
+--- Build a new-format options table for sass color parsing.
+-- Expands sass.parsers presets into a full options table suitable for matcher.make().
+---@param sass_parsers table Sass parsers config (e.g. { css = true })
+---@return table New-format options for the sass color parser
+function M.expand_sass_parsers(sass_parsers)
+  if not sass_parsers then
+    return vim.deepcopy(default_options)
+  end
+  -- sass_parsers is like { css = true } - treat as preset-style config
+  local user_parsers = vim.deepcopy(sass_parsers)
+  M.apply_presets(user_parsers)
+
+  -- Build a full parsers table from the expanded config
+  local parsers = vim.deepcopy(default_options.parsers)
+  for k, v in pairs(user_parsers) do
+    if type(v) == "boolean" and parsers[k] then
+      if type(parsers[k]) == "table" then
+        parsers[k].enable = v
+      end
+    elseif type(v) == "table" and parsers[k] then
+      parsers[k] = vim.tbl_deep_extend("force", parsers[k], v)
+    end
+  end
+
+  local opts = vim.deepcopy(default_options)
+  opts.parsers = parsers
+  return opts
+end
+
+--- Validate user options and set defaults (legacy format).
 local function validate_options(ud_opts)
   -- Set true value to it's "name"
   if ud_opts.tailwind == true then
@@ -201,13 +916,12 @@ end
 --- Set options for a specific buffer or file type.
 ---@param bo_type 'buftype'|'filetype' The type of buffer option
 ---@param val string The specific value to set.
----@param ud_opts table `user_default_options`
-function M.set_bo_value(bo_type, val, ud_opts)
-  validate_options(ud_opts)
-  options_cache[bo_type][val] = ud_opts
+---@param opts table New-format options
+function M.set_bo_value(bo_type, val, opts)
+  options_cache[bo_type][val] = opts
 end
 
---- Parse and apply alias options to the user options.
+--- Parse and apply alias options to the user options (legacy format).
 ---@param ud_opts table user_default_options
 ---@return table
 function M.apply_alias_options(ud_opts)
@@ -242,40 +956,79 @@ function M.apply_alias_options(ud_opts)
 end
 
 --- Configuration options for the `setup` function.
+--- Use `options` (new format) or `user_default_options` (legacy format), not both.
 ---@class colorizer.SetupOptions
----@field filetypes table|nil A list of file types where colorizer should be enabled. Use `"*"` for all file types.
----@field user_default_options colorizer.UserDefaultOptions Default options for color handling.
----@field buftypes table|nil A list of buffer types where colorizer should be enabled. Defaults to all buffer types if not provided.
----@field user_commands boolean|table If true, enables all user commands for colorizer. If `false`, disables user commands. Alternatively, provide a table of specific commands to enable.
----@field lazy_load boolean If true, lazily schedule buffer highlighting setup function
+---@field filetypes table|nil File types to highlight. Use `"*"` for all. Supports `"!name"` exclusions and `name = {opts}` overrides.
+---@field buftypes table|nil Buffer types to highlight. Same format as filetypes.
+---@field options colorizer.NewOptions|nil Structured options (recommended). See |colorizer.NewOptions|.
+---@field user_default_options colorizer.UserDefaultOptions|nil Legacy flat options. Deprecated in favor of `options`.
+---@field user_commands boolean|table Enable all or specific user commands.
+---@field lazy_load boolean Lazily schedule buffer highlighting setup function.
 
 --- Initializes colorizer with user-provided options.
 -- Merges default settings with any user-specified options, setting up `filetypes`,
 -- `user_default_options`, and `user_commands`.
+-- Accepts both new `options` key and legacy `user_default_options` key.
 ---@param opts table|nil Configuration options for colorizer.
 ---@return table Final settings after merging user and default options.
 function M.get_setup_options(opts)
   init_config()
   opts = opts or {}
-  opts.user_default_options = opts.user_default_options or plugin_user_default_options
-  opts.user_default_options = M.apply_alias_options(opts.user_default_options)
-  M.options = vim.tbl_deep_extend("force", M.options, opts)
+
+  if opts.options then
+    -- New format path
+    local user_options = vim.deepcopy(opts.options)
+    M.apply_presets(user_options.parsers)
+    local merged = vim.tbl_deep_extend("force", vim.deepcopy(default_options), user_options)
+    M.validate_new_options(merged)
+    M.options.options = merged
+    -- Compute backward-compat flat view
+    M.options.user_default_options = M.as_flat(merged)
+  else
+    -- Legacy format path (or no options)
+    local raw_ud = opts.user_default_options or vim.deepcopy(plugin_user_default_options)
+    -- Translate to new format
+    local translated = M.translate_options(raw_ud)
+    M.apply_presets(translated.parsers)
+    local merged = vim.tbl_deep_extend("force", vim.deepcopy(default_options), translated)
+    M.validate_new_options(merged)
+    M.options.options = merged
+    -- Also keep legacy flat format (apply aliases + validate)
+    opts.user_default_options = M.apply_alias_options(raw_ud)
+    M.options.user_default_options = opts.user_default_options
+  end
+
+  -- Handle filetypes/buftypes: translate to new format if needed
+  if opts.filetypes then
+    M.options.filetypes = opts.filetypes
+  end
+  if opts.buftypes then
+    M.options.buftypes = opts.buftypes
+  end
+  if opts.user_commands ~= nil then
+    M.options.user_commands = opts.user_commands
+  end
+  if opts.lazy_load ~= nil then
+    M.options.lazy_load = opts.lazy_load
+  end
+
   return M.options
 end
 
---- Retrieve buffer-specific options or user_default_options defined when setup() was called.
+--- Retrieve buffer-specific options or default options for a buffer.
 ---@param bufnr number The buffer number.
 ---@param bo_type 'buftype'|'filetype' The type of buffer option
+---@return table New-format options
 function M.new_bo_options(bufnr, bo_type)
   local value = vim.api.nvim_get_option_value(bo_type, { buf = bufnr })
-  return options_cache.filetype[value] or M.options.user_default_options
+  return options_cache.filetype[value] or M.options.options
 end
 
---- Retrieve options based on buffer type and file type.  Prefer filetype.
+--- Retrieve options based on buffer type and file type. Prefer filetype.
 ---@param bo_type 'buftype'|'filetype' The type of buffer option
 ---@param buftype string Buffer type.
 ---@param filetype string File type.
----@return table
+---@return table|nil
 function M.get_bo_options(bo_type, buftype, filetype)
   local fo, bo = options_cache[bo_type][filetype], options_cache[bo_type][buftype]
   return fo or bo
