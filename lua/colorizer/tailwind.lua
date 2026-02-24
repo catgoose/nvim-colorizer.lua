@@ -1,9 +1,10 @@
---[[-- Handles Tailwind CSS color highlighting within buffers.
-This module integrates with the Tailwind CSS Language Server Protocol (LSP) to retrieve and apply
-color highlights for Tailwind classes in a buffer. It manages LSP attachment, autocmds for color updates,
-and maintains state for efficient Tailwind highlighting.
-]]
--- @module colorizer.tailwind
+---@mod colorizer.tailwind Tailwind
+---@brief [[
+---Handles Tailwind CSS color highlighting within buffers.
+---This module integrates with the Tailwind CSS Language Server Protocol (LSP) to retrieve and apply
+---color highlights for Tailwind classes in a buffer. It manages LSP attachment, autocmds for color updates,
+---and maintains state for efficient Tailwind highlighting.
+---@brief ]]
 local M = {}
 
 local utils = require("colorizer.utils")
@@ -12,7 +13,7 @@ local tw_ns_id = require("colorizer.constants").namespace.tailwind_lsp
 local lsp_cache = {}
 
 --- Cleanup tailwind variables and autocmd
----@param bufnr number|nil: buffer number (0 for current)
+---@param bufnr number|nil buffer number (0 for current)
 function M.cleanup(bufnr)
   bufnr = utils.bufme(bufnr)
   if lsp_cache[bufnr] and lsp_cache[bufnr].au_id and lsp_cache[bufnr].au_id[1] then
@@ -79,13 +80,13 @@ local function highlight(bufnr, ud_opts, add_highlight)
 end
 
 --- Highlight buffer using values returned by tailwindcss
----@param bufnr number: Buffer number (0 for current)
----@param ud_opts table: `user_default_options`
----@param buf_local_opts table: Buffer local options
----@param add_highlight function: Function to add highlights
----@param on_detach function: Function to call when LSP is detached
----@param line_start number: Start line
----@param line_end number: End line
+---@param bufnr number Buffer number (0 for current)
+---@param ud_opts table `user_default_options`
+---@param buf_local_opts table Buffer local options
+---@param add_highlight function Function to add highlights
+---@param on_detach function Function to call when LSP is detached
+---@param line_start number Start line
+---@param line_end number End line
 ---@return boolean|nil
 function M.lsp_highlight(
   bufnr,
@@ -102,9 +103,7 @@ function M.lsp_highlight(
   lsp_cache[bufnr] = lsp_cache[bufnr] or {}
   lsp_cache[bufnr].au_id = lsp_cache[bufnr].au_id or {}
 
-  if
-    vim.version().minor >= 8 and not lsp_cache[bufnr].client or lsp_cache[bufnr].client.is_stopped()
-  then
+  if not lsp_cache[bufnr].client or lsp_cache[bufnr].client.is_stopped() then
     -- create the autocmds so tailwind colors only activate when tailwindcss lsp is active
     if not lsp_cache[bufnr].au_created then
       vim.api.nvim_buf_clear_namespace(bufnr, tw_ns_id, 0, -1)
@@ -112,11 +111,12 @@ function M.lsp_highlight(
         group = buf_local_opts.__augroup_id,
         buffer = bufnr,
         callback = function(args)
-          local ok, client = pcall(vim.lsp.get_client_by_id, args.data.client_id)
-          if ok and client then
+          local clients = vim.lsp.get_clients({ id = args.data.client_id })
+          local client = clients[1]
+          if client then
             if
               client.name == "tailwindcss"
-              and client.supports_method("textDocument/documentColor", bufnr)
+              and client:supports_method("textDocument/documentColor", bufnr)
             then
               lsp_cache[bufnr].client = client
               highlight(bufnr, ud_opts, add_highlight)

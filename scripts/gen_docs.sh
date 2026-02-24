@@ -1,70 +1,52 @@
 #!/usr/bin/env bash
 
-create_vim_doc() (
-  local project_name="${1:?}"
-  local target="${2:?}"
-  local template="${3:?}"
-  local cur_dir
-  cur_dir="$PWD"
+set -euo pipefail
 
-  if [[ -d "$target" ]]; then
-    cp "$template" "${TMP_DIR}/ldoc.ltp" || return 1
-  else
-    echo "No such template exists"
-    return 1
-  fi
+# Generate vimdoc using lemmy-help
+# Install: cargo install lemmy-help --features=cli
+#      or: download from https://github.com/numToStr/lemmy-help/releases
 
-  if [[ -d "$target" ]]; then
-    ldoc -p "$project_name" -t "${project_name} Docs" -u "$target" -l "$TMP_DIR" -d "$TMP_DIR" --date "- $(date +'%B')" || cleanup
-    cd "${TMP_DIR}/modules" || exit 1
-    cat "$project_name".html "$project_name"*.*.html >"$project_name".txt || cleanup
-  elif [[ -f "$target" ]]; then
-    ldoc -p "$project_name" -t "${project_name} Docs" -u "$target" -l "$TMP_DIR" -d "$TMP_DIR" --date "- $(date +'%B')" || cleanup
-    cd "$TMP_DIR" || exit 1
-    cat index.html >"$project_name".txt || cleanup
-  else
-    echo "Invalid target"
-    return 1
-  fi
-  echo "vim:tw=80:ts=8:noet:ft=help:norl:" >>"$project_name".txt
-  # format each line to be within 80 columns
-  # replace <pre> and </pre> with > and < respectively
-  # Sometimes running the command one time is not enough, reason unknown
-  nvim --clean --headless +"set tw=80" \
-    +'%norm gqq' \
-    +'%norm gqq' \
-    +'%s/<pre>/>/g' \
-    +'%s/<\/pre>/</g' \
-    "$project_name".txt \
-    +"wqa" || {
-    echo "Coundn't format with nvim, but help file be placed"
-  }
-  mkdir -p "${cur_dir}/doc"
-  cp "$project_name".txt "${cur_dir}/doc/${project_name}.txt" || cleanup
-  echo
-  echo "${cur_dir}/doc/${project_name}.txt" created
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+OUTPUT="$PROJECT_DIR/doc/colorizer.txt"
 
-  return 0
-)
+# Check for lemmy-help
+if command -v lemmy-help &>/dev/null; then
+  LEMMY=lemmy-help
+elif [ -x "$PROJECT_DIR/deps/lemmy-help" ]; then
+  LEMMY="$PROJECT_DIR/deps/lemmy-help"
+else
+  echo "lemmy-help not found. Install via:"
+  echo "  cargo install lemmy-help --features=cli"
+  echo "  or download from https://github.com/numToStr/lemmy-help/releases"
+  exit 1
+fi
 
-main() {
-  TMP_DIR="$(mktemp -d)"
-  echo "$TMP_DIR"
+mkdir -p "$PROJECT_DIR/doc"
 
-  cleanup() { rm -rf "$TMP_DIR" exit 0; }
+# List source files in logical order: main module first, then config,
+# then remaining modules, then parsers
+echo "Generating vimdoc with $LEMMY..."
 
-  project_name="colorizer"
-  if command -v ldoc 1>/dev/null; then
-    # html docs
-    ldoc -p "$project_name" -t "${project_name} Docs" -u lua "${@}" -s doc --date "- $(date +'%B')" || cleanup
+$LEMMY \
+  "$PROJECT_DIR/lua/colorizer.lua" \
+  "$PROJECT_DIR/lua/colorizer/config.lua" \
+  "$PROJECT_DIR/lua/colorizer/buffer.lua" \
+  "$PROJECT_DIR/lua/colorizer/color.lua" \
+  "$PROJECT_DIR/lua/colorizer/constants.lua" \
+  "$PROJECT_DIR/lua/colorizer/matcher.lua" \
+  "$PROJECT_DIR/lua/colorizer/utils.lua" \
+  "$PROJECT_DIR/lua/colorizer/usercmds.lua" \
+  "$PROJECT_DIR/lua/colorizer/trie.lua" \
+  "$PROJECT_DIR/lua/colorizer/sass.lua" \
+  "$PROJECT_DIR/lua/colorizer/tailwind.lua" \
+  "$PROJECT_DIR/lua/colorizer/parser/argb_hex.lua" \
+  "$PROJECT_DIR/lua/colorizer/parser/hsl.lua" \
+  "$PROJECT_DIR/lua/colorizer/parser/names.lua" \
+  "$PROJECT_DIR/lua/colorizer/parser/oklch.lua" \
+  "$PROJECT_DIR/lua/colorizer/parser/rgb.lua" \
+  "$PROJECT_DIR/lua/colorizer/parser/rgba_hex.lua" \
+  "$PROJECT_DIR/lua/colorizer/parser/xterm.lua" \
+  >"$OUTPUT"
 
-    # vim docs
-    create_vim_doc "$project_name" lua doc/ldoc_vim.ltp || cleanup
-  else
-    echo "Error: Install ldoc first"
-  fi
-
-  cleanup
-}
-
-main "${@}"
+echo "$OUTPUT created"

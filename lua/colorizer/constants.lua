@@ -1,5 +1,7 @@
---- This module provides constants that are required across the application
--- @module colorizer.constants
+---@mod colorizer.constants Constants
+---@brief [[
+---This module provides constants that are required across the application.
+---@brief ]]
 local M = {}
 
 --- Plugin name
@@ -24,7 +26,7 @@ M.autocmd = {
   },
 }
 
---- Highlight mode names.  Used to create highlight names to be used with vim.api.nvim_buf_add_highlight
+--- Highlight mode names.  Used to create highlight names to be used with vim.api.nvim_buf_set_extmark
 -- - background - Background mode
 -- - foreground - Foreground mode
 -- - virtualtext - Virtual text mode

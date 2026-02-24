@@ -27,8 +27,6 @@
   - [TODO](#todo)
   <!--toc:end-->
 
-[![luadoc](https://img.shields.io/badge/luadoc-0.1-blue)](https://catgoose.github.io/nvim-colorizer.lua/)
-
 A high-performance color highlighter for Neovim which has **no external
 dependencies**! Written in performant Luajit.
 
@@ -39,7 +37,7 @@ Which includes Linux, OSX, and Windows.
 
 ## Installation and Usage
 
-Requires Neovim >= 0.7.0 and `set termguicolors`.
+Requires Neovim >= 0.10.0 and `set termguicolors` (enabled by default in 0.10+).
 
 ### Plugin managers
 
@@ -358,9 +356,7 @@ require("colorizer").setup(
 )
 ```
 
-For lower level interface, see
-[LuaDocs for API details](https://catgoose.github.io/nvim-colorizer.lua/modules/colorizer.html)
-or use `:h colorizer` once installed.
+For lower level interface, use `:h colorizer` once installed.
 
 ### Lazyload Colorizer with Lazy.nvim
 
@@ -432,8 +428,9 @@ to conveniently reattach Colorizer to `test/expect.lua` on save.
 
 ### Trie
 
-Colorizer uses a space efficient LuaJIT Trie implementation, which starts with
-an initial node capacity of 8 bytes and expands capacity per node when needed.
+Colorizer uses a space-efficient LuaJIT Trie implementation with configurable
+`initial_capacity` (default: 2) and `growth_factor` (default: 2). Each node
+starts with a small children array and expands as needed via `realloc`.
 
 The trie can be tested and benchmarked using `test/trie/test.lua` and
 `test/trie/benchmark.lua` respectively.
@@ -465,61 +462,101 @@ make trie-benchmark
 scripts/trie-benchmark.sh
 ```
 
+#### Default Selection
+
+The defaults were chosen by benchmarking across growth factors (1.25, 1.5,
+1.618/phi, 2, 3, 4) and initial capacities (2, 4, 8, 16) using composite
+scoring (70% speed, 30% memory). Key findings:
+
+- **`initial_capacity=2`** consistently outperforms larger values. Most trie
+  nodes have few children (median branching factor < 4 for color names), so
+  starting small avoids wasting memory across thousands of nodes. The memory
+  savings far outweigh the cost of occasional resizes.
+- **`growth_factor=2`** provides the best balance. Smaller factors (1.25, 1.5)
+  cause many more reallocs, especially under load. Larger factors (3, 4) offer
+  marginal speed gains but waste capacity on nodes that rarely fill up. Factor 2
+  is also the simplest (bit-shift doubling) and the most predictable.
+
+Both values can be overridden via opts when constructing a Trie:
+
+```lua
+local Trie = require("colorizer.trie")
+local trie = Trie(words, { initial_capacity = 4, growth_factor = 1.5 })
+```
+
+#### Growth Factor Comparison
+
+7245 color + Tailwind words, `initial_capacity=2`:
+
+| Growth Factor | Resize Count | Insert (ms) | Lookup (ms) | Memory |
+| ------------- | ------------ | ----------- | ----------- | ------ |
+| 1.250         | 4645         | 6           | 3           | 1.4MB  |
+| 1.500         | 2994         | 5           | 3           | 1.4MB  |
+| 1.618 (phi)   | 2994         | 6           | 2           | 1.4MB  |
+| 2.000         | 2056         | 6           | 4           | 1.4MB  |
+| 3.000         | 1449         | 6           | 4           | 1.4MB  |
+| 4.000         | 1436         | 8           | 3           | 1.5MB  |
+
+#### Initial Capacity Benchmarks
+
 Inserting 7245 words: using uppercase, lowercase, camelcase from `vim.api.nvim_get_color_map()` and Tailwind colors
 
 | Initial Capacity | Resize Count | Insert Time (ms) | Lookup Time (ms) |
 | ---------------- | ------------ | ---------------- | ---------------- |
-| 1                | 3652         | 25               | 16               |
-| 2                | 2056         | 11               | 8                |
-| 4                | 1174         | 6                | 5                |
-| 8                | 576          | 7                | 5                |
-| 16               | 23           | 7                | 5                |
-| 32               | 1            | 8                | 6                |
-| 64               | 0            | 10               | 7                |
+| 1                | 3652         | 10               | 9                |
+| 2                | 2056         | 14               | 8                |
+| 4                | 1174         | 11               | 8                |
+| 8                | 576          | 9                | 6                |
+| 16               | 23           | 10               | 5                |
+| 32               | 1            | 9                | 5                |
+| 64               | 0            | 12               | 6                |
 
 Inserting 1000 randomized words
 
 | Initial Capacity | Resize Count | Insert Time (ms) | Lookup Time (ms) |
 | ---------------- | ------------ | ---------------- | ---------------- |
-| 1                | 434          | 1                | 0                |
-| 2                | 234          | 1                | 1                |
-| 4                | 129          | 1                | 0                |
-| 8                | 51           | 1                | 0                |
-| 16               | 17           | 1                | 1                |
-| 32               | 3            | 1                | 2                |
-| 64               | 1            | 2                | 1                |
-| 128              | 0            | 4                | 1                |
+| 1                | 405          | 1                | 0                |
+| 2                | 264          | 1                | 0                |
+| 4                | 168          | 1                | 0                |
+| 8                | 77           | 1                | 0                |
+| 16               | 5            | 1                | 0                |
+| 32               | 2            | 1                | 0                |
+| 64               | 1            | 1                | 0                |
+| 128              | 0            | 2                | 0                |
 
 Inserting 10,000 randomized words
 
 | Initial Capacity | Resize Count | Insert Time (ms) | Lookup Time (ms) |
 | ---------------- | ------------ | ---------------- | ---------------- |
-| 1                | 4614         | 9                | 7                |
-| 2                | 2106         | 8                | 8                |
-| 4                | 842          | 9                | 7                |
-| 8                | 362          | 9                | 8                |
-| 16               | 208          | 11               | 9                |
-| 32               | 113          | 14               | 11               |
-| 64               | 24           | 21               | 14               |
-| 128              | 0            | 34               | 25               |
+| 1                | 4372         | 14               | 5                |
+| 2                | 1458         | 22               | 7                |
+| 4                | 466          | 11               | 3                |
+| 8                | 325          | 12               | 5                |
+| 16               | 230          | 15               | 6                |
+| 32               | 135          | 17               | 7                |
+| 64               | 40           | 17               | 9                |
+| 128              | 0            | 26               | 11               |
 
 Inserting 100,000 randomized words
 
 | Initial Capacity | Resize Count | Insert Time (ms) | Lookup Time (ms) |
 | ---------------- | ------------ | ---------------- | ---------------- |
-| 1                | 40656        | 160              | 117              |
-| 2                | 21367        | 116              | 111              |
-| 4                | 11604        | 122              | 109              |
-| 8                | 5549         | 133              | 113              |
-| 16               | 1954         | 141              | 138              |
-| 32               | 499          | 173              | 158              |
-| 64               | 100          | 233              | 173              |
-| 128              | 0            | 343              | 198              |
+| 1                | 38945        | 223              | 73               |
+| 2                | 25250        | 220              | 77               |
+| 4                | 16140        | 237              | 108              |
+| 8                | 7329         | 307              | 129              |
+| 16               | 599          | 345              | 125              |
+| 32               | 190          | 210              | 122              |
+| 64               | 95           | 275              | 126              |
+| 128              | 0            | 315              | 159              |
 
 ## Extras
 
-Documentation is generated using ldoc. See
-[scripts/gen_docs.sh](https://github.com/colorizer/nvim-colorizer.lua/blob/master/scripts/gen_docs.sh)
+Documentation is generated using [lemmy-help](https://github.com/numToStr/lemmy-help).
+See [scripts/gen_docs.sh](https://github.com/catgoose/nvim-colorizer.lua/blob/master/scripts/gen_docs.sh).
+Use `:help colorizer` in Neovim to view the docs.
+
+Full API documentation is available at [catgoose.github.io/nvim-colorizer.lua](https://catgoose.github.io/nvim-colorizer.lua/).
 
 ## TODO
 

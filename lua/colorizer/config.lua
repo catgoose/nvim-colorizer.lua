@@ -1,5 +1,7 @@
---- Provides configuration options and utilities for setting up colorizer.
--- @module colorizer.config
+---@mod colorizer.config Configuration
+---@brief [[
+---Provides configuration options and utilities for setting up colorizer.
+---@brief ]]
 local M = {}
 
 local utils = require("colorizer.utils")
@@ -40,55 +42,70 @@ local plugin_user_default_options = {
   },
 }
 
---[[-- Default user options for colorizer.
-This table defines individual options and alias options, allowing configuration of
-colorizer's behavior for different color formats (e.g., `#RGB`, `#RRGGBB`, `#AARRGGBB`, etc.).
+--- Default user options for colorizer.
+---
+--- This table defines individual options and alias options, allowing configuration of
+--- colorizer's behavior for different color formats (e.g., `#RGB`, `#RRGGBB`, `#AARRGGBB`, etc.).
+---
+--- Individual Options: Options like `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn`,
+--- `oklch_fn`, `AARRGGBB`, `tailwind`, and `sass` can be enabled or disabled independently.
+---
+--- Alias Options: `css` and `css_fn` enable multiple options at once.
+---   - `css_fn = true` enables `hsl_fn`, `rgb_fn`, and `oklch_fn`.
+---   - `css = true` enables `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn`, and `oklch_fn`.
+---
+--- Option Priority: Individual options have higher priority than aliases.
+--- If both `css` and `css_fn` are true, `css_fn` has more priority over `css`.
+---@class colorizer.UserDefaultOptions
+---@field names boolean Enables named colors (e.g., "Blue").
+---@field names_opts colorizer.NamesOpts Names options for customizing casing, digit stripping, etc
+---@field names_custom table|function|false Custom color name to RGB value mappings. Should return a table of color names to RGB value pairs.
+---@field RGB boolean Enables `#RGB` hex codes.
+---@field RGBA boolean Enables `#RGBA` hex codes.
+---@field RRGGBB boolean Enables `#RRGGBB` hex codes.
+---@field RRGGBBAA boolean Enables `#RRGGBBAA` hex codes.
+---@field AARRGGBB boolean Enables `0xAARRGGBB` hex codes.
+---@field rgb_fn boolean Enables CSS `rgb()` and `rgba()` functions.
+---@field hsl_fn boolean Enables CSS `hsl()` and `hsla()` functions.
+---@field oklch_fn boolean Enables CSS `oklch()` function.
+---@field css boolean Enables all CSS features (`rgb_fn`, `hsl_fn`, `oklch_fn`, `names`, `RGB`, `RRGGBB`).
+---@field css_fn boolean Enables all CSS functions (`rgb_fn`, `hsl_fn`, `oklch_fn`).
+---@field tailwind boolean|string Enables Tailwind CSS colors (e.g., `"normal"`, `"lsp"`, `"both"`).
+---@field tailwind_opts colorizer.TailwindOpts Tailwind options for updating names cache, etc
+---@field sass colorizer.SassOpts Sass color configuration (`enable` flag and `parsers`).
+---@field mode 'background'|'foreground'|'virtualtext' Display mode
+---@field virtualtext string Character used for virtual text display.
+---@field virtualtext_inline boolean|'before'|'after' Shows virtual text inline with color.
+---@field virtualtext_mode 'background'|'foreground' Mode for virtual text display.
+---@field always_update boolean Always update color values, even if buffer is not focused.
+---@field hooks colorizer.Hooks Table of hook functions
+---@field xterm boolean Enables xterm 256-color codes (#xNN, \e[38;5;NNNm)
 
-Individual Options: Options like `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn`,
-`oklch_fn`, `AARRGGBB`, `tailwind`, and `sass` can be enabled or disabled independently.
+---@class colorizer.NamesOpts
+---@field lowercase boolean Converts color names to lowercase.
+---@field camelcase boolean Converts color names to camelCase.
+---@field uppercase boolean Converts color names to uppercase.
+---@field strip_digits boolean Removes digits from color names.
 
-Alias Options: `css` and `css_fn` enable multiple options at once.
-  - `css_fn = true` enables `hsl_fn`, `rgb_fn`, and `oklch_fn`.
-  - `css = true` enables `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn`, and `oklch_fn`.
+---@class colorizer.TailwindOpts
+---@field update_names boolean Updates Tailwind "normal" names cache from LSP results.
 
-Option Priority: Individual options have higher priority than aliases.
-If both `css` and `css_fn` are true, `css_fn` has more priority over `css`.
-]]
--- @table user_default_options
--- @field names boolean: Enables named colors (e.g., "Blue").
--- @field names_opts table: Names options for customizing casing, digit stripping, etc
--- @field names_custom table|function|false: Custom color name to RGB value mappings
--- should return a table of color names to RGB value pairs
--- @field RGB boolean: Enables `#RGB` hex codes.
--- @field RGBA boolean: Enables `#RGBA` hex codes.
--- @field RRGGBB boolean: Enables `#RRGGBB` hex codes.
--- @field RRGGBBAA boolean: Enables `#RRGGBBAA` hex codes.
--- @field AARRGGBB boolean: Enables `0xAARRGGBB` hex codes.
--- @field rgb_fn boolean: Enables CSS `rgb()` and `rgba()` functions.
--- @field hsl_fn boolean: Enables CSS `hsl()` and `hsla()` functions.
--- @field oklch_fn boolean: Enables CSS `oklch()` function.
--- @field css boolean: Enables all CSS features (`rgb_fn`, `hsl_fn`, `oklch_fn`, `names`, `RGB`, `RRGGBB`).
--- @field css_fn boolean: Enables all CSS functions (`rgb_fn`, `hsl_fn`, `oklch_fn`).
--- @field tailwind boolean|string: Enables Tailwind CSS colors (e.g., `"normal"`, `"lsp"`, `"both"`).
--- @field tailwind_opts table: Tailwind options for updating names cache, etc
--- @field sass table: Sass color configuration (`enable` flag and `parsers`).
--- @field mode 'background'|'foreground'|'virtualtext': Display mode
--- @field virtualtext string: Character used for virtual text display.
--- @field virtualtext_inline boolean|'before'|'after': Shows virtual text inline with color.
--- @field virtualtext_mode 'background'|'foreground': Mode for virtual text display.
--- @field always_update boolean: Always update color values, even if buffer is not focused.
--- @field hooks table: Table of hook functions
--- @field hooks.disable_line_highlight function: Returns boolean which controls if line should be parsed for highlights
--- @field xterm boolean: Enables xterm 256-color codes (#xNN, \e[38;5;NNNm)
+---@class colorizer.SassOpts
+---@field enable boolean Enables Sass color parsing.
+---@field parsers table A list of parsers to use, typically includes "css".
+
+---@class colorizer.Hooks
+---@field disable_line_highlight function|false Returns boolean which controls if line should be parsed for highlights.
 
 --- Options for colorizer that were passed in to setup function
---@field filetypes
---@field buftypes
---@field user_commands
---@field lazy_load
---@field user_default_options
---@field exclusions
---@field all
+---@class colorizer.Options
+---@field filetypes table
+---@field buftypes table
+---@field user_commands boolean|table
+---@field lazy_load boolean
+---@field user_default_options colorizer.UserDefaultOptions
+---@field exclusions table
+---@field all table
 M.options = {}
 local function init_options()
   M.options = {
@@ -182,16 +199,16 @@ local function validate_options(ud_opts)
 end
 
 --- Set options for a specific buffer or file type.
----@param bo_type 'buftype'|'filetype': The type of buffer option
----@param val string: The specific value to set.
----@param ud_opts table: `user_default_options`
+---@param bo_type 'buftype'|'filetype' The type of buffer option
+---@param val string The specific value to set.
+---@param ud_opts table `user_default_options`
 function M.set_bo_value(bo_type, val, ud_opts)
   validate_options(ud_opts)
   options_cache[bo_type][val] = ud_opts
 end
 
 --- Parse and apply alias options to the user options.
----@param ud_opts table: user_default_options
+---@param ud_opts table user_default_options
 ---@return table
 function M.apply_alias_options(ud_opts)
   local aliases = {
@@ -225,56 +242,18 @@ function M.apply_alias_options(ud_opts)
 end
 
 --- Configuration options for the `setup` function.
--- @table ud_opts
--- @field filetypes (table|nil): Optional.  A list of file types where colorizer should be enabled. Use `"*"` for all file types.
--- @field user_default_options table: Default options for color handling.
--- <pre>
---   - `names` (boolean): Enables named color codes like `"Blue"`.
---   - `names_opts` (table): Names options for customizing casing, digit stripping, etc
---     - `lowercase` (boolean): Converts color names to lowercase.
---     - `camelcase` (boolean): Converts color names to camelCase.  This is the default naming scheme for colors returned from `vim.api.nvim_get_color_map`
---     - `uppercase` (boolean): Converts color names to uppercase.
---     - `strip_digits` (boolean): Removes digits from color names.
---   - `names_custom` (table|function|false): Custom color name to RGB value mappings
---   - `RGB` (boolean): Enables support for `#RGB` hex codes.
---   - `RGBA` (boolean): Enables support for `#RGBA` hex codes.
---   - `RRGGBB` (boolean): Enables support for `#RRGGBB` hex codes.
---   - `RRGGBBAA` (boolean): Enables support for `#RRGGBBAA` hex codes.
---   - `AARRGGBB` (boolean): Enables support for `0xAARRGGBB` hex codes.
---   - `rgb_fn` (boolean): Enables CSS `rgb()` and `rgba()` functions.
---   - `hsl_fn` (boolean): Enables CSS `hsl()` and `hsla()` functions.
---   - `oklch_fn` (boolean): Enables CSS `oklch()` function.
---   - `css` (boolean): Enables all CSS-related features (e.g., `names`, `RGB`, `RRGGBB`, `hsl_fn`, `rgb_fn`, `oklch_fn`).
---   - `css_fn` (boolean): Enables all CSS function-related features (e.g., `rgb_fn`, `hsl_fn`, `oklch_fn`).
---   - `tailwind` (boolean|string): Enables Tailwind CSS colors. Accepts `true`, `"normal"`, `"lsp"`, or `"both"`.
---   - `tailwind_opts` (table): Tailwind options for updating names cache, etc
---      - `update_names` (boolean): Updates Tailwind "normal" names cache from LSP results.  This provides a smoother highlighting experience when tailwind = "both" is used.  Highlighting on non-tailwind lsp buffers (like cmp) becomes more consistent.
---   - `sass` (table): Configures Sass color support.
---      - `enable` (boolean): Enables Sass color parsing.
---      - `parsers` (table): A list of parsers to use, typically includes `"css"`.
---   - `mode` (string): Determines the display mode for highlights. Options are `"background"`, `"foreground"`, and `"virtualtext"`.
---   - `virtualtext` (string): Character used for virtual text display of colors (default is `"■"`).
---  - `virtualtext_inline` (boolean|'before'|'after'): Shows the virtual text inline with the color.  True defaults to 'before'.
---  - `virtualtext_mode` ('background'|'foreground'): Determines the display mode for virtual text.
---  - `always_update` (boolean): If true, updates color values even if the buffer is not focused.</pre>
--- - `hooks` (table): Table of hook functions
---    - `disable_line_highlight` (function): Returns a boolean that controls if the line should be parsed for highlights. Called  with 3 parameters:
---      - `line` (string): The line's contents.
---      - `bufnr` (number): The buffer number.
---      - `line_num` (number): The line number (0-indexed).  Add 1 to get the line number in the buffer.
--- @field buftypes (table|nil): Optional. A list of buffer types where colorizer should be enabled. Defaults to all buffer types if not provided.
--- @field user_commands (boolean|table): If true, enables all user commands for colorizer. If `false`, disables user commands. Alternatively, provide a table of specific commands to enable:
---   - `"ColorizerAttachToBuffer"`
---   - `"ColorizerDetachFromBuffer"`
---   - `"ColorizerReloadAllBuffers"`
---   - `"ColorizerToggle"`
--- @field lazy_load (boolean): If true, lazily schedule buffer highlighting setup function
+---@class colorizer.SetupOptions
+---@field filetypes table|nil A list of file types where colorizer should be enabled. Use `"*"` for all file types.
+---@field user_default_options colorizer.UserDefaultOptions Default options for color handling.
+---@field buftypes table|nil A list of buffer types where colorizer should be enabled. Defaults to all buffer types if not provided.
+---@field user_commands boolean|table If true, enables all user commands for colorizer. If `false`, disables user commands. Alternatively, provide a table of specific commands to enable.
+---@field lazy_load boolean If true, lazily schedule buffer highlighting setup function
 
 --- Initializes colorizer with user-provided options.
 -- Merges default settings with any user-specified options, setting up `filetypes`,
 -- `user_default_options`, and `user_commands`.
----@param opts table|nil: Configuration options for colorizer.
----@return table: Final settings after merging user and default options.
+---@param opts table|nil Configuration options for colorizer.
+---@return table Final settings after merging user and default options.
 function M.get_setup_options(opts)
   init_config()
   opts = opts or {}
@@ -285,17 +264,17 @@ function M.get_setup_options(opts)
 end
 
 --- Retrieve buffer-specific options or user_default_options defined when setup() was called.
----@param bufnr number: The buffer number.
----@param bo_type 'buftype'|'filetype': The type of buffer option
+---@param bufnr number The buffer number.
+---@param bo_type 'buftype'|'filetype' The type of buffer option
 function M.new_bo_options(bufnr, bo_type)
   local value = vim.api.nvim_get_option_value(bo_type, { buf = bufnr })
   return options_cache.filetype[value] or M.options.user_default_options
 end
 
 --- Retrieve options based on buffer type and file type.  Prefer filetype.
----@param bo_type 'buftype'|'filetype': The type of buffer option
----@param buftype string: Buffer type.
----@param filetype string: File type.
+---@param bo_type 'buftype'|'filetype' The type of buffer option
+---@param buftype string Buffer type.
+---@param filetype string File type.
 ---@return table
 function M.get_bo_options(bo_type, buftype, filetype)
   local fo, bo = options_cache[bo_type][filetype], options_cache[bo_type][buftype]

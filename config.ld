@@ -1,0 +1,20 @@
+project = "nvim-colorizer.lua"
+title = "nvim-colorizer.lua - Neovim Colorizer"
+description = "High-performance color highlighter for Neovim"
+file = "lua"
+dir = "doc/html"
+format = "markdown"
+sort = true
+all = false
+backtick_references = true
+readme = "README.md"
+style = "!fixed"
+not_luadoc = true
+no_return_or_parms = true
+custom_tags = {
+  { "mod", title = "Module" },
+  { "brief", title = "Brief" },
+  { "toc", title = "TOC" },
+  { "divider", title = "Divider" },
+  { "tag", title = "Tag" },
+}

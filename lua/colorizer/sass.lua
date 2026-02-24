@@ -1,11 +1,13 @@
---[[-- Manages Sass variable parsing and color detection for buffers.
-This module handles the parsing of Sass color variables, managing import statements,
-and watching files for updates to Sass variable definitions.
-It supports recursive Sass imports, resolving color values for each variable, and caching color definitions.
-]]
--- @module colorizer.sass
+---@mod colorizer.sass Sass
+---@brief [[
+---Manages Sass variable parsing and color detection for buffers.
+---This module handles the parsing of Sass color variables, managing import statements,
+---and watching files for updates to Sass variable definitions.
+---It supports recursive Sass imports, resolving color values for each variable, and caching color definitions.
+---@brief ]]
 local M = {}
 
+local uv = vim.uv or vim.loop
 local utils = require("colorizer.utils")
 
 local state = {}
@@ -20,7 +22,7 @@ local function remove_unused_imports(bufnr, import_name)
   state[bufnr].definitions_linewise[import_name] = nil
   state[bufnr].imports[import_name] = nil
   -- stop the watch handler
-  pcall(vim.loop.fs_event_stop, state[bufnr].watch_imports[import_name])
+  pcall(uv.fs_event_stop, state[bufnr].watch_imports[import_name])
   state[bufnr].watch_imports[import_name] = nil
 end
 
@@ -33,9 +35,9 @@ end
 
 --- Parse the given line for sass color names
 -- check for value in state[buf].definitions_all
----@param line string: Line to parse
----@param i number: Index of line from where to start parsing
----@param bufnr number: Buffer number
+---@param line string Line to parse
+---@param i number Index of line from where to start parsing
+---@param bufnr number Buffer number
 ---@return number|nil, string|nil
 function M.parser(line, i, bufnr)
   local variable_name = line:match("^%$([%w_-]+)", i)
@@ -158,7 +160,7 @@ local function sass_parse_lines(bufnr, line_start, content, name)
             local last_modified = utils.get_last_modified(v)
             if last_modified then
               -- grab the full path
-              v = vim.loop.fs_realpath(v)
+              v = uv.fs_realpath(v)
               if v then
                 state[bufnr].current_imports[name][v or ""] = true
 
@@ -220,7 +222,7 @@ local function sass_parse_lines(bufnr, line_start, content, name)
             else
               -- if file does not exists then remove related variables
               state[bufnr].imports[name][v] = nil
-              pcall(vim.loop.fs_event_stop, state[bufnr].watch_imports[name][v])
+              pcall(uv.fs_event_stop, state[bufnr].watch_imports[name][v])
               state[bufnr].watch_imports[name][v] = nil
             end
           end -- process imported files
@@ -241,13 +243,13 @@ end -- sass_parse_lines end
 --- Parse the given lines for sass variabled and add to `sass_state[buf].definitions_all`.
 -- which is then used in |sass_name_parser|
 -- If lines are not given, then fetch the lines with line_start and line_end
----@param bufnr number: Buffer number
+---@param bufnr number Buffer number
 ---@param line_start number
 ---@param line_end number
 ---@param lines table|nil
 ---@param color_parser function|boolean
----@param ud_opts table: `user_default_options`
----@param buf_local_opts table|nil: Buffer local options
+---@param ud_opts table `user_default_options`
+---@param buf_local_opts table|nil Buffer local options
 function M.update_variables(
   bufnr,
   line_start,
