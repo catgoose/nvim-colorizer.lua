@@ -238,6 +238,11 @@ local default_options = {
   },
 
   always_update = false,
+
+  -- Stamp indicating this options table has been fully resolved (merged with
+  -- defaults, presets expanded, validated). Checked by normalize_opts and
+  -- attach_to_buffer to skip redundant resolve_options calls.
+  __resolved = true,
 }
 
 --- Expose default_options for external use
@@ -851,6 +856,7 @@ function M.expand_sass_parsers(sass_parsers)
 
   local opts = vim.deepcopy(default_options)
   opts.parsers = parsers
+  opts.__resolved = true
   expand_sass_cache[cache_key] = opts
   return opts
 end

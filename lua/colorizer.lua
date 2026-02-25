@@ -372,8 +372,7 @@ function M.attach_to_buffer(bufnr, opts, bo_type)
   opts = ensure_new_format(opts) or config.options.options
 
   -- Resolve partial opts (merge with defaults, apply presets, validate).
-  -- Skip if already fully resolved (sentinel: parsers.names and display present).
-  if not (opts.parsers and opts.parsers.names and opts.display) then
+  if not opts.__resolved then
     opts = config.resolve_options(opts)
   end
 
@@ -565,7 +564,8 @@ function M.setup(opts)
   local s = config.get_setup_options(opts)
 
   -- Emit deprecation warning for old format (once per session)
-  if opts and opts.user_default_options and not opts.options then
+  if not colorizer_state.warned_legacy and opts and opts.user_default_options and not opts.options then
+    colorizer_state.warned_legacy = true
     vim.schedule(function()
       vim.notify(
         "colorizer: 'user_default_options' is deprecated. Use 'options' with the new structured format instead. "

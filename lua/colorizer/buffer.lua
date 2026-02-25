@@ -76,7 +76,7 @@ end
 ---@param opts table Options (new format or legacy)
 ---@return table New-format options
 local function normalize_opts(opts)
-  if opts.parsers and opts.parsers.names and opts.display then
+  if opts.__resolved then
     return opts
   end
   return config.resolve_options(opts)
