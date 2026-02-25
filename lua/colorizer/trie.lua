@@ -39,6 +39,60 @@
 ---- Allocation: Done using `ffi.C.malloc` for new nodes and `ffi.C.realloc` for resizing arrays.
 ---- Deallocation: Performed recursively for all child nodes using `ffi.C.free`.
 ---- The implementation includes safeguards to handle allocation failures and ensure proper cleanup.
+---
+---Configuration:
+---The Trie uses configurable `initial_capacity` (default: 2) and `growth_factor`
+---(default: 2). Each node starts with a small children array and expands as
+---needed via `realloc`. Both values can be overridden via opts:
+---
+--->lua
+---  local Trie = require("colorizer.trie")
+---  local trie = Trie(words, { initial_capacity = 4, growth_factor = 1.5 })
+---<
+---
+---Default Selection:
+---The defaults were chosen by benchmarking across growth factors (1.25, 1.5,
+---1.618/phi, 2, 3, 4) and initial capacities (2, 4, 8, 16) using composite
+---scoring (70% speed, 30% memory). Key findings:
+---
+---- `initial_capacity=2` consistently outperforms larger values. Most trie
+---  nodes have few children (median branching factor < 4 for color names), so
+---  starting small avoids wasting memory across thousands of nodes. The memory
+---  savings far outweigh the cost of occasional resizes.
+---- `growth_factor=2` provides the best balance. Smaller factors (1.25, 1.5)
+---  cause many more reallocs, especially under load. Larger factors (3, 4) offer
+---  marginal speed gains but waste capacity on nodes that rarely fill up. Factor 2
+---  is also the simplest (bit-shift doubling) and the most predictable.
+---
+---Benchmarking:
+---The trie can be tested and benchmarked using `test/trie/test.lua` and
+---`test/trie/benchmark.lua`. Run via `make trie` or the scripts in `scripts/`.
+---
+---Growth Factor Comparison (7245 color + Tailwind words, initial_capacity=2):
+---
+---  | Growth Factor | Resize Count | Insert (ms) | Lookup (ms) | Memory |
+---  | ------------- | ------------ | ----------- | ----------- | ------ |
+---  | 1.250         | 4645         | 6           | 3           | 1.4MB  |
+---  | 1.500         | 2994         | 5           | 3           | 1.4MB  |
+---  | 1.618 (phi)   | 2994         | 6           | 2           | 1.4MB  |
+---  | 2.000         | 2056         | 6           | 4           | 1.4MB  |
+---  | 3.000         | 1449         | 6           | 4           | 1.4MB  |
+---  | 4.000         | 1436         | 8           | 3           | 1.5MB  |
+---
+---Initial Capacity Benchmarks (7245 words: uppercase, lowercase, camelcase
+---from vim.api.nvim_get_color_map() and Tailwind colors):
+---
+---  | Initial Capacity | Resize Count | Insert (ms) | Lookup (ms) |
+---  | ---------------- | ------------ | ----------- | ----------- |
+---  | 1                | 3652         | 10          | 9           |
+---  | 2                | 2056         | 14          | 8           |
+---  | 4                | 1174         | 11          | 8           |
+---  | 8                | 576          | 9           | 6           |
+---  | 16               | 23           | 10          | 5           |
+---  | 32               | 1            | 9           | 5           |
+---
+---Full benchmark results including growth factor scoring are in
+---`test/trie/trie-benchmark.txt` and `test/trie/benchmark-growth.txt`.
 ---@brief ]]
 local ffi = require("ffi")
 
