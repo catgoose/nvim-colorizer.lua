@@ -345,10 +345,12 @@ local function init_options()
 end
 
 local options_cache
+local expand_sass_cache
 --- Reset the cache for buffer options.
 -- Called from colorizer.setup
 local function init_cache()
   options_cache = { buftype = {}, filetype = {} }
+  expand_sass_cache = {}
 end
 
 local function init_config()
@@ -607,16 +609,17 @@ function M.apply_presets(user_parsers)
     return
   end
 
-  -- Helper: set enable=true for a parser key if user hasn't explicitly configured it
+  -- Helper: set enable=true for a parser key if user hasn't explicitly configured it.
+  -- Respects explicit false: { rgb = { enable = false } } is never overridden.
   local function preset_enable(key)
     local v = user_parsers[key]
-    if not v then
+    if v == nil then
       user_parsers[key] = { enable = true }
     elseif type(v) == "table" and v.enable == nil then
       v.enable = true
-    elseif type(v) ~= "table" then
+    elseif type(v) == "boolean" then
       -- Boolean shorthand (e.g. from legacy sass parsers): convert to table
-      user_parsers[key] = { enable = v and true or false }
+      user_parsers[key] = { enable = v }
     end
   end
 
@@ -787,17 +790,17 @@ end
 -- Accepts new-format options, legacy flat options, or nil (returns defaults).
 -- Applies presets and validation.
 ---@param opts table|nil Options in any format
----@param user_opts table|nil The raw user-provided options (before merge), for preset priority
 ---@return table Canonical new-format options
-function M.resolve_options(opts, user_opts)
+function M.resolve_options(opts)
   if not opts then
     return vim.deepcopy(default_options)
   end
 
   -- Already new format (has parsers key)
   if opts.parsers then
-    local user_parsers = user_opts and user_opts.parsers or opts.parsers
-    M.apply_presets(user_parsers)
+    -- Work on a copy to avoid mutating the caller's table via apply_presets
+    opts = vim.deepcopy(opts)
+    M.apply_presets(opts.parsers)
     local merged = vim.tbl_deep_extend("force", vim.deepcopy(default_options), opts)
     M.validate_new_options(merged)
     return merged
@@ -817,12 +820,19 @@ end
 
 --- Build a new-format options table for sass color parsing.
 -- Expands sass.parsers presets into a full options table suitable for matcher.make().
+-- Results are memoized since sass_parsers configs are stable per buffer lifetime.
 ---@param sass_parsers table Sass parsers config (e.g. { css = true })
 ---@return table New-format options for the sass color parser
 function M.expand_sass_parsers(sass_parsers)
   if not sass_parsers then
     return vim.deepcopy(default_options)
   end
+
+  local cache_key = vim.inspect(sass_parsers)
+  if expand_sass_cache[cache_key] then
+    return expand_sass_cache[cache_key]
+  end
+
   -- sass_parsers is like { css = true } - treat as preset-style config
   local user_parsers = vim.deepcopy(sass_parsers)
   M.apply_presets(user_parsers)
@@ -841,6 +851,7 @@ function M.expand_sass_parsers(sass_parsers)
 
   local opts = vim.deepcopy(default_options)
   opts.parsers = parsers
+  expand_sass_cache[cache_key] = opts
   return opts
 end
 

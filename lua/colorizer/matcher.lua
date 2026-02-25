@@ -268,10 +268,15 @@ local function compile(enabled_parsers, hooks, opts)
         and buffer_parser_state[ctx.bufnr][pd.name]
       ctx.parser_opts = pd
       ctx.state = st or {}
+      ctx.parser_config = nil
+      ctx.matcher_opts = nil
+      ctx.prefix = nil
     else
       ctx.parser_config = entry.parser_config
       ctx.matcher_opts = entry.matcher_opts
       ctx.prefix = prefix
+      ctx.parser_opts = nil
+      ctx.state = nil
     end
     return entry.spec.parse(ctx)
   end
@@ -340,25 +345,28 @@ end
 ---@param opts table New-format options
 ---@return table flags Table of all enable_* flags
 local function read_parser_flags(opts)
-  local p = opts.parsers
+  local p = opts.parsers or {}
+  local names = p.names or {}
+  local hex = p.hex or {}
+  local tw = p.tailwind or {}
   return {
-    names = p.names.enable,
-    names_lowercase = p.names.lowercase,
-    names_camelcase = p.names.camelcase,
-    names_uppercase = p.names.uppercase,
-    names_strip_digits = p.names.strip_digits,
-    names_custom = p.names.custom_hashed,
+    names = names.enable,
+    names_lowercase = names.lowercase,
+    names_camelcase = names.camelcase,
+    names_uppercase = names.uppercase,
+    names_strip_digits = names.strip_digits,
+    names_custom = names.custom_hashed,
     sass = p.sass and p.sass.enable,
-    tailwind_mode = p.tailwind.enable and p.tailwind.mode or false,
-    RGB = p.hex.enable and p.hex.rgb,
-    RGBA = p.hex.enable and p.hex.rgba,
-    RRGGBB = p.hex.enable and p.hex.rrggbb,
-    RRGGBBAA = p.hex.enable and p.hex.rrggbbaa,
-    AARRGGBB = p.hex.enable and p.hex.aarrggbb,
-    rgb = p.rgb.enable,
-    hsl = p.hsl.enable,
-    oklch = p.oklch.enable,
-    xterm = p.xterm.enable,
+    tailwind_mode = tw.enable and tw.mode or false,
+    RGB = hex.enable and hex.rgb,
+    RGBA = hex.enable and hex.rgba,
+    RRGGBB = hex.enable and hex.rrggbb,
+    RRGGBBAA = hex.enable and hex.rrggbbaa,
+    AARRGGBB = hex.enable and hex.aarrggbb,
+    rgb = p.rgb and p.rgb.enable,
+    hsl = p.hsl and p.hsl.enable,
+    oklch = p.oklch and p.oklch.enable,
+    xterm = p.xterm and p.xterm.enable,
     custom = p.custom and #p.custom > 0 and p.custom or nil,
     hooks = opts.hooks,
   }

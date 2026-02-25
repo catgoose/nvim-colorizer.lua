@@ -371,12 +371,10 @@ function M.attach_to_buffer(bufnr, opts, bo_type)
   -- Ensure options are in new format
   opts = ensure_new_format(opts) or config.options.options
 
-  -- Apply presets and validate if not already done
-  if opts.parsers and (opts.parsers.css or opts.parsers.css_fn) then
-    opts = vim.deepcopy(opts)
-    config.apply_presets(opts.parsers)
-    opts = vim.tbl_deep_extend("force", vim.deepcopy(config.default_options), opts)
-    config.validate_new_options(opts)
+  -- Resolve partial opts (merge with defaults, apply presets, validate).
+  -- Skip if already fully resolved (sentinel: parsers.names and display present).
+  if not (opts.parsers and opts.parsers.names and opts.display) then
+    opts = config.resolve_options(opts)
   end
 
   colorizer_state.buffer_options[bufnr] = opts
@@ -407,8 +405,9 @@ function M.attach_to_buffer(bufnr, opts, bo_type)
         -- only reload if the buffer is not the current one
         if not (colorizer_state.buffer_current == _bufnr) then
           -- only reload if it was not disabled using detach_from_buffer
-          if colorizer_state.buffer_options[bufnr] then
-            M.rehighlight(bufnr, opts, colorizer_state.buffer_local[bufnr])
+          local buf_opts = colorizer_state.buffer_options[bufnr]
+          if buf_opts then
+            M.rehighlight(bufnr, buf_opts, colorizer_state.buffer_local[bufnr])
           end
         end
       end,
@@ -416,8 +415,9 @@ function M.attach_to_buffer(bufnr, opts, bo_type)
         -- only reload if the buffer is not the current one
         if not (colorizer_state.buffer_current == _bufnr) then
           -- only reload if it was not disabled using detach_from_buffer
-          if colorizer_state.buffer_options[bufnr] then
-            M.rehighlight(bufnr, opts, colorizer_state.buffer_local[bufnr])
+          local buf_opts = colorizer_state.buffer_options[bufnr]
+          if buf_opts then
+            M.rehighlight(bufnr, buf_opts, colorizer_state.buffer_local[bufnr])
           end
         end
       end,
@@ -622,8 +622,12 @@ function M.setup(opts)
           -- Per-filetype override: could be new or legacy format
           local override_opts
           if v.parsers or v.display then
-            -- New format override
-            override_opts = vim.tbl_deep_extend("force", vim.deepcopy(base_opts), v)
+            -- New format override: expand presets on a copy before merging
+            local user_v = vim.deepcopy(v)
+            if user_v.parsers then
+              config.apply_presets(user_v.parsers)
+            end
+            override_opts = vim.tbl_deep_extend("force", vim.deepcopy(base_opts), user_v)
           elseif config.is_legacy_options(v) then
             -- Legacy format override: translate and merge
             local translated = config.translate_options(v)
