@@ -8,8 +8,8 @@
 ---@brief ]]
 local M = {}
 
-local floor = math.floor
-local oklch_to_rgb = require("colorizer.color").oklch_to_rgb
+local color = require("colorizer.color")
+local oklch_to_rgb = color.oklch_to_rgb
 local utils = require("colorizer.utils")
 
 -- oklch has a single hardcoded pattern, cache it at module level
@@ -138,9 +138,7 @@ function M.parser(line, i, _)
 
   -- Apply alpha if not fully opaque
   if alpha < 1 then
-    r = floor(r * alpha)
-    g = floor(g * alpha)
-    b = floor(b * alpha)
+    r, g, b = color.apply_alpha(r, g, b, alpha)
   end
 
   local rgb_hex = utils.rgb_to_hex(r, g, b)

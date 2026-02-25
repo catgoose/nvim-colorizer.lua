@@ -64,6 +64,25 @@ T["highlight_mode_names"]["virtualtext is 'mv'"] = function()
   eq("mv", const.highlight_mode_names.virtualtext)
 end
 
+-- Bytes -----------------------------------------------------------------------
+
+T["bytes"] = new_set()
+
+T["bytes"]["hash is 0x23"] = function()
+  eq(0x23, const.bytes.hash)
+  eq(string.byte("#"), const.bytes.hash)
+end
+
+T["bytes"]["dollar is 0x24"] = function()
+  eq(0x24, const.bytes.dollar)
+  eq(string.byte("$"), const.bytes.dollar)
+end
+
+T["bytes"]["x is 0x78"] = function()
+  eq(0x78, const.bytes.x)
+  eq(string.byte("x"), const.bytes.x)
+end
+
 -- Defaults --------------------------------------------------------------------
 
 T["defaults"] = new_set()

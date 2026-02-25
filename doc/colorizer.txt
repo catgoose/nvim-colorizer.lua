@@ -310,15 +310,25 @@ colorizer.ParsersTailwind                            *colorizer.ParsersTailwind*
 colorizer.ParsersSass                                    *colorizer.ParsersSass*
 
     Fields: ~
-        {enable}   (boolean)  Enable Sass color variable parsing
-        {parsers}  (table)    Parsers for sass color values (e.g. `{ css = true }`)
+        {enable}            (boolean)  Enable Sass color variable parsing
+        {parsers}           (table)    Parsers for sass color values (e.g. `{ css = true }`)
+        {variable_pattern}  (string)   Lua pattern for matching sass variable names (default "^%$([%w_-]+)")
 
 
 colorizer.DisplayOptions                              *colorizer.DisplayOptions*
 
     Fields: ~
         {mode}         ("background"|"foreground"|"virtualtext")  How to display detected colors
+        {background}   (colorizer.DisplayBackground)              Background mode settings
         {virtualtext}  (colorizer.DisplayVirtualtext)             Virtual text display settings
+        {priority}     (colorizer.DisplayPriority)                Extmark priority settings
+
+
+colorizer.DisplayBackground                        *colorizer.DisplayBackground*
+
+    Fields: ~
+        {bright_fg}  (string)  Foreground color for bright backgrounds (default "Black")
+        {dark_fg}    (string)  Foreground color for dark backgrounds (default "White")
 
 
 colorizer.DisplayVirtualtext                      *colorizer.DisplayVirtualtext*
@@ -327,6 +337,13 @@ colorizer.DisplayVirtualtext                      *colorizer.DisplayVirtualtext*
         {char}      (string)                     Character used for virtual text (default "■")
         {position}  (false|"before"|"after")     Inline virtualtext position. `false` for end-of-line.
         {hl_mode}   ("background"|"foreground")  Highlight mode for virtual text
+
+
+colorizer.DisplayPriority                            *colorizer.DisplayPriority*
+
+    Fields: ~
+        {default}  (number)  Extmark priority for normal highlights (default 100)
+        {lsp}      (number)  Extmark priority for LSP/Tailwind highlights (default 200)
 
 
 colorizer.UserDefaultOptions                      *colorizer.UserDefaultOptions*
@@ -640,6 +657,16 @@ M.is_bright({r}, {g}, {b})                           *colorizer.color.is_bright*
                        @return boolean `true` if the color is bright, `false` if it's dark.
 
 
+M.apply_alpha({r}, {g}, {b}, {alpha})              *colorizer.color.apply_alpha*
+
+    Parameters: ~
+        {r}      (number)  Red component, in the range [0, 255].
+        {g}      (number)  Green component, in the range [0, 255].
+        {b}      (number)  Blue component, in the range [0, 255].
+        {alpha}  (number)  Alpha value, in the range [0, 1].
+                           @return number, number, number Alpha-blended red, green, and blue values.
+
+
 M.oklch_to_rgb()                                  *colorizer.color.oklch_to_rgb*
 
 
@@ -691,7 +718,7 @@ M.reset_cache()                                  *colorizer.matcher.reset_cache*
 M.make({opts})                                          *colorizer.matcher.make*
 
     Parameters: ~
-        {opts}  (table)  New-format options (with opts.parsers) or legacy flat ud_opts
+        {opts}  (table)  New-format options (with opts.parsers) or legacy flat options
 
     Returns: ~
         (function|boolean)  which will just parse the line for enabled parsers
@@ -764,6 +791,20 @@ M.count({str}, {pattern})                                *colorizer.utils.count*
 
     Returns: ~
         (number)
+
+
+                                             *colorizer.utils.validate_css_seps*
+M.validate_css_seps({c_seps}, {s_seps}, {has_alpha}, {min_commas}, {min_spaces})
+
+    Parameters: ~
+        {c_seps}      (string)   Concatenated comma/slash separators from parsed groups
+        {s_seps}      (string)   Concatenated space separators from parsed groups
+        {has_alpha}   (boolean)  Whether an alpha value is present
+        {min_commas}  (number)   Required number of commas for comma syntax
+        {min_spaces}  (number)   Minimum spaces required for space syntax
+
+    Returns: ~
+        (boolean)  if separator syntax is valid
 
 
 M.get_last_modified({path})                  *colorizer.utils.get_last_modified*

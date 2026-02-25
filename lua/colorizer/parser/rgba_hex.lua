@@ -7,9 +7,9 @@
 local M = {}
 
 local bit = require("bit")
-local floor = math.floor
 local band, rshift, lshift = bit.band, bit.rshift, bit.lshift
 
+local color = require("colorizer.color")
 local utils = require("colorizer.utils")
 
 --- Parses `#RRGGBBAA` hexadecimal colors and converts them to RGB hex format.
@@ -77,13 +77,11 @@ function M.parser(line, i, opts)
     local g = utils.parse_hex(line:byte(i + 2)) * 17
     local b = utils.parse_hex(line:byte(i + 3)) * 17
     alpha = utils.parse_hex(line:byte(i + 4)) / 15
-    return 5, utils.rgb_to_hex(floor(r * alpha), floor(g * alpha), floor(b * alpha))
+    return 5, utils.rgb_to_hex(color.apply_alpha(r, g, b, alpha))
   elseif parsed_length == 9 then
     -- Handle #RRGGBBAA
     alpha = alpha / 255
-    local r = floor(band(rshift(v, 16), 0xFF) * alpha)
-    local g = floor(band(rshift(v, 8), 0xFF) * alpha)
-    local b = floor(band(v, 0xFF) * alpha)
+    local r, g, b = color.apply_alpha(band(rshift(v, 16), 0xFF), band(rshift(v, 8), 0xFF), band(v, 0xFF), alpha)
     return 9, utils.rgb_to_hex(r, g, b)
   end
 

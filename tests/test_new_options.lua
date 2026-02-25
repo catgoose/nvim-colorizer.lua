@@ -1601,4 +1601,112 @@ T["roundtrip"]["new -> flat -> resolve preserves tailwind"] = function()
   eq(true, restored.parsers.tailwind.update_names)
 end
 
+-- display.background options --------------------------------------------------
+
+T["display.background"] = new_set()
+
+T["display.background"]["default bright_fg is Black"] = function()
+  eq("Black", config.default_options.display.background.bright_fg)
+end
+
+T["display.background"]["default dark_fg is White"] = function()
+  eq("White", config.default_options.display.background.dark_fg)
+end
+
+T["display.background"]["custom bright_fg is preserved through resolve"] = function()
+  local opts = config.resolve_options({
+    parsers = { hex = { enable = true } },
+    display = { background = { bright_fg = "DarkGray" } },
+  })
+  eq("DarkGray", opts.display.background.bright_fg)
+  eq("White", opts.display.background.dark_fg)
+end
+
+T["display.background"]["custom dark_fg is preserved through resolve"] = function()
+  local opts = config.resolve_options({
+    parsers = { hex = { enable = true } },
+    display = { background = { dark_fg = "LightYellow" } },
+  })
+  eq("Black", opts.display.background.bright_fg)
+  eq("LightYellow", opts.display.background.dark_fg)
+end
+
+T["display.background"]["bright color uses bright_fg"] = function()
+  local buf = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "#FFFFFF" })
+  local ns = vim.api.nvim_create_namespace("test_bright_fg")
+  local opts = vim.deepcopy(config.default_options)
+  opts.parsers.hex.enable = true
+  opts.display.background.bright_fg = "DarkGreen"
+  local data = buffer.parse_lines(buf, { "#FFFFFF" }, 0, opts)
+  buffer.add_highlight(buf, ns, 0, 1, data, opts)
+  local marks = vim.api.nvim_buf_get_extmarks(buf, ns, 0, -1, { details = true })
+  eq(true, #marks > 0)
+  -- Verify the highlight group exists and was applied
+  local hl = vim.api.nvim_get_hl(0, { name = marks[1][4].hl_group })
+  eq("DarkGreen", hl.fg and vim.api.nvim_get_color_by_name("DarkGreen") == hl.fg and "DarkGreen" or nil)
+  vim.api.nvim_buf_delete(buf, { force = true })
+end
+
+-- display.priority options ----------------------------------------------------
+
+T["display.priority"] = new_set()
+
+T["display.priority"]["default values"] = function()
+  eq(100, config.default_options.display.priority.default)
+  eq(200, config.default_options.display.priority.lsp)
+end
+
+T["display.priority"]["custom default priority is used"] = function()
+  local buf = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "#FF0000" })
+  local ns = vim.api.nvim_create_namespace("test_custom_priority")
+  local opts = vim.deepcopy(config.default_options)
+  opts.parsers.hex.enable = true
+  opts.display.priority.default = 50
+  local data = buffer.parse_lines(buf, { "#FF0000" }, 0, opts)
+  buffer.add_highlight(buf, ns, 0, 1, data, opts)
+  local marks = vim.api.nvim_buf_get_extmarks(buf, ns, 0, -1, { details = true })
+  eq(50, marks[1][4].priority)
+  vim.api.nvim_buf_delete(buf, { force = true })
+end
+
+T["display.priority"]["custom lsp priority is used"] = function()
+  local buf = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "#FF0000" })
+  local ns = vim.api.nvim_create_namespace("test_custom_lsp_priority")
+  local opts = vim.deepcopy(config.default_options)
+  opts.parsers.hex.enable = true
+  opts.display.priority.lsp = 300
+  local data = buffer.parse_lines(buf, { "#FF0000" }, 0, opts)
+  buffer.add_highlight(buf, ns, 0, 1, data, opts, { tailwind_lsp = true })
+  local marks = vim.api.nvim_buf_get_extmarks(buf, ns, 0, -1, { details = true })
+  eq(300, marks[1][4].priority)
+  vim.api.nvim_buf_delete(buf, { force = true })
+end
+
+T["display.priority"]["preserved through resolve"] = function()
+  local opts = config.resolve_options({
+    parsers = { hex = { enable = true } },
+    display = { priority = { default = 42, lsp = 99 } },
+  })
+  eq(42, opts.display.priority.default)
+  eq(99, opts.display.priority.lsp)
+end
+
+-- parsers.sass.variable_pattern -----------------------------------------------
+
+T["parsers.sass.variable_pattern"] = new_set()
+
+T["parsers.sass.variable_pattern"]["default pattern exists"] = function()
+  eq("^%$([%w_-]+)", config.default_options.parsers.sass.variable_pattern)
+end
+
+T["parsers.sass.variable_pattern"]["custom pattern preserved through resolve"] = function()
+  local opts = config.resolve_options({
+    parsers = { sass = { enable = true, variable_pattern = "^@([%w_]+)" } },
+  })
+  eq("^@([%w_]+)", opts.parsers.sass.variable_pattern)
+end
+
 return T

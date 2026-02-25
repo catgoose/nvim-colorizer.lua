@@ -40,8 +40,7 @@ local ansi_16_patterns = {
   "^\x1b%[(%d+);(%d+)m",   -- hex escape
 }
 
-local BYTE_HASH = 0x23 -- '#'
-local BYTE_x = 0x78    -- 'x'
+local const = require("colorizer.constants")
 
 --- Parses xterm color codes and converts them to RGB hex format.
 -- This function matches following color codes:
@@ -55,7 +54,7 @@ local BYTE_x = 0x78    -- 'x'
 ---@return string|nil The RGB hexadecimal color from the xterm palette, or `nil` if parsing failed
 function M.parser(line, i)
   -- #xNN (decimal, 0-255)
-  if line:byte(i) == BYTE_HASH and line:byte(i + 1) == BYTE_x then
+  if line:byte(i) == const.bytes.hash and line:byte(i + 1) == const.bytes.x then
     local num = line:sub(i + 2):match("^(%d?%d?%d)")
     if num then
       local idx = tonumber(num) or -1

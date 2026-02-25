@@ -164,15 +164,26 @@ local plugin_user_default_options = {
 ---@class colorizer.ParsersSass
 ---@field enable boolean Enable Sass color variable parsing
 ---@field parsers table Parsers for sass color values (e.g. `{ css = true }`)
+---@field variable_pattern string Lua pattern for matching sass variable names (default "^%$([%w_-]+)")
 
 ---@class colorizer.DisplayOptions
 ---@field mode 'background'|'foreground'|'virtualtext' How to display detected colors
+---@field background colorizer.DisplayBackground Background mode settings
 ---@field virtualtext colorizer.DisplayVirtualtext Virtual text display settings
+---@field priority colorizer.DisplayPriority Extmark priority settings
+
+---@class colorizer.DisplayBackground
+---@field bright_fg string Foreground color for bright backgrounds (default "Black")
+---@field dark_fg string Foreground color for dark backgrounds (default "White")
 
 ---@class colorizer.DisplayVirtualtext
 ---@field char string Character used for virtual text (default "■")
 ---@field position false|'before'|'after' Inline virtualtext position. `false` for end-of-line.
 ---@field hl_mode 'background'|'foreground' Highlight mode for virtual text
+
+---@class colorizer.DisplayPriority
+---@field default number Extmark priority for normal highlights (default 100)
+---@field lsp number Extmark priority for LSP/Tailwind highlights (default 200)
 local default_options = {
   parsers = {
     css = false,
@@ -209,6 +220,7 @@ local default_options = {
     sass = {
       enable = false,
       parsers = { css = true },
+      variable_pattern = "^%$([%w_-]+)",
     },
 
     xterm = { enable = false },
@@ -218,10 +230,18 @@ local default_options = {
 
   display = {
     mode = "background",
+    background = {
+      bright_fg = "Black",
+      dark_fg = "White",
+    },
     virtualtext = {
       char = "■",
       position = false,
       hl_mode = "foreground",
+    },
+    priority = {
+      default = 100,
+      lsp = 200,
     },
   },
 
@@ -386,7 +406,7 @@ function M.translate_options(old_opts)
   local new = { parsers = {} }
 
   -- parsers.names
-  if old_opts.names ~= nil or old_opts.names_opts or old_opts.names_custom ~= nil then
+  if old_opts.names ~= nil or old_opts.names_opts or old_opts.names_custom ~= nil or old_opts.names_custom_hashed then
     new.parsers.names = {}
     if old_opts.names ~= nil then
       new.parsers.names.enable = old_opts.names
@@ -398,6 +418,10 @@ function M.translate_options(old_opts)
     end
     if old_opts.names_custom ~= nil then
       new.parsers.names.custom = old_opts.names_custom
+    end
+    -- Preserve pre-computed hash from validate_options()
+    if old_opts.names_custom_hashed then
+      new.parsers.names.custom_hashed = old_opts.names_custom_hashed
     end
   end
 
@@ -595,52 +619,33 @@ function M.apply_presets(user_parsers)
     return
   end
 
+  -- Helper: set enable=true for a parser key if user hasn't explicitly configured it
+  local function preset_enable(key)
+    local v = user_parsers[key]
+    if not v then
+      user_parsers[key] = { enable = true }
+    elseif type(v) == "table" and v.enable == nil then
+      v.enable = true
+    elseif type(v) ~= "table" then
+      -- Boolean shorthand (e.g. from legacy sass parsers): convert to table
+      user_parsers[key] = { enable = v and true or false }
+    end
+  end
+
   -- css preset: enables names, hex (all), rgb, hsl, oklch
   if user_parsers.css then
-    if not user_parsers.names then
-      user_parsers.names = { enable = true }
-    elseif user_parsers.names.enable == nil then
-      user_parsers.names.enable = true
-    end
-    if not user_parsers.hex then
-      user_parsers.hex = { enable = true }
-    elseif user_parsers.hex.enable == nil then
-      user_parsers.hex.enable = true
-    end
-    if not user_parsers.rgb then
-      user_parsers.rgb = { enable = true }
-    elseif user_parsers.rgb.enable == nil then
-      user_parsers.rgb.enable = true
-    end
-    if not user_parsers.hsl then
-      user_parsers.hsl = { enable = true }
-    elseif user_parsers.hsl.enable == nil then
-      user_parsers.hsl.enable = true
-    end
-    if not user_parsers.oklch then
-      user_parsers.oklch = { enable = true }
-    elseif user_parsers.oklch.enable == nil then
-      user_parsers.oklch.enable = true
-    end
+    preset_enable("names")
+    preset_enable("hex")
+    preset_enable("rgb")
+    preset_enable("hsl")
+    preset_enable("oklch")
   end
 
   -- css_fn preset: enables rgb, hsl, oklch
   if user_parsers.css_fn then
-    if not user_parsers.rgb then
-      user_parsers.rgb = { enable = true }
-    elseif user_parsers.rgb.enable == nil then
-      user_parsers.rgb.enable = true
-    end
-    if not user_parsers.hsl then
-      user_parsers.hsl = { enable = true }
-    elseif user_parsers.hsl.enable == nil then
-      user_parsers.hsl.enable = true
-    end
-    if not user_parsers.oklch then
-      user_parsers.oklch = { enable = true }
-    elseif user_parsers.oklch.enable == nil then
-      user_parsers.oklch.enable = true
-    end
+    preset_enable("rgb")
+    preset_enable("hsl")
+    preset_enable("oklch")
   end
 
   -- Remove preset keys after expansion
@@ -852,63 +857,64 @@ function M.expand_sass_parsers(sass_parsers)
 end
 
 --- Validate user options and set defaults (legacy format).
-local function validate_options(ud_opts)
+---@param opts table Legacy flat options to validate in-place
+local function validate_options(opts)
   -- Set true value to it's "name"
-  if ud_opts.tailwind == true then
-    ud_opts.tailwind = "normal"
+  if opts.tailwind == true then
+    opts.tailwind = "normal"
   end
-  if ud_opts.virtualtext_inline == true then
-    ud_opts.virtualtext_inline = "after"
+  if opts.virtualtext_inline == true then
+    opts.virtualtext_inline = "after"
   end
   -- Set default if value is invalid
-  if ud_opts.tailwind ~= "normal" and ud_opts.tailwind ~= "both" and ud_opts.tailwind ~= "lsp" then
-    ud_opts.tailwind = plugin_user_default_options.tailwind
+  if opts.tailwind ~= "normal" and opts.tailwind ~= "both" and opts.tailwind ~= "lsp" then
+    opts.tailwind = plugin_user_default_options.tailwind
   end
-  if ud_opts.virtualtext_inline ~= "before" and ud_opts.virtualtext_inline ~= "after" then
-    ud_opts.virtualtext_inline = plugin_user_default_options.virtualtext_inline
+  if opts.virtualtext_inline ~= "before" and opts.virtualtext_inline ~= "after" then
+    opts.virtualtext_inline = plugin_user_default_options.virtualtext_inline
   end
   if
-    ud_opts.mode ~= "background"
-    and ud_opts.mode ~= "foreground"
-    and ud_opts.mode ~= "virtualtext"
+    opts.mode ~= "background"
+    and opts.mode ~= "foreground"
+    and opts.mode ~= "virtualtext"
   then
-    ud_opts.mode = plugin_user_default_options.mode
+    opts.mode = plugin_user_default_options.mode
   end
-  if ud_opts.virtualtext_mode ~= "background" and ud_opts.virtualtext_mode ~= "foreground" then
-    ud_opts.virtualtext_mode = plugin_user_default_options.virtualtext_mode
+  if opts.virtualtext_mode ~= "background" and opts.virtualtext_mode ~= "foreground" then
+    opts.virtualtext_mode = plugin_user_default_options.virtualtext_mode
   end
   -- Set names_custom to false if it's an empty table
   if
-    ud_opts.names_custom
-    and type(ud_opts.names_custom) == "table"
-    and not next(ud_opts.names_custom)
+    opts.names_custom
+    and type(opts.names_custom) == "table"
+    and not next(opts.names_custom)
   then
-    ud_opts.names_custom = false
+    opts.names_custom = false
   end
   -- Extract table if names_custom is a function
-  if ud_opts.names_custom then
-    if type(ud_opts.names_custom) == "function" then
-      local status, names = pcall(ud_opts.names_custom)
+  if opts.names_custom then
+    if type(opts.names_custom) == "function" then
+      local status, names = pcall(opts.names_custom)
       if not (status and type(names) == "table") then
         error(string.format("Error in names_custom function: %s", names or "Invalid return value"))
       end
-      ud_opts.names_custom = names
+      opts.names_custom = names
     end
-    if type(ud_opts.names_custom) ~= "table" then
-      error(string.format("Error in names_custom table: %s", vim.inspect(ud_opts.names_custom)))
+    if type(opts.names_custom) ~= "table" then
+      error(string.format("Error in names_custom table: %s", vim.inspect(opts.names_custom)))
     end
     -- Calculate hash to be used as key in names parser color_map
     -- Use a new key (names_custom_hashed) in case `hash` or `names` were defined as custom colors
     -- Make sure this key is checked in matcher and not `names_custom`
-    ud_opts.names_custom_hashed = {
-      hash = utils.hash_table(ud_opts.names_custom),
-      names = ud_opts.names_custom,
+    opts.names_custom_hashed = {
+      hash = utils.hash_table(opts.names_custom),
+      names = opts.names_custom,
     }
-    ud_opts.names_custom = false
+    opts.names_custom = false
   end
-  if ud_opts.hooks then
-    if type(ud_opts.hooks.disable_line_highlight) ~= "function" then
-      ud_opts.hooks.disable_line_highlight = false
+  if opts.hooks then
+    if type(opts.hooks.disable_line_highlight) ~= "function" then
+      opts.hooks.disable_line_highlight = false
     end
   end
 end

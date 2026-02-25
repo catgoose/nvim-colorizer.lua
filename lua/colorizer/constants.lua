@@ -36,6 +36,13 @@ M.highlight_mode_names = {
   virtualtext = "mv",
 }
 
+--- Byte values for commonly matched characters
+M.bytes = {
+  hash = 0x23,   -- '#'
+  dollar = 0x24, -- '$'
+  x = 0x78,      -- 'x'
+}
+
 --- Miscellaneous constants
 M.defaults = {
   virtualtext = "■",

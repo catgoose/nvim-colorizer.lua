@@ -8,10 +8,8 @@
 local M = {}
 
 local Trie = require("colorizer.trie")
+local const = require("colorizer.constants")
 local min, max = math.min, math.max
-
-local BYTE_HASH = 0x23   -- string.byte("#")
-local BYTE_DOLLAR = 0x24 -- string.byte("$")
 
 local parsers = {
   color_name = require("colorizer.parser.names").parser,
@@ -144,7 +142,7 @@ local function compile(matchers, matchers_trie, hooks, custom_parsers, opts)
 
     -- prefix #
     if matchers.rgba_hex_parser then
-      if byte == BYTE_HASH then
+      if byte == const.bytes.hash then
         if matchers.xterm_enabled then
           local len, rgb_hex = parsers.xterm(line, i)
           if len and rgb_hex then
@@ -157,7 +155,7 @@ local function compile(matchers, matchers_trie, hooks, custom_parsers, opts)
 
     -- prefix $, SASS Color names
     if matchers.sass_name_parser then
-      if byte == BYTE_DOLLAR then
+      if byte == const.bytes.dollar then
         return parsers.sass_name(line, i, bufnr)
       end
     end
@@ -241,148 +239,119 @@ do
   M.reset_cache()
 end
 
----Parse the given options and return a function with enabled parsers.
---if no parsers enabled then return false
---Do not try make the function again if it is present in the cache
----@param opts table New-format options (with opts.parsers) or legacy flat ud_opts
----@return function|boolean function which will just parse the line for enabled parsers
-function M.make(opts)
-  if not opts then
-    return false
-  end
-
-  -- Read from new format (opts.parsers.*) or fall back to legacy flat keys
+--- Read all parser enable flags from new-format opts.
+---@param opts table New-format options
+---@return table flags Table of all enable_* flags
+local function read_parser_flags(opts)
   local p = opts.parsers
-  local enable_names, enable_names_lowercase, enable_names_camelcase
-  local enable_names_uppercase, enable_names_strip_digits, enable_names_custom
-  local enable_sass, enable_tailwind, enable_tailwind_mode
-  local enable_RGB, enable_RGBA, enable_RRGGBB, enable_RRGGBBAA, enable_AARRGGBB
-  local enable_rgb, enable_hsl, enable_oklch, enable_xterm
-  local custom_parsers, hooks
+  return {
+    names = p.names.enable,
+    names_lowercase = p.names.lowercase,
+    names_camelcase = p.names.camelcase,
+    names_uppercase = p.names.uppercase,
+    names_strip_digits = p.names.strip_digits,
+    names_custom = p.names.custom_hashed,
+    sass = p.sass and p.sass.enable,
+    tailwind_mode = p.tailwind.enable and p.tailwind.mode or false,
+    RGB = p.hex.enable and p.hex.rgb,
+    RGBA = p.hex.enable and p.hex.rgba,
+    RRGGBB = p.hex.enable and p.hex.rrggbb,
+    RRGGBBAA = p.hex.enable and p.hex.rrggbbaa,
+    AARRGGBB = p.hex.enable and p.hex.aarrggbb,
+    rgb = p.rgb.enable,
+    hsl = p.hsl.enable,
+    oklch = p.oklch.enable,
+    xterm = p.xterm.enable,
+    custom = p.custom and #p.custom > 0 and p.custom or nil,
+    hooks = opts.hooks,
+  }
+end
 
-  if p then
-    -- New format
-    enable_names = p.names.enable
-    enable_names_lowercase = p.names.lowercase
-    enable_names_camelcase = p.names.camelcase
-    enable_names_uppercase = p.names.uppercase
-    enable_names_strip_digits = p.names.strip_digits
-    enable_names_custom = p.names.custom_hashed
-    enable_sass = p.sass and p.sass.enable
-    enable_tailwind = p.tailwind.enable
-    enable_tailwind_mode = p.tailwind.enable and p.tailwind.mode or false
-    enable_RGB = p.hex.enable and p.hex.rgb
-    enable_RGBA = p.hex.enable and p.hex.rgba
-    enable_RRGGBB = p.hex.enable and p.hex.rrggbb
-    enable_RRGGBBAA = p.hex.enable and p.hex.rrggbbaa
-    enable_AARRGGBB = p.hex.enable and p.hex.aarrggbb
-    enable_rgb = p.rgb.enable
-    enable_hsl = p.hsl.enable
-    enable_oklch = p.oklch.enable
-    enable_xterm = p.xterm.enable
-    custom_parsers = p.custom and #p.custom > 0 and p.custom or nil
-    hooks = opts.hooks
-  else
-    -- Legacy flat format (backward compat)
-    enable_names = opts.names
-    enable_names_lowercase = opts.names_opts and opts.names_opts.lowercase
-    enable_names_camelcase = opts.names_opts and opts.names_opts.camelcase
-    enable_names_uppercase = opts.names_opts and opts.names_opts.uppercase
-    enable_names_strip_digits = opts.names_opts and opts.names_opts.strip_digits
-    enable_names_custom = opts.names_custom_hashed
-    enable_sass = opts.sass and opts.sass.enable
-    enable_tailwind = opts.tailwind and opts.tailwind ~= false
-    enable_tailwind_mode = opts.tailwind
-    enable_RGB = opts.RGB
-    enable_RGBA = opts.RGBA
-    enable_RRGGBB = opts.RRGGBB
-    enable_RRGGBBAA = opts.RRGGBBAA
-    enable_AARRGGBB = opts.AARRGGBB
-    enable_rgb = opts.rgb_fn
-    enable_hsl = opts.hsl_fn
-    enable_oklch = opts.oklch_fn
-    enable_xterm = opts.xterm
-    hooks = opts.hooks
-  end
-
-  -- Rather than use bit.lshift or calculate 2^x, use precalculated values to
-  -- create unique bitmask
+--- Compute bitmask and cache key from parser flags.
+---@param f table Parser flags from read_parser_flags
+---@return number matcher_mask
+---@return string|number matcher_key
+local function calculate_matcher_key(f)
+  -- Table-driven bitmask: each truthy flag sets one bit
+  -- All values must be non-nil (use `or false`) so ipairs doesn't stop early
+  local mask_flags = {
+    f.names or false,
+    (f.names and f.names_lowercase) or false,
+    (f.names and f.names_camelcase) or false,
+    (f.names and f.names_uppercase) or false,
+    (f.names and f.names_strip_digits) or false,
+    f.names_custom or false,
+    f.RGB or false, f.RGBA or false, f.RRGGBB or false,
+    f.RRGGBBAA or false, f.AARRGGBB or false,
+    f.rgb or false, f.hsl or false,
+    f.tailwind_mode == "normal",
+    f.tailwind_mode == "lsp",
+    f.tailwind_mode == "both",
+    f.sass or false, f.xterm or false, f.oklch or false,
+  }
   local matcher_mask = 0
-    + (enable_names and 1 or 0)
-    + (enable_names and enable_names_lowercase and 2 or 0)
-    + (enable_names and enable_names_camelcase and 4 or 0)
-    + (enable_names and enable_names_uppercase and 8 or 0)
-    + (enable_names and enable_names_strip_digits and 16 or 0)
-    + (enable_names_custom and 32 or 0)
-    + (enable_RGB and 64 or 0)
-    + (enable_RGBA and 128 or 0)
-    + (enable_RRGGBB and 256 or 0)
-    + (enable_RRGGBBAA and 512 or 0)
-    + (enable_AARRGGBB and 1024 or 0)
-    + (enable_rgb and 2048 or 0)
-    + (enable_hsl and 4096 or 0)
-    + (enable_tailwind_mode == "normal" and 8192 or 0)
-    + (enable_tailwind_mode == "lsp" and 16384 or 0)
-    + (enable_tailwind_mode == "both" and 32768 or 0)
-    + (enable_sass and 65536 or 0)
-    + (enable_xterm and 131072 or 0)
-    + (enable_oklch and 262144 or 0)
+  local bit_value = 1
+  for _, flag in ipairs(mask_flags) do
+    if flag then
+      matcher_mask = matcher_mask + bit_value
+    end
+    bit_value = bit_value + bit_value
+  end
 
   -- Add custom parser names to mask
   local custom_parser_key = ""
-  if custom_parsers then
-    matcher_mask = matcher_mask + 524288
-    local names = {}
-    for _, cp in ipairs(custom_parsers) do
-      table.insert(names, cp.name)
+  if f.custom then
+    matcher_mask = matcher_mask + bit_value
+    local cp_names = {}
+    for _, cp in ipairs(f.custom) do
+      table.insert(cp_names, cp.name)
     end
-    table.sort(names)
-    custom_parser_key = table.concat(names, ",")
+    table.sort(cp_names)
+    custom_parser_key = table.concat(cp_names, ",")
   end
 
-  if matcher_mask == 0 then
-    return false
-  end
-
-  local matcher_key = enable_names_custom
-      and string.format("%d|%s|%s", matcher_mask, enable_names_custom.hash, custom_parser_key)
+  local matcher_key = f.names_custom
+      and string.format("%d|%s|%s", matcher_mask, f.names_custom.hash, custom_parser_key)
     or custom_parser_key ~= ""
       and string.format("%d|%s", matcher_mask, custom_parser_key)
     or matcher_mask
 
-  local loop_parse_fn = matcher_cache[matcher_key]
-  if loop_parse_fn then
-    return loop_parse_fn
-  end
+  return matcher_mask, matcher_key
+end
 
+--- Build matchers table and prefix list from parser flags.
+---@param f table Parser flags from read_parser_flags
+---@return table matchers
+---@return table matchers_prefix
+local function build_matchers(f)
   local matchers = {}
   local matchers_prefix = {}
-  matchers.xterm_enabled = enable_xterm
+  matchers.xterm_enabled = f.xterm
 
-  local enable_tailwind_names = enable_tailwind_mode == "normal" or enable_tailwind_mode == "both"
-  if enable_names or enable_names_custom or enable_tailwind_names then
-    matchers.color_name_parser = matchers.color_name_parser or {}
-    if enable_names then
-      matchers.color_name_parser.color_names = enable_names
+  local tailwind_names = f.tailwind_mode == "normal" or f.tailwind_mode == "both"
+  if f.names or f.names_custom or tailwind_names then
+    matchers.color_name_parser = {}
+    if f.names then
+      matchers.color_name_parser.color_names = f.names
       matchers.color_name_parser.color_names_opts = {
-        lowercase = enable_names_lowercase,
-        camelcase = enable_names_camelcase,
-        uppercase = enable_names_uppercase,
-        strip_digits = enable_names_strip_digits,
+        lowercase = f.names_lowercase,
+        camelcase = f.names_camelcase,
+        uppercase = f.names_uppercase,
+        strip_digits = f.names_strip_digits,
       }
     end
-    if enable_names_custom then
-      matchers.color_name_parser.names_custom = enable_names_custom
+    if f.names_custom then
+      matchers.color_name_parser.names_custom = f.names_custom
     end
-    if enable_tailwind_names then
-      matchers.color_name_parser.tailwind_names = enable_tailwind_names
+    if tailwind_names then
+      matchers.color_name_parser.tailwind_names = tailwind_names
     end
   end
 
-  matchers.sass_name_parser = enable_sass or nil
+  matchers.sass_name_parser = f.sass or nil
 
   local valid_lengths =
-    { [3] = enable_RGB, [4] = enable_RGBA, [6] = enable_RRGGBB, [8] = enable_RRGGBBAA }
+    { [3] = f.RGB, [4] = f.RGBA, [6] = f.RRGGBB, [8] = f.RRGGBBAA }
   local minlen, maxlen
   for k, v in pairs(valid_lengths) do
     if v then
@@ -398,21 +367,18 @@ function M.make(opts)
     }
   end
 
-  --  TODO: 2024-11-05 - Add custom prefixes
-  if enable_AARRGGBB then
+  if f.AARRGGBB then
     table.insert(matchers_prefix, "0x")
   end
 
   -- Add CSS function prefixes based on enabled flags
-  -- Will be sorted by length to ensure correct Trie matching (longer prefixes first)
   local css_function_prefixes = {
-    oklch = enable_oklch,
-    hsla = enable_hsl,
-    hsl = enable_hsl,
-    rgba = enable_rgb,
-    rgb = enable_rgb,
+    oklch = f.oklch,
+    hsla = f.hsl,
+    hsl = f.hsl,
+    rgba = f.rgb,
+    rgb = f.rgb,
   }
-
   for prefix, enabled in pairs(css_function_prefixes) do
     if enabled then
       table.insert(matchers_prefix, prefix)
@@ -428,7 +394,43 @@ function M.make(opts)
     matchers[value] = { prefix = value }
   end
 
-  loop_parse_fn = compile(matchers, matchers_prefix, hooks, custom_parsers, opts)
+  return matchers, matchers_prefix
+end
+
+---Parse the given options and return a function with enabled parsers.
+--if no parsers enabled then return false
+--Do not try make the function again if it is present in the cache
+---@param opts table New-format options (with opts.parsers) or legacy flat options
+---@return function|boolean function which will just parse the line for enabled parsers
+function M.make(opts)
+  if not opts then
+    return false
+  end
+
+  -- Auto-normalize legacy opts to new format at the API boundary
+  if not opts.parsers then
+    local cfg = require("colorizer.config")
+    if cfg.is_legacy_options(opts) then
+      opts = cfg.resolve_options(opts)
+    else
+      return false
+    end
+  end
+
+  local f = read_parser_flags(opts)
+  local matcher_mask, matcher_key = calculate_matcher_key(f)
+
+  if matcher_mask == 0 then
+    return false
+  end
+
+  local loop_parse_fn = matcher_cache[matcher_key]
+  if loop_parse_fn then
+    return loop_parse_fn
+  end
+
+  local matchers, matchers_prefix = build_matchers(f)
+  loop_parse_fn = compile(matchers, matchers_prefix, f.hooks, f.custom, opts)
   matcher_cache[matcher_key] = loop_parse_fn
 
   return loop_parse_fn

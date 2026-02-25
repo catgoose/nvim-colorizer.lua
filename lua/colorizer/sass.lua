@@ -33,6 +33,8 @@ function M.cleanup(bufnr)
   state[bufnr] = nil
 end
 
+local DEFAULT_VARIABLE_PATTERN = "^%$([%w_-]+)"
+
 --- Parse the given line for sass color names
 -- check for value in state[buf].definitions_all
 ---@param line string Line to parse
@@ -40,13 +42,24 @@ end
 ---@param bufnr number Buffer number
 ---@return number|nil, string|nil
 function M.parser(line, i, bufnr)
-  local variable_name = line:match("^%$([%w_-]+)", i)
+  local pattern = (state[bufnr] and state[bufnr].opts and state[bufnr].opts.parsers
+    and state[bufnr].opts.parsers.sass and state[bufnr].opts.parsers.sass.variable_pattern)
+    or DEFAULT_VARIABLE_PATTERN
+  local variable_name = line:match(pattern, i)
   if variable_name then
     local rgb_hex = state[bufnr].definitions_all[variable_name]
     if rgb_hex then
       return #variable_name + 1, rgb_hex
     end
   end
+end
+
+--- Build a definition pattern from the variable pattern.
+-- Appends a value-capture group to match `$var: value` definitions.
+---@param var_pattern string Variable reference pattern (e.g. "^%$([%w_-]+)")
+---@return string Definition pattern with two captures: (name, value)
+local function make_def_pattern(var_pattern)
+  return var_pattern .. "%s*:%s*(.+)%s*"
 end
 
 -- Helper function for sass_update_variables
@@ -62,6 +75,8 @@ local function sass_parse_lines(bufnr, line_start, content, name)
   state[bufnr].watch_imports[name] = state[bufnr].watch_imports[name] or {}
   state[bufnr].current_imports[name] = {}
 
+  -- Definition parsing always uses $ syntax (Sass/SCSS standard)
+  local def_pattern = make_def_pattern(DEFAULT_VARIABLE_PATTERN)
   local import_find_colon = false
   for i, line in ipairs(content) do
     local linenum = i - 1 + line_start
@@ -82,7 +97,7 @@ local function sass_parse_lines(bufnr, line_start, content, name)
         index = #line
       -- line starting with variables $var
       elseif not import_find_colon and line:byte(index) == ("$"):byte() then
-        local variable_name, variable_value = line:match("^%$([%w_-]+)%s*:%s*(.+)%s*", index)
+        local variable_name, variable_value = line:match(def_pattern, index)
         -- Check if we got a variable definition
         if variable_name and variable_value then
           -- Check for a recursive variable definition.

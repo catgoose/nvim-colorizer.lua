@@ -162,4 +162,38 @@ T["is_bright"]["pure red is not bright"] = function()
   eq(false, color.is_bright(255, 0, 0))
 end
 
+-- apply_alpha ----------------------------------------------------------------
+
+T["apply_alpha"] = new_set()
+
+T["apply_alpha"]["full opacity returns original"] = function()
+  local r, g, b = color.apply_alpha(255, 128, 64, 1)
+  eq(255, r)
+  eq(128, g)
+  eq(64, b)
+end
+
+T["apply_alpha"]["zero alpha returns zeros"] = function()
+  local r, g, b = color.apply_alpha(255, 128, 64, 0)
+  eq(0, r)
+  eq(0, g)
+  eq(0, b)
+end
+
+T["apply_alpha"]["half alpha floors correctly"] = function()
+  -- floor(255 * 0.5) = 127, floor(128 * 0.5) = 64, floor(65 * 0.5) = 32
+  local r, g, b = color.apply_alpha(255, 128, 65, 0.5)
+  eq(127, r)
+  eq(64, g)
+  eq(32, b)
+end
+
+T["apply_alpha"]["fractional alpha spot-check"] = function()
+  -- floor(200 * 0.3) = 60, floor(100 * 0.3) = 30, floor(50 * 0.3) = 15
+  local r, g, b = color.apply_alpha(200, 100, 50, 0.3)
+  eq(60, r)
+  eq(30, g)
+  eq(15, b)
+end
+
 return T

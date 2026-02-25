@@ -372,7 +372,26 @@ make test               # Run all tests
 make test-file FILE=f   # Run a single test file
 make trie               # Run trie test and benchmark
 make minimal            # Run minimal config
+make minimal-tailwind       # Run minimal tailwind config (remote colorizer)
+make minimal-tailwind-dev   # Run minimal tailwind config (local dev colorizer)
 ```
+
+### Troubleshooting Tailwind
+
+Minimal Tailwind configs are provided for debugging Tailwind CSS highlighting.
+They bootstrap lazy.nvim, nvim-lspconfig, and a local `tailwindcss-language-server`
+(installed via npm in `test/tailwind/`), then open `test/tailwind/tailwind.html`:
+
+```bash
+make minimal-tailwind       # uses remote colorizer (GitHub master)
+make minimal-tailwind-dev   # uses local working copy
+```
+
+Dependencies (`tailwindcss` + `@tailwindcss/language-server`) are installed
+automatically on first run via `npm install` in `test/tailwind/`.
+
+Edit the `settings` table at the top of `test/minimal-tailwind.lua` to change:
+- `tailwind_mode` - `"normal"`, `"lsp"`, or `"both"`
 
 See the [Trie documentation](https://catgoose.github.io/nvim-colorizer.lua/modules/colorizer.trie.html)
 for benchmark details.
