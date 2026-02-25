@@ -1021,7 +1021,7 @@ end
 ---@return table New-format options
 function M.new_bo_options(bufnr, bo_type)
   local value = vim.api.nvim_get_option_value(bo_type, { buf = bufnr })
-  return options_cache.filetype[value] or M.options.options
+  return options_cache[bo_type][value] or M.options.options
 end
 
 --- Retrieve options based on buffer type and file type. Prefer filetype.

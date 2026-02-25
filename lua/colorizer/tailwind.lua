@@ -27,7 +27,7 @@ function M.cleanup(bufnr)
   end
 end
 
-local function highlight(bufnr, ud_opts, add_highlight)
+local function highlight(bufnr, opts, add_highlight)
   if not lsp_cache[bufnr] or not lsp_cache[bufnr].client or not lsp_cache[bufnr].client.request then
     return
   end
@@ -73,7 +73,7 @@ local function highlight(bufnr, ud_opts, add_highlight)
         line_start = line_start or 0
         line_end = line_end and (line_end + 2) or -1
         lsp_cache[bufnr].data = data
-        add_highlight(bufnr, tw_ns_id, line_start, line_end, data, ud_opts, { tailwind_lsp = true })
+        add_highlight(bufnr, tw_ns_id, line_start, line_end, data, opts, { tailwind_lsp = true })
       end
     end
   )
@@ -81,7 +81,7 @@ end
 
 --- Highlight buffer using values returned by tailwindcss
 ---@param bufnr number Buffer number (0 for current)
----@param ud_opts table `user_default_options`
+---@param opts table Options (new format or legacy)
 ---@param buf_local_opts table Buffer local options
 ---@param add_highlight function Function to add highlights
 ---@param on_detach function Function to call when LSP is detached
@@ -90,7 +90,7 @@ end
 ---@return boolean|nil
 function M.lsp_highlight(
   bufnr,
-  ud_opts,
+  opts,
   buf_local_opts,
   add_highlight,
   on_detach,
@@ -119,7 +119,7 @@ function M.lsp_highlight(
               and client:supports_method("textDocument/documentColor", bufnr)
             then
               lsp_cache[bufnr].client = client
-              highlight(bufnr, ud_opts, add_highlight)
+              highlight(bufnr, opts, add_highlight)
             end
           end
         end,
@@ -149,7 +149,7 @@ function M.lsp_highlight(
     end
 
     lsp_cache[bufnr].client = client
-    highlight(bufnr, ud_opts, add_highlight)
+    highlight(bufnr, opts, add_highlight)
 
     return true
   end
@@ -166,12 +166,12 @@ function M.lsp_highlight(
         line_start,
         line_end,
         lsp_cache[bufnr].data,
-        ud_opts,
+        opts,
         { tailwind_lsp = true }
       )
       lsp_cache[bufnr].cache_highlighted = true
     else
-      highlight(bufnr, ud_opts, add_highlight)
+      highlight(bufnr, opts, add_highlight)
     end
   end
 end

@@ -74,7 +74,7 @@ end
 -- hooks.disable_line_highlight: function to be called after parsing the line
 ---@param custom_parsers? table List of custom parser definitions
 ---@return function function which will just parse the line for enabled parsers
-local function compile(matchers, matchers_trie, hooks, custom_parsers)
+local function compile(matchers, matchers_trie, hooks, custom_parsers, opts)
   local trie = Trie(matchers_trie)
 
   -- Pre-build underscore-prefixed keys for trie prefix lookup
@@ -131,6 +131,8 @@ local function compile(matchers, matchers_trie, hooks, custom_parsers)
           col = i,
           bufnr = bufnr,
           line_nr = line_nr,
+          opts = opts,
+          parser_opts = parser_def,
           state = state or {},
         }
         local len, rgb_hex = parser_def.parse(ctx)
@@ -178,6 +180,8 @@ local function compile(matchers, matchers_trie, hooks, custom_parsers)
           col = i,
           bufnr = bufnr,
           line_nr = line_nr,
+          opts = opts,
+          parser_opts = parser_def,
           state = state or {},
         }
         local len, rgb_hex = parser_def.parse(ctx)
@@ -210,6 +214,8 @@ local function compile(matchers, matchers_trie, hooks, custom_parsers)
             col = i,
             bufnr = bufnr,
             line_nr = line_nr,
+            opts = opts,
+            parser_opts = parser_def,
             state = state or {},
           }
           local len, rgb_hex = parser_def.parse(ctx)
@@ -422,7 +428,7 @@ function M.make(opts)
     matchers[value] = { prefix = value }
   end
 
-  loop_parse_fn = compile(matchers, matchers_prefix, hooks, custom_parsers)
+  loop_parse_fn = compile(matchers, matchers_prefix, hooks, custom_parsers, opts)
   matcher_cache[matcher_key] = loop_parse_fn
 
   return loop_parse_fn

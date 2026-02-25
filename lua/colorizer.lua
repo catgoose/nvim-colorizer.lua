@@ -285,7 +285,7 @@ end
 
 --- Ensure options are in new format. Accepts new format, legacy flat format, or nil.
 ---@param opts table|nil Options in any format
----@return table New-format options
+---@return table|nil New-format options
 local function ensure_new_format(opts)
   if not opts then
     return nil
@@ -499,7 +499,6 @@ function M.detach_from_buffer(bufnr)
   for _, ns_id in pairs(const.namespace) do
     vim.api.nvim_buf_clear_namespace(bufnr, ns_id, 0, -1)
   end
-  vim.api.nvim_buf_clear_namespace(bufnr, const.namespace.default, 0, -1)
   if colorizer_state.buffer_local[bufnr] then
     for _, namespace in pairs(colorizer_state.buffer_local[bufnr].__detach.ns_id) do
       vim.api.nvim_buf_clear_namespace(bufnr, namespace, 0, -1)

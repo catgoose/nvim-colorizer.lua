@@ -119,6 +119,20 @@ local function read_display_opts(opts)
   return display, tw
 end
 
+--- Read sass options from either new or legacy format
+---@param opts table Options (new or legacy format)
+---@return boolean enable Whether sass is enabled
+---@return table|nil parsers_cfg Sass parser config
+local function read_sass_opts(opts)
+  if opts.parsers then
+    local s = opts.parsers.sass
+    return s and s.enable or false, s and s.parsers
+  else
+    local s = opts.sass
+    return s and s.enable or false, s and s.parsers
+  end
+end
+
 --- Create highlight and set highlights
 ---@param bufnr number Buffer number (0 for current)
 ---@param ns_id number Namespace id for which to create highlights
@@ -227,16 +241,10 @@ function M.highlight(bufnr, ns_id, line_start, line_end, opts, buf_local_opts)
   bufnr = utils.bufme(bufnr)
   local detach = { ns_id = {}, functions = {} }
   local lines = vim.api.nvim_buf_get_lines(bufnr, line_start, line_end, false)
+  local _, tw = read_display_opts(opts)
 
   -- Read sass config from new or legacy format
-  local sass_enable, sass_parsers_cfg
-  if opts.parsers then
-    sass_enable = opts.parsers.sass and opts.parsers.sass.enable
-    sass_parsers_cfg = opts.parsers.sass and opts.parsers.sass.parsers
-  else
-    sass_enable = opts.sass and opts.sass.enable
-    sass_parsers_cfg = opts.sass and opts.sass.parsers
-  end
+  local sass_enable, sass_parsers_cfg = read_sass_opts(opts)
 
   -- only update sass varibles when text is changed
   if buf_local_opts.__event ~= "WinScrolled" and sass_enable then
@@ -265,15 +273,7 @@ function M.highlight(bufnr, ns_id, line_start, line_end, opts, buf_local_opts)
   local data = M.parse_lines(bufnr, lines, line_start, opts) or {}
   M.add_highlight(bufnr, ns_id, line_start, line_end, data, opts)
 
-  -- Read tailwind mode from new or legacy format
-  local tw_mode
-  if opts.parsers then
-    tw_mode = opts.parsers.tailwind.enable and opts.parsers.tailwind.mode or false
-  else
-    tw_mode = opts.tailwind
-  end
-
-  if tw_mode == "lsp" or tw_mode == "both" then
+  if tw.mode == "lsp" or tw.mode == "both" then
     tailwind.lsp_highlight(
       bufnr,
       opts,

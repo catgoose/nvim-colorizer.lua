@@ -867,7 +867,7 @@ M.parser({line}, {i}, {bufnr})                           *colorizer.sass.parser*
 
 
                                                *colorizer.sass.update_variables*
-M.update_variables({bufnr}, {line_start}, {line_end}, {lines}, {color_parser}, {ud_opts}, {buf_local_opts})
+M.update_variables({bufnr}, {line_start}, {line_end}, {lines}, {color_parser}, {opts}, {buf_local_opts})
 
     Parameters: ~
         {bufnr}           (number)            Buffer number
@@ -875,7 +875,7 @@ M.update_variables({bufnr}, {line_start}, {line_end}, {lines}, {color_parser}, {
         {line_end}        (number)
         {lines}           (table|nil)
         {color_parser}    (function|boolean)
-        {ud_opts}         (table)             `user_default_options`
+        {opts}            (table)             Options (new format or legacy)
         {buf_local_opts}  (table|nil)         Buffer local options
 
 
@@ -895,12 +895,12 @@ M.cleanup({bufnr})                                  *colorizer.tailwind.cleanup*
 
 
                                               *colorizer.tailwind.lsp_highlight*
-M.lsp_highlight({bufnr}, {ud_opts}, {buf_local_opts}, {add_highlight}, {on_detach}, {line_start}, {line_end})
+M.lsp_highlight({bufnr}, {opts}, {buf_local_opts}, {add_highlight}, {on_detach}, {line_start}, {line_end})
      Highlight buffer using values returned by tailwindcss
 
     Parameters: ~
         {bufnr}           (number)    Buffer number (0 for current)
-        {ud_opts}         (table)     `user_default_options`
+        {opts}            (table)     Options (new format or legacy)
         {buf_local_opts}  (table)     Buffer local options
         {add_highlight}   (function)  Function to add highlights
         {on_detach}       (function)  Function to call when LSP is detached

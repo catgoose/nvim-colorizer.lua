@@ -211,7 +211,7 @@ local function sass_parse_lines(bufnr, line_start, content, name)
 
                     require("colorizer").rehighlight(
                       bufnr,
-                      state[bufnr].ud_opts,
+                      state[bufnr].opts,
                       state[bufnr].local_options,
                       { use_local_lines = true }
                     )
@@ -248,7 +248,7 @@ end -- sass_parse_lines end
 ---@param line_end number
 ---@param lines table|nil
 ---@param color_parser function|boolean
----@param ud_opts table `user_default_options`
+---@param opts table Options (new format or legacy)
 ---@param buf_local_opts table|nil Buffer local options
 function M.update_variables(
   bufnr,
@@ -256,7 +256,7 @@ function M.update_variables(
   line_end,
   lines,
   color_parser,
-  ud_opts,
+  opts,
   buf_local_opts
 )
   lines = lines or vim.api.nvim_buf_get_lines(bufnr, line_start, line_end, false)
@@ -269,7 +269,7 @@ function M.update_variables(
       watch_imports = {},
       current_imports = {},
       definitions_linewise = {},
-      ud_opts = ud_opts,
+      opts = opts,
       local_options = buf_local_opts,
     }
   end
