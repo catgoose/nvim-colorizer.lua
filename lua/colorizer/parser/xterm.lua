@@ -104,4 +104,17 @@ function M.parser(line, i)
   return nil
 end
 
+--- Parser spec for the registry
+M.spec = {
+  name = "xterm",
+  priority = 9,
+  dispatch = { kind = "byte+fallback", bytes = { 0x23 } },
+  config_defaults = { enable = false },
+  parse = function(ctx)
+    return M.parser(ctx.line, ctx.col)
+  end,
+}
+
+require("colorizer.parser.registry").register(M.spec)
+
 return M

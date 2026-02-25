@@ -8,6 +8,7 @@
     - [User commands](#user-commands)
     - [Lua API](#lua-api)
   - [Why another highlighter?](#why-another-highlighter)
+    - [Neovim's built-in color highlighting](#neovims-built-in-color-highlighting)
   - [Configuration](#configuration)
     - [New structured options (recommended)](#new-structured-options-recommended)
     - [Legacy options (still supported)](#legacy-options-still-supported)
@@ -100,6 +101,31 @@ so even if a big file is opened, the editor won't just choke on a blank screen.
 Additionally, having a Lua API that's available means users can use this as a
 library to do custom highlighting themselves.
 
+### Neovim's built-in color highlighting
+
+Neovim 0.10+ includes built-in treesitter-based syntax highlighting that can
+colorize some color literals (e.g. color names in CSS files). This plugin
+differs in several ways:
+
+- **Format coverage:** Neovim's built-in highlighting is limited to what
+  treesitter queries capture per language. This plugin supports hex (`#RGB`,
+  `#RRGGBB`, `#RRGGBBAA`, `0xAARRGGBB`), CSS functions (`rgb()`, `hsl()`,
+  `oklch()`), named colors, xterm/ANSI 256 colors, Tailwind CSS classes, Sass
+  variables, and custom user-defined parsers — in any filetype.
+
+- **Display modes:** Neovim only applies syntax highlight groups. This plugin
+  offers background mode (with automatic contrast foreground text), foreground
+  mode, and virtualtext mode (inline or end-of-line).
+
+- **Priority handling:** Neovim's treesitter highlights run at extmark priority
+  100. This plugin uses priority 200 (default) and 300 (Tailwind LSP) so
+  colorizer highlights always take precedence. Without this, treesitter syntax
+  colors (e.g. green for strings) would bleed through the colorizer background.
+
+- **Performance:** The plugin uses a handwritten trie-based parser with
+  byte-level dispatch, avoiding the overhead of treesitter queries for color
+  detection. Only visible lines are processed.
+
 ## Configuration
 
 Colorizer supports two configuration formats. The new **structured `options`**
@@ -152,6 +178,7 @@ require("colorizer").setup({
       sass = {
         enable = false,
         parsers = { css = true },
+        variable_pattern = "^%$([%w_-]+)",  -- Lua pattern for sass variable names
       },
 
       xterm = { enable = false },
@@ -162,10 +189,18 @@ require("colorizer").setup({
 
     display = {
       mode = "background",       -- "background"|"foreground"|"virtualtext"
+      background = {
+        bright_fg = "#000000",   -- foreground text on bright backgrounds
+        dark_fg = "#ffffff",     -- foreground text on dark backgrounds
+      },
       virtualtext = {
         char = "■",
         position = false,        -- false|"before"|"after"
         hl_mode = "foreground",  -- "background"|"foreground"
+      },
+      priority = {
+        default = 200,           -- extmark priority (> treesitter's 100)
+        lsp = 300,               -- extmark priority for Tailwind LSP highlights
       },
     },
 

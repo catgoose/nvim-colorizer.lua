@@ -9,7 +9,7 @@ local config = require("colorizer.config")
 local const = require("colorizer.constants")
 local matcher = require("colorizer.matcher")
 local names = require("colorizer.parser.names")
-local sass = require("colorizer.sass")
+local sass = require("colorizer.parser.sass")
 local tailwind = require("colorizer.tailwind")
 local utils = require("colorizer.utils")
 
@@ -38,8 +38,8 @@ end
 local function create_highlight(rgb_hex, mode, bg_opts)
   mode = mode or "background"
   rgb_hex = rgb_hex:lower()
-  local bright_fg = bg_opts and bg_opts.bright_fg or "Black"
-  local dark_fg = bg_opts and bg_opts.dark_fg or "White"
+  local bright_fg = bg_opts and bg_opts.bright_fg or "#000000"
+  local dark_fg = bg_opts and bg_opts.dark_fg or "#ffffff"
   local cache_key = table.concat({ const.highlight_mode_names[mode], rgb_hex, bright_fg, dark_fg }, "_")
   local highlight_name = hl_state.cache[cache_key]
 
@@ -71,16 +71,12 @@ local function slice_line(bufnr, line, start_col, end_col)
 end
 
 --- Normalize opts to new format if needed.
+--- Ensures the result is fully merged with defaults so all expected
+--- sub-tables (parsers.names, parsers.hex, etc.) are present.
 ---@param opts table Options (new format or legacy)
 ---@return table New-format options
 local function normalize_opts(opts)
-  if opts.parsers then
-    return opts
-  end
-  if config.is_legacy_options(opts) then
-    return config.resolve_options(opts)
-  end
-  return opts
+  return config.resolve_options(opts)
 end
 
 --- Create highlight and set highlights
@@ -104,7 +100,7 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, opts, hl_opts
   local prio = d.priority or {}
   local priority = hl_opts.tailwind_lsp and (prio.lsp or 200) or (prio.default or 100)
   local bg_opts = d.background
-  local tw = opts.parsers.tailwind
+  local tw = opts.parsers.tailwind or {}
   local tw_mode = tw.enable and tw.mode or false
 
   if d.mode == "background" or d.mode == "foreground" then
@@ -199,7 +195,7 @@ function M.highlight(bufnr, ns_id, line_start, line_end, opts, buf_local_opts)
   local detach = { ns_id = {}, functions = {} }
   local lines = vim.api.nvim_buf_get_lines(bufnr, line_start, line_end, false)
 
-  local tw = opts.parsers.tailwind
+  local tw = opts.parsers.tailwind or {}
   local tw_mode = tw.enable and tw.mode or false
   local sass_cfg = opts.parsers.sass
 

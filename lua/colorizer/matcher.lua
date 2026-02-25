@@ -8,29 +8,10 @@
 local M = {}
 
 local Trie = require("colorizer.trie")
-local const = require("colorizer.constants")
 local min, max = math.min, math.max
 
-local parsers = {
-  color_name = require("colorizer.parser.names").parser,
-  argb_hex = require("colorizer.parser.argb_hex").parser,
-  hsl_function = require("colorizer.parser.hsl").parser,
-  rgb_function = require("colorizer.parser.rgb").parser,
-  rgba_hex = require("colorizer.parser.rgba_hex").parser,
-  oklch_function = require("colorizer.parser.oklch").parser,
-  --  TODO: 2024-12-21 - Should this be moved into parsers module?
-  sass_name = require("colorizer.sass").parser,
-  xterm = require("colorizer.parser.xterm").parser,
-}
-
-parsers.prefix = {
-  ["_0x"] = parsers.argb_hex,
-  ["_rgb"] = parsers.rgb_function,
-  ["_rgba"] = parsers.rgb_function,
-  ["_hsl"] = parsers.hsl_function,
-  ["_hsla"] = parsers.hsl_function,
-  ["_oklch"] = parsers.oklch_function,
-}
+-- Load all parsers into the registry
+local registry = require("colorizer.parser")
 
 --- Per-buffer custom parser state
 local buffer_parser_state = {}
@@ -65,48 +46,234 @@ function M.cleanup_buffer_parser_state(bufnr)
   buffer_parser_state[bufnr] = nil
 end
 
----Form a trie stuct with the given prefixes
----@param matchers table List of prefixes, {"rgb", "hsl"}
----@param matchers_trie table Table containing information regarding non-trie based parsers
----@param hooks? table Table of hook functions
--- hooks.disable_line_highlight: function to be called after parsing the line
----@param custom_parsers? table List of custom parser definitions
----@return function function which will just parse the line for enabled parsers
-local function compile(matchers, matchers_trie, hooks, custom_parsers, opts)
-  local trie = Trie(matchers_trie)
+--- Check if a registered parser is enabled given the current opts.
+---@param spec colorizer.ParserSpec
+---@param opts table New-format options
+---@return boolean
+local function is_parser_enabled(spec, opts)
+  local p = opts.parsers
 
-  -- Pre-build underscore-prefixed keys for trie prefix lookup
-  local prefix_keys = {}
-  for _, p in ipairs(matchers_trie) do
-    prefix_keys[p] = "_" .. p
+  if spec.name == "rgba_hex" then
+    -- Controlled by hex.* composite config
+    if not (p.hex and p.hex.enable) then
+      return false
+    end
+    return p.hex.rgb or p.hex.rgba or p.hex.rrggbb or p.hex.rrggbbaa or false
+  elseif spec.name == "argb_hex" then
+    return p.hex and p.hex.enable and p.hex.aarrggbb or false
+  elseif spec.name == "names" then
+    local tw = p.tailwind
+    local tailwind_names = tw and tw.enable and (tw.mode == "normal" or tw.mode == "both")
+    return (p.names and p.names.enable) or (p.names and p.names.custom_hashed) or tailwind_names or false
+  else
+    local parser_opts = p[spec.name]
+    if parser_opts and type(parser_opts) == "table" then
+      return parser_opts.enable or false
+    end
+    return false
+  end
+end
+
+--- Build parser_config and matcher_opts for a registered parser.
+---@param spec colorizer.ParserSpec
+---@param opts table New-format options
+---@return table|nil parser_config
+---@return table|nil matcher_opts
+local function build_entry_config(spec, opts)
+  local p = opts.parsers
+
+  if spec.name == "rgba_hex" then
+    local valid_lengths = {
+      [3] = p.hex.rgb,
+      [4] = p.hex.rgba,
+      [6] = p.hex.rrggbb,
+      [8] = p.hex.rrggbbaa,
+    }
+    local minlen, maxlen
+    for k, v in pairs(valid_lengths) do
+      if v then
+        minlen = minlen and min(k, minlen) or k
+        maxlen = maxlen and max(k, maxlen) or k
+      end
+    end
+    return { valid_lengths = valid_lengths, minlen = minlen, maxlen = maxlen }, nil
+  elseif spec.name == "names" then
+    local m_opts = {}
+    if p.names and p.names.enable then
+      m_opts.color_names = true
+      m_opts.color_names_opts = {
+        lowercase = p.names.lowercase,
+        camelcase = p.names.camelcase,
+        uppercase = p.names.uppercase,
+        strip_digits = p.names.strip_digits,
+      }
+    end
+    if p.names and p.names.custom_hashed then
+      m_opts.names_custom = p.names.custom_hashed
+    end
+    local tw = p.tailwind
+    if tw and tw.enable and (tw.mode == "normal" or tw.mode == "both") then
+      m_opts.tailwind_names = true
+    end
+    return nil, m_opts
   end
 
-  -- Build custom parser lookup structures
-  local custom_prefix_trie_entries = {}
-  local custom_prefix_parsers = {}
-  local custom_byte_parsers = {}
-  if custom_parsers and #custom_parsers > 0 then
-    for _, parser_def in ipairs(custom_parsers) do
-      if parser_def.prefixes then
-        for _, pfx in ipairs(parser_def.prefixes) do
-          table.insert(custom_prefix_trie_entries, pfx)
-          custom_prefix_parsers[pfx] = parser_def
+  return nil, nil
+end
+
+--- Resolve which parsers are enabled and build dispatch entries.
+---@param opts table New-format options
+---@return table[] Array of { spec, parser_config?, matcher_opts?, is_custom?, parser_def? } sorted by priority
+local function resolve_enabled_parsers(opts)
+  local enabled = {}
+
+  -- Check each registered parser
+  for _, spec in ipairs(registry.all()) do
+    if is_parser_enabled(spec, opts) then
+      local parser_config, matcher_opts = build_entry_config(spec, opts)
+      enabled[#enabled + 1] = {
+        spec = spec,
+        parser_config = parser_config,
+        matcher_opts = matcher_opts,
+      }
+    end
+  end
+
+  -- Wrap custom parsers into pseudo-specs
+  local p = opts.parsers
+  if p.custom and #p.custom > 0 then
+    for _, parser_def in ipairs(p.custom) do
+      local dispatch
+      local priority
+      if parser_def.prefix_bytes and parser_def.prefixes then
+        dispatch = { kind = "byte+prefix", bytes = parser_def.prefix_bytes, prefixes = parser_def.prefixes }
+        priority = 5
+      elseif parser_def.prefix_bytes then
+        dispatch = { kind = "byte", bytes = parser_def.prefix_bytes }
+        priority = 5
+      elseif parser_def.prefixes then
+        dispatch = { kind = "prefix", prefixes = parser_def.prefixes }
+        priority = 18
+      else
+        dispatch = { kind = "fallback" }
+        priority = 30
+      end
+
+      enabled[#enabled + 1] = {
+        spec = {
+          name = parser_def.name,
+          priority = priority,
+          dispatch = dispatch,
+          parse = parser_def.parse,
+        },
+        is_custom = true,
+        parser_def = parser_def,
+      }
+    end
+  end
+
+  -- Sort by priority (ascending = lower number first)
+  table.sort(enabled, function(a, b)
+    return a.spec.priority < b.spec.priority
+  end)
+
+  return enabled
+end
+
+--- Build the 3-phase dispatcher from enabled parsers.
+---@param enabled_parsers table[] From resolve_enabled_parsers
+---@param hooks table|nil Hook functions
+---@param opts table Full resolved options
+---@return function parse_fn(line, i, bufnr, line_nr) -> len?, hex?
+local function compile(enabled_parsers, hooks, opts)
+  -- Phase 1 structure: byte -> [{entry, ...}] in priority order
+  local byte_dispatch = {}
+  -- Phase 2 structure: trie + prefix -> entry map
+  local prefix_entries = {}
+  local prefix_map = {}
+  -- Phase 3 structure: [{entry, ...}] in priority order
+  local fallback_list = {}
+
+  for _, entry in ipairs(enabled_parsers) do
+    local kind = entry.spec.dispatch.kind
+
+    if kind == "byte" then
+      for _, b in ipairs(entry.spec.dispatch.bytes) do
+        byte_dispatch[b] = byte_dispatch[b] or {}
+        byte_dispatch[b][#byte_dispatch[b] + 1] = entry
+      end
+    elseif kind == "prefix" then
+      for _, pfx in ipairs(entry.spec.dispatch.prefixes) do
+        -- First writer wins (lower priority number = higher priority)
+        if not prefix_map[pfx] then
+          prefix_entries[#prefix_entries + 1] = pfx
+          prefix_map[pfx] = entry
         end
       end
-      if parser_def.prefix_bytes then
-        for _, byte_val in ipairs(parser_def.prefix_bytes) do
-          custom_byte_parsers[byte_val] = custom_byte_parsers[byte_val] or {}
-          table.insert(custom_byte_parsers[byte_val], parser_def)
+    elseif kind == "fallback" then
+      fallback_list[#fallback_list + 1] = entry
+    elseif kind == "byte+fallback" then
+      if entry.spec.dispatch.bytes then
+        for _, b in ipairs(entry.spec.dispatch.bytes) do
+          byte_dispatch[b] = byte_dispatch[b] or {}
+          byte_dispatch[b][#byte_dispatch[b] + 1] = entry
+        end
+      end
+      fallback_list[#fallback_list + 1] = entry
+    elseif kind == "byte+prefix" then
+      if entry.spec.dispatch.bytes then
+        for _, b in ipairs(entry.spec.dispatch.bytes) do
+          byte_dispatch[b] = byte_dispatch[b] or {}
+          byte_dispatch[b][#byte_dispatch[b] + 1] = entry
+        end
+      end
+      if entry.spec.dispatch.prefixes then
+        for _, pfx in ipairs(entry.spec.dispatch.prefixes) do
+          if not prefix_map[pfx] then
+            prefix_entries[#prefix_entries + 1] = pfx
+            prefix_map[pfx] = entry
+          end
         end
       end
     end
   end
 
-  -- Build custom prefix trie if we have custom prefixes
-  local custom_trie
-  if #custom_prefix_trie_entries > 0 then
-    table.sort(custom_prefix_trie_entries, function(a, b) return #a > #b end)
-    custom_trie = Trie(custom_prefix_trie_entries)
+  -- Sort prefix entries by length descending for trie construction
+  table.sort(prefix_entries, function(a, b)
+    return #a > #b
+  end)
+  local trie = #prefix_entries > 0 and Trie(prefix_entries) or nil
+
+  -- Reusable context table (mutated per call, avoids per-call allocations)
+  local ctx = {
+    line = "",
+    col = 0,
+    bufnr = 0,
+    line_nr = 0,
+    opts = opts,
+    parser_config = nil,
+    prefix = nil,
+    matcher_opts = nil,
+    -- Custom parser backward compat fields
+    parser_opts = nil,
+    state = nil,
+  }
+
+  --- Try dispatching to a parser entry.
+  ---@return number|nil, string|nil
+  local function try_parser(entry, prefix)
+    if entry.is_custom then
+      local pd = entry.parser_def
+      local st = buffer_parser_state[ctx.bufnr]
+        and buffer_parser_state[ctx.bufnr][pd.name]
+      ctx.parser_opts = pd
+      ctx.state = st or {}
+    else
+      ctx.parser_config = entry.parser_config
+      ctx.matcher_opts = entry.matcher_opts
+      ctx.prefix = prefix
+    end
+    return entry.spec.parse(ctx)
   end
 
   local function parse_fn(line, i, bufnr, line_nr)
@@ -118,109 +285,39 @@ local function compile(matchers, matchers_trie, hooks, custom_parsers, opts)
       return
     end
 
-    local byte = line:byte(i)
+    -- Set common context fields once per call
+    ctx.line = line
+    ctx.col = i
+    ctx.bufnr = bufnr
+    ctx.line_nr = line_nr
 
-    -- Check custom byte-triggered parsers first
-    if custom_byte_parsers[byte] then
-      for _, parser_def in ipairs(custom_byte_parsers[byte]) do
-        local state = buffer_parser_state[bufnr] and buffer_parser_state[bufnr][parser_def.name]
-        local ctx = {
-          line = line,
-          col = i,
-          bufnr = bufnr,
-          line_nr = line_nr,
-          opts = opts,
-          parser_opts = parser_def,
-          state = state or {},
-        }
-        local len, rgb_hex = parser_def.parse(ctx)
+    -- Phase 1: byte-dispatched parsers
+    local byte_parsers = byte_dispatch[line:byte(i)]
+    if byte_parsers then
+      for _, entry in ipairs(byte_parsers) do
+        local len, rgb_hex = try_parser(entry, nil)
         if len and rgb_hex then
           return len, rgb_hex
         end
       end
     end
 
-    -- prefix #
-    if matchers.rgba_hex_parser then
-      if byte == const.bytes.hash then
-        if matchers.xterm_enabled then
-          local len, rgb_hex = parsers.xterm(line, i)
-          if len and rgb_hex then
-            return len, rgb_hex
-          end
+    -- Phase 2: prefix-dispatched parsers via trie
+    if trie then
+      local prefix = trie:longest_prefix(line, i)
+      if prefix and prefix_map[prefix] then
+        local len, rgb_hex = try_parser(prefix_map[prefix], prefix)
+        if len and rgb_hex then
+          return len, rgb_hex
         end
-        return parsers.rgba_hex(line, i, matchers.rgba_hex_parser)
       end
     end
 
-    -- prefix $, SASS Color names
-    if matchers.sass_name_parser then
-      if byte == const.bytes.dollar then
-        return parsers.sass_name(line, i, bufnr)
-      end
-    end
-    -- xterm ANSI escape: \e[38;5;NNNm
-    if matchers.xterm_enabled then
-      local len, rgb_hex = parsers.xterm(line, i)
+    -- Phase 3: fallback parsers
+    for _, entry in ipairs(fallback_list) do
+      local len, rgb_hex = try_parser(entry, nil)
       if len and rgb_hex then
         return len, rgb_hex
-      end
-    end
-
-    -- Check custom prefix-triggered parsers
-    if custom_trie then
-      local custom_prefix = custom_trie:longest_prefix(line, i)
-      if custom_prefix and custom_prefix_parsers[custom_prefix] then
-        local parser_def = custom_prefix_parsers[custom_prefix]
-        local state = buffer_parser_state[bufnr] and buffer_parser_state[bufnr][parser_def.name]
-        local ctx = {
-          line = line,
-          col = i,
-          bufnr = bufnr,
-          line_nr = line_nr,
-          opts = opts,
-          parser_opts = parser_def,
-          state = state or {},
-        }
-        local len, rgb_hex = parser_def.parse(ctx)
-        if len and rgb_hex then
-          return len, rgb_hex
-        end
-      end
-    end
-
-    -- Prefix 0x, rgba, rgb, hsla, hsl
-    local prefix = trie:longest_prefix(line, i)
-    if prefix then
-      local fn = prefix_keys[prefix]
-      if parsers.prefix[fn] then
-        return parsers.prefix[fn](line, i, matchers[prefix])
-      end
-    end
-
-    if matchers.color_name_parser then
-      return parsers.color_name(line, i, matchers.color_name_parser)
-    end
-
-    -- Last resort: custom parsers without specific prefix/byte triggers
-    if custom_parsers then
-      for _, parser_def in ipairs(custom_parsers) do
-        if not parser_def.prefixes and not parser_def.prefix_bytes then
-          local state = buffer_parser_state[bufnr] and buffer_parser_state[bufnr][parser_def.name]
-          local ctx = {
-            line = line,
-            col = i,
-            bufnr = bufnr,
-            line_nr = line_nr,
-            opts = opts,
-            parser_opts = parser_def,
-            state = state or {},
-          }
-          local len, rgb_hex = parser_def.parse(ctx)
-          if len and rgb_hex then
-            return len, rgb_hex
-          end
-        end
       end
     end
   end
@@ -319,84 +416,6 @@ local function calculate_matcher_key(f)
   return matcher_mask, matcher_key
 end
 
---- Build matchers table and prefix list from parser flags.
----@param f table Parser flags from read_parser_flags
----@return table matchers
----@return table matchers_prefix
-local function build_matchers(f)
-  local matchers = {}
-  local matchers_prefix = {}
-  matchers.xterm_enabled = f.xterm
-
-  local tailwind_names = f.tailwind_mode == "normal" or f.tailwind_mode == "both"
-  if f.names or f.names_custom or tailwind_names then
-    matchers.color_name_parser = {}
-    if f.names then
-      matchers.color_name_parser.color_names = f.names
-      matchers.color_name_parser.color_names_opts = {
-        lowercase = f.names_lowercase,
-        camelcase = f.names_camelcase,
-        uppercase = f.names_uppercase,
-        strip_digits = f.names_strip_digits,
-      }
-    end
-    if f.names_custom then
-      matchers.color_name_parser.names_custom = f.names_custom
-    end
-    if tailwind_names then
-      matchers.color_name_parser.tailwind_names = tailwind_names
-    end
-  end
-
-  matchers.sass_name_parser = f.sass or nil
-
-  local valid_lengths =
-    { [3] = f.RGB, [4] = f.RGBA, [6] = f.RRGGBB, [8] = f.RRGGBBAA }
-  local minlen, maxlen
-  for k, v in pairs(valid_lengths) do
-    if v then
-      minlen = minlen and min(k, minlen) or k
-      maxlen = maxlen and max(k, maxlen) or k
-    end
-  end
-  if minlen then
-    matchers.rgba_hex_parser = {
-      valid_lengths = valid_lengths,
-      minlen = minlen,
-      maxlen = maxlen,
-    }
-  end
-
-  if f.AARRGGBB then
-    table.insert(matchers_prefix, "0x")
-  end
-
-  -- Add CSS function prefixes based on enabled flags
-  local css_function_prefixes = {
-    oklch = f.oklch,
-    hsla = f.hsl,
-    hsl = f.hsl,
-    rgba = f.rgb,
-    rgb = f.rgb,
-  }
-  for prefix, enabled in pairs(css_function_prefixes) do
-    if enabled then
-      table.insert(matchers_prefix, prefix)
-    end
-  end
-
-  -- Sort by length (descending) to ensure longer prefixes are checked before shorter ones
-  -- This is critical for Trie matching: "hsla" must match before "hsl", "rgba" before "rgb"
-  table.sort(matchers_prefix, function(a, b)
-    return #a > #b
-  end)
-  for _, value in ipairs(matchers_prefix) do
-    matchers[value] = { prefix = value }
-  end
-
-  return matchers, matchers_prefix
-end
-
 ---Parse the given options and return a function with enabled parsers.
 --if no parsers enabled then return false
 --Do not try make the function again if it is present in the cache
@@ -429,8 +448,8 @@ function M.make(opts)
     return loop_parse_fn
   end
 
-  local matchers, matchers_prefix = build_matchers(f)
-  loop_parse_fn = compile(matchers, matchers_prefix, f.hooks, f.custom, opts)
+  local enabled = resolve_enabled_parsers(opts)
+  loop_parse_fn = compile(enabled, f.hooks, opts)
   matcher_cache[matcher_key] = loop_parse_fn
 
   return loop_parse_fn

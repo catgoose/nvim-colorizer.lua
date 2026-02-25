@@ -76,4 +76,17 @@ function M.parser(line, i)
   return length, rgb_hex
 end
 
+--- Parser spec for the registry
+M.spec = {
+  name = "argb_hex",
+  priority = 20,
+  dispatch = { kind = "prefix", prefixes = { "0x" } },
+  -- No config_defaults: controlled by hex.aarrggbb in config
+  parse = function(ctx)
+    return M.parser(ctx.line, ctx.col)
+  end,
+}
+
+require("colorizer.parser.registry").register(M.spec)
+
 return M

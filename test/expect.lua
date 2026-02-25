@@ -12,33 +12,6 @@ local opts = {
         strip_digits = false,
       },
       tailwind = true,
-      names_custom = {
-        [" NOTE:"] = "#5CA204",
-        ["TODO: "] = "#3457D5",
-        [" WARN: "] = "#EAFE01",
-        ["  FIX:  "] = "#FF0000",
-        one_two = "#017dac",
-        ["three=four"] = "#3700c2",
-        ["five@six"] = "#e9e240",
-        ["seven!eight"] = "#a9e042",
-        ["nine!!ten"] = "#09e392",
-        ["'r'"] = "#FF0000",
-        ['"r"'] = "#FF0000",
-        ["'g'"] = "#00FF00",
-        ['"g"'] = "#00FF00",
-        ["'b'"] = "#0000FF",
-        ['"b"'] = "#0000FF",
-        ["'c'"] = "#00FFFF",
-        ['"c"'] = "#00FFFF",
-        ["'m'"] = "#FF00FF",
-        ['"m"'] = "#FF00FF",
-        ["'y'"] = "#FFFF00",
-        ['"y"'] = "#FFFF00",
-        ["'k'"] = "#000000",
-        ['"k"'] = "#000000",
-        ["'w'"] = "#FFFFFF",
-        ['"w"'] = "#FFFFFF",
-      },
     },
   },
   buftypes = { "*", "!prompt", "!popup" },
@@ -76,6 +49,8 @@ local opts = {
     always_update = false,
   },
 }
+
+local a = "red"
 
 return opts
 

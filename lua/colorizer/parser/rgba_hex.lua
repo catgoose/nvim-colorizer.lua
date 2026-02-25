@@ -89,4 +89,17 @@ function M.parser(line, i, opts)
   return parsed_length, line:sub(i + 1, i + parsed_length - 1)
 end
 
+--- Parser spec for the registry
+M.spec = {
+  name = "rgba_hex",
+  priority = 10,
+  dispatch = { kind = "byte", bytes = { 0x23 } },
+  -- No config_defaults: controlled by hex.* in config
+  parse = function(ctx)
+    return M.parser(ctx.line, ctx.col, ctx.parser_config)
+  end,
+}
+
+require("colorizer.parser.registry").register(M.spec)
+
 return M

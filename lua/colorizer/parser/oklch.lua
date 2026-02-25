@@ -145,4 +145,17 @@ function M.parser(line, i, _)
   return match_end - 1, rgb_hex
 end
 
+--- Parser spec for the registry
+M.spec = {
+  name = "oklch",
+  priority = 20,
+  dispatch = { kind = "prefix", prefixes = { "oklch" } },
+  config_defaults = { enable = false },
+  parse = function(ctx)
+    return M.parser(ctx.line, ctx.col)
+  end,
+}
+
+require("colorizer.parser.registry").register(M.spec)
+
 return M

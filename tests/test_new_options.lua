@@ -1605,12 +1605,12 @@ end
 
 T["display.background"] = new_set()
 
-T["display.background"]["default bright_fg is Black"] = function()
-  eq("Black", config.default_options.display.background.bright_fg)
+T["display.background"]["default bright_fg is #000000"] = function()
+  eq("#000000", config.default_options.display.background.bright_fg)
 end
 
-T["display.background"]["default dark_fg is White"] = function()
-  eq("White", config.default_options.display.background.dark_fg)
+T["display.background"]["default dark_fg is #ffffff"] = function()
+  eq("#ffffff", config.default_options.display.background.dark_fg)
 end
 
 T["display.background"]["custom bright_fg is preserved through resolve"] = function()
@@ -1619,7 +1619,7 @@ T["display.background"]["custom bright_fg is preserved through resolve"] = funct
     display = { background = { bright_fg = "DarkGray" } },
   })
   eq("DarkGray", opts.display.background.bright_fg)
-  eq("White", opts.display.background.dark_fg)
+  eq("#ffffff", opts.display.background.dark_fg)
 end
 
 T["display.background"]["custom dark_fg is preserved through resolve"] = function()
@@ -1627,7 +1627,7 @@ T["display.background"]["custom dark_fg is preserved through resolve"] = functio
     parsers = { hex = { enable = true } },
     display = { background = { dark_fg = "LightYellow" } },
   })
-  eq("Black", opts.display.background.bright_fg)
+  eq("#000000", opts.display.background.bright_fg)
   eq("LightYellow", opts.display.background.dark_fg)
 end
 
@@ -1653,8 +1653,8 @@ end
 T["display.priority"] = new_set()
 
 T["display.priority"]["default values"] = function()
-  eq(100, config.default_options.display.priority.default)
-  eq(200, config.default_options.display.priority.lsp)
+  eq(200, config.default_options.display.priority.default)
+  eq(300, config.default_options.display.priority.lsp)
 end
 
 T["display.priority"]["custom default priority is used"] = function()

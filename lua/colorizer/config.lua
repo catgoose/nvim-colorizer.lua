@@ -173,8 +173,8 @@ local plugin_user_default_options = {
 ---@field priority colorizer.DisplayPriority Extmark priority settings
 
 ---@class colorizer.DisplayBackground
----@field bright_fg string Foreground color for bright backgrounds (default "Black")
----@field dark_fg string Foreground color for dark backgrounds (default "White")
+---@field bright_fg string Foreground color for bright backgrounds (default "#000000")
+---@field dark_fg string Foreground color for dark backgrounds (default "#ffffff")
 
 ---@class colorizer.DisplayVirtualtext
 ---@field char string Character used for virtual text (default "■")
@@ -182,57 +182,45 @@ local plugin_user_default_options = {
 ---@field hl_mode 'background'|'foreground' Highlight mode for virtual text
 
 ---@class colorizer.DisplayPriority
----@field default number Extmark priority for normal highlights (default 100)
----@field lsp number Extmark priority for LSP/Tailwind highlights (default 200)
+---@field default number Extmark priority for normal highlights (default 200)
+---@field lsp number Extmark priority for LSP/Tailwind highlights (default 300)
+-- Build default parsers from registry + hardcoded entries
+local registry = require("colorizer.parser.registry")
+-- Ensure all parsers are loaded so their specs are registered
+require("colorizer.parser")
+
+local function build_default_parsers()
+  local parsers = registry.config_defaults()
+
+  -- Hardcoded entries not derived from registry
+  parsers.css = false
+  parsers.css_fn = false
+  parsers.hex = {
+    enable = false,
+    rgb = true,
+    rgba = true,
+    rrggbb = true,
+    rrggbbaa = false,
+    aarrggbb = false,
+  }
+  parsers.tailwind = {
+    enable = false,
+    mode = "normal",
+    update_names = false,
+  }
+  parsers.custom = {}
+
+  return parsers
+end
+
 local default_options = {
-  parsers = {
-    css = false,
-    css_fn = false,
-
-    names = {
-      enable = false,
-      lowercase = true,
-      camelcase = true,
-      uppercase = false,
-      strip_digits = false,
-      custom = false,
-    },
-
-    hex = {
-      enable = false,
-      rgb = true,
-      rgba = true,
-      rrggbb = true,
-      rrggbbaa = false,
-      aarrggbb = false,
-    },
-
-    rgb = { enable = false },
-    hsl = { enable = false },
-    oklch = { enable = false },
-
-    tailwind = {
-      enable = false,
-      mode = "normal",
-      update_names = false,
-    },
-
-    sass = {
-      enable = false,
-      parsers = { css = true },
-      variable_pattern = "^%$([%w_-]+)",
-    },
-
-    xterm = { enable = false },
-
-    custom = {},
-  },
+  parsers = build_default_parsers(),
 
   display = {
     mode = "background",
     background = {
-      bright_fg = "Black",
-      dark_fg = "White",
+      bright_fg = "#000000",
+      dark_fg = "#ffffff",
     },
     virtualtext = {
       char = "■",
@@ -240,8 +228,8 @@ local default_options = {
       hl_mode = "foreground",
     },
     priority = {
-      default = 100,
-      lsp = 200,
+      default = 200,
+      lsp = 300,
     },
   },
 
