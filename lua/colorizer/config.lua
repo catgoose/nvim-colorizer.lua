@@ -793,6 +793,22 @@ function M.as_flat(opts)
   return flat
 end
 
+--- Keys that only exist in new-format options (not in legacy flat format).
+-- Note: "hooks" is excluded because as_flat() also emits it.
+local new_format_keys = { "parsers", "display" }
+
+--- Detect if options contain any new-format keys.
+---@param opts table Options to check
+---@return boolean
+local function has_new_format_keys(opts)
+  for _, key in ipairs(new_format_keys) do
+    if opts[key] ~= nil then
+      return true
+    end
+  end
+  return false
+end
+
 --- Resolve options from any format to canonical new format.
 -- Accepts new-format options, legacy flat options, or nil (returns defaults).
 -- Applies presets and validation.
@@ -803,11 +819,13 @@ function M.resolve_options(opts)
     return vim.deepcopy(default_options)
   end
 
-  -- Already new format (has parsers key)
-  if opts.parsers then
+  -- New format (has parsers, display, hooks, or always_update)
+  if has_new_format_keys(opts) then
     -- Work on a copy to avoid mutating the caller's table via apply_presets
     opts = vim.deepcopy(opts)
-    M.apply_presets(opts.parsers)
+    if opts.parsers then
+      M.apply_presets(opts.parsers)
+    end
     local merged = vim.tbl_deep_extend("force", vim.deepcopy(default_options), opts)
     M.validate_new_options(merged)
     return merged
@@ -822,7 +840,11 @@ function M.resolve_options(opts)
     return merged
   end
 
-  return vim.deepcopy(default_options)
+  -- Unrecognized format: merge with defaults to preserve any valid keys
+  -- (e.g. { hooks = {...} } or { always_update = true } alone)
+  local merged = vim.tbl_deep_extend("force", vim.deepcopy(default_options), opts)
+  M.validate_new_options(merged)
+  return merged
 end
 
 --- Build a new-format options table for sass color parsing.

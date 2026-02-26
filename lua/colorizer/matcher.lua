@@ -413,22 +413,41 @@ local function calculate_matcher_key(f)
     bit_value = bit_value + bit_value
   end
 
-  -- Add custom parser names to mask
+  -- Add custom parser names and function identity to mask
   local custom_parser_key = ""
   if f.custom then
     matcher_mask = matcher_mask + bit_value
-    local cp_names = {}
+    local cp_parts = {}
     for _, cp in ipairs(f.custom) do
-      table.insert(cp_names, cp.name)
+      -- Include function identity so changing a parse function invalidates cache
+      table.insert(cp_parts, cp.name .. ":" .. tostring(cp.parse))
     end
-    table.sort(cp_names)
-    custom_parser_key = table.concat(cp_names, ",")
+    table.sort(cp_parts)
+    custom_parser_key = table.concat(cp_parts, ",")
+  end
+
+  -- Include hooks identity in the cache key so different hook functions
+  -- don't share cached matchers
+  local hooks_key = ""
+  if f.hooks then
+    local parts = {}
+    for k, v in pairs(f.hooks) do
+      if type(v) == "function" then
+        parts[#parts + 1] = k .. "=" .. tostring(v)
+      end
+    end
+    if #parts > 0 then
+      table.sort(parts)
+      hooks_key = table.concat(parts, ";")
+    end
   end
 
   local matcher_key = f.names_custom
-      and string.format("%d|%s|%s", matcher_mask, f.names_custom.hash, custom_parser_key)
+      and string.format("%d|%s|%s|%s", matcher_mask, f.names_custom.hash, custom_parser_key, hooks_key)
     or custom_parser_key ~= ""
-      and string.format("%d|%s", matcher_mask, custom_parser_key)
+      and string.format("%d|%s|%s", matcher_mask, custom_parser_key, hooks_key)
+    or hooks_key ~= ""
+      and string.format("%d|%s", matcher_mask, hooks_key)
     or matcher_mask
 
   return matcher_mask, matcher_key

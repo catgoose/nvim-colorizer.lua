@@ -403,20 +403,22 @@ function M.attach_to_buffer(bufnr, opts, bo_type)
       on_lines = function(_, _bufnr)
         -- only reload if the buffer is not the current one
         if not (colorizer_state.buffer_current == _bufnr) then
-          -- only reload if it was not disabled using detach_from_buffer
           local buf_opts = colorizer_state.buffer_options[bufnr]
           if buf_opts then
             M.rehighlight(bufnr, buf_opts, colorizer_state.buffer_local[bufnr])
+          else
+            return true -- detach: buffer was removed via detach_from_buffer
           end
         end
       end,
       on_reload = function(_, _bufnr)
         -- only reload if the buffer is not the current one
         if not (colorizer_state.buffer_current == _bufnr) then
-          -- only reload if it was not disabled using detach_from_buffer
           local buf_opts = colorizer_state.buffer_options[bufnr]
           if buf_opts then
             M.rehighlight(bufnr, buf_opts, colorizer_state.buffer_local[bufnr])
+          else
+            return true -- detach: buffer was removed via detach_from_buffer
           end
         end
       end,
@@ -435,18 +437,19 @@ function M.attach_to_buffer(bufnr, opts, bo_type)
     buffer = bufnr,
     callback = function(args)
       colorizer_state.buffer_current = bufnr
-      -- Only reload if it was not disabled using detach_from_buffer
-      if colorizer_state.buffer_options[bufnr] then
+      -- Read current opts from state so re-attach updates are picked up
+      local buf_opts = colorizer_state.buffer_options[bufnr]
+      if buf_opts then
         colorizer_state.buffer_local[bufnr].__event = args.event
         if args.event == "TextChanged" or args.event == "InsertLeave" then
-          M.rehighlight(bufnr, opts, colorizer_state.buffer_local[bufnr])
+          M.rehighlight(bufnr, buf_opts, colorizer_state.buffer_local[bufnr])
         else
           local pos = vim.fn.getpos(".")
           colorizer_state.buffer_local[bufnr].__startline = pos[2] - 1
           colorizer_state.buffer_local[bufnr].__endline = pos[2]
           M.rehighlight(
             bufnr,
-            opts,
+            buf_opts,
             colorizer_state.buffer_local[bufnr],
             { use_local_lines = true }
           )
@@ -458,10 +461,11 @@ function M.attach_to_buffer(bufnr, opts, bo_type)
     group = colorizer_state.augroup,
     buffer = bufnr,
     callback = function(args)
-      -- Only reload if it was not disabled using detach_from_buffer
-      if colorizer_state.buffer_options[bufnr] then
+      -- Read current opts from state so re-attach updates are picked up
+      local buf_opts = colorizer_state.buffer_options[bufnr]
+      if buf_opts then
         colorizer_state.buffer_local[bufnr].__event = args.event
-        M.rehighlight(bufnr, opts, colorizer_state.buffer_local[bufnr])
+        M.rehighlight(bufnr, buf_opts, colorizer_state.buffer_local[bufnr])
       end
     end,
   })
