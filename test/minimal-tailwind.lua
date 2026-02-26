@@ -7,7 +7,7 @@ local settings = {
   use_remote = true, -- Use colorizer master or local git directory
   base_dir = "../colorizer_tailwind", -- Directory to clone lazy.nvim (relative to test/tailwind/)
   local_plugin_dir = os.getenv("HOME") .. "/git/nvim-colorizer.lua",
-  tailwind_mode = "lsp", -- "normal" (trie names), "lsp" (LSP documentColor), or "both"
+  tailwind_mode = "lsp", -- "normal" (names), "lsp" (LSP documentColor), or "both"
   plugins = {},
 }
 

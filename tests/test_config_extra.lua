@@ -96,21 +96,21 @@ end
 
 T["hooks"] = new_set()
 
-T["hooks"]["disable_line_highlight non-function becomes false"] = function()
+T["hooks"]["disable_line_highlight non-function becomes false (legacy)"] = function()
   local opts = config.apply_alias_options({
     hooks = { disable_line_highlight = "not a function" },
   })
   eq(false, opts.hooks.disable_line_highlight)
 end
 
-T["hooks"]["disable_line_highlight true becomes false"] = function()
+T["hooks"]["disable_line_highlight true becomes false (legacy)"] = function()
   local opts = config.apply_alias_options({
     hooks = { disable_line_highlight = true },
   })
   eq(false, opts.hooks.disable_line_highlight)
 end
 
-T["hooks"]["disable_line_highlight function is preserved"] = function()
+T["hooks"]["disable_line_highlight function is preserved (legacy)"] = function()
   local fn = function()
     return true
   end

@@ -186,7 +186,7 @@ NEW FORMAT EXAMPLE ~
     options = {
       parsers = {
         css = true,  -- preset: enables names, hex, rgb, hsl, oklch
-        tailwind = { enable = true, mode = "normal" },
+        tailwind = { enable = true },
       },
       display = {
         mode = "virtualtext",
@@ -413,7 +413,7 @@ colorizer.SassOpts                                          *colorizer.SassOpts*
 colorizer.Hooks                                                *colorizer.Hooks*
 
     Fields: ~
-        {disable_line_highlight}  (function|false)  Returns boolean which controls if line should be parsed for highlights.
+        {should_highlight_line}   (function|false)  Return true to highlight, false to skip.
 
 
 colorizer.CustomParserDef                            *colorizer.CustomParserDef*

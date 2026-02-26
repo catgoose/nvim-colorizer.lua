@@ -63,7 +63,7 @@ local function is_parser_enabled(spec, opts)
     return p.hex and p.hex.enable and p.hex.aarrggbb or false
   elseif spec.name == "names" then
     local tw = p.tailwind
-    local tailwind_names = tw and tw.enable and (tw.mode == "normal" or tw.mode == "both")
+    local tailwind_names = tw and tw.enable
     return (p.names and p.names.enable) or (p.names and p.names.custom_hashed) or tailwind_names or false
   else
     local parser_opts = p[spec.name]
@@ -112,7 +112,7 @@ local function build_entry_config(spec, opts)
       m_opts.names_custom = p.names.custom_hashed
     end
     local tw = p.tailwind
-    if tw and tw.enable and (tw.mode == "normal" or tw.mode == "both") then
+    if tw and tw.enable then
       m_opts.tailwind_names = true
     end
     return nil, m_opts
@@ -287,8 +287,8 @@ local function compile(enabled_parsers, hooks, opts)
   local function parse_fn(line, i, bufnr, line_nr)
     if
       hooks
-      and hooks.disable_line_highlight
-      and hooks.disable_line_highlight(line, bufnr, line_nr)
+      and hooks.should_highlight_line
+      and not hooks.should_highlight_line(line, bufnr, line_nr)
     then
       return
     end
@@ -367,7 +367,8 @@ local function read_parser_flags(opts)
     names_strip_digits = names.strip_digits,
     names_custom = names.custom_hashed,
     sass = p.sass and p.sass.enable,
-    tailwind_mode = tw.enable and tw.mode or false,
+    tailwind_enable = tw.enable or false,
+    tailwind_lsp = tw.lsp or false,
     RGB = hex.enable and hex.rgb,
     RGBA = hex.enable and hex.rgba,
     RRGGBB = hex.enable and hex.rrggbb,
@@ -399,9 +400,8 @@ local function calculate_matcher_key(f)
     f.RGB or false, f.RGBA or false, f.RRGGBB or false,
     f.RRGGBBAA or false, f.AARRGGBB or false,
     f.rgb or false, f.hsl or false,
-    f.tailwind_mode == "normal",
-    f.tailwind_mode == "lsp",
-    f.tailwind_mode == "both",
+    f.tailwind_enable or false,
+    f.tailwind_lsp or false,
     f.sass or false, f.xterm or false, f.oklch or false,
   }
   local matcher_mask = 0

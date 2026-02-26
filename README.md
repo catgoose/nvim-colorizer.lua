@@ -1,5 +1,22 @@
 # colorizer.lua
 
+<!--toc:start-->
+
+- [colorizer.lua](#colorizerlua)
+  - [Why colorizer.lua?](#why-colorizerlua)
+  - [Installation](#installation)
+  - [Examples](#examples)
+  - [Default configuration](#default-configuration)
+  - [Tailwind CSS](#tailwind-css)
+  - [Custom parsers](#custom-parsers)
+  - [Hooks](#hooks)
+  - [Lua API](#lua-api)
+  - [User commands](#user-commands)
+  - [Legacy options](#legacy-options)
+  - [Testing](#testing)
+  - [Documentation](#documentation)
+  <!--toc:end-->
+
 > **[Full documentation](https://catgoose.github.io/nvim-colorizer.lua/)**
 
 A high-performance color highlighter for Neovim with **no external
@@ -75,21 +92,21 @@ require("colorizer").setup({
   lazy_load = false,
   options = {
     parsers = {
-      css = false,       -- preset: enables names, hex, rgb, hsl, oklch
-      css_fn = false,    -- preset: enables rgb, hsl, oklch
+      css = false, -- preset: enables names, hex, rgb, hsl, oklch
+      css_fn = false, -- preset: enables rgb, hsl, oklch
       names = {
         enable = false,
         lowercase = true,
         camelcase = true,
         uppercase = false,
         strip_digits = false,
-        custom = false,  -- table|function|false
+        custom = false, -- table|function|false
       },
       hex = {
-        enable = false,  -- master switch for all hex formats
-        rgb = true,      -- #RGB
-        rgba = true,     -- #RGBA
-        rrggbb = true,   -- #RRGGBB
+        enable = false, -- master switch for all hex formats
+        rgb = true, -- #RGB
+        rgba = true, -- #RGBA
+        rrggbb = true, -- #RRGGBB
         rrggbbaa = false, -- #RRGGBBAA
         aarrggbb = false, -- 0xAARRGGBB
       },
@@ -97,8 +114,8 @@ require("colorizer").setup({
       hsl = { enable = false },
       oklch = { enable = false },
       tailwind = {
-        enable = false,
-        mode = "normal",       -- "normal"|"lsp"|"both"
+        enable = false, -- parse Tailwind color names
+        lsp = false, -- use Tailwind LSP documentColor
         update_names = false,
       },
       sass = {
@@ -110,14 +127,14 @@ require("colorizer").setup({
       custom = {},
     },
     display = {
-      mode = "background",     -- "background"|"foreground"|"virtualtext"
+      mode = "background", -- "background"|"foreground"|"virtualtext"
       background = {
         bright_fg = "#000000",
         dark_fg = "#ffffff",
       },
       virtualtext = {
         char = "■",
-        position = false,      -- false|"before"|"after"
+        position = "eol", -- "eol"|"before"|"after"
         hl_mode = "foreground",
       },
       priority = {
@@ -126,7 +143,7 @@ require("colorizer").setup({
       },
     },
     hooks = {
-      disable_line_highlight = false, -- function(line, bufnr, line_num) -> bool
+      should_highlight_line = false, -- function(line, bufnr, line_num) -> bool
     },
     always_update = false,
   },
@@ -135,21 +152,21 @@ require("colorizer").setup({
 
 ## Tailwind CSS
 
-Tailwind colors can be parsed from the bundled color data or via `textDocument/documentColor` from the Tailwind LSP.
+Tailwind colors can be parsed from the bundled color data (`enable`) or via `textDocument/documentColor` from the Tailwind LSP (`lsp`). Both can be used together.
 
-| Mode | Behavior |
-|------|----------|
-| `"normal"` | Parse standard Tailwind color names only |
-| `"lsp"` | Use Tailwind LSP document colors only |
-| `"both"` | Combine both sources |
+| Option          | Behavior                            |
+| --------------- | ----------------------------------- |
+| `enable = true` | Parse standard Tailwind color names |
+| `lsp = true`    | Use Tailwind LSP document colors    |
+| Both `true`     | Combine both sources                |
 
-With `update_names = true` and `mode = "both"`, the color name mapping is updated with LSP results including custom colors from `tailwind.config.{js,ts}`.
+With `update_names = true` and both enabled, the color name mapping is updated with LSP results including custom colors from `tailwind.config.{js,ts}`.
 
 ```lua
 require("colorizer").setup({
   options = {
     parsers = {
-      tailwind = { enable = true, mode = "both", update_names = true },
+      tailwind = { enable = true, lsp = true, update_names = true },
     },
   },
 })
@@ -170,9 +187,7 @@ require("colorizer").setup({
           name = "android_color",
           prefixes = { "Color." },
           parse = function(ctx)
-            local m = ctx.line:match(
-              "^Color%.parseColor%(\"#(%x%x%x%x%x%x)\"%)", ctx.col
-            )
+            local m = ctx.line:match('^Color%.parseColor%("#(%x%x%x%x%x%x)"%)', ctx.col)
             if m then
               return #'Color.parseColor("#xxxxxx")', m:lower()
             end
@@ -188,14 +203,14 @@ Each custom parser supports: `name`, `parse(ctx)`, `prefixes`, `prefix_bytes`, `
 
 ## Hooks
 
-`disable_line_highlight` is called before each line is parsed. Return `true` to skip:
+`should_highlight_line` is called before each line is parsed. Return `true` to highlight, `false` to skip:
 
 ```lua
 require("colorizer").setup({
   options = {
     hooks = {
-      disable_line_highlight = function(line, bufnr, line_num)
-        return string.sub(line, 1, 2) == "--"
+      should_highlight_line = function(line, bufnr, line_num)
+        return string.sub(line, 1, 2) ~= "--"
       end,
     },
   },
@@ -214,12 +229,12 @@ require("colorizer").detach_from_buffer(0)
 
 ## User commands
 
-| Command                       | Description                                    |
-| ----------------------------- | ---------------------------------------------- |
-| **ColorizerAttachToBuffer**   | Attach to the current buffer                   |
-| **ColorizerDetachFromBuffer** | Stop highlighting the current buffer           |
-| **ColorizerReloadAllBuffers** | Reload all highlighted buffers                 |
-| **ColorizerToggle**           | Toggle highlighting of the current buffer      |
+| Command                       | Description                               |
+| ----------------------------- | ----------------------------------------- |
+| **ColorizerAttachToBuffer**   | Attach to the current buffer              |
+| **ColorizerDetachFromBuffer** | Stop highlighting the current buffer      |
+| **ColorizerReloadAllBuffers** | Reload all highlighted buffers            |
+| **ColorizerToggle**           | Toggle highlighting of the current buffer |
 
 ## Legacy options
 

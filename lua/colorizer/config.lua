@@ -18,7 +18,7 @@
 ---    options = {
 ---      parsers = {
 ---        css = true,  -- preset: enables names, hex, rgb, hsl, oklch
----        tailwind = { enable = true, mode = "normal" },
+---        tailwind = { enable = true },
 ---      },
 ---      display = {
 ---        mode = "virtualtext",
@@ -157,8 +157,8 @@ local plugin_user_default_options = {
 ---@field enable boolean Enable this parser
 
 ---@class colorizer.ParsersTailwind
----@field enable boolean Enable Tailwind CSS colors
----@field mode 'normal'|'lsp'|'both' "normal" parses names, "lsp" uses LSP, "both" combines
+---@field enable boolean Enable Tailwind CSS color name parsing
+---@field lsp boolean Enable Tailwind LSP documentColor highlighting
 ---@field update_names boolean Update tailwind_names color mapping from LSP results
 
 ---@class colorizer.ParsersSass
@@ -178,7 +178,7 @@ local plugin_user_default_options = {
 
 ---@class colorizer.DisplayVirtualtext
 ---@field char string Character used for virtual text (default "■")
----@field position false|'before'|'after' Inline virtualtext position. `false` for end-of-line.
+---@field position 'eol'|'before'|'after' Virtualtext position. `"eol"` for end-of-line.
 ---@field hl_mode 'background'|'foreground' Highlight mode for virtual text
 
 ---@class colorizer.DisplayPriority
@@ -205,7 +205,7 @@ local function build_default_parsers()
   }
   parsers.tailwind = {
     enable = false,
-    mode = "normal",
+    lsp = false,
     update_names = false,
   }
   parsers.custom = {}
@@ -224,7 +224,7 @@ local default_options = {
     },
     virtualtext = {
       char = "■",
-      position = false,
+      position = "eol",
       hl_mode = "foreground",
     },
     priority = {
@@ -234,7 +234,7 @@ local default_options = {
   },
 
   hooks = {
-    disable_line_highlight = false,
+    should_highlight_line = false,
   },
 
   always_update = false,
@@ -301,7 +301,7 @@ M.default_options = default_options
 ---@field parsers table A list of parsers to use, typically includes "css".
 
 ---@class colorizer.Hooks
----@field disable_line_highlight function|false Returns boolean which controls if line should be parsed for highlights.
+---@field should_highlight_line function|false Return true to highlight the line, false to skip. Signature: (line, bufnr, line_num) -> boolean
 
 ---@class colorizer.CustomParserDef
 ---@field name string unique identifier
@@ -463,12 +463,13 @@ function M.translate_options(old_opts)
     new.parsers.tailwind = {}
     if old_opts.tailwind == false then
       new.parsers.tailwind.enable = false
-    elseif old_opts.tailwind == true then
+    elseif old_opts.tailwind == true or old_opts.tailwind == "normal" then
       new.parsers.tailwind.enable = true
-      new.parsers.tailwind.mode = "normal"
-    elseif type(old_opts.tailwind) == "string" then
+    elseif old_opts.tailwind == "lsp" then
+      new.parsers.tailwind.lsp = true
+    elseif old_opts.tailwind == "both" then
       new.parsers.tailwind.enable = true
-      new.parsers.tailwind.mode = old_opts.tailwind
+      new.parsers.tailwind.lsp = true
     end
   end
   if old_opts.tailwind_opts then
@@ -514,7 +515,7 @@ function M.translate_options(old_opts)
         elseif old_opts.virtualtext_inline == "after" then
           new.display.virtualtext.position = "after"
         else
-          new.display.virtualtext.position = false
+          new.display.virtualtext.position = "eol"
         end
       end
       if old_opts.virtualtext_mode ~= nil then
@@ -527,7 +528,17 @@ function M.translate_options(old_opts)
   if old_opts.hooks then
     new.hooks = {}
     for k, v in pairs(old_opts.hooks) do
-      new.hooks[k] = v
+      if k == "disable_line_highlight" then
+        -- Legacy compat: invert semantics
+        if type(v) == "function" then
+          local old_fn = v
+          new.hooks.should_highlight_line = function(line, bufnr, line_nr)
+            return not old_fn(line, bufnr, line_nr)
+          end
+        end
+      else
+        new.hooks[k] = v
+      end
     end
   end
 
@@ -658,15 +669,14 @@ function M.validate_new_options(opts)
     opts.display.mode = default_options.display.mode
   end
 
-  -- Validate tailwind.mode enum
-  local valid_tw_modes = { normal = true, lsp = true, both = true }
+  -- Validate tailwind.lsp is boolean
   local tw = opts.parsers and opts.parsers.tailwind
-  if tw and tw.enable and not valid_tw_modes[tw.mode] then
-    tw.mode = default_options.parsers.tailwind.mode
+  if tw and type(tw.lsp) ~= "boolean" then
+    tw.lsp = default_options.parsers.tailwind.lsp
   end
 
   -- Validate virtualtext.position
-  local valid_vt_pos = { ["before"] = true, ["after"] = true, [false] = true }
+  local valid_vt_pos = { ["eol"] = true, ["before"] = true, ["after"] = true }
   if not valid_vt_pos[opts.display.virtualtext.position] then
     opts.display.virtualtext.position = default_options.display.virtualtext.position
   end
@@ -704,8 +714,8 @@ function M.validate_new_options(opts)
 
   -- Validate hooks
   if opts.hooks then
-    if type(opts.hooks.disable_line_highlight) ~= "function" then
-      opts.hooks.disable_line_highlight = false
+    if type(opts.hooks.should_highlight_line) ~= "function" then
+      opts.hooks.should_highlight_line = false
     end
   end
 
@@ -756,8 +766,12 @@ function M.as_flat(opts)
   flat.css_fn = false
 
   -- Tailwind
-  if p.tailwind.enable then
-    flat.tailwind = p.tailwind.mode
+  if p.tailwind.enable and p.tailwind.lsp then
+    flat.tailwind = "both"
+  elseif p.tailwind.enable then
+    flat.tailwind = "normal"
+  elseif p.tailwind.lsp then
+    flat.tailwind = "lsp"
   else
     flat.tailwind = false
   end
@@ -777,15 +791,21 @@ function M.as_flat(opts)
   -- Display
   flat.mode = d.mode
   flat.virtualtext = d.virtualtext.char
-  if d.virtualtext.position then
-    flat.virtualtext_inline = d.virtualtext.position
-  else
+  if d.virtualtext.position == "eol" then
     flat.virtualtext_inline = false
+  else
+    flat.virtualtext_inline = d.virtualtext.position
   end
   flat.virtualtext_mode = d.virtualtext.hl_mode
 
-  -- Hooks
-  flat.hooks = opts.hooks and vim.deepcopy(opts.hooks) or { disable_line_highlight = false }
+  -- Hooks: convert should_highlight_line back to disable_line_highlight for legacy compat
+  flat.hooks = { disable_line_highlight = false }
+  if opts.hooks and type(opts.hooks.should_highlight_line) == "function" then
+    local shl = opts.hooks.should_highlight_line
+    flat.hooks.disable_line_highlight = function(line, bufnr, line_nr)
+      return not shl(line, bufnr, line_nr)
+    end
+  end
 
   -- Always update
   flat.always_update = opts.always_update

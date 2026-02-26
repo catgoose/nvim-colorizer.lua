@@ -174,11 +174,11 @@ end
 
 T["hooks"] = new_set()
 
-T["hooks"]["disable_line_highlight suppresses parsing"] = function()
+T["hooks"]["should_highlight_line returning false suppresses parsing"] = function()
   local opts = make_opts({ RRGGBB = true })
   opts.hooks = {
-    disable_line_highlight = function()
-      return true
+    should_highlight_line = function()
+      return false
     end,
   }
   local parse_fn = matcher.make(opts)
@@ -187,11 +187,11 @@ T["hooks"]["disable_line_highlight suppresses parsing"] = function()
   eq(nil, hex)
 end
 
-T["hooks"]["disable_line_highlight returning false allows parsing"] = function()
+T["hooks"]["should_highlight_line returning true allows parsing"] = function()
   local opts = make_opts({ RRGGBB = true })
   opts.hooks = {
-    disable_line_highlight = function()
-      return false
+    should_highlight_line = function()
+      return true
     end,
   }
   local parse_fn = matcher.make(opts)

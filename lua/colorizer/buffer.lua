@@ -104,10 +104,9 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, opts, hl_opts
   local priority = hl_opts.tailwind_lsp and (prio.lsp or 200) or (prio.default or 100)
   local bg_opts = d.background
   local tw = opts.parsers.tailwind or {}
-  local tw_mode = tw.enable and tw.mode or false
 
   if d.mode == "background" or d.mode == "foreground" then
-    local tw_both = tw_mode == "both" and hl_opts.tailwind_lsp
+    local tw_both = tw.enable and tw.lsp and hl_opts.tailwind_lsp
     for linenr, hls in pairs(data) do
       for _, hl in ipairs(hls) do
         if tw_both and tw.update_names then
@@ -140,7 +139,7 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, opts, hl_opts
     local virt_text_list = { virt_text_entry }
     for linenr, hls in pairs(data) do
       for _, hl in ipairs(hls) do
-        if tw_mode == "both" and hl_opts.tailwind_lsp then
+        if tw.enable and tw.lsp and hl_opts.tailwind_lsp then
           vim.api.nvim_buf_clear_namespace(bufnr, ns_id, linenr, linenr + 1)
           if tw.update_names then
             local txt = slice_line(bufnr, linenr, hl.range[1], hl.range[2])
@@ -153,7 +152,7 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, opts, hl_opts
         local hlname = create_highlight(hl.rgb_hex, vt.hl_mode, bg_opts)
         local start_col = hl.range[2]
         virt_text_entry[2] = hlname
-        if vt.position then
+        if vt.position == "before" or vt.position == "after" then
           extmark_opts.virt_text_pos = "inline"
           local vt_char = vt.char or const.defaults.virtualtext
           virt_text_entry[1] = string.format(
@@ -199,7 +198,6 @@ function M.highlight(bufnr, ns_id, line_start, line_end, opts, buf_local_opts)
   local lines = vim.api.nvim_buf_get_lines(bufnr, line_start, line_end, false)
 
   local tw = opts.parsers.tailwind or {}
-  local tw_mode = tw.enable and tw.mode or false
   local sass_cfg = opts.parsers.sass
 
   -- only update sass varibles when text is changed
@@ -222,7 +220,7 @@ function M.highlight(bufnr, ns_id, line_start, line_end, opts, buf_local_opts)
   local data = M.parse_lines(bufnr, lines, line_start, opts) or {}
   M.add_highlight(bufnr, ns_id, line_start, line_end, data, opts)
 
-  if tw_mode == "lsp" or tw_mode == "both" then
+  if tw.lsp then
     tailwind.lsp_highlight(
       bufnr,
       opts,

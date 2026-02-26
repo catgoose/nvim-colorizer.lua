@@ -63,13 +63,11 @@ end
 T["translate_options"]["translates tailwind boolean"] = function()
   local new = config.translate_options({ tailwind = true })
   eq(true, new.parsers.tailwind.enable)
-  eq("normal", new.parsers.tailwind.mode)
 end
 
-T["translate_options"]["translates tailwind string"] = function()
+T["translate_options"]["translates tailwind string lsp"] = function()
   local new = config.translate_options({ tailwind = "lsp" })
-  eq(true, new.parsers.tailwind.enable)
-  eq("lsp", new.parsers.tailwind.mode)
+  eq(true, new.parsers.tailwind.lsp)
 end
 
 T["translate_options"]["translates tailwind false"] = function()
@@ -183,19 +181,18 @@ T["validate_new_options"]["resets invalid display.mode"] = function()
   eq("background", opts.display.mode)
 end
 
-T["validate_new_options"]["resets invalid tailwind.mode"] = function()
+T["validate_new_options"]["resets invalid tailwind.lsp"] = function()
   local opts = vim.deepcopy(config.default_options)
-  opts.parsers.tailwind.enable = true
-  opts.parsers.tailwind.mode = "invalid"
+  opts.parsers.tailwind.lsp = "invalid"
   config.validate_new_options(opts)
-  eq("normal", opts.parsers.tailwind.mode)
+  eq(false, opts.parsers.tailwind.lsp)
 end
 
 T["validate_new_options"]["resets invalid virtualtext.position"] = function()
   local opts = vim.deepcopy(config.default_options)
   opts.display.virtualtext.position = "center"
   config.validate_new_options(opts)
-  eq(false, opts.display.virtualtext.position)
+  eq("eol", opts.display.virtualtext.position)
 end
 
 T["validate_new_options"]["processes names.custom table"] = function()
@@ -227,9 +224,9 @@ end
 
 T["validate_new_options"]["non-function hook becomes false"] = function()
   local opts = vim.deepcopy(config.default_options)
-  opts.hooks.disable_line_highlight = "not a function"
+  opts.hooks.should_highlight_line = "not a function"
   config.validate_new_options(opts)
-  eq(false, opts.hooks.disable_line_highlight)
+  eq(false, opts.hooks.should_highlight_line)
 end
 
 -- as_flat ---------------------------------------------------------------------
@@ -262,10 +259,10 @@ T["as_flat"]["hex master switch disables individual flags"] = function()
   eq(false, flat.RRGGBB)
 end
 
-T["as_flat"]["tailwind enabled becomes mode string"] = function()
+T["as_flat"]["tailwind enable+lsp becomes both"] = function()
   local opts = vim.deepcopy(config.default_options)
   opts.parsers.tailwind.enable = true
-  opts.parsers.tailwind.mode = "both"
+  opts.parsers.tailwind.lsp = true
   local flat = config.as_flat(opts)
   eq("both", flat.tailwind)
 end
@@ -284,9 +281,9 @@ T["as_flat"]["virtualtext position converts correctly"] = function()
   eq("before", flat.virtualtext_inline)
 end
 
-T["as_flat"]["virtualtext position false converts correctly"] = function()
+T["as_flat"]["virtualtext position eol converts correctly"] = function()
   local opts = vim.deepcopy(config.default_options)
-  opts.display.virtualtext.position = false
+  opts.display.virtualtext.position = "eol"
   local flat = config.as_flat(opts)
   eq(false, flat.virtualtext_inline)
 end
@@ -792,7 +789,7 @@ end
 T["translate_options"]["translates tailwind both"] = function()
   local new = config.translate_options({ tailwind = "both" })
   eq(true, new.parsers.tailwind.enable)
-  eq("both", new.parsers.tailwind.mode)
+  eq(true, new.parsers.tailwind.lsp)
 end
 
 T["translate_options"]["translates tailwind_opts.update_names"] = function()
@@ -820,13 +817,22 @@ end
 
 T["translate_options"]["translates virtualtext_inline false"] = function()
   local new = config.translate_options({ virtualtext_inline = false })
-  eq(false, new.display.virtualtext.position)
+  eq("eol", new.display.virtualtext.position)
 end
 
-T["translate_options"]["translates hooks"] = function()
+T["translate_options"]["translates hooks with legacy disable_line_highlight"] = function()
   local fn = function() return true end
   local new = config.translate_options({ hooks = { disable_line_highlight = fn } })
-  eq(fn, new.hooks.disable_line_highlight)
+  -- Legacy key is translated to should_highlight_line with inverted semantics
+  eq("function", type(new.hooks.should_highlight_line))
+  -- Old fn returns true (skip) → new fn should return false (don't highlight)
+  eq(false, new.hooks.should_highlight_line())
+end
+
+T["translate_options"]["translates hooks with new should_highlight_line"] = function()
+  local fn = function() return true end
+  local new = config.translate_options({ hooks = { should_highlight_line = fn } })
+  eq(fn, new.hooks.should_highlight_line)
 end
 
 T["translate_options"]["translates always_update"] = function()
@@ -956,29 +962,18 @@ T["validate_new_options"]["valid display.mode is preserved"] = function()
   eq("virtualtext", opts.display.mode)
 end
 
-T["validate_new_options"]["valid tailwind.mode lsp is preserved"] = function()
+T["validate_new_options"]["valid tailwind.lsp true is preserved"] = function()
   local opts = vim.deepcopy(config.default_options)
-  opts.parsers.tailwind.enable = true
-  opts.parsers.tailwind.mode = "lsp"
+  opts.parsers.tailwind.lsp = true
   config.validate_new_options(opts)
-  eq("lsp", opts.parsers.tailwind.mode)
+  eq(true, opts.parsers.tailwind.lsp)
 end
 
-T["validate_new_options"]["valid tailwind.mode both is preserved"] = function()
+T["validate_new_options"]["valid tailwind.lsp false is preserved"] = function()
   local opts = vim.deepcopy(config.default_options)
-  opts.parsers.tailwind.enable = true
-  opts.parsers.tailwind.mode = "both"
+  opts.parsers.tailwind.lsp = false
   config.validate_new_options(opts)
-  eq("both", opts.parsers.tailwind.mode)
-end
-
-T["validate_new_options"]["skips tailwind.mode validation when disabled"] = function()
-  local opts = vim.deepcopy(config.default_options)
-  opts.parsers.tailwind.enable = false
-  opts.parsers.tailwind.mode = "whatever"
-  config.validate_new_options(opts)
-  -- Should not reset since tailwind is disabled
-  eq("whatever", opts.parsers.tailwind.mode)
+  eq(false, opts.parsers.tailwind.lsp)
 end
 
 T["validate_new_options"]["valid virtualtext.position values preserved"] = function()
@@ -995,9 +990,9 @@ end
 T["validate_new_options"]["function hook is preserved"] = function()
   local opts = vim.deepcopy(config.default_options)
   local fn = function() return false end
-  opts.hooks.disable_line_highlight = fn
+  opts.hooks.should_highlight_line = fn
   config.validate_new_options(opts)
-  eq(fn, opts.hooks.disable_line_highlight)
+  eq(fn, opts.hooks.should_highlight_line)
 end
 
 T["validate_new_options"]["names.custom_hashed has hash field"] = function()
@@ -1134,9 +1129,12 @@ end
 T["as_flat"]["converts hooks correctly"] = function()
   local opts = vim.deepcopy(config.default_options)
   local fn = function() return true end
-  opts.hooks = { disable_line_highlight = fn }
+  opts.hooks = { should_highlight_line = fn }
   local flat = config.as_flat(opts)
-  eq(fn, flat.hooks.disable_line_highlight)
+  -- as_flat converts should_highlight_line back to disable_line_highlight (inverted)
+  eq("function", type(flat.hooks.disable_line_highlight))
+  -- fn returns true (highlight) → flat fn should return false (don't disable)
+  eq(false, flat.hooks.disable_line_highlight())
 end
 
 T["as_flat"]["converts tailwind_opts correctly"] = function()
@@ -1378,13 +1376,14 @@ end
 
 T["matcher hooks"] = new_set()
 
-T["matcher hooks"]["disable_line_highlight skips line"] = function()
+T["matcher hooks"]["should_highlight_line skips line when returning false"] = function()
   local opts = vim.deepcopy(config.default_options)
   opts.parsers.hex.enable = true
   opts.parsers.hex.rrggbb = true
   opts.hooks = {
-    disable_line_highlight = function(line)
-      return line:sub(1, 2) == "--"
+    should_highlight_line = function(line)
+      -- Return true to highlight, false to skip (comments)
+      return line:sub(1, 2) ~= "--"
     end,
   }
   local parse_fn = matcher.make(opts)
@@ -1404,10 +1403,10 @@ T["matcher hooks"]["hook receives bufnr and line_nr"] = function()
   opts.parsers.hex.enable = true
   opts.parsers.hex.rrggbb = true
   opts.hooks = {
-    disable_line_highlight = function(_, bufnr, line_nr)
+    should_highlight_line = function(_, bufnr, line_nr)
       captured_bufnr = bufnr
       captured_line_nr = line_nr
-      return false
+      return true
     end,
   }
   local parse_fn = matcher.make(opts)
@@ -1590,14 +1589,14 @@ end
 T["roundtrip"]["new -> flat -> resolve preserves tailwind"] = function()
   local original = vim.deepcopy(config.default_options)
   original.parsers.tailwind.enable = true
-  original.parsers.tailwind.mode = "both"
+  original.parsers.tailwind.lsp = true
   original.parsers.tailwind.update_names = true
 
   local flat = config.as_flat(original)
   local restored = config.resolve_options(flat)
 
   eq(true, restored.parsers.tailwind.enable)
-  eq("both", restored.parsers.tailwind.mode)
+  eq(true, restored.parsers.tailwind.lsp)
   eq(true, restored.parsers.tailwind.update_names)
 end
 
