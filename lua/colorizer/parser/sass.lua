@@ -29,6 +29,9 @@ end
 --- Cleanup sass variables and watch handlers
 ---@param bufnr number
 function M.cleanup(bufnr)
+  if not state[bufnr] then
+    return
+  end
   remove_unused_imports(bufnr, vim.api.nvim_buf_get_name(bufnr))
   state[bufnr] = nil
 end
@@ -46,7 +49,7 @@ function M.parser(line, i, bufnr)
     and state[bufnr].opts.parsers.sass and state[bufnr].opts.parsers.sass.variable_pattern)
     or DEFAULT_VARIABLE_PATTERN
   local variable_name = line:match(pattern, i)
-  if variable_name then
+  if variable_name and state[bufnr] then
     local rgb_hex = state[bufnr].definitions_all[variable_name]
     if rgb_hex then
       return #variable_name + 1, rgb_hex

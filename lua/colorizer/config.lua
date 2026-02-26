@@ -660,8 +660,9 @@ function M.validate_new_options(opts)
 
   -- Validate tailwind.mode enum
   local valid_tw_modes = { normal = true, lsp = true, both = true }
-  if opts.parsers.tailwind.enable and not valid_tw_modes[opts.parsers.tailwind.mode] then
-    opts.parsers.tailwind.mode = default_options.parsers.tailwind.mode
+  local tw = opts.parsers and opts.parsers.tailwind
+  if tw and tw.enable and not valid_tw_modes[tw.mode] then
+    tw.mode = default_options.parsers.tailwind.mode
   end
 
   -- Validate virtualtext.position
@@ -677,27 +678,28 @@ function M.validate_new_options(opts)
   end
 
   -- Process names.custom (function -> table, compute hash)
-  local custom = opts.parsers.names.custom
+  local names_opts = opts.parsers and opts.parsers.names
+  local custom = names_opts and names_opts.custom
   if custom and type(custom) == "table" and not next(custom) then
-    opts.parsers.names.custom = false
+    names_opts.custom = false
     custom = false
   end
   if custom then
     if type(custom) == "function" then
-      local status, names = pcall(custom)
-      if not (status and type(names) == "table") then
-        error(string.format("Error in parsers.names.custom function: %s", names or "Invalid return value"))
+      local status, custom_result = pcall(custom)
+      if not (status and type(custom_result) == "table") then
+        error(string.format("Error in parsers.names.custom function: %s", custom_result or "Invalid return value"))
       end
-      custom = names
+      custom = custom_result
     end
     if type(custom) ~= "table" then
       error(string.format("Error in parsers.names.custom: %s", vim.inspect(custom)))
     end
-    opts.parsers.names.custom_hashed = {
+    names_opts.custom_hashed = {
       hash = utils.hash_table(custom),
       names = custom,
     }
-    opts.parsers.names.custom = false
+    names_opts.custom = false
   end
 
   -- Validate hooks

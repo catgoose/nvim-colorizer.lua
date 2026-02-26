@@ -188,6 +188,8 @@ end
 local function compile(enabled_parsers, hooks, opts)
   -- Phase 1 structure: byte -> [{entry, ...}] in priority order
   local byte_dispatch = {}
+  -- Bytes with an exclusive ("byte"-kind) parser: Phase 1 match prevents fallthrough
+  local byte_exclusive = {}
   -- Phase 2 structure: trie + prefix -> entry map
   local prefix_entries = {}
   local prefix_map = {}
@@ -201,6 +203,7 @@ local function compile(enabled_parsers, hooks, opts)
       for _, b in ipairs(entry.spec.dispatch.bytes) do
         byte_dispatch[b] = byte_dispatch[b] or {}
         byte_dispatch[b][#byte_dispatch[b] + 1] = entry
+        byte_exclusive[b] = true
       end
     elseif kind == "prefix" then
       for _, pfx in ipairs(entry.spec.dispatch.prefixes) do
@@ -297,13 +300,20 @@ local function compile(enabled_parsers, hooks, opts)
     ctx.line_nr = line_nr
 
     -- Phase 1: byte-dispatched parsers
-    local byte_parsers = byte_dispatch[line:byte(i)]
+    local cur_byte = line:byte(i)
+    local byte_parsers = byte_dispatch[cur_byte]
     if byte_parsers then
       for _, entry in ipairs(byte_parsers) do
         local len, rgb_hex = try_parser(entry, nil)
         if len and rgb_hex then
           return len, rgb_hex
         end
+      end
+      -- When an exclusive byte parser (e.g. rgba_hex on '#') is registered,
+      -- don't fall through to prefix/fallback phases. This matches the old
+      -- behavior where '#' failing hex parse returned nil immediately.
+      if byte_exclusive[cur_byte] then
+        return
       end
     end
 
