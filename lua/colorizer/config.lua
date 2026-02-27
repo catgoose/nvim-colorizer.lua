@@ -228,8 +228,8 @@ local default_options = {
       hl_mode = "foreground",
     },
     priority = {
-      default = 200,
-      lsp = 300,
+      default = 100,
+      lsp = 200,
     },
   },
 
