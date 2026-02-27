@@ -69,7 +69,7 @@ local function create_highlight(rgb_hex, mode)
   return highlight_name
 end
 
-local PRIORITY_DEFAULT = 100
+local PRIORITY_DEFAULT = 150
 local PRIORITY_LSP = 200
 
 local function slice_line(bufnr, line, start_col, end_col)
