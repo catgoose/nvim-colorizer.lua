@@ -1652,8 +1652,8 @@ end
 T["display.priority"] = new_set()
 
 T["display.priority"]["default values"] = function()
-  eq(200, config.default_options.display.priority.default)
-  eq(300, config.default_options.display.priority.lsp)
+  eq(vim.hl.priorities.diagnostics, config.default_options.display.priority.default)
+  eq(vim.hl.priorities.user, config.default_options.display.priority.lsp)
 end
 
 T["display.priority"]["custom default priority is used"] = function()

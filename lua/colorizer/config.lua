@@ -228,8 +228,8 @@ local default_options = {
       hl_mode = "foreground",
     },
     priority = {
-      default = 100,
-      lsp = 200,
+      default = vim.hl.priorities.diagnostics,
+      lsp = vim.hl.priorities.user,
     },
   },
 
