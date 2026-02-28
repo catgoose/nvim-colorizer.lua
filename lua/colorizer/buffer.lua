@@ -101,7 +101,8 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, opts, hl_opts
 
   local d = opts.display
   local prio = d.priority or {}
-  local priority = hl_opts.tailwind_lsp and (prio.lsp or vim.hl.priorities.user) or (prio.default or vim.hl.priorities.diagnostics)
+  local hl_prio = vim.hl and vim.hl.priorities or {}
+  local priority = hl_opts.tailwind_lsp and (prio.lsp or hl_prio.user or 200) or (prio.default or hl_prio.diagnostics or 150)
   local bg_opts = d.background
   local tw = opts.parsers.tailwind or {}
 

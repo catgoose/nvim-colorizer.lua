@@ -201,25 +201,27 @@ end
 
 T["priority"] = new_set()
 
-T["priority"]["default priority is diagnostics"] = function()
+T["priority"]["default priority matches diagnostics"] = function()
+  local expected = (vim.hl and vim.hl.priorities and vim.hl.priorities.diagnostics) or 150
   local buf = make_buf({ "#FF0000" })
   local ns = vim.api.nvim_create_namespace("test_priority_default")
   local opts = all_opts({ mode = "background" })
   local data = buffer.parse_lines(buf, { "#FF0000" }, 0, opts)
   buffer.add_highlight(buf, ns, 0, 1, data, opts)
   local marks = vim.api.nvim_buf_get_extmarks(buf, ns, 0, -1, { details = true })
-  eq(vim.hl.priorities.diagnostics, marks[1][4].priority)
+  eq(expected, marks[1][4].priority)
   vim.api.nvim_buf_delete(buf, { force = true })
 end
 
-T["priority"]["tailwind_lsp priority is user"] = function()
+T["priority"]["tailwind_lsp priority matches user"] = function()
+  local expected = (vim.hl and vim.hl.priorities and vim.hl.priorities.user) or 200
   local buf = make_buf({ "#FF0000" })
   local ns = vim.api.nvim_create_namespace("test_priority_lsp")
   local opts = all_opts({ mode = "background" })
   local data = buffer.parse_lines(buf, { "#FF0000" }, 0, opts)
   buffer.add_highlight(buf, ns, 0, 1, data, opts, { tailwind_lsp = true })
   local marks = vim.api.nvim_buf_get_extmarks(buf, ns, 0, -1, { details = true })
-  eq(vim.hl.priorities.user, marks[1][4].priority)
+  eq(expected, marks[1][4].priority)
   vim.api.nvim_buf_delete(buf, { force = true })
 end
 
