@@ -480,13 +480,17 @@ function M.translate_options(old_opts)
   end
 
   -- Sass
-  if old_opts.sass then
-    new.parsers.sass = {}
-    if old_opts.sass.enable ~= nil then
-      new.parsers.sass.enable = old_opts.sass.enable
-    end
-    if old_opts.sass.parsers ~= nil then
-      new.parsers.sass.parsers = old_opts.sass.parsers
+  if old_opts.sass ~= nil then
+    if old_opts.sass == false then
+      new.parsers.sass = { enable = false }
+    else
+      new.parsers.sass = {}
+      if old_opts.sass.enable ~= nil then
+        new.parsers.sass.enable = old_opts.sass.enable
+      end
+      if old_opts.sass.parsers ~= nil then
+        new.parsers.sass.parsers = old_opts.sass.parsers
+      end
     end
   end
 
@@ -560,11 +564,11 @@ function M.translate_filetypes(old_ft)
 
   -- Already new format
   if old_ft.enable or old_ft.exclude or old_ft.overrides then
-    -- Fill in missing keys
-    old_ft.enable = old_ft.enable or {}
-    old_ft.exclude = old_ft.exclude or {}
-    old_ft.overrides = old_ft.overrides or {}
-    return old_ft
+    return {
+      enable = old_ft.enable or {},
+      exclude = old_ft.exclude or {},
+      overrides = old_ft.overrides or {},
+    }
   end
 
   -- Check if it's a plain list (all numeric keys, all strings)
@@ -879,7 +883,7 @@ function M.expand_sass_parsers(sass_parsers)
 
   local cache_key = vim.inspect(sass_parsers)
   if expand_sass_cache[cache_key] then
-    return expand_sass_cache[cache_key]
+    return vim.deepcopy(expand_sass_cache[cache_key])
   end
 
   -- sass_parsers is like { css = true } - treat as preset-style config

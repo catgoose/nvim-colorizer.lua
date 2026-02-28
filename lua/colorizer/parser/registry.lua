@@ -59,7 +59,7 @@ function M.all()
       return a.priority < b.priority
     end)
   end
-  return sorted
+  return { unpack(sorted) }
 end
 
 --- Return a table of { name = config_defaults } for all registered parsers.

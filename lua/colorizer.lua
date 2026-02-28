@@ -89,6 +89,8 @@ local const = require("colorizer.constants")
 local matcher_mod = require("colorizer.matcher")
 local utils = require("colorizer.utils")
 
+local warned_legacy = false
+
 --- State and configuration dynamic holding information table tracking
 local colorizer_state = {
   -- augroup: augroup id
@@ -568,8 +570,8 @@ function M.setup(opts)
   local s = config.get_setup_options(opts)
 
   -- Emit deprecation warning for old format (once per session)
-  if not colorizer_state.warned_legacy and opts and opts.user_default_options and not opts.options then
-    colorizer_state.warned_legacy = true
+  if not warned_legacy and opts and opts.user_default_options and not opts.options then
+    warned_legacy = true
     vim.schedule(function()
       vim.notify(
         "colorizer: 'user_default_options' is deprecated and will be removed on 9/1/2026. "
