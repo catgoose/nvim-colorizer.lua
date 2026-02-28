@@ -182,8 +182,8 @@ local plugin_user_default_options = {
 ---@field hl_mode 'background'|'foreground' Highlight mode for virtual text
 
 ---@class colorizer.DisplayPriority
----@field default number Extmark priority for normal highlights (default 200)
----@field lsp number Extmark priority for LSP/Tailwind highlights (default 300)
+---@field default number Extmark priority for normal highlights (default 150)
+---@field lsp number Extmark priority for LSP/Tailwind highlights (default 200)
 -- Build default parsers from registry + hardcoded entries
 local registry = require("colorizer.parser.registry")
 -- Ensure all parsers are loaded so their specs are registered

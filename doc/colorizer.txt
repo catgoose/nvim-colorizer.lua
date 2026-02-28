@@ -342,8 +342,8 @@ colorizer.DisplayVirtualtext                      *colorizer.DisplayVirtualtext*
 colorizer.DisplayPriority                            *colorizer.DisplayPriority*
 
     Fields: ~
-        {default}  (number)  Extmark priority for normal highlights (default 200)
-        {lsp}      (number)  Extmark priority for LSP/Tailwind highlights (default 300)
+        {default}  (number)  Extmark priority for normal highlights (default 150)
+        {lsp}      (number)  Extmark priority for LSP/Tailwind highlights (default 200)
 
 
 colorizer.UserDefaultOptions                      *colorizer.UserDefaultOptions*
@@ -916,6 +916,82 @@ M.lsp_highlight({bufnr}, {opts}, {buf_local_opts}, {add_highlight}, {on_detach},
 
 
 ==============================================================================
+Parser Loader                                                 *colorizer.parser*
+
+Loads all built-in parsers and returns the registry.
+Each parser module registers itself via `registry.register()` on require.
+
+==============================================================================
+Parser Registry                                      *colorizer.parser.registry*
+
+Central registry for all color parsers. Each parser registers a spec
+describing its config defaults, dispatch mechanism, and parse function.
+
+colorizer.ParserSpec                                      *colorizer.ParserSpec*
+
+    Fields: ~
+        {name}             (string)                                            Config key under opts.parsers
+        {priority}         (number)                                            Dispatch order (lower = first). 10=byte, 20=prefix, 25=fallback
+        {dispatch}         ({kind:string,bytes?:number[],prefixes?:string[]})
+        {config_defaults}  (table)                                             Default config for opts.parsers.<name>
+        {parse}            (fun(ctx:colorizer.ParseContext):number)
+
+
+colorizer.ParseContext                                  *colorizer.ParseContext*
+
+    Fields: ~
+        {line}           (string)
+        {col}            (number)  1-indexed
+        {bufnr}          (number)
+        {line_nr}        (number)  0-indexed
+        {opts}           (table)   Full resolved buffer options
+        {parser_config}  (table)   This parser's subtable from opts.parsers.<name>
+        {prefix?}        (string)  Matched trie prefix (prefix-dispatched only)
+        {matcher_opts?}  (table)   Pre-built config (names parser compatibility)
+
+
+M.register({spec})                          *colorizer.parser.registry.register*
+     Register a parser spec.
+
+    Parameters: ~
+        {spec}  (colorizer.ParserSpec)
+
+
+M.get({name})                                    *colorizer.parser.registry.get*
+     Look up a parser spec by name.
+
+    Parameters: ~
+        {name}  (string)
+
+    Returns: ~
+        (colorizer.ParserSpec|nil)
+
+
+M.all()                                          *colorizer.parser.registry.all*
+     Return all registered specs sorted by priority (ascending).
+
+    Returns: ~
+        (colorizer.ParserSpec[])
+
+
+                                     *colorizer.parser.registry.config_defaults*
+M.config_defaults()
+     Return a table of { name = config_defaults } for all registered parsers.
+
+    Returns: ~
+        (table<string,table>)
+
+
+                                    *colorizer.parser.registry.reset_all_caches*
+M.reset_all_caches()
+     Call reset_cache on all parsers that define it.
+
+
+M._clear()                                    *colorizer.parser.registry._clear*
+     Clear all registered specs (for testing).
+
+
+==============================================================================
 ARGB Hex Parser                                      *colorizer.parser.argb_hex*
 
 This module provides a parser for extracting `0xAARRGGBB` hexadecimal color values and converting them to RGB hex.
@@ -1050,6 +1126,43 @@ M.parser({line}, {i}, {opts})                 *colorizer.parser.rgba_hex.parser*
     Returns: ~
         (number|nil)  end index of the parsed hex color within the line, or `nil` if parsing failed
         (string|nil)  RGB hexadecimal color (e.g., "ff0000" for red), or `nil` if parsing failed
+
+
+==============================================================================
+Sass                                                            *colorizer.sass*
+
+Manages Sass variable parsing and color detection for buffers.
+This module handles the parsing of Sass color variables, managing import statements,
+and watching files for updates to Sass variable definitions.
+It supports recursive Sass imports, resolving color values for each variable, and caching color definitions.
+
+M.cleanup({bufnr})                                      *colorizer.sass.cleanup*
+     Cleanup sass variables and watch handlers
+
+    Parameters: ~
+        {bufnr}  (number)
+
+
+M.parser({line}, {i}, {bufnr})                           *colorizer.sass.parser*
+
+    Parameters: ~
+        {line}   (string)  Line to parse
+        {i}      (number)  Index of line from where to start parsing
+        {bufnr}  (number)  Buffer number
+                           @return number|nil, string|nil
+
+
+                                               *colorizer.sass.update_variables*
+M.update_variables({bufnr}, {line_start}, {line_end}, {lines}, {color_parser}, {opts}, {buf_local_opts})
+
+    Parameters: ~
+        {bufnr}           (number)            Buffer number
+        {line_start}      (number)
+        {line_end}        (number)
+        {lines}           (table|nil)
+        {color_parser}    (function|boolean)
+        {opts}            (table)             Options (new format or legacy)
+        {buf_local_opts}  (table|nil)         Buffer local options
 
 
 ==============================================================================
