@@ -572,8 +572,8 @@ function M.setup(opts)
     colorizer_state.warned_legacy = true
     vim.schedule(function()
       vim.notify(
-        "colorizer: 'user_default_options' is deprecated. Use 'options' with the new structured format instead. "
-          .. "See :help colorizer.config for details. Old format will continue to work.",
+        "colorizer: 'user_default_options' is deprecated and will be removed on 9/1/2026. "
+          .. "Use 'options' with the new structured format instead. See :help colorizer.config for details.",
         vim.log.levels.WARN
       )
     end)
