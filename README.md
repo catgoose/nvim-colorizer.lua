@@ -30,7 +30,7 @@ dependencies**. Written in performant Luajit.
 - **Zero dependencies:** As long as you have `malloc()` and `free()`, it works (Linux, macOS, Windows).
 - **Broad format support:** Hex (`#RGB`, `#RRGGBB`, `#RRGGBBAA`, `0xAARRGGBB`), CSS functions (`rgb()`, `hsl()`, `oklch()`), named colors, xterm/ANSI 256, Tailwind CSS, Sass variables, and custom parsers — in any filetype.
 - **Display modes:** Background (with auto-contrast text), foreground, and virtualtext (inline or end-of-line).
-- **Higher priority than treesitter:** Uses extmark priority 200/300 so colorizer highlights always win over treesitter syntax colors.
+- **Higher priority than treesitter:** Uses `vim.hl.priorities` (diagnostics/user) so colorizer highlights always win over treesitter syntax colors.
 
 ## Installation
 
@@ -138,8 +138,8 @@ require("colorizer").setup({
         hl_mode = "foreground",
       },
       priority = {
-        default = 200,
-        lsp = 300,
+        default = 150, -- vim.hl.priorities.diagnostics
+        lsp = 200, -- vim.hl.priorities.user
       },
     },
     hooks = {
