@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
   pages: write
   id-token: write
 
@@ -28,11 +29,14 @@ jobs:
       - name: Generate vimdoc
         run: scripts/gen_docs.sh
 
-      - name: Commit vimdoc
-        uses: stefanzweifel/git-auto-commit-action@v5
+      - name: Create PR for vimdoc
+        uses: peter-evans/create-pull-request@v7
         with:
-          commit_message: "docs: auto-generate vimdoc"
-          file_pattern: doc/colorizer.txt
+          commit-message: "docs: auto-generate vimdoc"
+          title: "docs: auto-generate vimdoc"
+          body: "Auto-generated vimdoc update from `scripts/gen_docs.sh`."
+          branch: docs/auto-generate-vimdoc
+          add-paths: doc/colorizer.txt
 
   html-docs:
     runs-on: ubuntu-latest
