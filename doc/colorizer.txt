@@ -176,8 +176,8 @@ Colorizer supports two configuration formats:
    logically grouped settings under `parsers`, `display`, and `hooks`.
 
 2. **Legacy flat format**: Uses the `user_default_options` key with flat
-   keys like `RGB`, `RRGGBB`, `rgb_fn`, `mode`, etc. This format is
-   automatically translated to the new format and will continue to work.
+   keys like `RGB`, `RRGGBB`, `rgb_fn`, `mode`, etc. Always supported.
+   Automatically translated to the new format internally.
 
 NEW FORMAT EXAMPLE ~
 
@@ -302,9 +302,9 @@ colorizer.ParsersSimple                                *colorizer.ParsersSimple*
 colorizer.ParsersTailwind                            *colorizer.ParsersTailwind*
 
     Fields: ~
-        {enable}        (boolean)                Enable Tailwind CSS colors
-        {mode}          ("normal"|"lsp"|"both")  "normal" parses names, "lsp" uses LSP, "both" combines
-        {update_names}  (boolean)                Update tailwind_names color mapping from LSP results
+        {enable}        (boolean)  Enable Tailwind CSS color name parsing
+        {lsp}           (boolean)  Enable Tailwind LSP documentColor highlighting
+        {update_names}  (boolean)  Update tailwind_names color mapping from LSP results
 
 
 colorizer.ParsersSass                                    *colorizer.ParsersSass*
@@ -327,23 +327,23 @@ colorizer.DisplayOptions                              *colorizer.DisplayOptions*
 colorizer.DisplayBackground                        *colorizer.DisplayBackground*
 
     Fields: ~
-        {bright_fg}  (string)  Foreground color for bright backgrounds (default "Black")
-        {dark_fg}    (string)  Foreground color for dark backgrounds (default "White")
+        {bright_fg}  (string)  Foreground color for bright backgrounds (default "#000000")
+        {dark_fg}    (string)  Foreground color for dark backgrounds (default "#ffffff")
 
 
 colorizer.DisplayVirtualtext                      *colorizer.DisplayVirtualtext*
 
     Fields: ~
         {char}      (string)                     Character used for virtual text (default "■")
-        {position}  (false|"before"|"after")     Inline virtualtext position. `false` for end-of-line.
+        {position}  ("eol"|"before"|"after")     Virtualtext position. `"eol"` for end-of-line.
         {hl_mode}   ("background"|"foreground")  Highlight mode for virtual text
 
 
 colorizer.DisplayPriority                            *colorizer.DisplayPriority*
 
     Fields: ~
-        {default}  (number)  Extmark priority for normal highlights (default 100)
-        {lsp}      (number)  Extmark priority for LSP/Tailwind highlights (default 200)
+        {default}  (number)  Extmark priority for normal highlights (default 200)
+        {lsp}      (number)  Extmark priority for LSP/Tailwind highlights (default 300)
 
 
 colorizer.UserDefaultOptions                      *colorizer.UserDefaultOptions*
@@ -413,7 +413,7 @@ colorizer.SassOpts                                          *colorizer.SassOpts*
 colorizer.Hooks                                                *colorizer.Hooks*
 
     Fields: ~
-        {should_highlight_line}   (function|false)  Return true to highlight, false to skip.
+        {should_highlight_line}  (function|false)  Return true to highlight the line, false to skip. Signature: (line, bufnr, line_num) -> boolean
 
 
 colorizer.CustomParserDef                            *colorizer.CustomParserDef*
@@ -504,11 +504,10 @@ M.as_flat({opts})                                     *colorizer.config.as_flat*
         (table)  flat options
 
 
-M.resolve_options({opts}, {user_opts})        *colorizer.config.resolve_options*
+M.resolve_options({opts})                     *colorizer.config.resolve_options*
 
     Parameters: ~
-        {opts}       (table|nil)  Options in any format
-        {user_opts}  (table|nil)  The raw user-provided options (before merge), for preset priority
+        {opts}  (table|nil)  Options in any format
 
     Returns: ~
         (table)  new-format options
@@ -541,12 +540,13 @@ colorizer.SetupOptions                                  *colorizer.SetupOptions*
      Use `options` (new format) or `user_default_options` (legacy format), not both.
 
     Fields: ~
-        {filetypes}             (table|nil)                         File types to highlight. Use `"*"` for all. Supports `"!name"` exclusions and `name = {opts}` overrides.
-        {buftypes}              (table|nil)                         Buffer types to highlight. Same format as filetypes.
-        {options}               (colorizer.NewOptions|nil)          Structured options (recommended). See |colorizer.NewOptions|.
-        {user_default_options}  (colorizer.UserDefaultOptions|nil)  Legacy flat options. Deprecated in favor of `options`.
-        {user_commands}         (boolean|table)                     Enable all or specific user commands.
-        {lazy_load}             (boolean)                           Lazily schedule buffer highlighting setup function.
+        {filetypes}                              (table|nil)                         File types to highlight. Use `"*"` for all. Supports `"!name"` exclusions and `name = {opts}` overrides.
+        {buftypes}                               (table|nil)                         Buffer types to highlight. Same format as filetypes.
+        {options}                                (colorizer.NewOptions|nil)          Structured options (recommended). See |colorizer.NewOptions|.
+        {user_default_options}                   (colorizer.UserDefaultOptions|nil)  Legacy flat options. Always supported.
+        {suppress_user_default_options_warning}  (boolean|nil)                       When true, suppress the info message about the new options format when using user_default_options.
+        {user_commands}                          (boolean|table)                     Enable all or specific user commands.
+        {lazy_load}                              (boolean)                           Lazily schedule buffer highlighting setup function.
 
 
 M.get_setup_options({opts})                 *colorizer.config.get_setup_options*
@@ -881,43 +881,6 @@ M.make({cmds})                                         *colorizer.usercmds.make*
 
     Parameters: ~
         {cmds}  (table|boolean)  A list of command names to create or `true` to create all available commands
-
-
-==============================================================================
-Sass                                                            *colorizer.sass*
-
-Manages Sass variable parsing and color detection for buffers.
-This module handles the parsing of Sass color variables, managing import statements,
-and watching files for updates to Sass variable definitions.
-It supports recursive Sass imports, resolving color values for each variable, and caching color definitions.
-
-M.cleanup({bufnr})                                      *colorizer.sass.cleanup*
-     Cleanup sass variables and watch handlers
-
-    Parameters: ~
-        {bufnr}  (number)
-
-
-M.parser({line}, {i}, {bufnr})                           *colorizer.sass.parser*
-
-    Parameters: ~
-        {line}   (string)  Line to parse
-        {i}      (number)  Index of line from where to start parsing
-        {bufnr}  (number)  Buffer number
-                           @return number|nil, string|nil
-
-
-                                               *colorizer.sass.update_variables*
-M.update_variables({bufnr}, {line_start}, {line_end}, {lines}, {color_parser}, {opts}, {buf_local_opts})
-
-    Parameters: ~
-        {bufnr}           (number)            Buffer number
-        {line_start}      (number)
-        {line_end}        (number)
-        {lines}           (table|nil)
-        {color_parser}    (function|boolean)
-        {opts}            (table)             Options (new format or legacy)
-        {buf_local_opts}  (table|nil)         Buffer local options
 
 
 ==============================================================================

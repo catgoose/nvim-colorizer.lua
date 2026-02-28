@@ -8,8 +8,8 @@
 ---   logically grouped settings under `parsers`, `display`, and `hooks`.
 ---
 ---2. **Legacy flat format**: Uses the `user_default_options` key with flat
----   keys like `RGB`, `RRGGBB`, `rgb_fn`, `mode`, etc. This format is
----   automatically translated to the new format and will continue to work.
+---   keys like `RGB`, `RRGGBB`, `rgb_fn`, `mode`, etc. Always supported.
+---   Automatically translated to the new format internally.
 ---
 ---NEW FORMAT EXAMPLE ~
 ---
@@ -286,6 +286,7 @@ M.default_options = default_options
 ---@field always_update boolean Always update color values, even if buffer is not focused.
 ---@field hooks colorizer.Hooks Table of hook functions
 ---@field xterm boolean Enables xterm 256-color codes (#xNN, \e[38;5;NNNm)
+---@field suppress_deprecation boolean When true, suppress the info message about the new options format. Default: false.
 
 ---@class colorizer.NamesOpts
 ---@field lowercase boolean Converts color names to lowercase.
@@ -1020,7 +1021,7 @@ end
 ---@field filetypes table|nil File types to highlight. Use `"*"` for all. Supports `"!name"` exclusions and `name = {opts}` overrides.
 ---@field buftypes table|nil Buffer types to highlight. Same format as filetypes.
 ---@field options colorizer.NewOptions|nil Structured options (recommended). See |colorizer.NewOptions|.
----@field user_default_options colorizer.UserDefaultOptions|nil Legacy flat options. Deprecated in favor of `options`.
+---@field user_default_options colorizer.UserDefaultOptions|nil Legacy flat options. Always supported.
 ---@field user_commands boolean|table Enable all or specific user commands.
 ---@field lazy_load boolean Lazily schedule buffer highlighting setup function.
 
