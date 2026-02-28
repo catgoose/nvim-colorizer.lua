@@ -6,6 +6,7 @@
 ---@brief ]]
 local M = {}
 
+local color = require("colorizer.color")
 local utils = require("colorizer.utils")
 
 local pattern_cache = {}
@@ -66,8 +67,7 @@ function M.parser(line, i, opts)
           local g = tonumber(hex_val:sub(3, 4), 16)
           local b = tonumber(hex_val:sub(5, 6), 16)
           local a = tonumber(hex_val:sub(7, 8), 16) / 255
-          local floor = math.floor
-          return hex_end - 1, utils.rgb_to_hex(floor(r * a), floor(g * a), floor(b * a))
+          return hex_end - 1, utils.rgb_to_hex(color.apply_alpha(r, g, b, a))
         end
       end
     end
@@ -90,19 +90,7 @@ function M.parser(line, i, opts)
 
   local c_seps = ("%s%s%s"):format(csep1, csep2, sep3)
   local s_seps = ("%s%s"):format(ssep1, ssep2)
-  -- Comma separator syntax
-  if c_seps:match(",") then
-    if not (utils.count(c_seps, ",") == min_commas) then
-      return
-    end
-    -- Space separator syntax with decimal or percentage alpha
-  elseif utils.count(s_seps, "%s") >= min_spaces then
-    if a then
-      if not (c_seps == "/") then
-        return
-      end
-    end
-  else
+  if not utils.validate_css_seps(c_seps, s_seps, a ~= nil, min_commas, min_spaces) then
     return
   end
 
@@ -152,5 +140,18 @@ function M.parser(line, i, opts)
   local rgb_hex = utils.rgb_to_hex(r, g, b)
   return match_end - 1, rgb_hex
 end
+
+--- Parser spec for the registry
+M.spec = {
+  name = "rgb",
+  priority = 20,
+  dispatch = { kind = "prefix", prefixes = { "rgb", "rgba" } },
+  config_defaults = { enable = false },
+  parse = function(ctx)
+    return M.parser(ctx.line, ctx.col, { prefix = ctx.prefix })
+  end,
+}
+
+require("colorizer.parser.registry").register(M.spec)
 
 return M

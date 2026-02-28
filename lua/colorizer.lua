@@ -17,6 +17,12 @@
 ---  require("colorizer").setup({ user_default_options = { css = true } })
 ---<
 ---
+---New structured options format:
+---
+--->lua
+---  require("colorizer").setup({ options = { parsers = { css = true } } })
+---<
+---
 ---USE WITH COMMANDS ~
 ---
 ---  `:ColorizerAttachToBuffer`
@@ -50,6 +56,12 @@
 ---    css = false,
 ---  })
 ---
+---  -- Attach with new format options:
+---  require("colorizer").attach_to_buffer(0, {
+---    parsers = { css = true },
+---    display = { mode = "foreground" },
+---  })
+---
 ---  -- Attach to current buffer with setup options:
 ---  require("colorizer").attach_to_buffer()
 ---<
@@ -74,7 +86,10 @@ local M = {}
 local buffer = require("colorizer.buffer")
 local config = require("colorizer.config")
 local const = require("colorizer.constants")
+local matcher_mod = require("colorizer.matcher")
 local utils = require("colorizer.utils")
+
+local warned_legacy = false
 
 --- State and configuration dynamic holding information table tracking
 local colorizer_state = {
@@ -92,8 +107,9 @@ local colorizer_state = {
   -- __endline: end line of the current window
   -- __event: event that triggered the autocmd
   -- __augroup_id: augroup id
+  -- __parser_state: custom parser per-buffer state
   buffer_local = {},
-  -- buffer_options: store buffer options
+  -- buffer_options: store buffer options (new format)
   buffer_options = {},
   -- buffer_reload: store buffer reload state
   buffer_reload = {},
@@ -145,14 +161,14 @@ end
 
 --- Rehighlight the buffer if colorizer is active
 ---@param bufnr number Buffer number (0 for current)
----@param ud_opts table `user_default_options`
+---@param opts table Options (new format)
 ---@param buf_local_opts table|nil Buffer local options
 ---@param hl_opts table|nil Highlighting options
 --- - use_local_lines: boolean: Use `buf_local_opts` __startline and __endline for lines
 ---@return table Detach settings table to use when cleaning up buffer state in `colorizer.detach_from_buffer`
 --- - ns_id number: Table of namespace ids to clear
 --- - functions function: Table of detach functions to call
-function M.rehighlight(bufnr, ud_opts, buf_local_opts, hl_opts)
+function M.rehighlight(bufnr, opts, buf_local_opts, hl_opts)
   hl_opts = hl_opts or {}
   bufnr = utils.bufme(bufnr)
 
@@ -168,7 +184,7 @@ function M.rehighlight(bufnr, ud_opts, buf_local_opts, hl_opts)
     const.namespace.default,
     line_start,
     line_end,
-    ud_opts,
+    opts,
     buf_local_opts or {}
   )
   table.insert(detach.functions, function()
@@ -241,23 +257,23 @@ function M.reload_on_save(pattern)
     pattern = pattern,
     callback = function(evt)
       vim.schedule(function()
-        local success, opts = pcall(dofile, evt.match)
-        if not success or type(opts) ~= "table" then
+        local success, setup_opts = pcall(dofile, evt.match)
+        if not success or type(setup_opts) ~= "table" then
           vim.notify("Failed to load options from " .. evt.match, vim.log.levels.ERROR)
           return
         end
 
-        if opts then
+        if setup_opts then
           local buffer_reload = vim.deepcopy(colorizer_state.buffer_reload)
-          M.setup(opts)
+          M.setup(setup_opts)
           -- restore buffer reload state after setup
           colorizer_state.buffer_reload = buffer_reload
 
           vim.schedule(function()
             -- mimic bo_type_setup() function within colorizer.setup
             local bo_type = "filetype"
-            local ud_opts = config.get_bo_options(bo_type, vim.bo.buftype, vim.bo.filetype)
-            M.attach_to_buffer(evt.buf, ud_opts, bo_type)
+            local bo_opts = config.get_bo_options(bo_type, vim.bo.buftype, vim.bo.filetype)
+            M.attach_to_buffer(evt.buf, bo_opts, bo_type)
             vim.notify(
               "Colorizer reloaded with updated options from " .. evt.match,
               vim.log.levels.INFO
@@ -269,11 +285,75 @@ function M.reload_on_save(pattern)
   })
 end
 
+--- Ensure options are in new format. Accepts new format, legacy flat format, or nil.
+---@param opts table|nil Options in any format
+---@return table|nil New-format options
+local function ensure_new_format(opts)
+  if not opts then
+    return nil
+  end
+  -- Already new format
+  if opts.parsers then
+    return opts
+  end
+  -- Legacy flat format: resolve to new format
+  if config.is_legacy_options(opts) then
+    return config.resolve_options(opts)
+  end
+  return opts
+end
+
+--- Call setup hooks for custom parsers on buffer attach
+---@param bufnr number
+---@param opts table New-format options
+local function setup_custom_parsers(bufnr, opts)
+  local custom = opts.parsers and opts.parsers.custom
+  if not custom or #custom == 0 then
+    return
+  end
+  matcher_mod.init_buffer_parser_state(bufnr, custom)
+  for _, parser_def in ipairs(custom) do
+    if parser_def.setup then
+      local state = matcher_mod.get_buffer_parser_state(bufnr, parser_def.name)
+      local ctx = {
+        bufnr = bufnr,
+        opts = opts,
+        parser_opts = parser_def,
+        state = state or {},
+      }
+      parser_def.setup(ctx)
+    end
+  end
+end
+
+--- Call teardown hooks for custom parsers on buffer detach
+---@param bufnr number
+---@param opts table New-format options
+local function teardown_custom_parsers(bufnr, opts)
+  local custom = opts.parsers and opts.parsers.custom
+  if not custom or #custom == 0 then
+    return
+  end
+  for _, parser_def in ipairs(custom) do
+    if parser_def.teardown then
+      local state = matcher_mod.get_buffer_parser_state(bufnr, parser_def.name)
+      local ctx = {
+        bufnr = bufnr,
+        opts = opts,
+        parser_opts = parser_def,
+        state = state or {},
+      }
+      parser_def.teardown(ctx)
+    end
+  end
+  matcher_mod.cleanup_buffer_parser_state(bufnr)
+end
+
 ---Attach to a buffer and continuously highlight changes.
 ---@param bufnr number|nil buffer number (0 for current)
----@param ud_opts table|nil `user_default_options`
+---@param opts table|nil Options (new format or legacy `user_default_options`)
 ---@param bo_type 'buftype'|'filetype'|nil The type of buffer option
-function M.attach_to_buffer(bufnr, ud_opts, bo_type)
+function M.attach_to_buffer(bufnr, opts, bo_type)
   bufnr = utils.bufme(bufnr)
   if not vim.api.nvim_buf_is_valid(bufnr) then
     colorizer_state.buffer_local[bufnr], colorizer_state.buffer_options[bufnr] = nil, nil
@@ -282,21 +362,29 @@ function M.attach_to_buffer(bufnr, ud_opts, bo_type)
 
   bo_type = bo_type or "buftype"
 
-  ud_opts = ud_opts
-    -- options for filetype
-    or config.options.filetypes[vim.bo.filetype]
+  opts = opts
+    -- explicit options passed
+    or config.options.filetypes and config.options.filetypes[vim.bo.filetype]
     -- cached buffer options
     or get_attached_buffer_options(bufnr)
-    -- new buffer options
+    -- new buffer options from config
     or config.new_bo_options(bufnr, bo_type)
 
-  -- Applying alias options also validates options, for example converts `tailwind = true` to `tailwind = "normal"`.  This makes later options checks easier
-  ud_opts = config.apply_alias_options(ud_opts)
+  -- Ensure options are in new format
+  opts = ensure_new_format(opts) or config.options.options
 
-  colorizer_state.buffer_options[bufnr] = ud_opts
+  -- Resolve partial opts (merge with defaults, apply presets, validate).
+  if not opts.__resolved then
+    opts = config.resolve_options(opts)
+  end
+
+  colorizer_state.buffer_options[bufnr] = opts
   colorizer_state.buffer_local[bufnr] = colorizer_state.buffer_local[bufnr] or {}
 
-  local detach = M.rehighlight(bufnr, ud_opts)
+  -- Setup custom parser state
+  setup_custom_parsers(bufnr, opts)
+
+  local detach = M.rehighlight(bufnr, opts)
 
   colorizer_state.buffer_local[bufnr].__detach = colorizer_state.buffer_local[bufnr].__detach
     or detach
@@ -310,25 +398,29 @@ function M.attach_to_buffer(bufnr, ud_opts, bo_type)
     colorizer_state.buffer_current = bufnr
   end
 
-  if ud_opts.always_update then
+  if opts.always_update then
     -- attach using lua api so buffer gets updated even when not the current buffer
     -- completely moving to buf_attach is not possible because it doesn't handle all the text change events
     vim.api.nvim_buf_attach(bufnr, false, {
       on_lines = function(_, _bufnr)
         -- only reload if the buffer is not the current one
         if not (colorizer_state.buffer_current == _bufnr) then
-          -- only reload if it was not disabled using detach_from_buffer
-          if colorizer_state.buffer_options[bufnr] then
-            M.rehighlight(bufnr, ud_opts, colorizer_state.buffer_local[bufnr])
+          local buf_opts = colorizer_state.buffer_options[bufnr]
+          if buf_opts then
+            M.rehighlight(bufnr, buf_opts, colorizer_state.buffer_local[bufnr])
+          else
+            return true -- detach: buffer was removed via detach_from_buffer
           end
         end
       end,
       on_reload = function(_, _bufnr)
         -- only reload if the buffer is not the current one
         if not (colorizer_state.buffer_current == _bufnr) then
-          -- only reload if it was not disabled using detach_from_buffer
-          if colorizer_state.buffer_options[bufnr] then
-            M.rehighlight(bufnr, ud_opts, colorizer_state.buffer_local[bufnr])
+          local buf_opts = colorizer_state.buffer_options[bufnr]
+          if buf_opts then
+            M.rehighlight(bufnr, buf_opts, colorizer_state.buffer_local[bufnr])
+          else
+            return true -- detach: buffer was removed via detach_from_buffer
           end
         end
       end,
@@ -338,7 +430,8 @@ function M.attach_to_buffer(bufnr, ud_opts, bo_type)
   local autocmds = {}
   local text_changed_au = { "TextChanged", "TextChangedI", "TextChangedP" }
   -- Only enable InsertLeave in sass mode, other modes do not require it
-  if ud_opts.sass and ud_opts.sass.enable then
+  local sass_enable = opts.parsers and opts.parsers.sass and opts.parsers.sass.enable
+  if sass_enable then
     table.insert(text_changed_au, "InsertLeave")
   end
   autocmds[#autocmds + 1] = vim.api.nvim_create_autocmd(text_changed_au, {
@@ -346,18 +439,19 @@ function M.attach_to_buffer(bufnr, ud_opts, bo_type)
     buffer = bufnr,
     callback = function(args)
       colorizer_state.buffer_current = bufnr
-      -- Only reload if it was not disabled using detach_from_buffer
-      if colorizer_state.buffer_options[bufnr] then
+      -- Read current opts from state so re-attach updates are picked up
+      local buf_opts = colorizer_state.buffer_options[bufnr]
+      if buf_opts then
         colorizer_state.buffer_local[bufnr].__event = args.event
         if args.event == "TextChanged" or args.event == "InsertLeave" then
-          M.rehighlight(bufnr, ud_opts, colorizer_state.buffer_local[bufnr])
+          M.rehighlight(bufnr, buf_opts, colorizer_state.buffer_local[bufnr])
         else
           local pos = vim.fn.getpos(".")
           colorizer_state.buffer_local[bufnr].__startline = pos[2] - 1
           colorizer_state.buffer_local[bufnr].__endline = pos[2]
           M.rehighlight(
             bufnr,
-            ud_opts,
+            buf_opts,
             colorizer_state.buffer_local[bufnr],
             { use_local_lines = true }
           )
@@ -369,10 +463,11 @@ function M.attach_to_buffer(bufnr, ud_opts, bo_type)
     group = colorizer_state.augroup,
     buffer = bufnr,
     callback = function(args)
-      -- Only reload if it was not disabled using detach_from_buffer
-      if colorizer_state.buffer_options[bufnr] then
+      -- Read current opts from state so re-attach updates are picked up
+      local buf_opts = colorizer_state.buffer_options[bufnr]
+      if buf_opts then
         colorizer_state.buffer_local[bufnr].__event = args.event
-        M.rehighlight(bufnr, ud_opts, colorizer_state.buffer_local[bufnr])
+        M.rehighlight(bufnr, buf_opts, colorizer_state.buffer_local[bufnr])
       end
     end,
   })
@@ -399,10 +494,16 @@ function M.detach_from_buffer(bufnr)
   if bufnr < 0 then
     return -1
   end
+
+  -- Teardown custom parsers
+  local opts = colorizer_state.buffer_options[bufnr]
+  if opts then
+    teardown_custom_parsers(bufnr, opts)
+  end
+
   for _, ns_id in pairs(const.namespace) do
     vim.api.nvim_buf_clear_namespace(bufnr, ns_id, 0, -1)
   end
-  vim.api.nvim_buf_clear_namespace(bufnr, const.namespace.default, 0, -1)
   if colorizer_state.buffer_local[bufnr] then
     for _, namespace in pairs(colorizer_state.buffer_local[bufnr].__detach.ns_id) do
       vim.api.nvim_buf_clear_namespace(bufnr, namespace, 0, -1)
@@ -468,6 +569,25 @@ function M.setup(opts)
 
   local s = config.get_setup_options(opts)
 
+  -- Emit info about new options format when using user_default_options (once per session)
+  if
+    not warned_legacy
+    and opts
+    and opts.user_default_options
+    and not opts.options
+    and not (opts.user_default_options and opts.user_default_options.suppress_deprecation)
+  then
+    warned_legacy = true
+    vim.schedule(function()
+      vim.notify(
+        "colorizer: A new structured 'options' format is available (parsers, display, hooks). "
+          .. "Your 'user_default_options' will continue to work. See :help colorizer.config. "
+          .. "Set suppress_user_default_options_warning = true to hide this message.",
+        vim.log.levels.INFO
+      )
+    end)
+  end
+
   -- Setup the buffer with the correct options
   local function bo_type_setup(bo_type)
     local filetype = vim.bo.filetype
@@ -485,15 +605,15 @@ function M.setup(opts)
     end
 
     -- get cached options
-    local ud_opts = config.get_bo_options(bo_type, buftype, filetype)
-    if not ud_opts and not s.all[bo_type] then
+    local bo_opts = config.get_bo_options(bo_type, buftype, filetype)
+    if not bo_opts and not s.all[bo_type] then
       return
     end
 
     -- Multiple autocmd events can try to attach to buffer
     -- check if buffer has already been initialized before attaching
     if not colorizer_state.buffer_local[bufnr].__init then
-      M.attach_to_buffer(bufnr, ud_opts, bo_type)
+      M.attach_to_buffer(bufnr, bo_opts, bo_type)
     end
   end
 
@@ -506,22 +626,40 @@ function M.setup(opts)
     local list = {}
     for k, v in pairs(bo_type_option) do
       local value
-      local ud_opts = s.user_default_options
+      local base_opts = s.options
       if type(k) == "string" then
         value = k
         if type(v) ~= "table" then
           vim.notify(string.format("colorizer: Invalid option type for %s", value), 4)
         else
-          ud_opts = vim.tbl_extend("force", ud_opts, v)
+          -- Per-filetype override: could be new or legacy format
+          local override_opts
+          if v.parsers or v.display then
+            -- New format override: expand presets on a copy before merging
+            local user_v = vim.deepcopy(v)
+            if user_v.parsers then
+              config.apply_presets(user_v.parsers)
+            end
+            override_opts = vim.tbl_deep_extend("force", vim.deepcopy(base_opts), user_v)
+          elseif config.is_legacy_options(v) then
+            -- Legacy format override: translate and merge
+            local translated = config.translate_options(v)
+            config.apply_presets(translated.parsers)
+            override_opts = vim.tbl_deep_extend("force", vim.deepcopy(base_opts), translated)
+          else
+            override_opts = vim.tbl_deep_extend("force", vim.deepcopy(base_opts), v)
+          end
+          config.validate_new_options(override_opts)
+          base_opts = override_opts
         end
       else
         value = v
       end
       -- Exclude or set buffer options
-      if value:sub(1, 1) == "!" then
+      if type(value) == "string" and value:sub(1, 1) == "!" then
         s.exclusions[bo_type][value:sub(2)] = true
-      else
-        config.set_bo_value(bo_type, value, ud_opts)
+      elseif type(value) == "string" then
+        config.set_bo_value(bo_type, value, base_opts)
         if value == "*" then
           s.all[bo_type] = true
         else

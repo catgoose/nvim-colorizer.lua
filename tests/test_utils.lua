@@ -108,6 +108,40 @@ T["count"]["counts pattern matches"] = function()
   eq(2, utils.count("hello world hello", "hello"))
 end
 
+-- validate_css_seps -----------------------------------------------------------
+
+T["validate_css_seps"] = new_set()
+
+T["validate_css_seps"]["comma syntax with correct count"] = function()
+  -- 3 values, no alpha: need 2 commas
+  eq(true, utils.validate_css_seps(",,", "  ", false, 2, 2))
+end
+
+T["validate_css_seps"]["comma syntax with wrong count"] = function()
+  eq(false, utils.validate_css_seps(",", "  ", false, 2, 2))
+end
+
+T["validate_css_seps"]["comma syntax with alpha"] = function()
+  -- 3 values + alpha: need 3 commas
+  eq(true, utils.validate_css_seps(",,,", "  ", true, 3, 2))
+end
+
+T["validate_css_seps"]["space syntax without alpha"] = function()
+  eq(true, utils.validate_css_seps("", "  ", false, 2, 2))
+end
+
+T["validate_css_seps"]["space syntax with alpha needs slash"] = function()
+  eq(true, utils.validate_css_seps("/", "  ", true, 3, 2))
+end
+
+T["validate_css_seps"]["space syntax with alpha missing slash"] = function()
+  eq(false, utils.validate_css_seps("", "  ", true, 3, 2))
+end
+
+T["validate_css_seps"]["insufficient spaces returns false"] = function()
+  eq(false, utils.validate_css_seps("", " ", false, 2, 2))
+end
+
 -- bufme -----------------------------------------------------------------------
 
 T["bufme"] = new_set()

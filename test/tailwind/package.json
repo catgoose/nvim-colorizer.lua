@@ -1,0 +1,7 @@
+{
+  "private": true,
+  "devDependencies": {
+    "tailwindcss": "^4",
+    "@tailwindcss/language-server": "^0.14"
+  }
+}

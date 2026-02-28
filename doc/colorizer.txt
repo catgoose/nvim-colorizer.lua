@@ -18,6 +18,12 @@ Highlight using all css highlight modes in every filetype
   require("colorizer").setup({ user_default_options = { css = true } })
 <
 
+New structured options format:
+
+>lua
+  require("colorizer").setup({ options = { parsers = { css = true } } })
+<
+
 USE WITH COMMANDS ~
 
   `:ColorizerAttachToBuffer`
@@ -51,6 +57,12 @@ ATTACH
     css = false,
   })
 
+  -- Attach with new format options:
+  require("colorizer").attach_to_buffer(0, {
+    parsers = { css = true },
+    display = { mode = "foreground" },
+  })
+
   -- Attach to current buffer with setup options:
   require("colorizer").attach_to_buffer()
 <
@@ -68,12 +80,12 @@ DETACH
 
 
                                                          *colorizer.rehighlight*
-M.rehighlight({bufnr}, {ud_opts}, {buf_local_opts}, {hl_opts})
+M.rehighlight({bufnr}, {opts}, {buf_local_opts}, {hl_opts})
      Rehighlight the buffer if colorizer is active
 
     Parameters: ~
         {bufnr}           (number)     Buffer number (0 for current)
-        {ud_opts}         (table)      `user_default_options`
+        {opts}            (table)      Options (new format)
         {buf_local_opts}  (table|nil)  Buffer local options
         {hl_opts}         (table|nil)  Highlighting options
                                         - use_local_lines: boolean: Use `buf_local_opts` __startline and __endline for lines
@@ -119,12 +131,12 @@ M.reload_on_save({pattern})                           *colorizer.reload_on_save*
 
 
                                                     *colorizer.attach_to_buffer*
-M.attach_to_buffer({bufnr}, {ud_opts}, {bo_type})
+M.attach_to_buffer({bufnr}, {opts}, {bo_type})
     Attach to a buffer and continuously highlight changes.
 
     Parameters: ~
         {bufnr}    (number|nil)                buffer number (0 for current)
-        {ud_opts}  (table|nil)                 `user_default_options`
+        {opts}     (table|nil)                 Options (new format or legacy `user_default_options`)
         {bo_type}  ("buftype"|"filetype"|nil)  The type of buffer option
 
 
@@ -157,6 +169,182 @@ M.clear_highlight_cache()                      *colorizer.clear_highlight_cache*
 Configuration                                                 *colorizer.config*
 
 Provides configuration options and utilities for setting up colorizer.
+
+Colorizer supports two configuration formats:
+
+1. **New structured format** (recommended): Uses the `options` key with
+   logically grouped settings under `parsers`, `display`, and `hooks`.
+
+2. **Legacy flat format**: Uses the `user_default_options` key with flat
+   keys like `RGB`, `RRGGBB`, `rgb_fn`, `mode`, etc. Always supported.
+   Automatically translated to the new format internally.
+
+NEW FORMAT EXAMPLE ~
+
+>lua
+  require("colorizer").setup({
+    options = {
+      parsers = {
+        css = true,  -- preset: enables names, hex, rgb, hsl, oklch
+        tailwind = { enable = true },
+      },
+      display = {
+        mode = "virtualtext",
+        virtualtext = { position = "after" },
+      },
+    },
+  })
+<
+
+LEGACY FORMAT EXAMPLE ~
+
+>lua
+  require("colorizer").setup({
+    user_default_options = {
+      css = true,
+      tailwind = "normal",
+      mode = "virtualtext",
+      virtualtext_inline = "after",
+    },
+  })
+<
+
+PRESETS ~
+
+  `parsers.css = true` enables: names, hex (all), rgb, hsl, oklch
+  `parsers.css_fn = true` enables: rgb, hsl, oklch
+
+  Individual settings always override presets:
+>lua
+  parsers = { css = true, rgb = { enable = false } }
+  -- rgb is disabled despite css preset
+<
+
+CUSTOM PARSERS ~
+
+  Register custom parsers via `parsers.custom`:
+>lua
+  parsers = {
+    custom = {
+      {
+        name = "my_parser",
+        prefixes = { "Color." },
+        parse = function(ctx)
+          -- return length, rgb_hex or nil
+        end,
+      },
+    },
+  }
+<
+
+
+colorizer.NewOptions                                      *colorizer.NewOptions*
+     Default options in the new structured format.
+
+     The `options` table is organized into logical groups:
+     - `parsers`: Which color formats to detect
+     - `display`: How to render detected colors
+     - `hooks`: Functions to customize behavior
+     - `always_update`: Whether to update unfocused buffers
+
+
+    Fields: ~
+        {parsers}        (colorizer.ParsersOptions)  Parser configuration
+        {display}        (colorizer.DisplayOptions)  Display configuration
+        {hooks}          (colorizer.Hooks)           Hook functions
+        {always_update}  (boolean)                   Update color values even if buffer is not focused
+
+
+colorizer.ParsersOptions                              *colorizer.ParsersOptions*
+
+    Fields: ~
+        {css}       (boolean)                      Preset: enables names, hex (all), rgb, hsl, oklch. Individual settings override.
+        {css_fn}    (boolean)                      Preset: enables rgb, hsl, oklch. Individual settings override.
+        {names}     (colorizer.ParsersNames)       Named color options
+        {hex}       (colorizer.ParsersHex)         Hex color options
+        {rgb}       (colorizer.ParsersSimple)      rgb()/rgba() function parser
+        {hsl}       (colorizer.ParsersSimple)      hsl()/hsla() function parser
+        {oklch}     (colorizer.ParsersSimple)      oklch() function parser
+        {tailwind}  (colorizer.ParsersTailwind)    Tailwind CSS color options
+        {sass}      (colorizer.ParsersSass)        Sass variable color options
+        {xterm}     (colorizer.ParsersSimple)      xterm 256-color code parser
+        {custom}    (colorizer.CustomParserDef[])  List of custom parser definitions
+
+
+colorizer.ParsersNames                                  *colorizer.ParsersNames*
+
+    Fields: ~
+        {enable}        (boolean)               Enable named colors (e.g. "Blue", "red")
+        {lowercase}     (boolean)               Match lowercase names (e.g. "blue")
+        {camelcase}     (boolean)               Match camelCase names (e.g. "LightBlue")
+        {uppercase}     (boolean)               Match UPPERCASE names (e.g. "BLUE")
+        {strip_digits}  (boolean)               Ignore names with digits (e.g. skip "blue3")
+        {custom}        (table|function|false)  Custom name-to-RGB mappings. Table of `{name = "#rrggbb"}` or function returning one.
+
+
+colorizer.ParsersHex                                      *colorizer.ParsersHex*
+
+    Fields: ~
+        {enable}    (boolean)  Master switch for all hex formats
+        {rgb}       (boolean)  #RGB (3-digit)
+        {rgba}      (boolean)  #RGBA (4-digit)
+        {rrggbb}    (boolean)  #RRGGBB (6-digit)
+        {rrggbbaa}  (boolean)  #RRGGBBAA (8-digit)
+        {aarrggbb}  (boolean)  0xAARRGGBB
+
+
+colorizer.ParsersSimple                                *colorizer.ParsersSimple*
+
+    Fields: ~
+        {enable}  (boolean)  Enable this parser
+
+
+colorizer.ParsersTailwind                            *colorizer.ParsersTailwind*
+
+    Fields: ~
+        {enable}        (boolean)  Enable Tailwind CSS color name parsing
+        {lsp}           (boolean)  Enable Tailwind LSP documentColor highlighting
+        {update_names}  (boolean)  Update tailwind_names color mapping from LSP results
+
+
+colorizer.ParsersSass                                    *colorizer.ParsersSass*
+
+    Fields: ~
+        {enable}            (boolean)  Enable Sass color variable parsing
+        {parsers}           (table)    Parsers for sass color values (e.g. `{ css = true }`)
+        {variable_pattern}  (string)   Lua pattern for matching sass variable names (default "^%$([%w_-]+)")
+
+
+colorizer.DisplayOptions                              *colorizer.DisplayOptions*
+
+    Fields: ~
+        {mode}         ("background"|"foreground"|"virtualtext")  How to display detected colors
+        {background}   (colorizer.DisplayBackground)              Background mode settings
+        {virtualtext}  (colorizer.DisplayVirtualtext)             Virtual text display settings
+        {priority}     (colorizer.DisplayPriority)                Extmark priority settings
+
+
+colorizer.DisplayBackground                        *colorizer.DisplayBackground*
+
+    Fields: ~
+        {bright_fg}  (string)  Foreground color for bright backgrounds (default "#000000")
+        {dark_fg}    (string)  Foreground color for dark backgrounds (default "#ffffff")
+
+
+colorizer.DisplayVirtualtext                      *colorizer.DisplayVirtualtext*
+
+    Fields: ~
+        {char}      (string)                     Character used for virtual text (default "■")
+        {position}  ("eol"|"before"|"after")     Virtualtext position. `"eol"` for end-of-line.
+        {hl_mode}   ("background"|"foreground")  Highlight mode for virtual text
+
+
+colorizer.DisplayPriority                            *colorizer.DisplayPriority*
+
+    Fields: ~
+        {default}  (number)  Extmark priority for normal highlights (default 200)
+        {lsp}      (number)  Extmark priority for LSP/Tailwind highlights (default 300)
+
 
 colorizer.UserDefaultOptions                      *colorizer.UserDefaultOptions*
      Default user options for colorizer.
@@ -225,34 +413,120 @@ colorizer.SassOpts                                          *colorizer.SassOpts*
 colorizer.Hooks                                                *colorizer.Hooks*
 
     Fields: ~
-        {disable_line_highlight}  (function|false)  Returns boolean which controls if line should be parsed for highlights.
+        {should_highlight_line}  (function|false)  Return true to highlight the line, false to skip. Signature: (line, bufnr, line_num) -> boolean
+
+
+colorizer.CustomParserDef                            *colorizer.CustomParserDef*
+
+    Fields: ~
+        {name}           (string)                             unique identifier
+        {prefixes?}      (string[])                           trie prefixes, e.g. {"color("}
+        {prefix_bytes?}  (number[])                           raw byte triggers, e.g. {0x23} for '#'
+        {parse}          (fun(ctx:colorizer.ParserContext):)
+
+
+colorizer.ParserContext                                *colorizer.ParserContext*
+
+    Fields: ~
+        {line}         (string)  current line text
+        {col}          (number)  1-indexed column position
+        {bufnr}        (number)
+        {line_nr}      (number)  0-indexed line number
+        {opts}         (table)   full resolved options for this buffer
+        {parser_opts}  (table)   this parser's config subtable
+        {state}        (table)   per-buffer persistent state
 
 
 colorizer.Options                                            *colorizer.Options*
-     Options for colorizer that were passed in to setup function
+     Options for colorizer that were passed in to setup function.
+     After setup(), `M.options.options` holds the canonical new-format config.
+     `M.options.user_default_options` holds a backward-compatible flat view.
 
     Fields: ~
-        {filetypes}             (table)
-        {buftypes}              (table)
-        {user_commands}         (boolean|table)
-        {lazy_load}             (boolean)
-        {user_default_options}  (colorizer.UserDefaultOptions)
-        {exclusions}            (table)
-        {all}                   (table)
+        {filetypes}             (table)                         File types to highlight
+        {buftypes}              (table)                         Buffer types to highlight
+        {user_commands}         (boolean|table)                 User commands to enable
+        {lazy_load}             (boolean)                       Lazily schedule buffer highlighting
+        {user_default_options}  (colorizer.UserDefaultOptions)  Legacy flat options (backward compat)
+        {options}               (colorizer.NewOptions)          Canonical structured options
+        {exclusions}            (table)                         Excluded filetypes/buftypes
+        {all}                   (table)                         Whether all filetypes/buftypes are enabled
 
 
-                                                 *colorizer.config.set_bo_value*
-M.set_bo_value({bo_type}, {val}, {ud_opts})
+M.is_legacy_options({opts})                 *colorizer.config.is_legacy_options*
+     Detect if options are in legacy (old flat) format.
+
+    Parameters: ~
+        {opts}  (table)  Options to check
+
+    Returns: ~
+        (boolean)  if options appear to be in legacy format
+
+
+M.translate_options({old_opts})             *colorizer.config.translate_options*
+
+    Parameters: ~
+        {old_opts}  (table)  Legacy flat options
+
+    Returns: ~
+        (table)  new-format options
+
+
+M.translate_filetypes({old_ft})           *colorizer.config.translate_filetypes*
+     Translate old polymorphic filetypes/buftypes format to new structured format.
+
+    Parameters: ~
+        {old_ft}  (table)  Old format filetypes/buftypes
+
+    Returns: ~
+        (table)  format { enable, exclude, overrides }
+
+
+M.apply_presets({user_parsers})                 *colorizer.config.apply_presets*
+
+    Parameters: ~
+        {user_parsers}  (table|nil)  The user's raw parsers config
+
+
+M.validate_new_options({opts})           *colorizer.config.validate_new_options*
+     Validate new-format options. Validates enums, processes names.custom, checks hook types.
+
+    Parameters: ~
+        {opts}  (table)  New-format options (fully merged with defaults)
+
+
+M.as_flat({opts})                                     *colorizer.config.as_flat*
+
+    Parameters: ~
+        {opts}  (table)  New-format options
+
+    Returns: ~
+        (table)  flat options
+
+
+M.resolve_options({opts})                     *colorizer.config.resolve_options*
+
+    Parameters: ~
+        {opts}  (table|nil)  Options in any format
+
+    Returns: ~
+        (table)  new-format options
+
+
+M.expand_sass_parsers()                   *colorizer.config.expand_sass_parsers*
+
+
+M.set_bo_value({bo_type}, {val}, {opts})         *colorizer.config.set_bo_value*
      Set options for a specific buffer or file type.
 
     Parameters: ~
         {bo_type}  ("buftype"|"filetype")  The type of buffer option
         {val}      (string)                The specific value to set.
-        {ud_opts}  (table)                 `user_default_options`
+        {opts}     (table)                 New-format options
 
 
 M.apply_alias_options({ud_opts})          *colorizer.config.apply_alias_options*
-     Parse and apply alias options to the user options.
+     Parse and apply alias options to the user options (legacy format).
 
     Parameters: ~
         {ud_opts}  (table)  user_default_options
@@ -263,13 +537,16 @@ M.apply_alias_options({ud_opts})          *colorizer.config.apply_alias_options*
 
 colorizer.SetupOptions                                  *colorizer.SetupOptions*
      Configuration options for the `setup` function.
+     Use `options` (new format) or `user_default_options` (legacy format), not both.
 
     Fields: ~
-        {filetypes}             (table|nil)                     A list of file types where colorizer should be enabled. Use `"*"` for all file types.
-        {user_default_options}  (colorizer.UserDefaultOptions)  Default options for color handling.
-        {buftypes}              (table|nil)                     A list of buffer types where colorizer should be enabled. Defaults to all buffer types if not provided.
-        {user_commands}         (boolean|table)                 If true, enables all user commands for colorizer. If `false`, disables user commands. Alternatively, provide a table of specific commands to enable.
-        {lazy_load}             (boolean)                       If true, lazily schedule buffer highlighting setup function
+        {filetypes}                              (table|nil)                         File types to highlight. Use `"*"` for all. Supports `"!name"` exclusions and `name = {opts}` overrides.
+        {buftypes}                               (table|nil)                         Buffer types to highlight. Same format as filetypes.
+        {options}                                (colorizer.NewOptions|nil)          Structured options (recommended). See |colorizer.NewOptions|.
+        {user_default_options}                   (colorizer.UserDefaultOptions|nil)  Legacy flat options. Always supported.
+        {suppress_user_default_options_warning}  (boolean|nil)                       When true, suppress the info message about the new options format when using user_default_options.
+        {user_commands}                          (boolean|table)                     Enable all or specific user commands.
+        {lazy_load}                              (boolean)                           Lazily schedule buffer highlighting setup function.
 
 
 M.get_setup_options({opts})                 *colorizer.config.get_setup_options*
@@ -281,17 +558,12 @@ M.get_setup_options({opts})                 *colorizer.config.get_setup_options*
         (table)  settings after merging user and default options.
 
 
-M.new_bo_options({bufnr}, {bo_type})           *colorizer.config.new_bo_options*
-     Retrieve buffer-specific options or user_default_options defined when setup() was called.
-
-    Parameters: ~
-        {bufnr}    (number)                The buffer number.
-        {bo_type}  ("buftype"|"filetype")  The type of buffer option
+M.new_bo_options()                             *colorizer.config.new_bo_options*
 
 
                                                *colorizer.config.get_bo_options*
 M.get_bo_options({bo_type}, {buftype}, {filetype})
-     Retrieve options based on buffer type and file type.  Prefer filetype.
+     Retrieve options based on buffer type and file type. Prefer filetype.
 
     Parameters: ~
         {bo_type}   ("buftype"|"filetype")  The type of buffer option
@@ -299,7 +571,7 @@ M.get_bo_options({bo_type}, {buftype}, {filetype})
         {filetype}  (string)                File type.
 
     Returns: ~
-        (table)
+        (table|nil)
 
 
 ==============================================================================
@@ -312,7 +584,7 @@ M.reset_cache()                                   *colorizer.buffer.reset_cache*
 
 
                                                 *colorizer.buffer.add_highlight*
-M.add_highlight({bufnr}, {ns_id}, {line_start}, {line_end}, {data}, {ud_opts}, {hl_opts})
+M.add_highlight({bufnr}, {ns_id}, {line_start}, {line_end}, {data}, {opts}, {hl_opts})
      Create highlight and set highlights
 
     Parameters: ~
@@ -321,20 +593,20 @@ M.add_highlight({bufnr}, {ns_id}, {line_start}, {line_end}, {data}, {ud_opts}, {
         {line_start}  (number)     Line_start should be 0-indexed
         {line_end}    (number)     Last line to highlight
         {data}        (table)      Table output of `parse_lines`
-        {ud_opts}     (table)      `user_default_options`
+        {opts}        (table)      Options (new format or legacy `user_default_options`)
         {hl_opts}     (table|nil)  Highlight options:
                                     - tailwind_lsp boolean: Clear tailwind_names namespace when applying Tailwind LSP highlighting
 
 
                                                     *colorizer.buffer.highlight*
-M.highlight({bufnr}, {ns_id}, {line_start}, {line_end}, {ud_opts}, {buf_local_opts})
+M.highlight({bufnr}, {ns_id}, {line_start}, {line_end}, {opts}, {buf_local_opts})
 
     Parameters: ~
         {bufnr}           (number)  Buffer number, 0 for current
         {ns_id}           (number)  Namespace id, default is "colorizer" created with vim.api.nvim_create_namespace
         {line_start}      (number)  line_start should be 0-indexed
         {line_end}        (number)  Last line to highlight
-        {ud_opts}         (table)   `user_default_options`
+        {opts}            (table)   Options (new format or legacy `user_default_options`)
         {buf_local_opts}  (table)   Buffer local options
 
     Returns: ~
@@ -344,13 +616,13 @@ M.highlight({bufnr}, {ns_id}, {line_start}, {line_end}, {ud_opts}, {buf_local_op
 
 
                                                   *colorizer.buffer.parse_lines*
-M.parse_lines({bufnr}, {lines}, {line_start}, {ud_opts})
+M.parse_lines({bufnr}, {lines}, {line_start}, {opts})
 
     Parameters: ~
         {bufnr}       (number)  Buffer number (0 for current)
         {lines}       (table)   Table of lines to parse
         {line_start}  (number)  Buffer line number to start highlighting
-        {ud_opts}     (table)   `user_default_options`
+        {opts}        (table)   Options (new format or legacy `user_default_options`)
 
     Returns: ~
         (table|nil)
@@ -385,6 +657,16 @@ M.is_bright({r}, {g}, {b})                           *colorizer.color.is_bright*
                        @return boolean `true` if the color is bright, `false` if it's dark.
 
 
+M.apply_alpha({r}, {g}, {b}, {alpha})              *colorizer.color.apply_alpha*
+
+    Parameters: ~
+        {r}      (number)  Red component, in the range [0, 255].
+        {g}      (number)  Green component, in the range [0, 255].
+        {b}      (number)  Blue component, in the range [0, 255].
+        {alpha}  (number)  Alpha value, in the range [0, 1].
+                           @return number, number, number Alpha-blended red, green, and blue values.
+
+
 M.oklch_to_rgb()                                  *colorizer.color.oklch_to_rgb*
 
 
@@ -401,13 +683,42 @@ This module provides functions for setting up and applying color parsers
 for different color formats such as RGB, HSL, hexadecimal, and named colors.
 It uses a trie-based structure to optimize prefix-based parsing.
 
+                                     *colorizer.matcher.get_buffer_parser_state*
+M.get_buffer_parser_state({bufnr}, {parser_name})
+     Get or create per-buffer state for a custom parser
+
+    Parameters: ~
+        {bufnr}        (number)
+        {parser_name}  (string)
+
+    Returns: ~
+        (table)
+
+
+                                    *colorizer.matcher.init_buffer_parser_state*
+M.init_buffer_parser_state({bufnr}, {custom_parsers})
+     Initialize per-buffer state for custom parsers
+
+    Parameters: ~
+        {bufnr}           (number)
+        {custom_parsers}  (table)   List of custom parser definitions
+
+
+                                 *colorizer.matcher.cleanup_buffer_parser_state*
+M.cleanup_buffer_parser_state({bufnr})
+     Clean up per-buffer custom parser state
+
+    Parameters: ~
+        {bufnr}  (number)
+
+
 M.reset_cache()                                  *colorizer.matcher.reset_cache*
 
 
-M.make({ud_opts})                                       *colorizer.matcher.make*
+M.make({opts})                                          *colorizer.matcher.make*
 
     Parameters: ~
-        {ud_opts}  (table)  options created in `colorizer.setup`
+        {opts}  (table)  New-format options (with opts.parsers) or legacy flat options
 
     Returns: ~
         (function|boolean)  which will just parse the line for enabled parsers
@@ -480,6 +791,20 @@ M.count({str}, {pattern})                                *colorizer.utils.count*
 
     Returns: ~
         (number)
+
+
+                                             *colorizer.utils.validate_css_seps*
+M.validate_css_seps({c_seps}, {s_seps}, {has_alpha}, {min_commas}, {min_spaces})
+
+    Parameters: ~
+        {c_seps}      (string)   Concatenated comma/slash separators from parsed groups
+        {s_seps}      (string)   Concatenated space separators from parsed groups
+        {has_alpha}   (boolean)  Whether an alpha value is present
+        {min_commas}  (number)   Required number of commas for comma syntax
+        {min_spaces}  (number)   Minimum spaces required for space syntax
+
+    Returns: ~
+        (boolean)  if separator syntax is valid
 
 
 M.get_last_modified({path})                  *colorizer.utils.get_last_modified*
@@ -559,43 +884,6 @@ M.make({cmds})                                         *colorizer.usercmds.make*
 
 
 ==============================================================================
-Sass                                                            *colorizer.sass*
-
-Manages Sass variable parsing and color detection for buffers.
-This module handles the parsing of Sass color variables, managing import statements,
-and watching files for updates to Sass variable definitions.
-It supports recursive Sass imports, resolving color values for each variable, and caching color definitions.
-
-M.cleanup({bufnr})                                      *colorizer.sass.cleanup*
-     Cleanup sass variables and watch handlers
-
-    Parameters: ~
-        {bufnr}  (number)
-
-
-M.parser({line}, {i}, {bufnr})                           *colorizer.sass.parser*
-
-    Parameters: ~
-        {line}   (string)  Line to parse
-        {i}      (number)  Index of line from where to start parsing
-        {bufnr}  (number)  Buffer number
-                           @return number|nil, string|nil
-
-
-                                               *colorizer.sass.update_variables*
-M.update_variables({bufnr}, {line_start}, {line_end}, {lines}, {color_parser}, {ud_opts}, {buf_local_opts})
-
-    Parameters: ~
-        {bufnr}           (number)            Buffer number
-        {line_start}      (number)
-        {line_end}        (number)
-        {lines}           (table|nil)
-        {color_parser}    (function|boolean)
-        {ud_opts}         (table)             `user_default_options`
-        {buf_local_opts}  (table|nil)         Buffer local options
-
-
-==============================================================================
 Tailwind                                                    *colorizer.tailwind*
 
 Handles Tailwind CSS color highlighting within buffers.
@@ -611,12 +899,12 @@ M.cleanup({bufnr})                                  *colorizer.tailwind.cleanup*
 
 
                                               *colorizer.tailwind.lsp_highlight*
-M.lsp_highlight({bufnr}, {ud_opts}, {buf_local_opts}, {add_highlight}, {on_detach}, {line_start}, {line_end})
+M.lsp_highlight({bufnr}, {opts}, {buf_local_opts}, {add_highlight}, {on_detach}, {line_start}, {line_end})
      Highlight buffer using values returned by tailwindcss
 
     Parameters: ~
         {bufnr}           (number)    Buffer number (0 for current)
-        {ud_opts}         (table)     `user_default_options`
+        {opts}            (table)     Options (new format or legacy)
         {buf_local_opts}  (table)     Buffer local options
         {add_highlight}   (function)  Function to add highlights
         {on_detach}       (function)  Function to call when LSP is detached

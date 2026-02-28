@@ -80,6 +80,18 @@ function M.is_bright(r, g, b)
   end
 end
 
+--- Apply alpha transparency to RGB color channels.
+-- Multiplies each channel by the alpha value and floors the result.
+---@param r number Red component, in the range [0, 255].
+---@param g number Green component, in the range [0, 255].
+---@param b number Blue component, in the range [0, 255].
+---@param alpha number Alpha value, in the range [0, 1].
+---@return number, number, number Alpha-blended red, green, and blue values.
+function M.apply_alpha(r, g, b, alpha)
+  local floor = math.floor
+  return floor(r * alpha), floor(g * alpha), floor(b * alpha)
+end
+
 --- Converts an OKLCH color value to RGB.
 -- OKLCH is a perceptual color space that provides better uniformity than HSL.
 -- Accepts lightness, chroma, and hue values and converts them to RGB.

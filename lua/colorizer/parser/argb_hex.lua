@@ -7,9 +7,10 @@
 local M = {}
 
 local bit = require("bit")
-local floor, min = math.floor, math.min
+local min = math.min
 local band, rshift, lshift = bit.band, bit.rshift, bit.lshift
 
+local color = require("colorizer.color")
 local utils = require("colorizer.utils")
 
 --- Parses a `0xAARRGGBB` formatted hexadecimal color and converts it to an RGB hex value.
@@ -58,9 +59,7 @@ function M.parser(line, i)
   -- Parse the color components based on the detected length
   if length == 10 then -- 0xAARRGGBB
     alpha = band(rshift(v, 24), 0xFF) / 255 -- Extract and normalize the alpha value
-    r = floor(band(rshift(v, 16), 0xFF) * alpha) -- Apply alpha to red
-    g = floor(band(rshift(v, 8), 0xFF) * alpha) -- Apply alpha to green
-    b = floor(band(v, 0xFF) * alpha) -- Apply alpha to blue
+    r, g, b = color.apply_alpha(band(rshift(v, 16), 0xFF), band(rshift(v, 8), 0xFF), band(v, 0xFF), alpha)
   elseif length == 8 then -- 0xRRGGBB
     r = band(rshift(v, 16), 0xFF) -- Extract red
     g = band(rshift(v, 8), 0xFF) -- Extract green
@@ -76,5 +75,18 @@ function M.parser(line, i)
   local rgb_hex = utils.rgb_to_hex(r, g, b)
   return length, rgb_hex
 end
+
+--- Parser spec for the registry
+M.spec = {
+  name = "argb_hex",
+  priority = 20,
+  dispatch = { kind = "prefix", prefixes = { "0x" } },
+  -- No config_defaults: controlled by hex.aarrggbb in config
+  parse = function(ctx)
+    return M.parser(ctx.line, ctx.col)
+  end,
+}
+
+require("colorizer.parser.registry").register(M.spec)
 
 return M

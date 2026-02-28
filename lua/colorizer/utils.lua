@@ -129,6 +129,28 @@ function M.count(str, pattern)
   return select(2, string.gsub(str, pattern, ""))
 end
 
+--- Validate CSS separator syntax for color functions (rgb, hsl).
+-- Checks that comma or space separators follow the CSS specification.
+-- Comma syntax requires exactly `min_commas` commas.
+-- Space syntax requires at least `min_spaces` spaces, and alpha must use "/" separator.
+---@param c_seps string Concatenated comma/slash separators from parsed groups
+---@param s_seps string Concatenated space separators from parsed groups
+---@param has_alpha boolean Whether an alpha value is present
+---@param min_commas number Required number of commas for comma syntax
+---@param min_spaces number Minimum spaces required for space syntax
+---@return boolean true if separator syntax is valid
+function M.validate_css_seps(c_seps, s_seps, has_alpha, min_commas, min_spaces)
+  if c_seps:match(",") then
+    return M.count(c_seps, ",") == min_commas
+  elseif M.count(s_seps, "%s") >= min_spaces then
+    if has_alpha then
+      return c_seps == "/"
+    end
+    return true
+  end
+  return false
+end
+
 --- Get last modified time of a file
 ---@param path string file path
 ---@return number|nil modified time

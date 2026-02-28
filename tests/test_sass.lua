@@ -128,4 +128,40 @@ T["cleanup()"]["after cleanup parser returns nil"] = function()
   vim.api.nvim_buf_delete(buf, { force = true })
 end
 
+-- variable_pattern ------------------------------------------------------------
+
+T["variable_pattern"] = new_set()
+
+T["variable_pattern"]["uses default pattern when not configured"] = function()
+  local buf = make_sass_buf({ "$myvar: #aabbcc;" })
+  local lines = { "$myvar: #aabbcc;" }
+  sass.update_variables(buf, 0, 1, lines, simple_color_parser, {}, {})
+  local len, hex = sass.parser("$myvar", 1, buf)
+  eq(true, len ~= nil)
+  eq("aabbcc", hex)
+  sass.cleanup(buf)
+  vim.api.nvim_buf_delete(buf, { force = true })
+end
+
+T["variable_pattern"]["uses configured pattern for references"] = function()
+  local config = require("colorizer.config")
+  local opts = vim.deepcopy(config.default_options)
+  -- Custom pattern matches @varname for references (definitions always use $)
+  opts.parsers.sass.enable = true
+  opts.parsers.sass.variable_pattern = "^@([%w_-]+)"
+  local buf = make_sass_buf({ "$myvar: #112233;" })
+  -- Definitions always use $ syntax (Sass/SCSS standard)
+  local lines = { "$myvar: #112233;" }
+  sass.update_variables(buf, 0, 1, lines, simple_color_parser, opts, {})
+  -- With custom pattern, $myvar should NOT match (reference pattern expects @)
+  local len1 = sass.parser("$myvar", 1, buf)
+  eq(nil, len1)
+  -- @myvar should match with custom reference pattern
+  local len2, hex2 = sass.parser("@myvar", 1, buf)
+  eq(true, len2 ~= nil)
+  eq("112233", hex2)
+  sass.cleanup(buf)
+  vim.api.nvim_buf_delete(buf, { force = true })
+end
+
 return T

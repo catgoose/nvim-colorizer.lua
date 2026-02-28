@@ -6,7 +6,6 @@
 ---@brief ]]
 local M = {}
 
-local count = require("colorizer.utils").count
 local floor = math.floor
 local hsl_to_rgb = require("colorizer.color").hsl_to_rgb
 local utils = require("colorizer.utils")
@@ -59,19 +58,7 @@ function M.parser(line, i, opts)
 
   local c_seps = ("%s%s%s"):format(csep1, csep2, sep3)
   local s_seps = ("%s%s"):format(ssep1, ssep2)
-  -- Comma separator syntax
-  if c_seps:match(",") then
-    if not (count(c_seps, ",") == min_commas) then
-      return
-    end
-    -- Space separator syntax with decimal or percentage alpha
-  elseif count(s_seps, "%s") >= min_spaces then
-    if a then
-      if not (c_seps == "/") then
-        return
-      end
-    end
-  else
+  if not utils.validate_css_seps(c_seps, s_seps, a ~= nil, min_commas, min_spaces) then
     return
   end
 
@@ -118,5 +105,18 @@ function M.parser(line, i, opts)
   local rgb_hex = utils.rgb_to_hex(r, g, b)
   return match_end - 1, rgb_hex
 end
+
+--- Parser spec for the registry
+M.spec = {
+  name = "hsl",
+  priority = 20,
+  dispatch = { kind = "prefix", prefixes = { "hsl", "hsla" } },
+  config_defaults = { enable = false },
+  parse = function(ctx)
+    return M.parser(ctx.line, ctx.col, { prefix = ctx.prefix })
+  end,
+}
+
+require("colorizer.parser.registry").register(M.spec)
 
 return M

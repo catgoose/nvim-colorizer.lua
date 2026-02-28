@@ -297,4 +297,25 @@ function M.parser(line, i, m_opts)
   end
 end
 
+--- Parser spec for the registry
+M.spec = {
+  name = "names",
+  priority = 25,
+  dispatch = { kind = "fallback" },
+  config_defaults = {
+    enable = false,
+    lowercase = true,
+    camelcase = true,
+    uppercase = false,
+    strip_digits = false,
+    custom = false,
+  },
+  parse = function(ctx)
+    return M.parser(ctx.line, ctx.col, ctx.matcher_opts)
+  end,
+  reset_cache = M.reset_cache,
+}
+
+require("colorizer.parser.registry").register(M.spec)
+
 return M

@@ -51,12 +51,12 @@ end
 
 T["spot checks"] = new_set()
 
-T["spot checks"]["black is 000"] = function()
-  eq("000", tailwind.colors["black"])
+T["spot checks"]["black is 000000"] = function()
+  eq("000000", tailwind.colors["black"])
 end
 
-T["spot checks"]["white is fff"] = function()
-  eq("fff", tailwind.colors["white"])
+T["spot checks"]["white is ffffff"] = function()
+  eq("ffffff", tailwind.colors["white"])
 end
 
 T["spot checks"]["red-500 is ef4444"] = function()
