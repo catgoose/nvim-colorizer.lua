@@ -582,7 +582,7 @@ function M.setup(opts)
       vim.notify(
         "colorizer: A new structured 'options' format is available (parsers, display, hooks). "
           .. "Your 'user_default_options' will continue to work. See :help colorizer.config. "
-          .. "Set suppress_user_default_options_warning = true to hide this message.",
+          .. "Set suppress_deprecation = true to hide this message.",
         vim.log.levels.INFO
       )
     end)

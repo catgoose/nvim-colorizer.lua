@@ -34,7 +34,7 @@ dependencies**. Written in performant Luajit.
 
 ## Installation
 
-Requires Neovim >= 0.10.0
+Requires Neovim >= 0.10.0 and `set termguicolors`
 
 ```lua
 -- lazy.nvim
