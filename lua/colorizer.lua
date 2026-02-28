@@ -194,6 +194,34 @@ function M.rehighlight(bufnr, opts, buf_local_opts, hl_opts)
   return detach
 end
 
+--- Schedule rehighlight with optional debounce.
+---@param bufnr number
+---@param opts table Resolved options (must have debounce_ms)
+---@param buf_local_opts table
+---@param hl_opts table|nil
+local function schedule_rehighlight(bufnr, opts, buf_local_opts, hl_opts)
+  local delay = opts and opts.debounce_ms and opts.debounce_ms > 0 and opts.debounce_ms or 0
+  if delay == 0 then
+    M.rehighlight(bufnr, opts, buf_local_opts, hl_opts)
+    return
+  end
+  colorizer_state.buffer_local[bufnr] = colorizer_state.buffer_local[bufnr] or {}
+  local bl = colorizer_state.buffer_local[bufnr]
+  if bl.__debounce_timer then
+    if bl.__debounce_timer.stop then
+      bl.__debounce_timer:stop()
+    end
+    bl.__debounce_timer = nil
+  end
+  bl.__debounce_timer = vim.defer_fn(function()
+    bl.__debounce_timer = nil
+    if not vim.api.nvim_buf_is_valid(bufnr) or not colorizer_state.buffer_options[bufnr] then
+      return
+    end
+    M.rehighlight(bufnr, colorizer_state.buffer_options[bufnr], buf_local_opts, hl_opts)
+  end, delay)
+end
+
 ---Get attached bufnr
 ---@param bufnr number|nil buffer number (0 for current)
 ---@return number Returns attached bufnr. Returns -1 if buffer is not attached to colorizer.
@@ -403,24 +431,22 @@ function M.attach_to_buffer(bufnr, opts, bo_type)
     -- completely moving to buf_attach is not possible because it doesn't handle all the text change events
     vim.api.nvim_buf_attach(bufnr, false, {
       on_lines = function(_, _bufnr)
-        -- only reload if the buffer is not the current one
         if not (colorizer_state.buffer_current == _bufnr) then
           local buf_opts = colorizer_state.buffer_options[bufnr]
           if buf_opts then
-            M.rehighlight(bufnr, buf_opts, colorizer_state.buffer_local[bufnr])
+            schedule_rehighlight(bufnr, buf_opts, colorizer_state.buffer_local[bufnr])
           else
-            return true -- detach: buffer was removed via detach_from_buffer
+            return true
           end
         end
       end,
       on_reload = function(_, _bufnr)
-        -- only reload if the buffer is not the current one
         if not (colorizer_state.buffer_current == _bufnr) then
           local buf_opts = colorizer_state.buffer_options[bufnr]
           if buf_opts then
-            M.rehighlight(bufnr, buf_opts, colorizer_state.buffer_local[bufnr])
+            schedule_rehighlight(bufnr, buf_opts, colorizer_state.buffer_local[bufnr])
           else
-            return true -- detach: buffer was removed via detach_from_buffer
+            return true
           end
         end
       end,
@@ -439,17 +465,16 @@ function M.attach_to_buffer(bufnr, opts, bo_type)
     buffer = bufnr,
     callback = function(args)
       colorizer_state.buffer_current = bufnr
-      -- Read current opts from state so re-attach updates are picked up
       local buf_opts = colorizer_state.buffer_options[bufnr]
       if buf_opts then
         colorizer_state.buffer_local[bufnr].__event = args.event
         if args.event == "TextChanged" or args.event == "InsertLeave" then
-          M.rehighlight(bufnr, buf_opts, colorizer_state.buffer_local[bufnr])
+          schedule_rehighlight(bufnr, buf_opts, colorizer_state.buffer_local[bufnr])
         else
           local pos = vim.fn.getpos(".")
           colorizer_state.buffer_local[bufnr].__startline = pos[2] - 1
           colorizer_state.buffer_local[bufnr].__endline = pos[2]
-          M.rehighlight(
+          schedule_rehighlight(
             bufnr,
             buf_opts,
             colorizer_state.buffer_local[bufnr],
@@ -463,11 +488,10 @@ function M.attach_to_buffer(bufnr, opts, bo_type)
     group = colorizer_state.augroup,
     buffer = bufnr,
     callback = function(args)
-      -- Read current opts from state so re-attach updates are picked up
       local buf_opts = colorizer_state.buffer_options[bufnr]
       if buf_opts then
         colorizer_state.buffer_local[bufnr].__event = args.event
-        M.rehighlight(bufnr, buf_opts, colorizer_state.buffer_local[bufnr])
+        schedule_rehighlight(bufnr, buf_opts, colorizer_state.buffer_local[bufnr])
       end
     end,
   })
@@ -513,11 +537,16 @@ function M.detach_from_buffer(bufnr)
         f(bufnr)
       end
     end
-    for _, id in ipairs(colorizer_state.buffer_local[bufnr].__autocmds or {}) do
+    local bl = colorizer_state.buffer_local[bufnr]
+    if bl.__debounce_timer and bl.__debounce_timer.stop then
+      bl.__debounce_timer:stop()
+      bl.__debounce_timer = nil
+    end
+    for _, id in ipairs(bl.__autocmds or {}) do
       pcall(vim.api.nvim_del_autocmd, id)
     end
-    colorizer_state.buffer_local[bufnr].__autocmds = nil
-    colorizer_state.buffer_local[bufnr].__detach = nil
+    bl.__autocmds = nil
+    bl.__detach = nil
   end
   -- because now the buffer is not visible, so delete its information
   colorizer_state.buffer_options[bufnr] = nil

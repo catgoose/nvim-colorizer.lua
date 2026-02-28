@@ -752,6 +752,7 @@ T["is_legacy_options"]["detects all legacy keys"] = function()
   eq(true, config.is_legacy_options({ RGBA = true }))
   eq(true, config.is_legacy_options({ RRGGBB = true }))
   eq(true, config.is_legacy_options({ RRGGBBAA = true }))
+  eq(true, config.is_legacy_options({ QML_AARRGGBB = true }))
   eq(true, config.is_legacy_options({ AARRGGBB = true }))
   eq(true, config.is_legacy_options({ hsl_fn = true }))
   eq(true, config.is_legacy_options({ oklch_fn = true }))
@@ -802,7 +803,7 @@ end
 
 T["translate_options"]["translates all hex keys to false"] = function()
   local new = config.translate_options({
-    RGB = false, RGBA = false, RRGGBB = false, RRGGBBAA = false, AARRGGBB = false,
+    RGB = false, RGBA = false, RRGGBB = false, RRGGBBAA = false, QML_AARRGGBB = false, AARRGGBB = false,
   })
   -- hex.enable should not be set since no hex key is true
   eq(nil, new.parsers.hex.enable)
@@ -1049,12 +1050,14 @@ T["as_flat"]["converts all hex flags correctly"] = function()
   opts.parsers.hex.rgba = false
   opts.parsers.hex.rrggbb = true
   opts.parsers.hex.rrggbbaa = true
+  opts.parsers.hex.hash_aarrggbb = true
   opts.parsers.hex.aarrggbb = true
   local flat = config.as_flat(opts)
   eq(true, flat.RGB)
   eq(false, flat.RGBA)
   eq(true, flat.RRGGBB)
   eq(true, flat.RRGGBBAA)
+  eq(true, flat.QML_AARRGGBB)
   eq(true, flat.AARRGGBB)
 end
 

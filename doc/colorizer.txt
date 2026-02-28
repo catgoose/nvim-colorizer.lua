@@ -289,8 +289,10 @@ colorizer.ParsersHex                                      *colorizer.ParsersHex*
         {rgb}       (boolean)  #RGB (3-digit)
         {rgba}      (boolean)  #RGBA (4-digit)
         {rrggbb}    (boolean)  #RRGGBB (6-digit)
-        {rrggbbaa}  (boolean)  #RRGGBBAA (8-digit)
-        {aarrggbb}  (boolean)  0xAARRGGBB
+        {rrggbbaa}      (boolean)  #RRGGBBAA (8-digit)
+        {hash_aarrggbb} (boolean)  #AARRGGBB (QML-style, 8-digit alpha first)
+        {aarrggbb}      (boolean)  0xAARRGGBB
+        {no_hash}       (boolean)  Hex without '#' (6- or 8-digit at word boundaries)
 
 
 colorizer.ParsersSimple                                *colorizer.ParsersSimple*
@@ -352,7 +354,7 @@ colorizer.UserDefaultOptions                      *colorizer.UserDefaultOptions*
      This table defines individual options and alias options, allowing configuration of
      colorizer's behavior for different color formats (e.g., `#RGB`, `#RRGGBB`, `#AARRGGBB`, etc.).
 
-     Individual Options: Options like `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn`,
+     Individual Options: Options like `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `QML_AARRGGBB`, `hsl_fn`, `rgb_fn`,
      `oklch_fn`, `AARRGGBB`, `tailwind`, and `sass` can be enabled or disabled independently.
 
      Alias Options: `css` and `css_fn` enable multiple options at once.
@@ -370,10 +372,16 @@ colorizer.UserDefaultOptions                      *colorizer.UserDefaultOptions*
         {RGBA}                (boolean)                                  Enables `#RGBA` hex codes.
         {RRGGBB}              (boolean)                                  Enables `#RRGGBB` hex codes.
         {RRGGBBAA}            (boolean)                                  Enables `#RRGGBBAA` hex codes.
+        {QML_AARRGGBB}        (boolean)                                  Enables `#AARRGGBB` hex codes (QML).
         {AARRGGBB}            (boolean)                                  Enables `0xAARRGGBB` hex codes.
+        {hex_no_hash}         (boolean)                                  Enables hex without '#' (word boundaries).
         {rgb_fn}              (boolean)                                  Enables CSS `rgb()` and `rgba()` functions.
         {hsl_fn}              (boolean)                                  Enables CSS `hsl()` and `hsla()` functions.
+        {hsluv_fn}            (boolean)                                  Enables `hsluv()` and `hsluvu()` functions.
         {oklch_fn}            (boolean)                                  Enables CSS `oklch()` function.
+        {xterm}               (boolean)                                  Enables xterm 256-color codes.
+        {xcolor}              (boolean)                                  Enables LaTeX xcolor (e.g. red!30).
+        {css_var_rgb}         (boolean)                                  Enables CSS variables with R,G,B (e.g. --name: 240,198,198).
         {css}                 (boolean)                                  Enables all CSS features (`rgb_fn`, `hsl_fn`, `oklch_fn`, `names`, `RGB`, `RRGGBB`).
         {css_fn}              (boolean)                                  Enables all CSS functions (`rgb_fn`, `hsl_fn`, `oklch_fn`).
         {tailwind}            (boolean|string)                           Enables Tailwind CSS colors (e.g., `"normal"`, `"lsp"`, `"both"`).
@@ -384,6 +392,7 @@ colorizer.UserDefaultOptions                      *colorizer.UserDefaultOptions*
         {virtualtext_inline}  (boolean|"before"|"after")                 Shows virtual text inline with color.
         {virtualtext_mode}    ("background"|"foreground")                Mode for virtual text display.
         {always_update}       (boolean)                                  Always update color values, even if buffer is not focused.
+        {debounce_ms}         (number)                                   Debounce highlight updates (ms); 0 = no debounce.
         {hooks}               (colorizer.Hooks)                          Table of hook functions
         {xterm}               (boolean)                                  Enables xterm 256-color codes (#xNN, \e[38;5;NNNm)
 

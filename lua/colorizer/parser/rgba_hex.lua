@@ -79,7 +79,20 @@ function M.parser(line, i, opts)
     alpha = utils.parse_hex(line:byte(i + 4)) / 15
     return 5, utils.rgb_to_hex(color.apply_alpha(r, g, b, alpha))
   elseif parsed_length == 9 then
-    -- Handle #RRGGBBAA
+    if opts and opts.hash_aarrggbb then
+      local full = 0
+      for k = 1, 8 do
+        full = utils.parse_hex(line:byte(i + k)) + lshift(full, 4)
+      end
+      alpha = band(rshift(full, 24), 0xFF) / 255
+      local r, g, b = color.apply_alpha(
+        band(rshift(full, 16), 0xFF),
+        band(rshift(full, 8), 0xFF),
+        band(full, 0xFF),
+        alpha
+      )
+      return 9, utils.rgb_to_hex(r, g, b)
+    end
     alpha = alpha / 255
     local r, g, b = color.apply_alpha(band(rshift(v, 16), 0xFF), band(rshift(v, 8), 0xFF), band(v, 0xFF), alpha)
     return 9, utils.rgb_to_hex(r, g, b)

@@ -264,6 +264,20 @@ local function needs_population(m_opts)
   return false
 end
 
+--- Look up a color name and return its hex (for use by other parsers e.g. xcolor).
+---@param name string Color name to look up
+---@param m_opts table Same matcher_opts as names parser (color_names, color_names_opts, names_custom, tailwind_names)
+---@return string|nil Hex rgb without leading "#", or nil
+function M.lookup_name(name, m_opts)
+  if not m_opts then
+    return nil
+  end
+  if not names_cache.trie or needs_population(m_opts) then
+    populate_colors(m_opts)
+  end
+  return resolve_color_entry(name, m_opts)
+end
+
 --- Parses a line to identify color names.
 ---@param line string The text line to parse.
 ---@param i number The index to start parsing from.

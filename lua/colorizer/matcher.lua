@@ -54,13 +54,14 @@ local function is_parser_enabled(spec, opts)
   local p = opts.parsers
 
   if spec.name == "rgba_hex" then
-    -- Controlled by hex.* composite config
     if not (p.hex and p.hex.enable) then
       return false
     end
-    return p.hex.rgb or p.hex.rgba or p.hex.rrggbb or p.hex.rrggbbaa or false
+    return p.hex.rgb or p.hex.rgba or p.hex.rrggbb or p.hex.rrggbbaa or p.hex.hash_aarrggbb or false
   elseif spec.name == "argb_hex" then
     return p.hex and p.hex.enable and p.hex.aarrggbb or false
+  elseif spec.name == "hex_no_hash" then
+    return p.hex and p.hex.enable and p.hex.no_hash or false
   elseif spec.name == "names" then
     local tw = p.tailwind
     local tailwind_names = tw and tw.enable
@@ -87,7 +88,7 @@ local function build_entry_config(spec, opts)
       [3] = p.hex.rgb,
       [4] = p.hex.rgba,
       [6] = p.hex.rrggbb,
-      [8] = p.hex.rrggbbaa,
+      [8] = p.hex.rrggbbaa or p.hex.hash_aarrggbb,
     }
     local minlen, maxlen
     for k, v in pairs(valid_lengths) do
@@ -96,7 +97,9 @@ local function build_entry_config(spec, opts)
         maxlen = maxlen and max(k, maxlen) or k
       end
     end
-    return { valid_lengths = valid_lengths, minlen = minlen, maxlen = maxlen }, nil
+    return { valid_lengths = valid_lengths, minlen = minlen, maxlen = maxlen, hash_aarrggbb = p.hex.hash_aarrggbb }, nil
+  elseif spec.name == "hex_no_hash" then
+    return { rrggbb = p.hex.rrggbb, rrggbbaa = p.hex.rrggbbaa }, nil
   elseif spec.name == "names" then
     local m_opts = {}
     if p.names and p.names.enable then
@@ -373,11 +376,16 @@ local function read_parser_flags(opts)
     RGBA = hex.enable and hex.rgba,
     RRGGBB = hex.enable and hex.rrggbb,
     RRGGBBAA = hex.enable and hex.rrggbbaa,
+    hash_aarrggbb = hex.enable and hex.hash_aarrggbb,
     AARRGGBB = hex.enable and hex.aarrggbb,
+    hex_no_hash = hex.enable and hex.no_hash,
     rgb = p.rgb and p.rgb.enable,
     hsl = p.hsl and p.hsl.enable,
+    hsluv = p.hsluv and p.hsluv.enable,
     oklch = p.oklch and p.oklch.enable,
     xterm = p.xterm and p.xterm.enable,
+    xcolor = p.xcolor and p.xcolor.enable,
+    css_var_rgb = p.css_var_rgb and p.css_var_rgb.enable,
     custom = p.custom and #p.custom > 0 and p.custom or nil,
     hooks = opts.hooks,
   }
@@ -398,11 +406,11 @@ local function calculate_matcher_key(f)
     (f.names and f.names_strip_digits) or false,
     f.names_custom or false,
     f.RGB or false, f.RGBA or false, f.RRGGBB or false,
-    f.RRGGBBAA or false, f.AARRGGBB or false,
-    f.rgb or false, f.hsl or false,
+    f.RRGGBBAA or false, f.hash_aarrggbb or false, f.AARRGGBB or false, f.hex_no_hash or false,
+    f.rgb or false, f.hsl or false, f.hsluv or false,
     f.tailwind_enable or false,
     f.tailwind_lsp or false,
-    f.sass or false, f.xterm or false, f.oklch or false,
+    f.sass or false, f.xterm or false, f.xcolor or false, f.css_var_rgb or false, f.oklch or false,
   }
   local matcher_mask = 0
   local bit_value = 1

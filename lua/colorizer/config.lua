@@ -88,7 +88,9 @@ local plugin_user_default_options = {
   RGBA = true,
   RRGGBB = true,
   RRGGBBAA = false,
+  QML_AARRGGBB = false,
   AARRGGBB = false,
+  hex_no_hash = false,
   rgb_fn = false,
   hsl_fn = false,
   oklch_fn = false,
@@ -100,11 +102,14 @@ local plugin_user_default_options = {
   },
   sass = { enable = false, parsers = { css = true } },
   xterm = false,
+  xcolor = false,
+  css_var_rgb = false,
   mode = "background",
   virtualtext = "■",
   virtualtext_inline = false,
   virtualtext_mode = "foreground",
   always_update = false,
+  debounce_ms = 0,
   hooks = {
     disable_line_highlight = false,
   },
@@ -123,6 +128,7 @@ local plugin_user_default_options = {
 ---@field display colorizer.DisplayOptions Display configuration
 ---@field hooks colorizer.Hooks Hook functions
 ---@field always_update boolean Update color values even if buffer is not focused
+---@field debounce_ms number Debounce highlight updates by this many ms (0 = no debounce)
 
 ---@class colorizer.ParsersOptions
 ---@field css boolean Preset: enables names, hex (all), rgb, hsl, oklch. Individual settings override.
@@ -151,7 +157,9 @@ local plugin_user_default_options = {
 ---@field rgba boolean #RGBA (4-digit)
 ---@field rrggbb boolean #RRGGBB (6-digit)
 ---@field rrggbbaa boolean #RRGGBBAA (8-digit)
+---@field hash_aarrggbb boolean #AARRGGBB (QML-style, 8-digit with alpha first)
 ---@field aarrggbb boolean 0xAARRGGBB
+---@field no_hash boolean Hex without '#' (6- or 8-digit words at word boundaries)
 
 ---@class colorizer.ParsersSimple
 ---@field enable boolean Enable this parser
@@ -201,7 +209,9 @@ local function build_default_parsers()
     rgba = true,
     rrggbb = true,
     rrggbbaa = false,
+    hash_aarrggbb = false,
     aarrggbb = false,
+    no_hash = false,
   }
   parsers.tailwind = {
     enable = false,
@@ -238,6 +248,7 @@ local default_options = {
   },
 
   always_update = false,
+  debounce_ms = 0,
 
   -- Stamp indicating this options table has been fully resolved (merged with
   -- defaults, presets expanded, validated). Checked by normalize_opts and
@@ -270,9 +281,12 @@ M.default_options = default_options
 ---@field RGBA boolean Enables `#RGBA` hex codes.
 ---@field RRGGBB boolean Enables `#RRGGBB` hex codes.
 ---@field RRGGBBAA boolean Enables `#RRGGBBAA` hex codes.
+---@field QML_AARRGGBB boolean Enables `#AARRGGBB` hex codes (QML-style, alpha first).
 ---@field AARRGGBB boolean Enables `0xAARRGGBB` hex codes.
+---@field hex_no_hash boolean Enables 6- or 8-digit hex words without '#' (word boundaries).
 ---@field rgb_fn boolean Enables CSS `rgb()` and `rgba()` functions.
 ---@field hsl_fn boolean Enables CSS `hsl()` and `hsla()` functions.
+---@field hsluv_fn boolean Enables `hsluv()` / `hsluvu()` functions.
 ---@field oklch_fn boolean Enables CSS `oklch()` function.
 ---@field css boolean Enables all CSS features (`rgb_fn`, `hsl_fn`, `oklch_fn`, `names`, `RGB`, `RRGGBB`).
 ---@field css_fn boolean Enables all CSS functions (`rgb_fn`, `hsl_fn`, `oklch_fn`).
@@ -284,6 +298,7 @@ M.default_options = default_options
 ---@field virtualtext_inline boolean|'before'|'after' Shows virtual text inline with color.
 ---@field virtualtext_mode 'background'|'foreground' Mode for virtual text display.
 ---@field always_update boolean Always update color values, even if buffer is not focused.
+---@field debounce_ms number Debounce highlight updates (ms); 0 = no debounce.
 ---@field hooks colorizer.Hooks Table of hook functions
 ---@field xterm boolean Enables xterm 256-color codes (#xNN, \e[38;5;NNNm)
 ---@field suppress_deprecation boolean When true, suppress the info message about the new options format. Default: false.
@@ -369,14 +384,14 @@ end
 
 -- Keys that indicate legacy (old flat) format
 local legacy_keys = {
-  "RGB", "RGBA", "RRGGBB", "RRGGBBAA", "AARRGGBB",
+  "RGB", "RGBA", "RRGGBB", "RRGGBBAA", "QML_AARRGGBB", "AARRGGBB", "hex_no_hash",
   "rgb_fn", "hsl_fn", "oklch_fn",
   "names", "names_opts", "names_custom",
   "css", "css_fn",
   "tailwind", "tailwind_opts",
-  "sass", "xterm",
+  "sass", "xterm", "xcolor", "css_var_rgb",
   "mode", "virtualtext", "virtualtext_inline", "virtualtext_mode",
-  "always_update",
+  "always_update", "debounce_ms", "hsluv_fn",
 }
 
 --- Detect if options are in legacy (old flat) format.
@@ -422,7 +437,7 @@ function M.translate_options(old_opts)
   end
 
   -- parsers.hex
-  local hex_keys = { RGB = "rgb", RGBA = "rgba", RRGGBB = "rrggbb", RRGGBBAA = "rrggbbaa", AARRGGBB = "aarrggbb" }
+  local hex_keys = { RGB = "rgb", RGBA = "rgba", RRGGBB = "rrggbb", RRGGBBAA = "rrggbbaa", QML_AARRGGBB = "hash_aarrggbb", AARRGGBB = "aarrggbb", hex_no_hash = "no_hash" }
   local has_hex = false
   for old_key, new_key in pairs(hex_keys) do
     if old_opts[old_key] ~= nil then
@@ -449,6 +464,9 @@ function M.translate_options(old_opts)
   end
   if old_opts.oklch_fn ~= nil then
     new.parsers.oklch = { enable = old_opts.oklch_fn }
+  end
+  if old_opts.hsluv_fn ~= nil then
+    new.parsers.hsluv = { enable = old_opts.hsluv_fn }
   end
 
   -- Presets
@@ -495,9 +513,14 @@ function M.translate_options(old_opts)
     end
   end
 
-  -- Xterm
   if old_opts.xterm ~= nil then
     new.parsers.xterm = { enable = old_opts.xterm }
+  end
+  if old_opts.xcolor ~= nil then
+    new.parsers.xcolor = { enable = old_opts.xcolor }
+  end
+  if old_opts.css_var_rgb ~= nil then
+    new.parsers.css_var_rgb = { enable = old_opts.css_var_rgb }
   end
 
   -- Display
@@ -550,6 +573,9 @@ function M.translate_options(old_opts)
   -- Always update
   if old_opts.always_update ~= nil then
     new.always_update = old_opts.always_update
+  end
+  if old_opts.debounce_ms ~= nil then
+    new.debounce_ms = old_opts.debounce_ms
   end
 
   return new
@@ -759,11 +785,14 @@ function M.as_flat(opts)
   flat.RGBA = p.hex.enable and p.hex.rgba or false
   flat.RRGGBB = p.hex.enable and p.hex.rrggbb or false
   flat.RRGGBBAA = p.hex.enable and p.hex.rrggbbaa or false
+  flat.QML_AARRGGBB = p.hex.enable and p.hex.hash_aarrggbb or false
   flat.AARRGGBB = p.hex.enable and p.hex.aarrggbb or false
+  flat.hex_no_hash = p.hex.enable and p.hex.no_hash or false
 
   -- CSS functions
   flat.rgb_fn = p.rgb.enable
   flat.hsl_fn = p.hsl.enable
+  flat.hsluv_fn = p.hsluv.enable
   flat.oklch_fn = p.oklch.enable
 
   -- Presets (already expanded)
@@ -792,6 +821,8 @@ function M.as_flat(opts)
 
   -- Xterm
   flat.xterm = p.xterm.enable
+  flat.xcolor = p.xcolor.enable
+  flat.css_var_rgb = p.css_var_rgb.enable
 
   -- Display
   flat.mode = d.mode
@@ -812,8 +843,8 @@ function M.as_flat(opts)
     end
   end
 
-  -- Always update
   flat.always_update = opts.always_update
+  flat.debounce_ms = opts.debounce_ms
 
   return flat
 end

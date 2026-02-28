@@ -28,7 +28,7 @@ dependencies**. Written in performant Luajit.
 
 - **Fast:** Handwritten trie-based parser with byte-level dispatch. Only visible lines are processed.
 - **Zero dependencies:** As long as you have `malloc()` and `free()`, it works (Linux, macOS, Windows).
-- **Broad format support:** Hex (`#RGB`, `#RRGGBB`, `#RRGGBBAA`, `0xAARRGGBB`), CSS functions (`rgb()`, `hsl()`, `oklch()`), named colors, xterm/ANSI 256, Tailwind CSS, Sass variables, and custom parsers — in any filetype.
+- **Broad format support:** Hex (`#RGB`, `#RRGGBB`, `#RRGGBBAA`, `#AARRGGBB` QML, `0xAARRGGBB`), CSS functions (`rgb()`, `hsl()`, `oklch()`), named colors, xterm/ANSI 256, Tailwind CSS, Sass variables, and custom parsers — in any filetype.
 - **Display modes:** Background (with auto-contrast text), foreground, and virtualtext (inline or end-of-line).
 - **Higher priority than treesitter:** Uses `vim.hl.priorities` (diagnostics/user) so colorizer highlights always win over treesitter syntax colors.
 
@@ -108,7 +108,9 @@ require("colorizer").setup({
         rgba = true, -- #RGBA
         rrggbb = true, -- #RRGGBB
         rrggbbaa = false, -- #RRGGBBAA
+        hash_aarrggbb = false, -- #AARRGGBB (QML)
         aarrggbb = false, -- 0xAARRGGBB
+        no_hash = false, -- hex without '#' (e.g. FF0000 at word boundaries)
       },
       rgb = { enable = false },
       hsl = { enable = false },
@@ -124,6 +126,9 @@ require("colorizer").setup({
         variable_pattern = "^%$([%w_-]+)",
       },
       xterm = { enable = false },
+      xcolor = { enable = false },
+      hsluv = { enable = false },
+      css_var_rgb = { enable = false },
       custom = {},
     },
     display = {
