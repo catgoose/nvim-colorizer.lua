@@ -363,29 +363,30 @@ colorizer.UserDefaultOptions                      *colorizer.UserDefaultOptions*
      If both `css` and `css_fn` are true, `css_fn` has more priority over `css`.
 
     Fields: ~
-        {names}               (boolean)                                  Enables named colors (e.g., "Blue").
-        {names_opts}          (colorizer.NamesOpts)                      Names options for customizing casing, digit stripping, etc
-        {names_custom}        (table|function|false)                     Custom color name to RGB value mappings. Should return a table of color names to RGB value pairs.
-        {RGB}                 (boolean)                                  Enables `#RGB` hex codes.
-        {RGBA}                (boolean)                                  Enables `#RGBA` hex codes.
-        {RRGGBB}              (boolean)                                  Enables `#RRGGBB` hex codes.
-        {RRGGBBAA}            (boolean)                                  Enables `#RRGGBBAA` hex codes.
-        {AARRGGBB}            (boolean)                                  Enables `0xAARRGGBB` hex codes.
-        {rgb_fn}              (boolean)                                  Enables CSS `rgb()` and `rgba()` functions.
-        {hsl_fn}              (boolean)                                  Enables CSS `hsl()` and `hsla()` functions.
-        {oklch_fn}            (boolean)                                  Enables CSS `oklch()` function.
-        {css}                 (boolean)                                  Enables all CSS features (`rgb_fn`, `hsl_fn`, `oklch_fn`, `names`, `RGB`, `RRGGBB`).
-        {css_fn}              (boolean)                                  Enables all CSS functions (`rgb_fn`, `hsl_fn`, `oklch_fn`).
-        {tailwind}            (boolean|string)                           Enables Tailwind CSS colors (e.g., `"normal"`, `"lsp"`, `"both"`).
-        {tailwind_opts}       (colorizer.TailwindOpts)                   Tailwind options for updating names cache, etc
-        {sass}                (colorizer.SassOpts)                       Sass color configuration (`enable` flag and `parsers`).
-        {mode}                ("background"|"foreground"|"virtualtext")  Display mode
-        {virtualtext}         (string)                                   Character used for virtual text display.
-        {virtualtext_inline}  (boolean|"before"|"after")                 Shows virtual text inline with color.
-        {virtualtext_mode}    ("background"|"foreground")                Mode for virtual text display.
-        {always_update}       (boolean)                                  Always update color values, even if buffer is not focused.
-        {hooks}               (colorizer.Hooks)                          Table of hook functions
-        {xterm}               (boolean)                                  Enables xterm 256-color codes (#xNN, \e[38;5;NNNm)
+        {names}                 (boolean)                                  Enables named colors (e.g., "Blue").
+        {names_opts}            (colorizer.NamesOpts)                      Names options for customizing casing, digit stripping, etc
+        {names_custom}          (table|function|false)                     Custom color name to RGB value mappings. Should return a table of color names to RGB value pairs.
+        {RGB}                   (boolean)                                  Enables `#RGB` hex codes.
+        {RGBA}                  (boolean)                                  Enables `#RGBA` hex codes.
+        {RRGGBB}                (boolean)                                  Enables `#RRGGBB` hex codes.
+        {RRGGBBAA}              (boolean)                                  Enables `#RRGGBBAA` hex codes.
+        {AARRGGBB}              (boolean)                                  Enables `0xAARRGGBB` hex codes.
+        {rgb_fn}                (boolean)                                  Enables CSS `rgb()` and `rgba()` functions.
+        {hsl_fn}                (boolean)                                  Enables CSS `hsl()` and `hsla()` functions.
+        {oklch_fn}              (boolean)                                  Enables CSS `oklch()` function.
+        {css}                   (boolean)                                  Enables all CSS features (`rgb_fn`, `hsl_fn`, `oklch_fn`, `names`, `RGB`, `RRGGBB`).
+        {css_fn}                (boolean)                                  Enables all CSS functions (`rgb_fn`, `hsl_fn`, `oklch_fn`).
+        {tailwind}              (boolean|string)                           Enables Tailwind CSS colors (e.g., `"normal"`, `"lsp"`, `"both"`).
+        {tailwind_opts}         (colorizer.TailwindOpts)                   Tailwind options for updating names cache, etc
+        {sass}                  (colorizer.SassOpts)                       Sass color configuration (`enable` flag and `parsers`).
+        {mode}                  ("background"|"foreground"|"virtualtext")  Display mode
+        {virtualtext}           (string)                                   Character used for virtual text display.
+        {virtualtext_inline}    (boolean|"before"|"after")                 Shows virtual text inline with color.
+        {virtualtext_mode}      ("background"|"foreground")                Mode for virtual text display.
+        {always_update}         (boolean)                                  Always update color values, even if buffer is not focused.
+        {hooks}                 (colorizer.Hooks)                          Table of hook functions
+        {xterm}                 (boolean)                                  Enables xterm 256-color codes (#xNN, \e[38;5;NNNm)
+        {suppress_deprecation}  (boolean)                                  When true, suppress the info message about the new options format. Default: false.
 
 
 colorizer.NamesOpts                                        *colorizer.NamesOpts*
@@ -540,13 +541,12 @@ colorizer.SetupOptions                                  *colorizer.SetupOptions*
      Use `options` (new format) or `user_default_options` (legacy format), not both.
 
     Fields: ~
-        {filetypes}                              (table|nil)                         File types to highlight. Use `"*"` for all. Supports `"!name"` exclusions and `name = {opts}` overrides.
-        {buftypes}                               (table|nil)                         Buffer types to highlight. Same format as filetypes.
-        {options}                                (colorizer.NewOptions|nil)          Structured options (recommended). See |colorizer.NewOptions|.
-        {user_default_options}                   (colorizer.UserDefaultOptions|nil)  Legacy flat options. Always supported.
-        {suppress_user_default_options_warning}  (boolean|nil)                       When true, suppress the info message about the new options format when using user_default_options.
-        {user_commands}                          (boolean|table)                     Enable all or specific user commands.
-        {lazy_load}                              (boolean)                           Lazily schedule buffer highlighting setup function.
+        {filetypes}             (table|nil)                         File types to highlight. Use `"*"` for all. Supports `"!name"` exclusions and `name = {opts}` overrides.
+        {buftypes}              (table|nil)                         Buffer types to highlight. Same format as filetypes.
+        {options}               (colorizer.NewOptions|nil)          Structured options (recommended). See |colorizer.NewOptions|.
+        {user_default_options}  (colorizer.UserDefaultOptions|nil)  Legacy flat options. Always supported.
+        {user_commands}         (boolean|table)                     Enable all or specific user commands.
+        {lazy_load}             (boolean)                           Lazily schedule buffer highlighting setup function.
 
 
 M.get_setup_options({opts})                 *colorizer.config.get_setup_options*
