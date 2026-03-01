@@ -30,6 +30,7 @@ jobs:
         run: scripts/gen_docs.sh
 
       - name: Create PR for vimdoc
+        id: cpr
         uses: peter-evans/create-pull-request@v7
         with:
           commit-message: "docs: auto-generate vimdoc"
@@ -37,6 +38,19 @@ jobs:
           body: "Auto-generated vimdoc update from `scripts/gen_docs.sh`."
           branch: docs/auto-generate-vimdoc
           add-paths: doc/colorizer.txt
+
+      - name: Auto-approve vimdoc PR
+        if: steps.cpr.outputs.pull-request-number != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.pulls.createReview({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: ${{ steps.cpr.outputs.pull-request-number }},
+              event: 'APPROVE',
+              body: 'Auto-approved: generated vimdoc update'
+            })
 
   html-docs:
     runs-on: ubuntu-latest

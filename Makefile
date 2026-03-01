@@ -23,6 +23,8 @@ help:
 	@echo "  make minimal-dev           - Run the minimal script (local)"
 	@echo "  make minimal-tailwind      - Run the minimal tailwind config (remote)"
 	@echo "  make minimal-tailwind-dev  - Run the minimal tailwind config (local)"
+	@echo "  make fmt               - Auto-format Lua files with StyLua"
+	@echo "  make fmt-check         - Check Lua formatting (no changes)"
 	@echo "  make docs              - Generate vimdoc and HTML docs"
 	@echo "  make docs-html         - Generate HTML docs only"
 	@echo "  make clean             - Remove test/colorizer_*"
@@ -63,6 +65,12 @@ clean:
 	@echo "Removing test/trie/"$(MINIMAL_TRIE)
 	@rm -rf test/trie/$(MINIMAL_TRIE)
 
+fmt:
+	@stylua lua/
+
+fmt-check:
+	@stylua --check lua/
+
 test:
 	@echo "Running tests..."
 	@bash $(TEST_SCRIPT)
@@ -78,4 +86,4 @@ docs-html:
 	@echo "Generating HTML docs..."
 	@bash $(SCRIPTS_DIR)/gen_html.sh
 
-.PHONY: help test test-file trie trie-test trie-benchmark minimal minimal-dev minimal-tailwind minimal-tailwind-dev clean docs docs-html
+.PHONY: help fmt fmt-check test test-file trie trie-test trie-benchmark minimal minimal-dev minimal-tailwind minimal-tailwind-dev clean docs docs-html
