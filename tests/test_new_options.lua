@@ -804,10 +804,22 @@ T["translate_options"]["translates all hex keys to false"] = function()
   local new = config.translate_options({
     RGB = false, RGBA = false, RRGGBB = false, RRGGBBAA = false, AARRGGBB = false,
   })
-  -- hex.enable should not be set since no hex key is true
   eq(nil, new.parsers.hex.enable)
   eq(false, new.parsers.hex.rgb)
   eq(false, new.parsers.hex.rrggbb)
+end
+
+T["translate_options"]["translates each legacy hex key to parsers.hex"] = function()
+  local new = config.translate_options({ RRGGBBAA = true, RRGGBB = true })
+  eq(true, new.parsers.hex.enable)
+  eq(true, new.parsers.hex.rrggbbaa)
+  eq(true, new.parsers.hex.rrggbb)
+end
+
+T["translate_options"]["translates AARRGGBB to parsers.hex.aarrggbb"] = function()
+  local new = config.translate_options({ AARRGGBB = true })
+  eq(true, new.parsers.hex.enable)
+  eq(true, new.parsers.hex.aarrggbb)
 end
 
 T["translate_options"]["translates virtualtext_inline after string"] = function()
@@ -1194,6 +1206,60 @@ T["resolve_options"]["preserves display settings"] = function()
   eq("foreground", result.display.mode)
 end
 
+-- Option interpretation: hex.enable = true (with no other hex keys) must enable
+-- all hex formats (master switch). Would have caught the bug where #ffffffff
+-- was not highlighted with options = { parsers = { hex = { enable = true } } }.
+T["resolve_options"]["hex enable true alone enables all hex formats"] = function()
+  local result = config.resolve_options({ parsers = { hex = { enable = true } } })
+  eq(true, result.parsers.hex.enable)
+  eq(true, result.parsers.hex.rgb)
+  eq(true, result.parsers.hex.rgba)
+  eq(true, result.parsers.hex.rrggbb)
+  eq(true, result.parsers.hex.rrggbbaa)
+  eq(true, result.parsers.hex.aarrggbb)
+end
+
+T["resolve_options"]["hex enable true with explicit rrggbbaa false keeps rrggbbaa false"] = function()
+  local result = config.resolve_options({
+    parsers = { hex = { enable = true, rrggbbaa = false } },
+  })
+  eq(true, result.parsers.hex.enable)
+  eq(false, result.parsers.hex.rrggbbaa)
+  eq(true, result.parsers.hex.rrggbb)
+end
+
+T["resolve_options"]["hex enable true with explicit aarrggbb false keeps aarrggbb false"] = function()
+  local result = config.resolve_options({
+    parsers = { hex = { enable = true, aarrggbb = false } },
+  })
+  eq(true, result.parsers.hex.enable)
+  eq(false, result.parsers.hex.aarrggbb)
+  eq(true, result.parsers.hex.rgb)
+end
+
+T["resolve_options"]["hex enable false alone disables all hex formats"] = function()
+  local result = config.resolve_options({ parsers = { hex = { enable = false } } })
+  eq(false, result.parsers.hex.enable)
+  eq(false, result.parsers.hex.rgb)
+  eq(false, result.parsers.hex.rgba)
+  eq(false, result.parsers.hex.rrggbb)
+  eq(false, result.parsers.hex.rrggbbaa)
+  eq(false, result.parsers.hex.aarrggbb)
+end
+
+T["resolve_options"]["hex enable false with explicit rrggbb true keeps rrggbb true"] = function()
+  local result = config.resolve_options({
+    parsers = { hex = { enable = false, rrggbb = true } },
+  })
+  eq(false, result.parsers.hex.enable)
+  eq(true, result.parsers.hex.rrggbb)
+  -- All others should be false (expanded from enable = false)
+  eq(false, result.parsers.hex.rgb)
+  eq(false, result.parsers.hex.rgba)
+  eq(false, result.parsers.hex.rrggbbaa)
+  eq(false, result.parsers.hex.aarrggbb)
+end
+
 -- expand_sass_parsers -------------------------------------------------------
 
 T["expand_sass_parsers"] = new_set()
@@ -1457,6 +1523,33 @@ T["matcher hex formats"]["finds 0xAARRGGBB when enabled"] = function()
   eq(true, len ~= nil)
 end
 
+T["matcher hex formats"]["resolve_options hex enable true parses #RRGGBBAA"] = function()
+  local opts = config.resolve_options({ parsers = { hex = { enable = true } } })
+  local parse_fn = matcher.make(opts)
+  eq("function", type(parse_fn))
+  local len, hex = parse_fn("#ffffffff text", 1)
+  eq(true, len ~= nil)
+  eq(9, len)
+  eq(true, hex ~= nil)
+end
+
+T["matcher hex formats"]["resolve_options hex enable true parses 0xAARRGGBB"] = function()
+  local opts = config.resolve_options({ parsers = { hex = { enable = true } } })
+  local parse_fn = matcher.make(opts)
+  local len, hex = parse_fn("0x80FF0000 text", 1)
+  eq(true, len ~= nil)
+  eq(10, len)
+  eq(true, hex ~= nil)
+end
+
+T["matcher hex formats"]["resolve_options hex enable true parses #RGB"] = function()
+  local opts = config.resolve_options({ parsers = { hex = { enable = true } } })
+  local parse_fn = matcher.make(opts)
+  local len, hex = parse_fn("#F00 rest", 1)
+  eq(4, len)
+  eq("ff0000", hex)
+end
+
 T["matcher hex formats"]["does not find disabled formats"] = function()
   local opts = vim.deepcopy(config.default_options)
   opts.parsers.hex.enable = true
@@ -1547,6 +1640,375 @@ T["parse_lines"]["mixed color formats"] = function()
   eq("00ff00", data[0][2].rgb_hex)
 end
 
+T["parse_lines"]["hex enable true alone parses #RRGGBBAA"] = function()
+  local opts = config.resolve_options({ parsers = { hex = { enable = true } } })
+  local data = buffer.parse_lines(0, { "#ffffffff" }, 0, opts)
+  eq(true, data ~= nil)
+  eq(true, data[0] ~= nil)
+  eq(1, #data[0])
+  eq("ffffff", data[0][1].rgb_hex:lower())
+end
+
+-- Legacy resolve_options interpretation --------------------------------------
+
+T["resolve_options legacy"] = new_set()
+
+T["resolve_options legacy"]["legacy RRGGBBAA true enables rrggbbaa after resolve"] = function()
+  local result = config.resolve_options({ RRGGBBAA = true, RRGGBB = true })
+  eq(true, result.parsers.hex.enable)
+  eq(true, result.parsers.hex.rrggbbaa)
+  eq(true, result.parsers.hex.rrggbb)
+end
+
+T["resolve_options legacy"]["legacy AARRGGBB true enables aarrggbb after resolve"] = function()
+  local result = config.resolve_options({ AARRGGBB = true })
+  eq(true, result.parsers.hex.enable)
+  eq(true, result.parsers.hex.aarrggbb)
+end
+
+T["resolve_options legacy"]["legacy RGB RRGGBB RRGGBBAA all true after resolve"] = function()
+  local result = config.resolve_options({ RGB = true, RRGGBB = true, RRGGBBAA = true })
+  eq(true, result.parsers.hex.enable)
+  eq(true, result.parsers.hex.rgb)
+  eq(true, result.parsers.hex.rrggbb)
+  eq(true, result.parsers.hex.rrggbbaa)
+end
+
+T["resolve_options legacy"]["legacy all hex false disables hex"] = function()
+  local result = config.resolve_options({
+    RGB = false, RGBA = false, RRGGBB = false, RRGGBBAA = false, AARRGGBB = false,
+  })
+  -- enable stays at default (false) since no hex key was true
+  eq(false, result.parsers.hex.enable)
+  eq(false, result.parsers.hex.rgb)
+  eq(false, result.parsers.hex.rrggbb)
+end
+
+T["resolve_options legacy"]["legacy css true enables hex formats via preset"] = function()
+  local result = config.resolve_options({ css = true })
+  eq(true, result.parsers.hex.enable)
+  eq(true, result.parsers.names.enable)
+  eq(true, result.parsers.rgb.enable)
+  eq(true, result.parsers.hsl.enable)
+end
+
+T["resolve_options legacy"]["legacy css_fn true enables functions but not hex"] = function()
+  local result = config.resolve_options({ css_fn = true })
+  eq(true, result.parsers.rgb.enable)
+  eq(true, result.parsers.hsl.enable)
+  eq(true, result.parsers.oklch.enable)
+  -- hex should be at defaults (enable=false)
+  eq(false, result.parsers.hex.enable)
+end
+
+T["resolve_options legacy"]["legacy tailwind both enables enable and lsp"] = function()
+  local result = config.resolve_options({ tailwind = "both" })
+  eq(true, result.parsers.tailwind.enable)
+  eq(true, result.parsers.tailwind.lsp)
+end
+
+T["resolve_options legacy"]["legacy tailwind normal enables enable only"] = function()
+  local result = config.resolve_options({ tailwind = "normal" })
+  eq(true, result.parsers.tailwind.enable)
+  eq(false, result.parsers.tailwind.lsp)
+end
+
+T["resolve_options legacy"]["legacy tailwind lsp enables lsp only"] = function()
+  local result = config.resolve_options({ tailwind = "lsp" })
+  eq(false, result.parsers.tailwind.enable)
+  eq(true, result.parsers.tailwind.lsp)
+end
+
+T["resolve_options legacy"]["legacy sass false disables sass"] = function()
+  local result = config.resolve_options({ sass = false })
+  eq(false, result.parsers.sass.enable)
+end
+
+T["resolve_options legacy"]["legacy always_update preserved"] = function()
+  local result = config.resolve_options({ always_update = true, RRGGBB = true })
+  eq(true, result.always_update)
+end
+
+T["resolve_options legacy"]["legacy xterm true enables xterm"] = function()
+  local result = config.resolve_options({ xterm = true })
+  eq(true, result.parsers.xterm.enable)
+end
+
+-- expand_hex_enable edge cases -----------------------------------------------
+
+T["resolve_options"]["hex enable false expands unset formats to false"] = function()
+  local result = config.resolve_options({
+    parsers = { hex = { enable = false, rrggbb = true } },
+  })
+  eq(false, result.parsers.hex.enable)
+  eq(true, result.parsers.hex.rrggbb) -- explicit override preserved
+  -- Unset formats default to false from enable = false
+  eq(false, result.parsers.hex.rgb)
+  eq(false, result.parsers.hex.rgba)
+  eq(false, result.parsers.hex.rrggbbaa)
+  eq(false, result.parsers.hex.aarrggbb)
+end
+
+T["resolve_options"]["hex without enable key uses defaults"] = function()
+  local result = config.resolve_options({
+    parsers = { hex = { rrggbb = true, rrggbbaa = true } },
+  })
+  -- enable comes from default (false)
+  eq(false, result.parsers.hex.enable)
+  eq(true, result.parsers.hex.rrggbb)
+  eq(true, result.parsers.hex.rrggbbaa)
+end
+
+T["resolve_options"]["hex enable true does not add spurious keys"] = function()
+  local result = config.resolve_options({ parsers = { hex = { enable = true } } })
+  -- Only valid keys should exist
+  eq(nil, result.parsers.hex.hash_aarrggbb)
+  eq(nil, result.parsers.hex.no_hash)
+end
+
+-- resolve_options edge cases -------------------------------------------------
+
+T["resolve_options"]["nil returns copy of defaults"] = function()
+  local result = config.resolve_options(nil)
+  eq(false, result.parsers.hex.enable)
+  eq(false, result.parsers.names.enable)
+  eq("background", result.display.mode)
+end
+
+T["resolve_options"]["empty table returns defaults"] = function()
+  local result = config.resolve_options({})
+  eq(false, result.parsers.hex.enable)
+  eq("background", result.display.mode)
+end
+
+-- as_flat tests --------------------------------------------------------------
+
+T["as_flat"] = new_set()
+
+T["as_flat"]["tailwind both encodes as both"] = function()
+  local opts = vim.deepcopy(config.default_options)
+  opts.parsers.tailwind.enable = true
+  opts.parsers.tailwind.lsp = true
+  local flat = config.as_flat(opts)
+  eq("both", flat.tailwind)
+end
+
+T["as_flat"]["tailwind enable only encodes as normal"] = function()
+  local opts = vim.deepcopy(config.default_options)
+  opts.parsers.tailwind.enable = true
+  opts.parsers.tailwind.lsp = false
+  local flat = config.as_flat(opts)
+  eq("normal", flat.tailwind)
+end
+
+T["as_flat"]["tailwind lsp only encodes as lsp"] = function()
+  local opts = vim.deepcopy(config.default_options)
+  opts.parsers.tailwind.enable = false
+  opts.parsers.tailwind.lsp = true
+  local flat = config.as_flat(opts)
+  eq("lsp", flat.tailwind)
+end
+
+T["as_flat"]["tailwind disabled encodes as false"] = function()
+  local opts = vim.deepcopy(config.default_options)
+  opts.parsers.tailwind.enable = false
+  opts.parsers.tailwind.lsp = false
+  local flat = config.as_flat(opts)
+  eq(false, flat.tailwind)
+end
+
+T["as_flat"]["hex ANDs enable with individual flags"] = function()
+  local opts = vim.deepcopy(config.default_options)
+  opts.parsers.hex.enable = false
+  opts.parsers.hex.rrggbb = true
+  local flat = config.as_flat(opts)
+  eq(false, flat.RRGGBB) -- enable=false gates everything
+end
+
+T["as_flat"]["virtualtext eol encodes as inline false"] = function()
+  local opts = vim.deepcopy(config.default_options)
+  opts.display.virtualtext.position = "eol"
+  local flat = config.as_flat(opts)
+  eq(false, flat.virtualtext_inline)
+end
+
+T["as_flat"]["virtualtext before encodes as inline before"] = function()
+  local opts = vim.deepcopy(config.default_options)
+  opts.display.virtualtext.position = "before"
+  local flat = config.as_flat(opts)
+  eq("before", flat.virtualtext_inline)
+end
+
+T["as_flat"]["virtualtext after encodes as inline after"] = function()
+  local opts = vim.deepcopy(config.default_options)
+  opts.display.virtualtext.position = "after"
+  local flat = config.as_flat(opts)
+  eq("after", flat.virtualtext_inline)
+end
+
+-- validate_new_options tests -------------------------------------------------
+
+T["validate_new_options"] = new_set()
+
+T["validate_new_options"]["invalid display mode resets to default"] = function()
+  local opts = vim.deepcopy(config.default_options)
+  opts.display.mode = "invalid_mode"
+  config.validate_new_options(opts)
+  eq("background", opts.display.mode)
+end
+
+T["validate_new_options"]["invalid virtualtext position resets to default"] = function()
+  local opts = vim.deepcopy(config.default_options)
+  opts.display.virtualtext.position = "invalid"
+  config.validate_new_options(opts)
+  eq("eol", opts.display.virtualtext.position)
+end
+
+T["validate_new_options"]["invalid virtualtext hl_mode resets to default"] = function()
+  local opts = vim.deepcopy(config.default_options)
+  opts.display.virtualtext.hl_mode = "invalid"
+  config.validate_new_options(opts)
+  eq("foreground", opts.display.virtualtext.hl_mode)
+end
+
+T["validate_new_options"]["non-boolean tailwind lsp resets to default"] = function()
+  local opts = vim.deepcopy(config.default_options)
+  opts.parsers.tailwind.lsp = "yes"
+  config.validate_new_options(opts)
+  eq(false, opts.parsers.tailwind.lsp)
+end
+
+T["validate_new_options"]["empty names custom table set to false"] = function()
+  local opts = vim.deepcopy(config.default_options)
+  opts.parsers.names.custom = {}
+  config.validate_new_options(opts)
+  eq(false, opts.parsers.names.custom)
+end
+
+T["validate_new_options"]["names custom function is called and hashed"] = function()
+  local opts = vim.deepcopy(config.default_options)
+  opts.parsers.names.custom = function()
+    return { my_red = "#ff0000" }
+  end
+  config.validate_new_options(opts)
+  eq(false, opts.parsers.names.custom)
+  eq(true, opts.parsers.names.custom_hashed ~= nil)
+  eq("#ff0000", opts.parsers.names.custom_hashed.names.my_red)
+end
+
+T["validate_new_options"]["non-function hook resets to false"] = function()
+  local opts = vim.deepcopy(config.default_options)
+  opts.hooks.should_highlight_line = "not_a_function"
+  config.validate_new_options(opts)
+  eq(false, opts.hooks.should_highlight_line)
+end
+
+-- translate_options additional cases -----------------------------------------
+
+T["translate_options"]["translates tailwind both"] = function()
+  local new = config.translate_options({ tailwind = "both" })
+  eq(true, new.parsers.tailwind.enable)
+  eq(true, new.parsers.tailwind.lsp)
+end
+
+T["translate_options"]["translates tailwind normal"] = function()
+  local new = config.translate_options({ tailwind = "normal" })
+  eq(true, new.parsers.tailwind.enable)
+end
+
+T["translate_options"]["translates tailwind_opts update_names"] = function()
+  local new = config.translate_options({ tailwind = true, tailwind_opts = { update_names = true } })
+  eq(true, new.parsers.tailwind.update_names)
+end
+
+T["translate_options"]["translates sass false"] = function()
+  local new = config.translate_options({ sass = false })
+  eq(false, new.parsers.sass.enable)
+end
+
+T["translate_options"]["translates sass with parsers"] = function()
+  local new = config.translate_options({ sass = { enable = true, parsers = { css = true } } })
+  eq(true, new.parsers.sass.enable)
+  eq(true, new.parsers.sass.parsers.css)
+end
+
+T["translate_options"]["translates xterm true"] = function()
+  local new = config.translate_options({ xterm = true })
+  eq(true, new.parsers.xterm.enable)
+end
+
+T["translate_options"]["translates xterm false"] = function()
+  local new = config.translate_options({ xterm = false })
+  eq(false, new.parsers.xterm.enable)
+end
+
+T["translate_options"]["translates always_update"] = function()
+  local new = config.translate_options({ always_update = true })
+  eq(true, new.always_update)
+end
+
+T["translate_options"]["translates names_opts keys"] = function()
+  local new = config.translate_options({
+    names = true,
+    names_opts = { uppercase = true, strip_digits = true },
+  })
+  eq(true, new.parsers.names.enable)
+  eq(true, new.parsers.names.uppercase)
+  eq(true, new.parsers.names.strip_digits)
+end
+
+T["translate_options"]["translates names_custom table"] = function()
+  local new = config.translate_options({ names = true, names_custom = { my_red = "#ff0000" } })
+  eq(true, new.parsers.names.enable)
+  eq("#ff0000", new.parsers.names.custom.my_red)
+end
+
+-- translate_filetypes -------------------------------------------------------
+
+T["translate_filetypes"] = new_set()
+
+T["translate_filetypes"]["nil returns empty structure"] = function()
+  local new = config.translate_filetypes(nil)
+  eq(0, #new.enable)
+  eq(0, #new.exclude)
+end
+
+T["translate_filetypes"]["plain list goes to enable"] = function()
+  local new = config.translate_filetypes({ "lua", "vim" })
+  eq(2, #new.enable)
+  eq("lua", new.enable[1])
+  eq("vim", new.enable[2])
+  eq(0, #new.exclude)
+end
+
+T["translate_filetypes"]["bang prefix goes to exclude"] = function()
+  local new = config.translate_filetypes({ "*", "!markdown" })
+  eq(1, #new.enable)
+  eq("*", new.enable[1])
+  eq(1, #new.exclude)
+  eq("markdown", new.exclude[1])
+end
+
+T["translate_filetypes"]["already new format passed through"] = function()
+  local input = { enable = { "lua" }, exclude = { "md" }, overrides = {} }
+  local new = config.translate_filetypes(input)
+  eq("lua", new.enable[1])
+  eq("md", new.exclude[1])
+end
+
+T["translate_filetypes"]["mixed format with overrides"] = function()
+  local new = config.translate_filetypes({
+    "*",
+    "!markdown",
+    css = { RRGGBB = true },
+  })
+  eq(1, #new.enable)
+  eq("*", new.enable[1])
+  eq(1, #new.exclude)
+  eq("markdown", new.exclude[1])
+  eq(true, new.overrides.css.parsers.hex.rrggbb)
+end
+
 -- Roundtrip: new -> flat -> resolve -----------------------------------------
 
 T["roundtrip"] = new_set()
@@ -1598,6 +2060,42 @@ T["roundtrip"]["new -> flat -> resolve preserves tailwind"] = function()
   eq(true, restored.parsers.tailwind.enable)
   eq(true, restored.parsers.tailwind.lsp)
   eq(true, restored.parsers.tailwind.update_names)
+end
+
+T["roundtrip"]["new -> flat -> resolve preserves disabled parsers"] = function()
+  local original = vim.deepcopy(config.default_options)
+  -- Everything disabled is the default; verify it stays disabled
+  local flat = config.as_flat(original)
+  local restored = config.resolve_options(flat)
+
+  eq(false, restored.parsers.hex.enable)
+  eq(false, restored.parsers.names.enable)
+  eq(false, restored.parsers.rgb.enable)
+  eq(false, restored.parsers.tailwind.enable)
+end
+
+T["roundtrip"]["new -> flat -> resolve preserves always_update"] = function()
+  local original = vim.deepcopy(config.default_options)
+  original.always_update = true
+  local flat = config.as_flat(original)
+  local restored = config.resolve_options(flat)
+  eq(true, restored.always_update)
+end
+
+T["roundtrip"]["new -> flat -> resolve preserves xterm"] = function()
+  local original = vim.deepcopy(config.default_options)
+  original.parsers.xterm.enable = true
+  local flat = config.as_flat(original)
+  local restored = config.resolve_options(flat)
+  eq(true, restored.parsers.xterm.enable)
+end
+
+T["roundtrip"]["new -> flat -> resolve preserves sass"] = function()
+  local original = vim.deepcopy(config.default_options)
+  original.parsers.sass.enable = true
+  local flat = config.as_flat(original)
+  local restored = config.resolve_options(flat)
+  eq(true, restored.parsers.sass.enable)
 end
 
 -- display.background options --------------------------------------------------

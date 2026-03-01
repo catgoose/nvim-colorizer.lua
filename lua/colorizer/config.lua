@@ -146,7 +146,7 @@ local plugin_user_default_options = {
 ---@field custom table|function|false Custom name-to-RGB mappings. Table of `{name = "#rrggbb"}` or function returning one.
 
 ---@class colorizer.ParsersHex
----@field enable boolean Master switch for all hex formats
+---@field enable boolean Master default for format keys. `true` enables all unset formats; `false` disables all unset formats. Explicit format keys always override.
 ---@field rgb boolean #RGB (3-digit)
 ---@field rgba boolean #RGBA (4-digit)
 ---@field rrggbb boolean #RRGGBB (6-digit)
@@ -620,6 +620,29 @@ function M.translate_filetypes(old_ft)
   return new
 end
 
+local hex_format_keys = { "rgb", "rgba", "rrggbb", "rrggbbaa", "aarrggbb" }
+
+--- Expand hex.enable into individual format defaults.
+--- `enable` acts as the default for any format key the user didn't set:
+---   enable = true  → unset formats default to true  (enable everything)
+---   enable = false → unset formats default to false (disable everything)
+--- Explicit format keys always override: { enable = true, rrggbbaa = false }
+--- keeps rrggbbaa disabled while enabling the rest.
+--- Operates on the user's raw options BEFORE merging with defaults.
+---@param user_parsers table|nil The user's raw parsers config
+local function expand_hex_enable(user_parsers)
+  if not user_parsers or not user_parsers.hex or user_parsers.hex.enable == nil then
+    return
+  end
+  local hex = user_parsers.hex
+  local default = hex.enable
+  for _, key in ipairs(hex_format_keys) do
+    if hex[key] == nil then
+      hex[key] = default
+    end
+  end
+end
+
 --- Apply preset expansions to user-provided parsers config.
 -- Expands css/css_fn presets into individual parser enables, but only
 -- for parsers that the user hasn't explicitly configured.
@@ -846,9 +869,9 @@ function M.resolve_options(opts)
 
   -- New format (has parsers, display, hooks, or always_update)
   if has_new_format_keys(opts) then
-    -- Work on a copy to avoid mutating the caller's table via apply_presets
     opts = vim.deepcopy(opts)
     if opts.parsers then
+      expand_hex_enable(opts.parsers)
       M.apply_presets(opts.parsers)
     end
     local merged = vim.tbl_deep_extend("force", vim.deepcopy(default_options), opts)

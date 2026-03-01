@@ -82,6 +82,33 @@ require("colorizer").setup({
 })
 ```
 
+## Parser options
+
+### Hex `enable` key
+
+The `enable` key in `parsers.hex` serves as the **master default** for all
+format keys (`rgb`, `rgba`, `rrggbb`, `rrggbbaa`, `aarrggbb`). Any format key
+you don't set explicitly inherits from `enable`. Keys you set explicitly always
+take priority.
+
+```lua
+-- Enable all hex formats
+hex = { enable = true }
+
+-- Enable all hex formats except 8-digit (#RRGGBBAA)
+hex = { enable = true, rrggbbaa = false }
+
+-- Disable all hex formats
+hex = { enable = false }
+
+-- Only enable 6-digit hex
+hex = { enable = false, rrggbb = true }
+```
+
+> **Note:** Other parsers (`names`, `tailwind`, `sass`) use `enable` as a
+> simple on/off switch. The master-default behavior is unique to `hex` because
+> it is the only parser with multiple boolean format sub-keys.
+
 ## Default configuration
 
 ```lua
@@ -103,7 +130,7 @@ require("colorizer").setup({
         custom = false, -- table|function|false
       },
       hex = {
-        enable = false, -- master switch for all hex formats
+        enable = false, -- master default for format keys (see below)
         rgb = true, -- #RGB
         rgba = true, -- #RGBA
         rrggbb = true, -- #RRGGBB
