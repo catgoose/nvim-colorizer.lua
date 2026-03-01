@@ -54,13 +54,13 @@ local function is_parser_enabled(spec, opts)
   local p = opts.parsers
 
   if spec.name == "rgba_hex" then
-    -- Controlled by hex.* composite config
-    if not (p.hex and p.hex.enable) then
+    -- Controlled by hex.* format keys directly
+    if not p.hex then
       return false
     end
     return p.hex.rgb or p.hex.rgba or p.hex.rrggbb or p.hex.rrggbbaa or false
   elseif spec.name == "argb_hex" then
-    return p.hex and p.hex.enable and p.hex.aarrggbb or false
+    return p.hex and p.hex.aarrggbb or false
   elseif spec.name == "names" then
     local tw = p.tailwind
     local tailwind_names = tw and tw.enable
@@ -369,11 +369,11 @@ local function read_parser_flags(opts)
     sass = p.sass and p.sass.enable,
     tailwind_enable = tw.enable or false,
     tailwind_lsp = tw.lsp or false,
-    RGB = hex.enable and hex.rgb,
-    RGBA = hex.enable and hex.rgba,
-    RRGGBB = hex.enable and hex.rrggbb,
-    RRGGBBAA = hex.enable and hex.rrggbbaa,
-    AARRGGBB = hex.enable and hex.aarrggbb,
+    RGB = hex.rgb,
+    RGBA = hex.rgba,
+    RRGGBB = hex.rrggbb,
+    RRGGBBAA = hex.rrggbbaa,
+    AARRGGBB = hex.aarrggbb,
     rgb = p.rgb and p.rgb.enable,
     hsl = p.hsl and p.hsl.enable,
     oklch = p.oklch and p.oklch.enable,
