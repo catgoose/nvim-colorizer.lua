@@ -285,7 +285,7 @@ colorizer.ParsersNames                                  *colorizer.ParsersNames*
 colorizer.ParsersHex                                      *colorizer.ParsersHex*
 
     Fields: ~
-        {enable}    (boolean)  Master switch for all hex formats
+        {default}   (boolean)  Default value for unset format keys. `true` defaults unset formats to enabled; `false` defaults them to disabled. Explicit format keys always override.
         {rgb}       (boolean)  #RGB (3-digit)
         {rgba}      (boolean)  #RGBA (4-digit)
         {rrggbb}    (boolean)  #RRGGBB (6-digit)
