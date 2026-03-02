@@ -1,10 +1,12 @@
-name: Documentation
-
+name: Release
 on:
   push:
-    branches: ["master"]
-
+    branches: [master]
   workflow_dispatch:
+
+concurrency:
+  group: release
+  cancel-in-progress: true
 
 permissions:
   contents: write
@@ -13,11 +15,51 @@ permissions:
   id-token: write
 
 jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install StyLua
+        run: |
+          STYLUA_VERSION="v2.0.2"
+          curl -fsSL "https://github.com/JohnnyMorganz/StyLua/releases/download/${STYLUA_VERSION}/stylua-linux-x86_64.zip" \
+            -o stylua.zip
+          unzip stylua.zip -d /usr/local/bin
+          chmod +x /usr/local/bin/stylua
+      - name: Run StyLua
+        run: stylua lua/
+      - name: Create PR for formatting
+        id: cpr
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "style: auto-format with StyLua"
+          title: "style: auto-format with StyLua"
+          body: "Auto-formatted Lua files with StyLua."
+          branch: style/auto-format
+          add-paths: lua/
+      - name: Auto-approve format PR
+        if: steps.cpr.outputs.pull-request-number != ''
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.APPROVE_PAT }}
+          script: |
+            github.rest.pulls.createReview({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: ${{ steps.cpr.outputs.pull-request-number }},
+              event: 'APPROVE',
+              body: 'Auto-approved: StyLua formatting'
+            })
+      - name: Enable auto-merge
+        if: steps.cpr.outputs.pull-request-number != ''
+        run: gh pr merge --auto --squash ${{ steps.cpr.outputs.pull-request-number }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   vimdoc:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Install lemmy-help
         run: |
           mkdir -p deps
@@ -25,10 +67,8 @@ jobs:
           curl -fsSL "https://github.com/numToStr/lemmy-help/releases/download/${LEMMY_VERSION}/lemmy-help-x86_64-unknown-linux-gnu.tar.gz" \
             | tar xz -C deps/
           chmod +x deps/lemmy-help
-
       - name: Generate vimdoc
         run: scripts/gen_docs.sh
-
       - name: Create PR for vimdoc
         id: cpr
         uses: peter-evans/create-pull-request@v7
@@ -38,11 +78,11 @@ jobs:
           body: "Auto-generated vimdoc update from `scripts/gen_docs.sh`."
           branch: docs/auto-generate-vimdoc
           add-paths: doc/colorizer.txt
-
       - name: Auto-approve vimdoc PR
         if: steps.cpr.outputs.pull-request-number != ''
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.APPROVE_PAT }}
           script: |
             github.rest.pulls.createReview({
               owner: context.repo.owner,
@@ -51,8 +91,13 @@ jobs:
               event: 'APPROVE',
               body: 'Auto-approved: generated vimdoc update'
             })
+      - name: Enable auto-merge
+        if: steps.cpr.outputs.pull-request-number != ''
+        run: gh pr merge --auto --squash ${{ steps.cpr.outputs.pull-request-number }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  html-docs:
+  pages:
     runs-on: ubuntu-latest
     needs: vimdoc
     environment:
@@ -60,24 +105,19 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-
       - name: Install Lua and LDoc
         run: |
           sudo apt-get update
           sudo apt-get install -y lua5.4 luarocks
           sudo luarocks install ldoc
-
       - name: Generate HTML docs
         run: scripts/gen_html.sh
-
       - name: Setup Pages
         uses: actions/configure-pages@v4
-
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: doc/html
-
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

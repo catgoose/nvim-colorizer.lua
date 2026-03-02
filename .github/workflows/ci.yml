@@ -1,11 +1,11 @@
-name: Tests
+name: CI
 on:
   push:
     branches: [master]
   pull_request:
     branches: [master]
 jobs:
-  tests:
+  test:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
