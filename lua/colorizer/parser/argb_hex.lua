@@ -59,7 +59,8 @@ function M.parser(line, i)
   -- Parse the color components based on the detected length
   if length == 10 then -- 0xAARRGGBB
     alpha = band(rshift(v, 24), 0xFF) / 255 -- Extract and normalize the alpha value
-    r, g, b = color.apply_alpha(band(rshift(v, 16), 0xFF), band(rshift(v, 8), 0xFF), band(v, 0xFF), alpha)
+    r, g, b =
+      color.apply_alpha(band(rshift(v, 16), 0xFF), band(rshift(v, 8), 0xFF), band(v, 0xFF), alpha)
   elseif length == 8 then -- 0xRRGGBB
     r = band(rshift(v, 16), 0xFF) -- Extract red
     g = band(rshift(v, 8), 0xFF) -- Extract green

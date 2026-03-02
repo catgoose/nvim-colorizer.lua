@@ -40,7 +40,8 @@ local function create_highlight(rgb_hex, mode, bg_opts)
   rgb_hex = rgb_hex:lower()
   local bright_fg = bg_opts and bg_opts.bright_fg or "#000000"
   local dark_fg = bg_opts and bg_opts.dark_fg or "#ffffff"
-  local cache_key = table.concat({ const.highlight_mode_names[mode], rgb_hex, bright_fg, dark_fg }, "_")
+  local cache_key =
+    table.concat({ const.highlight_mode_names[mode], rgb_hex, bright_fg, dark_fg }, "_")
   local highlight_name = hl_state.cache[cache_key]
 
   -- Look up in our cache.
@@ -102,7 +103,8 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, opts, hl_opts
   local d = opts.display
   local prio = d.priority or {}
   local hl_prio = vim.hl and vim.hl.priorities or {}
-  local priority = hl_opts.tailwind_lsp and (prio.lsp or hl_prio.user or 200) or (prio.default or hl_prio.diagnostics or 150)
+  local priority = hl_opts.tailwind_lsp and (prio.lsp or hl_prio.user or 200)
+    or (prio.default or hl_prio.diagnostics or 150)
   local bg_opts = d.background
   local tw = opts.parsers.tailwind or {}
 
@@ -206,15 +208,7 @@ function M.highlight(bufnr, ns_id, line_start, line_end, opts, buf_local_opts)
     table.insert(detach.functions, sass.cleanup)
 
     local sass_matcher_opts = config.expand_sass_parsers(sass_cfg.parsers)
-    sass.update_variables(
-      bufnr,
-      0,
-      -1,
-      nil,
-      matcher.make(sass_matcher_opts),
-      opts,
-      buf_local_opts
-    )
+    sass.update_variables(bufnr, 0, -1, nil, matcher.make(sass_matcher_opts), opts, buf_local_opts)
   end
 
   -- Parse lines from matcher

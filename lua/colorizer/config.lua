@@ -369,13 +369,27 @@ end
 
 -- Keys that indicate legacy (old flat) format
 local legacy_keys = {
-  "RGB", "RGBA", "RRGGBB", "RRGGBBAA", "AARRGGBB",
-  "rgb_fn", "hsl_fn", "oklch_fn",
-  "names", "names_opts", "names_custom",
-  "css", "css_fn",
-  "tailwind", "tailwind_opts",
-  "sass", "xterm",
-  "mode", "virtualtext", "virtualtext_inline", "virtualtext_mode",
+  "RGB",
+  "RGBA",
+  "RRGGBB",
+  "RRGGBBAA",
+  "AARRGGBB",
+  "rgb_fn",
+  "hsl_fn",
+  "oklch_fn",
+  "names",
+  "names_opts",
+  "names_custom",
+  "css",
+  "css_fn",
+  "tailwind",
+  "tailwind_opts",
+  "sass",
+  "xterm",
+  "mode",
+  "virtualtext",
+  "virtualtext_inline",
+  "virtualtext_mode",
   "always_update",
 }
 
@@ -402,7 +416,12 @@ function M.translate_options(old_opts)
   local new = { parsers = {} }
 
   -- parsers.names
-  if old_opts.names ~= nil or old_opts.names_opts or old_opts.names_custom ~= nil or old_opts.names_custom_hashed then
+  if
+    old_opts.names ~= nil
+    or old_opts.names_opts
+    or old_opts.names_custom ~= nil
+    or old_opts.names_custom_hashed
+  then
     new.parsers.names = {}
     if old_opts.names ~= nil then
       new.parsers.names.enable = old_opts.names
@@ -422,7 +441,8 @@ function M.translate_options(old_opts)
   end
 
   -- parsers.hex
-  local hex_keys = { RGB = "rgb", RGBA = "rgba", RRGGBB = "rrggbb", RRGGBBAA = "rrggbbaa", AARRGGBB = "aarrggbb" }
+  local hex_keys =
+    { RGB = "rgb", RGBA = "rgba", RRGGBB = "rrggbb", RRGGBBAA = "rrggbbaa", AARRGGBB = "aarrggbb" }
   local has_hex = false
   for old_key, new_key in pairs(hex_keys) do
     if old_opts[old_key] ~= nil then
@@ -501,13 +521,21 @@ function M.translate_options(old_opts)
   end
 
   -- Display
-  if old_opts.mode ~= nil or old_opts.virtualtext ~= nil
-      or old_opts.virtualtext_inline ~= nil or old_opts.virtualtext_mode ~= nil then
+  if
+    old_opts.mode ~= nil
+    or old_opts.virtualtext ~= nil
+    or old_opts.virtualtext_inline ~= nil
+    or old_opts.virtualtext_mode ~= nil
+  then
     new.display = {}
     if old_opts.mode ~= nil then
       new.display.mode = old_opts.mode
     end
-    if old_opts.virtualtext ~= nil or old_opts.virtualtext_inline ~= nil or old_opts.virtualtext_mode ~= nil then
+    if
+      old_opts.virtualtext ~= nil
+      or old_opts.virtualtext_inline ~= nil
+      or old_opts.virtualtext_mode ~= nil
+    then
       new.display.virtualtext = {}
       if old_opts.virtualtext ~= nil then
         new.display.virtualtext.char = old_opts.virtualtext
@@ -736,7 +764,12 @@ function M.validate_new_options(opts)
     if type(custom) == "function" then
       local status, custom_result = pcall(custom)
       if not (status and type(custom_result) == "table") then
-        error(string.format("Error in parsers.names.custom function: %s", custom_result or "Invalid return value"))
+        error(
+          string.format(
+            "Error in parsers.names.custom function: %s",
+            custom_result or "Invalid return value"
+          )
+        )
       end
       custom = custom_result
     end
@@ -760,8 +793,17 @@ function M.validate_new_options(opts)
   -- Validate custom parsers
   if opts.parsers.custom then
     for i, parser_def in ipairs(opts.parsers.custom) do
-      if type(parser_def) ~= "table" or not parser_def.name or type(parser_def.parse) ~= "function" then
-        error(string.format("Invalid custom parser at index %d: must have 'name' and 'parse' function", i))
+      if
+        type(parser_def) ~= "table"
+        or not parser_def.name
+        or type(parser_def.parse) ~= "function"
+      then
+        error(
+          string.format(
+            "Invalid custom parser at index %d: must have 'name' and 'parse' function",
+            i
+          )
+        )
       end
     end
   end
@@ -962,22 +1004,14 @@ local function validate_options(opts)
   if opts.virtualtext_inline ~= "before" and opts.virtualtext_inline ~= "after" then
     opts.virtualtext_inline = plugin_user_default_options.virtualtext_inline
   end
-  if
-    opts.mode ~= "background"
-    and opts.mode ~= "foreground"
-    and opts.mode ~= "virtualtext"
-  then
+  if opts.mode ~= "background" and opts.mode ~= "foreground" and opts.mode ~= "virtualtext" then
     opts.mode = plugin_user_default_options.mode
   end
   if opts.virtualtext_mode ~= "background" and opts.virtualtext_mode ~= "foreground" then
     opts.virtualtext_mode = plugin_user_default_options.virtualtext_mode
   end
   -- Set names_custom to false if it's an empty table
-  if
-    opts.names_custom
-    and type(opts.names_custom) == "table"
-    and not next(opts.names_custom)
-  then
+  if opts.names_custom and type(opts.names_custom) == "table" and not next(opts.names_custom) then
     opts.names_custom = false
   end
   -- Extract table if names_custom is a function

@@ -81,7 +81,8 @@ function M.parser(line, i, opts)
   elseif parsed_length == 9 then
     -- Handle #RRGGBBAA
     alpha = alpha / 255
-    local r, g, b = color.apply_alpha(band(rshift(v, 16), 0xFF), band(rshift(v, 8), 0xFF), band(v, 0xFF), alpha)
+    local r, g, b =
+      color.apply_alpha(band(rshift(v, 16), 0xFF), band(rshift(v, 8), 0xFF), band(v, 0xFF), alpha)
     return 9, utils.rgb_to_hex(r, g, b)
   end
 
