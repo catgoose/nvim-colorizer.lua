@@ -1763,11 +1763,10 @@ T["resolve_options"]["hex without enable key uses defaults"] = function()
   eq(true, result.parsers.hex.rrggbbaa)
 end
 
-T["resolve_options"]["hex default true does not add spurious keys"] = function()
+T["resolve_options"]["hex default true includes new hex keys as false"] = function()
   local result = config.resolve_options({ parsers = { hex = { enable = true } } })
-  -- Only valid keys should exist
-  eq(nil, result.parsers.hex.hash_aarrggbb)
-  eq(nil, result.parsers.hex.no_hash)
+  eq(false, result.parsers.hex.hash_aarrggbb)
+  eq(false, result.parsers.hex.no_hash)
 end
 
 -- resolve_options edge cases -------------------------------------------------

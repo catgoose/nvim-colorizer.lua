@@ -7,7 +7,7 @@ local M = {}
 
 local utils = require("colorizer.utils")
 
-local pattern = "^--([%w_-]+)%s*:%s*(%d+)%s*,%s*(%d+)%s*,%s*(%d+)%s*[;%s]*()"
+local pattern = "^%-%-([%w_-]+)%s*:%s*(%d+)%s*,%s*(%d+)%s*,%s*(%d+)%s*[;%s]*()"
 
 function M.parser(line, i, _)
   if #line < i + 9 then
