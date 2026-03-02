@@ -38,14 +38,16 @@ $LEMMY -f \
   "$PROJECT_DIR/lua/colorizer/utils.lua" \
   "$PROJECT_DIR/lua/colorizer/usercmds.lua" \
   "$PROJECT_DIR/lua/colorizer/trie.lua" \
-  "$PROJECT_DIR/lua/colorizer/sass.lua" \
   "$PROJECT_DIR/lua/colorizer/tailwind.lua" \
+  "$PROJECT_DIR/lua/colorizer/parser/init.lua" \
+  "$PROJECT_DIR/lua/colorizer/parser/registry.lua" \
   "$PROJECT_DIR/lua/colorizer/parser/argb_hex.lua" \
   "$PROJECT_DIR/lua/colorizer/parser/hsl.lua" \
   "$PROJECT_DIR/lua/colorizer/parser/names.lua" \
   "$PROJECT_DIR/lua/colorizer/parser/oklch.lua" \
   "$PROJECT_DIR/lua/colorizer/parser/rgb.lua" \
   "$PROJECT_DIR/lua/colorizer/parser/rgba_hex.lua" \
+  "$PROJECT_DIR/lua/colorizer/parser/sass.lua" \
   "$PROJECT_DIR/lua/colorizer/parser/xterm.lua" \
   >"$OUTPUT"
 

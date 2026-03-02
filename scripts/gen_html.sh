@@ -25,11 +25,15 @@ if [ -f "$ROOT_DIR/README.md" ]; then
 fi
 
 # Strip LuaCATS-only annotations that clash with LDoc
+# Convert @mod / @brief (lemmy-help) to plain LDoc descriptions
 find "$WORK_DIR/lua" -name '*.lua' -exec sed -i \
   -e '/^---@class/d' \
   -e '/^---@field/d' \
   -e '/^---@alias/d' \
   -e 's/ *---@cast.*//' \
+  -e 's/^---@mod [^ ]* \(.*\)/--- \1/' \
+  -e '/^---@mod/d' \
+  -e '/^---@brief/d' \
   {} +
 
 echo "Generating HTML docs with ldoc..."
