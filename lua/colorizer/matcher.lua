@@ -64,7 +64,10 @@ local function is_parser_enabled(spec, opts)
   elseif spec.name == "names" then
     local tw = p.tailwind
     local tailwind_names = tw and tw.enable
-    return (p.names and p.names.enable) or (p.names and p.names.custom_hashed) or tailwind_names or false
+    return (p.names and p.names.enable)
+      or (p.names and p.names.custom_hashed)
+      or tailwind_names
+      or false
   else
     local parser_opts = p[spec.name]
     if parser_opts and type(parser_opts) == "table" then
@@ -146,7 +149,8 @@ local function resolve_enabled_parsers(opts)
       local dispatch
       local priority
       if parser_def.prefix_bytes and parser_def.prefixes then
-        dispatch = { kind = "byte+prefix", bytes = parser_def.prefix_bytes, prefixes = parser_def.prefixes }
+        dispatch =
+          { kind = "byte+prefix", bytes = parser_def.prefix_bytes, prefixes = parser_def.prefixes }
         priority = 5
       elseif parser_def.prefix_bytes then
         dispatch = { kind = "byte", bytes = parser_def.prefix_bytes }
@@ -267,8 +271,7 @@ local function compile(enabled_parsers, hooks, opts)
   local function try_parser(entry, prefix)
     if entry.is_custom then
       local pd = entry.parser_def
-      local st = buffer_parser_state[ctx.bufnr]
-        and buffer_parser_state[ctx.bufnr][pd.name]
+      local st = buffer_parser_state[ctx.bufnr] and buffer_parser_state[ctx.bufnr][pd.name]
       ctx.parser_opts = pd
       ctx.state = st or {}
       ctx.parser_config = nil
@@ -397,12 +400,18 @@ local function calculate_matcher_key(f)
     (f.names and f.names_uppercase) or false,
     (f.names and f.names_strip_digits) or false,
     f.names_custom or false,
-    f.RGB or false, f.RGBA or false, f.RRGGBB or false,
-    f.RRGGBBAA or false, f.AARRGGBB or false,
-    f.rgb or false, f.hsl or false,
+    f.RGB or false,
+    f.RGBA or false,
+    f.RRGGBB or false,
+    f.RRGGBBAA or false,
+    f.AARRGGBB or false,
+    f.rgb or false,
+    f.hsl or false,
     f.tailwind_enable or false,
     f.tailwind_lsp or false,
-    f.sass or false, f.xterm or false, f.oklch or false,
+    f.sass or false,
+    f.xterm or false,
+    f.oklch or false,
   }
   local matcher_mask = 0
   local bit_value = 1
@@ -443,11 +452,20 @@ local function calculate_matcher_key(f)
   end
 
   local matcher_key = f.names_custom
-      and string.format("%d|%s|%s|%s", matcher_mask, f.names_custom.hash, custom_parser_key, hooks_key)
-    or custom_parser_key ~= ""
-      and string.format("%d|%s|%s", matcher_mask, custom_parser_key, hooks_key)
-    or hooks_key ~= ""
-      and string.format("%d|%s", matcher_mask, hooks_key)
+      and string.format(
+        "%d|%s|%s|%s",
+        matcher_mask,
+        f.names_custom.hash,
+        custom_parser_key,
+        hooks_key
+      )
+    or custom_parser_key ~= "" and string.format(
+      "%d|%s|%s",
+      matcher_mask,
+      custom_parser_key,
+      hooks_key
+    )
+    or hooks_key ~= "" and string.format("%d|%s", matcher_mask, hooks_key)
     or matcher_mask
 
   return matcher_mask, matcher_key
