@@ -164,4 +164,19 @@ T["hsl invalid"]["percent on lightness is optional"] = function()
   eq(true, hex ~= nil)
 end
 
+T["hsl invalid"]["trailing comma with missing lightness"] = function()
+  local len = parser("hsl(300, 50%,)", 1, hsl_opts)
+  eq(nil, len)
+end
+
+T["hsl invalid"]["hsla trailing comma with missing lightness"] = function()
+  local len = parser("hsla(300, 50%,)", 1, hsla_opts)
+  eq(nil, len)
+end
+
+T["hsl invalid"]["trailing comma with missing saturation"] = function()
+  local len = parser("hsl(300,,50%)", 1, hsl_opts)
+  eq(nil, len)
+end
+
 return T

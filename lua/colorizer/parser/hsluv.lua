@@ -36,6 +36,10 @@ function M.parser(line, i, opts)
   if not match_end then
     return
   end
+  -- Reject mismatched separators caused by pattern backtracking
+  if csep1 ~= csep2 then
+    return
+  end
 
   local min_commas = 2
   if a and a ~= "" then
