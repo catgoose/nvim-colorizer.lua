@@ -13,53 +13,113 @@ local root_dir = vim.fn.fnamemodify(script_dir .. "/../..", ":p"):gsub("/$", "")
 local fixtures_dir = script_dir .. "/fixtures"
 
 -- Shorthand: build a config entry from parser opts + fixture name
-local function cfg(fixture, parsers)
+local function cfg(fixture, parsers, meta)
+  meta = meta or {}
   return {
     setup_opts = { options = { parsers = parsers } },
     fixture = fixtures_dir .. "/" .. fixture,
+    label = meta.label,
+    description = meta.description,
   }
 end
 
 --- All screenshot configurations.
 M.configs = {
   -- ── Default showcase ─────────────────────────────────────────────
-  default = cfg("default.txt", { css = true }),
+  default = cfg("default.txt", { css = true }, {
+    label = "default",
+    description = "css = true (names + hex + rgb + hsl + oklch)",
+  }),
 
   -- ── Hex group ────────────────────────────────────────────────────
   -- All share hex.txt; each enables one hex format
-  hex_rgb = cfg("hex.txt", { hex = { rgb = true } }),
-  hex_rgba = cfg("hex.txt", { hex = { rgba = true } }),
-  hex_rrggbb = cfg("hex.txt", { hex = { rrggbb = true } }),
-  hex_rrggbbaa = cfg("hex.txt", { hex = { rrggbbaa = true } }),
-  hex_hash_aarrggbb = cfg("hex.txt", { hex = { hash_aarrggbb = true } }),
-  hex_0x_aarrggbb = cfg("hex.txt", { hex = { aarrggbb = true } }),
-  hex_no_hash = cfg("hex.txt", { hex = { no_hash = true } }),
+  hex_rgb = cfg("hex.txt", { hex = { rgb = true } }, {
+    label = "hex_rgb",
+    description = "#RGB (3-digit)",
+  }),
+  hex_rgba = cfg("hex.txt", { hex = { rgba = true } }, {
+    label = "hex_rgba",
+    description = "#RGBA (4-digit)",
+  }),
+  hex_rrggbb = cfg("hex.txt", { hex = { rrggbb = true } }, {
+    label = "hex_rrggbb",
+    description = "#RRGGBB (6-digit)",
+  }),
+  hex_rrggbbaa = cfg("hex.txt", { hex = { rrggbbaa = true } }, {
+    label = "hex_rrggbbaa",
+    description = "#RRGGBBAA (8-digit)",
+  }),
+  hex_hash_aarrggbb = cfg("hex.txt", { hex = { hash_aarrggbb = true } }, {
+    label = "hex_hash_aarrggbb",
+    description = "#AARRGGBB (QML 8-digit)",
+  }),
+  hex_0x_aarrggbb = cfg("hex.txt", { hex = { aarrggbb = true } }, {
+    label = "hex_0x_aarrggbb",
+    description = "0xAARRGGBB (prefix hex)",
+  }),
+  hex_no_hash = cfg("hex.txt", { hex = { no_hash = true } }, {
+    label = "hex_no_hash",
+    description = "RRGGBB without # prefix",
+  }),
 
   -- ── CSS function group ───────────────────────────────────────────
   -- All share css.txt; each enables one function parser
-  css_rgb = cfg("css.txt", { rgb = { enable = true } }),
-  css_hsl = cfg("css.txt", { hsl = { enable = true } }),
-  css_oklch = cfg("css.txt", { oklch = { enable = true } }),
-  css_hsluv = cfg("css.txt", { hsluv = { enable = true } }),
+  css_rgb = cfg("css.txt", { rgb = { enable = true } }, {
+    label = "css_rgb",
+    description = "rgb() / rgba() functions",
+  }),
+  css_hsl = cfg("css.txt", { hsl = { enable = true } }, {
+    label = "css_hsl",
+    description = "hsl() / hsla() functions",
+  }),
+  css_oklch = cfg("css.txt", { oklch = { enable = true } }, {
+    label = "css_oklch",
+    description = "oklch() function",
+  }),
+  css_hsluv = cfg("css.txt", { hsluv = { enable = true } }, {
+    label = "css_hsluv",
+    description = "hsluv() / hsluvu() functions",
+  }),
 
   -- ── Names group ──────────────────────────────────────────────────
   -- All share names.txt; each enables one name variant
   names_lowercase = cfg("names.txt", {
     names = { enable = true, lowercase = true, camelcase = false, uppercase = false },
+  }, {
+    label = "names_lowercase",
+    description = "lowercase named colors only",
   }),
   names_camelcase = cfg("names.txt", {
     names = { enable = true, lowercase = false, camelcase = true, uppercase = false },
+  }, {
+    label = "names_camelcase",
+    description = "CamelCase named colors only",
   }),
   names_uppercase = cfg("names.txt", {
     names = { enable = true, lowercase = false, camelcase = false, uppercase = true },
+  }, {
+    label = "names_uppercase",
+    description = "UPPERCASE named colors only",
   }),
-  names_tailwind = cfg("names.txt", { tailwind = { enable = true } }),
+  names_tailwind = cfg("names.txt", { tailwind = { enable = true } }, {
+    label = "names_tailwind",
+    description = "Tailwind CSS color names",
+  }),
 
   -- ── Special group ────────────────────────────────────────────────
   -- All share special.txt; each enables one special parser
-  special_xterm = cfg("special.txt", { xterm = { enable = true } }),
-  special_xcolor = cfg("special.txt", { xcolor = { enable = true } }),
-  special_css_var_rgb = cfg("special.txt", { css_var_rgb = { enable = true } }),
+  special_xterm = cfg("special.txt", { xterm = { enable = true } }, {
+    label = "special_xterm",
+    description = "Xterm 256-color (#xN)",
+  }),
+  special_xcolor = cfg("special.txt", { xcolor = { enable = true } }, {
+    label = "special_xcolor",
+    description = "XColor blending (name!percent)",
+  }),
+  special_css_var_rgb = cfg("special.txt", { css_var_rgb = { enable = true } }, {
+    label = "special_css_var_rgb",
+    description = "CSS variable RGB (--var: r,g,b;)",
+  }),
 }
 
 --- Ordered categories for --list, iteration, and --<flag> filtering.
@@ -67,6 +127,7 @@ M.categories = {
   {
     flag = "default",
     display = "Default",
+    img_width = 600,
     names = { "default" },
   },
   {

@@ -23,6 +23,7 @@ and reference the config key.
 
 Mixed showcase with `css = true` preset — enables names, hex, rgb, hsl, oklch all at once.
 
+<!-- gen:default_gallery:start -->
 <table>
 <tr>
 <td align="center">
@@ -35,14 +36,18 @@ parsers = { css = true }
 </code></pre>
 </details>
 </td>
+<td></td>
+<td></td>
 </tr>
 </table>
+<!-- gen:default_gallery:end -->
 
 ## Hex Colors
 
 Fixture: [`hex.txt`](scripts/screenshots/fixtures/hex.txt) — all hex formats in one file.
 Each screenshot enables one `hex.*` option.
 
+<!-- gen:hex_gallery:start -->
 <table>
 <tr>
 <td align="center">
@@ -123,12 +128,14 @@ parsers = { hex = { no_hash = true } }
 <td></td>
 </tr>
 </table>
+<!-- gen:hex_gallery:end -->
 
 ## CSS Functions
 
 Fixture: [`css.txt`](scripts/screenshots/fixtures/css.txt) — all CSS color functions in one file.
 Each screenshot enables one function parser.
 
+<!-- gen:css_gallery:start -->
 <table>
 <tr>
 <td align="center">
@@ -177,12 +184,14 @@ parsers = { hsluv = { enable = true } }
 <td></td>
 </tr>
 </table>
+<!-- gen:css_gallery:end -->
 
 ## Named Colors
 
 Fixture: [`names.txt`](scripts/screenshots/fixtures/names.txt) — all name variants in one file.
 Each screenshot enables one name case or tailwind.
 
+<!-- gen:names_gallery:start -->
 <table>
 <tr>
 <td align="center">
@@ -193,9 +202,9 @@ Each screenshot enables one name case or tailwind.
 <pre><code class="language-lua">
 parsers = {
   names = {
+    camelcase = false,
     enable = true,
     lowercase = true,
-    camelcase = false,
     uppercase = false,
   },
 }
@@ -210,9 +219,9 @@ parsers = {
 <pre><code class="language-lua">
 parsers = {
   names = {
+    camelcase = true,
     enable = true,
     lowercase = false,
-    camelcase = true,
     uppercase = false,
   },
 }
@@ -227,9 +236,9 @@ parsers = {
 <pre><code class="language-lua">
 parsers = {
   names = {
+    camelcase = false,
     enable = true,
     lowercase = false,
-    camelcase = false,
     uppercase = true,
   },
 }
@@ -252,12 +261,14 @@ parsers = { tailwind = { enable = true } }
 <td></td>
 </tr>
 </table>
+<!-- gen:names_gallery:end -->
 
 ## Special Parsers
 
 Fixture: [`special.txt`](scripts/screenshots/fixtures/special.txt) — xterm, xcolor, and CSS variable RGB in one file.
 Each screenshot enables one special parser.
 
+<!-- gen:special_gallery:start -->
 <table>
 <tr>
 <td align="center">
@@ -292,3 +303,4 @@ parsers = { css_var_rgb = { enable = true } }
 </td>
 </tr>
 </table>
+<!-- gen:special_gallery:end -->

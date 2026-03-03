@@ -53,3 +53,20 @@ jobs:
           git push --force \
             "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" \
             screenshots
+
+  readme:
+    runs-on: ubuntu-latest
+    needs: [publish]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate SCREENSHOTS.md
+        run: lua scripts/readme/gen_readme.lua
+
+      - name: Commit and push if changed
+        run: |
+          git diff --quiet SCREENSHOTS.md && exit 0
+          git -c user.name="github-actions[bot]" \
+              -c user.email="github-actions[bot]@users.noreply.github.com" \
+              commit -m "docs: regenerate SCREENSHOTS.md [skip ci]" SCREENSHOTS.md
+          git push

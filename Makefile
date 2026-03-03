@@ -29,6 +29,8 @@ help:
 	@echo "  make docs-html         - Generate HTML docs only"
 	@echo "  make screenshots       - Generate all screenshots (parallel)"
 	@echo "  make screenshots-list  - List available screenshot configs"
+	@echo "  make readme            - Regenerate SCREENSHOTS.md from template"
+	@echo "  make readme-check      - Check if SCREENSHOTS.md is up-to-date"
 	@echo "  make clean             - Remove test/colorizer_*"
 
 trie: trie-test trie-benchmark
@@ -94,4 +96,10 @@ screenshots:
 screenshots-list:
 	@nvim --headless -l scripts/screenshots/generate.lua --list
 
-.PHONY: help fmt fmt-check test test-file trie trie-test trie-benchmark minimal minimal-dev minimal-tailwind minimal-tailwind-dev clean docs docs-html screenshots screenshots-list
+readme:
+	@lua scripts/readme/gen_readme.lua
+
+readme-check:
+	@lua scripts/readme/gen_readme.lua --check
+
+.PHONY: help fmt fmt-check test test-file trie trie-test trie-benchmark minimal minimal-dev minimal-tailwind minimal-tailwind-dev clean docs docs-html screenshots screenshots-list readme readme-check
