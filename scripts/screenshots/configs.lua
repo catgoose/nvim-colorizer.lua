@@ -1,10 +1,9 @@
 -- Screenshot configuration definitions
 -- Each config maps to colorizer setup options and a fixture file.
 --
--- Design: each group (hex, css, names, special) shares ONE fixture file
--- containing ALL color strings for that group. Each config within the group
--- enables only ONE parser option, so the screenshot shows exactly which
--- strings that option highlights (and which it doesn't).
+-- Design: each config enables only ONE parser option, so the screenshot
+-- shows exactly which strings that option highlights (and which it doesn't).
+-- Fixture files use appropriate file types for syntax highlighting.
 
 local M = {}
 
@@ -20,105 +19,139 @@ local function cfg(fixture, parsers, meta)
     fixture = fixtures_dir .. "/" .. fixture,
     label = meta.label,
     description = meta.description,
+    split = meta.split,
   }
 end
 
 --- All screenshot configurations.
 M.configs = {
   -- ── Default showcase ─────────────────────────────────────────────
-  default = cfg("default.txt", { css = true }, {
+  default = cfg("default.css", { css = true }, {
     label = "default",
     description = "css = true (names + hex + rgb + hsl + oklch)",
   }),
 
   -- ── Hex group ────────────────────────────────────────────────────
-  -- All share hex.txt; each enables one hex format
-  hex_rgb = cfg("hex.txt", { hex = { rgb = true } }, {
+  hex_rgb = cfg("hex_rgb.css", { hex = { rgb = true } }, {
     label = "hex_rgb",
     description = "#RGB (3-digit)",
   }),
-  hex_rgba = cfg("hex.txt", { hex = { rgba = true } }, {
+  hex_rgba = cfg("hex_rgba.css", { hex = { rgba = true } }, {
     label = "hex_rgba",
     description = "#RGBA (4-digit)",
   }),
-  hex_rrggbb = cfg("hex.txt", { hex = { rrggbb = true } }, {
+  hex_rrggbb = cfg("hex_rrggbb.css", { hex = { rrggbb = true } }, {
     label = "hex_rrggbb",
     description = "#RRGGBB (6-digit)",
   }),
-  hex_rrggbbaa = cfg("hex.txt", { hex = { rrggbbaa = true } }, {
+  hex_rrggbbaa = cfg("hex_rrggbbaa.css", { hex = { rrggbbaa = true } }, {
     label = "hex_rrggbbaa",
     description = "#RRGGBBAA (8-digit)",
   }),
-  hex_hash_aarrggbb = cfg("hex.txt", { hex = { hash_aarrggbb = true } }, {
+  hex_hash_aarrggbb = cfg("hex_hash_aarrggbb.css", { hex = { hash_aarrggbb = true } }, {
     label = "hex_hash_aarrggbb",
     description = "#AARRGGBB (QML 8-digit)",
   }),
-  hex_0x_aarrggbb = cfg("hex.txt", { hex = { aarrggbb = true } }, {
+  hex_0x_aarrggbb = cfg("hex_0x_aarrggbb.css", { hex = { aarrggbb = true } }, {
     label = "hex_0x_aarrggbb",
     description = "0xAARRGGBB (prefix hex)",
   }),
-  hex_no_hash = cfg("hex.txt", { hex = { no_hash = true } }, {
+  hex_no_hash = cfg("hex_no_hash.lua", { hex = { no_hash = true } }, {
     label = "hex_no_hash",
     description = "RRGGBB without # prefix",
   }),
+  hex_default = cfg("hex_default.css", { hex = { default = true } }, {
+    label = "hex_default",
+    description = "hex.default (all common formats)",
+  }),
+  hex_all = cfg("hex_all.css", {
+    hex = { default = true, hash_aarrggbb = true, no_hash = true },
+  }, {
+    label = "hex_all",
+    description = "All hex formats combined",
+  }),
 
   -- ── CSS function group ───────────────────────────────────────────
-  -- All share css.txt; each enables one function parser
-  css_rgb = cfg("css.txt", { rgb = { enable = true } }, {
+  css_rgb = cfg("css_rgb.scss", { rgb = { enable = true } }, {
     label = "css_rgb",
     description = "rgb() / rgba() functions",
   }),
-  css_hsl = cfg("css.txt", { hsl = { enable = true } }, {
+  css_hsl = cfg("css_hsl.scss", { hsl = { enable = true } }, {
     label = "css_hsl",
     description = "hsl() / hsla() functions",
   }),
-  css_oklch = cfg("css.txt", { oklch = { enable = true } }, {
+  css_oklch = cfg("css_oklch.scss", { oklch = { enable = true } }, {
     label = "css_oklch",
     description = "oklch() function",
   }),
-  css_hsluv = cfg("css.txt", { hsluv = { enable = true } }, {
+  css_hsluv = cfg("css_hsluv.scss", { hsluv = { enable = true } }, {
     label = "css_hsluv",
     description = "hsluv() / hsluvu() functions",
   }),
+  css_all = cfg("css_all.scss", {
+    rgb = { enable = true },
+    hsl = { enable = true },
+    oklch = { enable = true },
+    hsluv = { enable = true },
+  }, {
+    label = "css_all",
+    description = "All CSS color functions combined",
+    split = true,
+  }),
 
   -- ── Names group ──────────────────────────────────────────────────
-  -- All share names.txt; each enables one name variant
-  names_lowercase = cfg("names.txt", {
+  names_lowercase = cfg("names_lowercase.css", {
     names = { enable = true, lowercase = true, camelcase = false, uppercase = false },
   }, {
     label = "names_lowercase",
     description = "lowercase named colors only",
   }),
-  names_camelcase = cfg("names.txt", {
+  names_camelcase = cfg("names_camelcase.css", {
     names = { enable = true, lowercase = false, camelcase = true, uppercase = false },
   }, {
     label = "names_camelcase",
     description = "CamelCase named colors only",
   }),
-  names_uppercase = cfg("names.txt", {
+  names_uppercase = cfg("names_uppercase.css", {
     names = { enable = true, lowercase = false, camelcase = false, uppercase = true },
   }, {
     label = "names_uppercase",
     description = "UPPERCASE named colors only",
   }),
-  names_tailwind = cfg("names.txt", { tailwind = { enable = true } }, {
+  names_tailwind = cfg("names_tailwind.html", { tailwind = { enable = true } }, {
     label = "names_tailwind",
     description = "Tailwind CSS color names",
   }),
+  names_strip_digits = cfg("names_strip_digits.css", {
+    names = { enable = true, lowercase = true, strip_digits = true },
+  }, {
+    label = "names_strip_digits",
+    description = "strip_digits rejects names ending in digits",
+  }),
+  names_all = cfg("names_all.css", {
+    names = { enable = true, lowercase = true, camelcase = true, uppercase = true },
+    tailwind = { enable = true },
+  }, {
+    label = "names_all",
+    description = "All name styles combined",
+  }),
 
   -- ── Special group ────────────────────────────────────────────────
-  -- All share special.txt; each enables one special parser
-  special_xterm = cfg("special.txt", { xterm = { enable = true } }, {
+  special_xterm = cfg("xterm.sh", { xterm = { enable = true } }, {
     label = "special_xterm",
     description = "Xterm 256-color (#xN)",
   }),
-  special_xcolor = cfg("special.txt", { xcolor = { enable = true } }, {
+  special_xcolor = cfg("xcolor.tex", { xcolor = { enable = true } }, {
     label = "special_xcolor",
     description = "XColor blending (name!percent)",
   }),
-  special_css_var_rgb = cfg("special.txt", { css_var_rgb = { enable = true } }, {
+  special_css_var_rgb = cfg("css_var_rgb.css", { css_var_rgb = { enable = true } }, {
     label = "special_css_var_rgb",
     description = "CSS variable RGB (--var: r,g,b;)",
+  }),
+  special_sass = cfg("sass.scss", { sass = { enable = true, parsers = { css = true } } }, {
+    label = "special_sass",
+    description = "Sass $variable color resolution",
   }),
 }
 
@@ -141,22 +174,24 @@ M.categories = {
       "hex_hash_aarrggbb",
       "hex_0x_aarrggbb",
       "hex_no_hash",
+      "hex_default",
+      "hex_all",
     },
   },
   {
     flag = "css",
     display = "CSS Functions",
-    names = { "css_rgb", "css_hsl", "css_oklch", "css_hsluv" },
+    names = { "css_rgb", "css_hsl", "css_oklch", "css_hsluv", "css_all" },
   },
   {
     flag = "names",
     display = "Named Colors",
-    names = { "names_lowercase", "names_camelcase", "names_uppercase", "names_tailwind" },
+    names = { "names_lowercase", "names_camelcase", "names_uppercase", "names_tailwind", "names_strip_digits", "names_all" },
   },
   {
     flag = "special",
     display = "Special Parsers",
-    names = { "special_xterm", "special_xcolor", "special_css_var_rgb" },
+    names = { "special_xterm", "special_xcolor", "special_css_var_rgb", "special_sass" },
   },
 }
 
@@ -173,6 +208,15 @@ function M.screenshot_init(config_name)
   -- Add colorizer to rtp
   vim.opt.rtp:prepend(root_dir)
 
+  -- Clone kanagawa colorscheme if not present
+  local deps_dir = root_dir .. "/deps"
+  local kanagawa_dir = deps_dir .. "/kanagawa.nvim"
+  if not vim.uv.fs_stat(kanagawa_dir) then
+    vim.fn.mkdir(deps_dir, "p")
+    vim.fn.system({ "git", "clone", "--depth", "1", "https://github.com/rebelot/kanagawa.nvim", kanagawa_dir })
+  end
+  vim.opt.rtp:prepend(kanagawa_dir)
+
   -- Minimal UI settings
   vim.o.termguicolors = true
   vim.o.cmdheight = 0
@@ -182,14 +226,16 @@ function M.screenshot_init(config_name)
   vim.o.foldenable = false
   vim.o.fillchars = "eob: "
 
-  -- Use built-in dark colorscheme
-  vim.cmd.colorscheme("habamax")
+  vim.cmd.colorscheme("kanagawa-wave")
 
   -- Setup colorizer
   require("colorizer").setup(c.setup_opts)
 
-  -- Open the fixture file
+  -- Open the fixture file and trigger filetype detection
+  -- (filetype detect is needed because vim.cmd.edit during init
+  -- does not automatically trigger filetype detection)
   vim.cmd.edit(c.fixture)
+  vim.cmd("filetype detect")
 end
 
 return M

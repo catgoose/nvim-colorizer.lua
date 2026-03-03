@@ -1,0 +1,14 @@
+/* ── Should highlight ────────────────────────── */
+
+/* #RGB */       .a { color: #F00; background: #0F0; border: #00F; }
+/* #RGBA */      .b { color: #F00F; background: #0F0A; border: #00F8; }
+/* #RRGGBB */    .c { color: #FF0000; background: #00FF00; border: #0000FF; }
+/* #RRGGBBAA */  .d { color: #FF000080; background: #00FF00CC; }
+/* 0xAARRGGBB */ .e { color: 0xFFFF0000; background: 0xFF00FF00; }
+
+/* ── Should NOT highlight ───────────────────── */
+
+/* No-hash — not included in hex.default */
+.f { color: FF0000; background: 00FF00; border: abcdef; }
+/* Invalid */
+.g { color: #GGG; background: 0xGHI; }

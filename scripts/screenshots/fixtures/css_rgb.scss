@@ -1,0 +1,17 @@
+// ── Should highlight ─────────────────────────
+
+// rgb() / rgba()
+$rgb-basic: rgb(255, 200, 80);
+$rgb-pct: rgb(30% 20% 50%);
+$rgb-alpha: rgb(255 122 127 / 80%);
+$rgba-val: rgba(255, 240, 200, 0.5);
+
+// ── Should NOT highlight ────────────────────
+
+// Other CSS functions
+$hsl: hsl(60, 100%, 80%);
+$oklch: oklch(0.5 0.2 180);
+$hsluv: hsluv(0, 100, 50);
+// Invalid
+$bad: rgb();
+$bad2: rgb (10, 255, 100);

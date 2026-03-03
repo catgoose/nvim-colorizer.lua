@@ -1,0 +1,24 @@
+/* ── Should highlight ────────────────────────── */
+
+:root {
+  --ctp-flamingo: 240,198,198;
+  --ctp-rosewater: 245,224,220;
+  --ctp-mauve: 203,166,247;
+  --ctp-red: 243,139,168;
+  --ctp-peach: 250,179,135;
+  --ctp-yellow: 249,226,175;
+  --ctp-green: 166,227,161;
+  --ctp-teal: 148,226,213;
+  --ctp-sky: 137,220,235;
+  --ctp-blue: 137,180,250;
+  --primary: 255,0,0;
+  --secondary: 0,255,0;
+  --accent: 0,0,255;
+}
+
+/* ── Should NOT highlight ───────────────────── */
+
+.invalid {
+  -color: 255,0,0;
+  color: 255,0,0;
+}

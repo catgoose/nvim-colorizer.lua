@@ -1,0 +1,13 @@
+/* ── Should highlight ────────────────────────── */
+
+/* Names without trailing digits */
+.base { color: red; background: blue; border: green; }
+.warm { color: yellow; background: orange; border: coral; }
+
+/* ── Should NOT highlight ───────────────────── */
+
+/* Names with trailing digits (rejected by strip_digits) */
+.digit { color: blue3; background: red2; border: green4; }
+.gray { color: gray50; background: grey75; }
+/* Invalid */
+.invalid { color: notacolor; background: blueish; }

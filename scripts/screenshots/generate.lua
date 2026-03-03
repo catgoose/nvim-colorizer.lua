@@ -105,22 +105,44 @@ local function generate_tape(config_name)
     return nil
   end
 
-  local nvim_cmd = string.format("COLORIZER_CONFIG=%s nvim --clean -u %s %s", config_name, init_lua, cfg.fixture)
+  local nvim_cmd = string.format("COLORIZER_CONFIG=%s nvim -u %s -i NONE %s", config_name, init_lua, cfg.fixture)
+
+  -- Optional vsplit block for fixtures that exceed ~30 visible lines
+  local split_block = ""
+  if cfg.split then
+    split_block = [[
+
+Type ":vsplit"
+Enter
+Sleep 500ms
+Type ":wincmd l"
+Enter
+Sleep 200ms
+Type "/Should NOT"
+Enter
+Sleep 200ms
+Type "zt"
+Sleep 200ms
+Type ":nohlsearch"
+Enter
+Sleep 500ms]]
+  end
 
   local tape = string.format(
     [[%s
 
 Type "%s"
 Enter
-Sleep 3s
+Sleep 3s%s
 
 Screenshot "%s/%s.png"
 
-Type ":q!"
+Type ":qa!"
 Enter
 Sleep 500ms]],
     vhs_preamble(),
     nvim_cmd,
+    split_block,
     output_dir,
     config_name
   )

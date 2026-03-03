@@ -1,0 +1,15 @@
+// ── Should highlight ─────────────────────────
+
+// oklch()
+$oklch-teal: oklch(0.5 0.2 180);
+$oklch-pct: oklch(75% 0.15 240);
+$oklch-alpha: oklch(0.5 0.2 180 / 0.5);
+
+// ── Should NOT highlight ────────────────────
+
+// Other CSS functions
+$rgb: rgb(255, 200, 80);
+$hsl: hsl(300 50% 50%);
+$hsluv: hsluv(0, 100, 50);
+// Invalid
+$bad: oklch();

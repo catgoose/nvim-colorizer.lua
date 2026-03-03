@@ -1,0 +1,15 @@
+/* ── Should highlight ────────────────────────── */
+
+/* CamelCase names */
+.deep { color: DeepSkyBlue; background: LightCoral; }
+.sea { color: DarkSeaGreen; background: MediumPurple; }
+.pale { color: PaleVioletRed; background: MidnightBlue; }
+
+/* ── Should NOT highlight ───────────────────── */
+
+/* Other name styles */
+.lower { color: red; background: blue; }
+.upper { color: RED; background: BLUE; }
+.tw { color: text-red-500; background: bg-blue-300; }
+/* Invalid */
+.invalid { color: notacolor; background: CeruleanBlue; }

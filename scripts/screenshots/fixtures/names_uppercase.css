@@ -1,0 +1,15 @@
+/* ── Should highlight ────────────────────────── */
+
+/* UPPERCASE names */
+.loud { color: RED; background: BLUE; border: GREEN; }
+.upper { color: DEEPSKYBLUE; background: LIGHTCORAL; }
+.more { color: YELLOW; background: ORANGE; }
+
+/* ── Should NOT highlight ───────────────────── */
+
+/* Other name styles */
+.lower { color: red; background: blue; }
+.camel { color: DeepSkyBlue; background: LightCoral; }
+.tw { color: text-red-500; background: bg-blue-300; }
+/* Invalid */
+.invalid { color: NOTACOLOR; background: BLUEISH; }

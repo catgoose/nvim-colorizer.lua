@@ -103,7 +103,9 @@ local function build_entry_config(spec, opts)
     end
     return { valid_lengths = valid_lengths, minlen = minlen, maxlen = maxlen, hash_aarrggbb = p.hex.hash_aarrggbb }, nil
   elseif spec.name == "hex_no_hash" then
-    return { rrggbb = p.hex.rrggbb, rrggbbaa = p.hex.rrggbbaa }, nil
+    -- no_hash is a simple on/off toggle; both 6- and 8-digit are always
+    -- supported when enabled. hex.rrggbb/rrggbbaa control #-prefixed formats.
+    return { rrggbb = true, rrggbbaa = true }, nil
   elseif spec.name == "names" then
     local m_opts = {}
     if p.names and p.names.enable then
@@ -118,6 +120,7 @@ local function build_entry_config(spec, opts)
     if p.names and p.names.custom_hashed then
       m_opts.names_custom = p.names.custom_hashed
     end
+    m_opts.extra_word_chars = p.names and p.names.extra_word_chars or nil
     local tw = p.tailwind
     if tw and tw.enable then
       m_opts.tailwind_names = true
@@ -372,6 +375,7 @@ local function read_parser_flags(opts)
     names_camelcase = names.camelcase,
     names_uppercase = names.uppercase,
     names_strip_digits = names.strip_digits,
+    names_extra_word_chars = names.extra_word_chars or "",
     names_custom = names.custom_hashed,
     sass = p.sass and p.sass.enable,
     tailwind_enable = tw.enable or false,

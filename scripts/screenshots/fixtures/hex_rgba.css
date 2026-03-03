@@ -1,0 +1,12 @@
+/* ── Should highlight ────────────────────────── */
+
+/* #RGBA (4-digit) */
+.a { color: #F00F; background: #0F0A; border: #00F8; }
+.b { color: #FFFC; background: #0008; border: #F0FA; }
+
+/* ── Should NOT highlight ───────────────────── */
+
+/* Other hex formats */
+.c { color: #F00; background: #FF0000; border: 0xFFFF0000; }
+/* Invalid */
+.d { color: #GGGF; background: #F; }

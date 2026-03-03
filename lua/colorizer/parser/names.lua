@@ -166,6 +166,11 @@ local function populate_colors(m_opts)
   end
   names_cache.name_minlen = names_cache.name_minlen or nil
   names_cache.name_maxlen = names_cache.name_maxlen or nil
+  -- Register extra word chars as valid color characters so they act as
+  -- word boundaries (prevents matching "red" inside "text-red-500")
+  if m_opts.extra_word_chars and m_opts.extra_word_chars ~= "" then
+    utils.add_additional_color_chars(m_opts.extra_word_chars)
+  end
   -- Add Vim's color map
   if m_opts.color_names then
     populate_names(m_opts.color_names_opts)
@@ -323,6 +328,7 @@ M.spec = {
     uppercase = false,
     strip_digits = false,
     custom = false,
+    extra_word_chars = "-",
   },
   parse = function(ctx)
     return M.parser(ctx.line, ctx.col, ctx.matcher_opts)

@@ -1,0 +1,17 @@
+// ── Should highlight ─────────────────────────
+
+// hsl() / hsla()
+$hsl-basic: hsl(60, 100%, 80%);
+$hsl-space: hsl(300 50% 50%);
+$hsl-deg: hsl(300deg 50% 50%);
+$hsl-turn: hsl(0.4turn 80% 50% / 0.4);
+$hsla-val: hsla(60, 100%, 85%, 0.5);
+
+// ── Should NOT highlight ────────────────────
+
+// Other CSS functions
+$rgb: rgb(255, 200, 80);
+$oklch: oklch(0.5 0.2 180);
+$hsluv: hsluv(0, 100, 50);
+// Invalid
+$bad: hsl();
