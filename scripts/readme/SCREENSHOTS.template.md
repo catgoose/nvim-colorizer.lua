@@ -17,6 +17,7 @@ and reference the config key.
 - [CSS Functions](#css-functions)
 - [Named Colors](#named-colors)
 - [Special Parsers](#special-parsers)
+- [Display Modes](#display-modes)
 
 ## Default
 
@@ -58,3 +59,11 @@ Each special parser uses its own fixture with an appropriate file type:
 
 <!-- gen:special_gallery:start -->
 <!-- gen:special_gallery:end -->
+
+## Display Modes
+
+All display mode screenshots use the same [`display.css`](scripts/screenshots/fixtures/display.css) fixture
+with `css = true`, showing how different `display.mode` settings render the same colors.
+
+<!-- gen:display_gallery:start -->
+<!-- gen:display_gallery:end -->

@@ -14,8 +14,12 @@ local fixtures_dir = script_dir .. "/fixtures"
 -- Shorthand: build a config entry from parser opts + fixture name
 local function cfg(fixture, parsers, meta)
   meta = meta or {}
+  local opts = { parsers = parsers }
+  if meta.display then
+    opts.display = meta.display
+  end
   return {
-    setup_opts = { options = { parsers = parsers } },
+    setup_opts = { options = opts },
     fixture = fixtures_dir .. "/" .. fixture,
     label = meta.label,
     description = meta.description,
@@ -136,6 +140,26 @@ M.configs = {
     description = "All name styles combined",
   }),
 
+  names_custom = cfg("names_custom.css", {
+    names = {
+      enable = true,
+      lowercase = false,
+      camelcase = false,
+      uppercase = false,
+      extra_word_chars = "",
+      custom = {
+        ["brand-primary"] = "#E63946",
+        ["brand-secondary"] = "#457B9D",
+        ["ui-success"] = "#2A9D8F",
+        ["ui-warning"] = "#E9C46A",
+        ["ui-danger"] = "#F4A261",
+      },
+    },
+  }, {
+    label = "names_custom",
+    description = "User-defined custom color names",
+  }),
+
   -- ── Special group ────────────────────────────────────────────────
   special_xterm = cfg("xterm.sh", { xterm = { enable = true } }, {
     label = "special_xterm",
@@ -152,6 +176,23 @@ M.configs = {
   special_sass = cfg("sass.scss", { sass = { enable = true, parsers = { css = true } } }, {
     label = "special_sass",
     description = "Sass $variable color resolution",
+  }),
+
+  -- ── Display modes ──────────────────────────────────────────────
+  display_foreground = cfg("display.css", { css = true }, {
+    label = "display_foreground",
+    description = "mode = foreground (colored text)",
+    display = { mode = "foreground" },
+  }),
+  display_virtualtext_eol = cfg("display.css", { css = true }, {
+    label = "display_virtualtext_eol",
+    description = "virtualtext at end of line",
+    display = { mode = "virtualtext", virtualtext = { position = "eol" } },
+  }),
+  display_virtualtext_inline = cfg("display.css", { css = true }, {
+    label = "display_virtualtext_inline",
+    description = "virtualtext inline after color",
+    display = { mode = "virtualtext", virtualtext = { position = "after" } },
   }),
 }
 
@@ -186,12 +227,17 @@ M.categories = {
   {
     flag = "names",
     display = "Named Colors",
-    names = { "names_lowercase", "names_camelcase", "names_uppercase", "names_tailwind", "names_strip_digits", "names_all" },
+    names = { "names_lowercase", "names_camelcase", "names_uppercase", "names_tailwind", "names_strip_digits", "names_custom", "names_all" },
   },
   {
     flag = "special",
     display = "Special Parsers",
     names = { "special_xterm", "special_xcolor", "special_css_var_rgb", "special_sass" },
+  },
+  {
+    flag = "display",
+    display = "Display Modes",
+    names = { "display_foreground", "display_virtualtext_eol", "display_virtualtext_inline" },
   },
 }
 
