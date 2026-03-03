@@ -26,8 +26,8 @@ local M = {}
 ---@field prefix? string      Matched trie prefix (prefix-dispatched only)
 ---@field matcher_opts? table Pre-built config (names parser compatibility)
 
-local specs = {}       -- name -> spec
-local sorted = nil     -- cached sorted-by-priority list, invalidated on register
+local specs = {} -- name -> spec
+local sorted = nil -- cached sorted-by-priority list, invalidated on register
 
 --- Register a parser spec.
 ---@param spec colorizer.ParserSpec
@@ -37,7 +37,7 @@ function M.register(spec)
   assert(spec.dispatch, "ParserSpec must have a dispatch table")
   assert(spec.priority, "ParserSpec must have a priority")
   specs[spec.name] = spec
-  sorted = nil  -- invalidate cache
+  sorted = nil -- invalidate cache
 end
 
 --- Look up a parser spec by name.

@@ -94,7 +94,8 @@ function M.parser(line, i, opts)
       return 9, utils.rgb_to_hex(r, g, b)
     end
     alpha = alpha / 255
-    local r, g, b = color.apply_alpha(band(rshift(v, 16), 0xFF), band(rshift(v, 8), 0xFF), band(v, 0xFF), alpha)
+    local r, g, b =
+      color.apply_alpha(band(rshift(v, 16), 0xFF), band(rshift(v, 8), 0xFF), band(v, 0xFF), alpha)
     return 9, utils.rgb_to_hex(r, g, b)
   end
 

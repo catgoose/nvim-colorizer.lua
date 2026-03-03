@@ -112,8 +112,11 @@ function M.lsp_highlight(
         callback = function(args)
           local clients = vim.lsp.get_clients({ id = args.data.client_id })
           local client = clients[1]
-          if client and client.name == "tailwindcss"
-              and client:supports_method("textDocument/documentColor", bufnr) then
+          if
+            client
+            and client.name == "tailwindcss"
+            and client:supports_method("textDocument/documentColor", bufnr)
+          then
             lsp_cache[bufnr].client = client
             highlight(bufnr, opts, add_highlight)
           end

@@ -43,9 +43,8 @@ function M.parser(line, i, _)
   -- Numbers (L/C/H): -?%d*%.?%d+ (optional minus, optional digits, optional dot, required digits)
   -- Alpha (optional): -?%d*%.?%d* (all parts optional since alpha itself is optional)
   -- Units: [%a]?[%a]?[%a]?[%a]? (0-4 letters for deg/rad/turn/grad, validated later)
-  local l, l_percent, c, c_percent, h, h_unit, sep, a, a_percent, match_end = line:sub(i):match(
-    oklch_pattern
-  )
+  local l, l_percent, c, c_percent, h, h_unit, sep, a, a_percent, match_end =
+    line:sub(i):match(oklch_pattern)
 
   if not match_end then
     return

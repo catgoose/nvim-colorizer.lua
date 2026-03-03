@@ -301,7 +301,6 @@ M.default_options = default_options
 ---@field debounce_ms number Debounce highlight updates (ms); 0 = no debounce.
 ---@field hooks colorizer.Hooks Table of hook functions
 ---@field xterm boolean Enables xterm 256-color codes (#xNN, \e[38;5;NNNm)
----@field suppress_deprecation boolean When true, suppress the info message about the new options format. Default: false.
 
 ---@class colorizer.NamesOpts
 ---@field lowercase boolean Converts color names to lowercase.
@@ -417,7 +416,12 @@ function M.translate_options(old_opts)
   local new = { parsers = {} }
 
   -- parsers.names
-  if old_opts.names ~= nil or old_opts.names_opts or old_opts.names_custom ~= nil or old_opts.names_custom_hashed then
+  if
+    old_opts.names ~= nil
+    or old_opts.names_opts
+    or old_opts.names_custom ~= nil
+    or old_opts.names_custom_hashed
+  then
     new.parsers.names = {}
     if old_opts.names ~= nil then
       new.parsers.names.enable = old_opts.names
@@ -524,13 +528,21 @@ function M.translate_options(old_opts)
   end
 
   -- Display
-  if old_opts.mode ~= nil or old_opts.virtualtext ~= nil
-      or old_opts.virtualtext_inline ~= nil or old_opts.virtualtext_mode ~= nil then
+  if
+    old_opts.mode ~= nil
+    or old_opts.virtualtext ~= nil
+    or old_opts.virtualtext_inline ~= nil
+    or old_opts.virtualtext_mode ~= nil
+  then
     new.display = {}
     if old_opts.mode ~= nil then
       new.display.mode = old_opts.mode
     end
-    if old_opts.virtualtext ~= nil or old_opts.virtualtext_inline ~= nil or old_opts.virtualtext_mode ~= nil then
+    if
+      old_opts.virtualtext ~= nil
+      or old_opts.virtualtext_inline ~= nil
+      or old_opts.virtualtext_mode ~= nil
+    then
       new.display.virtualtext = {}
       if old_opts.virtualtext ~= nil then
         new.display.virtualtext.char = old_opts.virtualtext
@@ -762,7 +774,12 @@ function M.validate_new_options(opts)
     if type(custom) == "function" then
       local status, custom_result = pcall(custom)
       if not (status and type(custom_result) == "table") then
-        error(string.format("Error in parsers.names.custom function: %s", custom_result or "Invalid return value"))
+        error(
+          string.format(
+            "Error in parsers.names.custom function: %s",
+            custom_result or "Invalid return value"
+          )
+        )
       end
       custom = custom_result
     end
@@ -786,8 +803,17 @@ function M.validate_new_options(opts)
   -- Validate custom parsers
   if opts.parsers.custom then
     for i, parser_def in ipairs(opts.parsers.custom) do
-      if type(parser_def) ~= "table" or not parser_def.name or type(parser_def.parse) ~= "function" then
-        error(string.format("Invalid custom parser at index %d: must have 'name' and 'parse' function", i))
+      if
+        type(parser_def) ~= "table"
+        or not parser_def.name
+        or type(parser_def.parse) ~= "function"
+      then
+        error(
+          string.format(
+            "Invalid custom parser at index %d: must have 'name' and 'parse' function",
+            i
+          )
+        )
       end
     end
   end
@@ -993,22 +1019,14 @@ local function validate_options(opts)
   if opts.virtualtext_inline ~= "before" and opts.virtualtext_inline ~= "after" then
     opts.virtualtext_inline = plugin_user_default_options.virtualtext_inline
   end
-  if
-    opts.mode ~= "background"
-    and opts.mode ~= "foreground"
-    and opts.mode ~= "virtualtext"
-  then
+  if opts.mode ~= "background" and opts.mode ~= "foreground" and opts.mode ~= "virtualtext" then
     opts.mode = plugin_user_default_options.mode
   end
   if opts.virtualtext_mode ~= "background" and opts.virtualtext_mode ~= "foreground" then
     opts.virtualtext_mode = plugin_user_default_options.virtualtext_mode
   end
   -- Set names_custom to false if it's an empty table
-  if
-    opts.names_custom
-    and type(opts.names_custom) == "table"
-    and not next(opts.names_custom)
-  then
+  if opts.names_custom and type(opts.names_custom) == "table" and not next(opts.names_custom) then
     opts.names_custom = false
   end
   -- Extract table if names_custom is a function
@@ -1113,15 +1131,27 @@ function M.get_setup_options(opts)
     M.options.user_default_options = M.as_flat(merged)
   else
     -- Legacy format path (or no options)
-    local raw_ud = opts.user_default_options or vim.deepcopy(plugin_user_default_options)
-    -- Translate to new format
-    local translated = M.translate_options(raw_ud)
-    M.apply_presets(translated.parsers)
-    expand_hex_default(translated.parsers)
-    local merged = vim.tbl_deep_extend("force", vim.deepcopy(default_options), translated)
+    -- Translate plugin defaults as baseline (ensures parsers are enabled even
+    -- when user passes sparse overrides like { suppress_deprecation = true })
+    local baseline = M.translate_options(vim.deepcopy(plugin_user_default_options))
+    M.apply_presets(baseline.parsers)
+    expand_hex_default(baseline.parsers)
+    -- Translate user overrides separately so presets see only user-set keys
+    local user_overrides = {}
+    local raw_ud = opts.user_default_options
+    if raw_ud then
+      user_overrides = M.translate_options(raw_ud)
+      if user_overrides.parsers then
+        M.apply_presets(user_overrides.parsers)
+        expand_hex_default(user_overrides.parsers)
+      end
+    end
+    local merged =
+      vim.tbl_deep_extend("force", vim.deepcopy(default_options), baseline, user_overrides)
     M.validate_new_options(merged)
     M.options.options = merged
     -- Also keep legacy flat format (apply aliases + validate)
+    raw_ud = raw_ud or vim.deepcopy(plugin_user_default_options)
     opts.user_default_options = M.apply_alias_options(raw_ud)
     M.options.user_default_options = opts.user_default_options
   end

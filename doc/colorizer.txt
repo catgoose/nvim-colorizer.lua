@@ -394,7 +394,6 @@ colorizer.UserDefaultOptions                      *colorizer.UserDefaultOptions*
         {always_update}         (boolean)                                  Always update color values, even if buffer is not focused.
         {debounce_ms}           (number)                                   Debounce highlight updates (ms); 0 = no debounce.
         {hooks}                 (colorizer.Hooks)                          Table of hook functions
-        {suppress_deprecation}  (boolean)                                  When true, suppress the info message about the new options format. Default: false.
 
 
 colorizer.NamesOpts                                        *colorizer.NamesOpts*

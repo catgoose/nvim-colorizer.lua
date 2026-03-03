@@ -8,8 +8,22 @@ local M = {}
 
 -- Xterm 256-color palette (0-255) as RGB hex strings
 local xterm_palette = {
-  "000000", "800000", "008000", "808000", "000080", "800080", "008080", "c0c0c0",
-  "808080", "ff0000", "00ff00", "ffff00", "0000ff", "ff00ff", "00ffff", "ffffff",
+  "000000",
+  "800000",
+  "008000",
+  "808000",
+  "000080",
+  "800080",
+  "008080",
+  "c0c0c0",
+  "808080",
+  "ff0000",
+  "00ff00",
+  "ffff00",
+  "0000ff",
+  "ff00ff",
+  "00ffff",
+  "ffffff",
   -- 16-231: 6x6x6 color cube
 }
 -- Fill in the 6x6x6 color cube
@@ -17,7 +31,9 @@ for r = 0, 5 do
   for g = 0, 5 do
     for b = 0, 5 do
       local idx = 16 + 36 * r + 6 * g + b
-      local function scale(x) return x == 0 and 0 or 95 + 40 * (x - 1) end
+      local function scale(x)
+        return x == 0 and 0 or 95 + 40 * (x - 1)
+      end
       xterm_palette[idx + 1] = string.format("%02x%02x%02x", scale(r), scale(g), scale(b))
     end
   end
@@ -30,14 +46,14 @@ end
 
 -- Pre-built pattern tables (constant, no need to recreate per call)
 local ansi_256_patterns = {
-  "^\\e%[38;5;(%d?%d?%d)m",   -- literal '\e'
-  "^\27%[38;5;(%d?%d?%d)m",    -- ASCII 27
-  "^\x1b%[38;5;(%d?%d?%d)m",   -- hex escape
+  "^\\e%[38;5;(%d?%d?%d)m", -- literal '\e'
+  "^\27%[38;5;(%d?%d?%d)m", -- ASCII 27
+  "^\x1b%[38;5;(%d?%d?%d)m", -- hex escape
 }
 local ansi_16_patterns = {
-  "^\\e%[(%d+);(%d+)m",   -- literal '\e'
-  "^\27%[(%d+);(%d+)m",    -- ASCII 27
-  "^\x1b%[(%d+);(%d+)m",   -- hex escape
+  "^\\e%[(%d+);(%d+)m", -- literal '\e'
+  "^\27%[(%d+);(%d+)m", -- ASCII 27
+  "^\x1b%[(%d+);(%d+)m", -- hex escape
 }
 
 local const = require("colorizer.constants")
@@ -60,12 +76,15 @@ function M.parser(line, i)
       local idx = tonumber(num) or -1
       if idx >= 0 and idx <= 255 then
         local next_byte = line:byte(i + 2 + #num)
-        if not next_byte or not (
-          (next_byte >= 0x30 and next_byte <= 0x39) or  -- 0-9
-          (next_byte >= 0x41 and next_byte <= 0x5A) or  -- A-Z
-          (next_byte >= 0x61 and next_byte <= 0x7A) or  -- a-z
-          next_byte == 0x5F                              -- _
-        ) then
+        if
+          not next_byte
+          or not (
+            (next_byte >= 0x30 and next_byte <= 0x39) -- 0-9
+            or (next_byte >= 0x41 and next_byte <= 0x5A) -- A-Z
+            or (next_byte >= 0x61 and next_byte <= 0x7A) -- a-z
+            or next_byte == 0x5F -- _
+          )
+        then
           return 2 + #num, xterm_palette[idx + 1]
         end
       end

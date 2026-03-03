@@ -325,9 +325,9 @@ require("colorizer").detach_from_buffer(0)
 
 ## Legacy options
 
-The flat `user_default_options` format is always supported and is translated
-internally. An informational message about the new format is shown once per
-session; set `suppress_deprecation = true` to hide it.
+The flat `user_default_options` format is fully supported and automatically
+translated to the new structured format internally. No migration is required.
+New options will only be added to the structured `options` format.
 
 ```lua
 require("colorizer").setup({
@@ -338,7 +338,6 @@ require("colorizer").setup({
     css = false,
     mode = "background",
     tailwind = false,
-    suppress_deprecation = true, -- hide the info message about the new options format
   },
 })
 ```

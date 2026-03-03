@@ -89,7 +89,6 @@ local const = require("colorizer.constants")
 local matcher_mod = require("colorizer.matcher")
 local utils = require("colorizer.utils")
 
-local warned_legacy = false
 
 --- State and configuration dynamic holding information table tracking
 local colorizer_state = {
@@ -597,25 +596,6 @@ function M.setup(opts)
   require("colorizer.buffer").reset_cache()
 
   local s = config.get_setup_options(opts)
-
-  -- Emit info about new options format when using user_default_options (once per session)
-  if
-    not warned_legacy
-    and opts
-    and opts.user_default_options
-    and not opts.options
-    and not (opts.user_default_options and opts.user_default_options.suppress_deprecation)
-  then
-    warned_legacy = true
-    vim.schedule(function()
-      vim.notify(
-        "colorizer: A new structured 'options' format is available (parsers, display, hooks). "
-          .. "Your 'user_default_options' will continue to work. See :help colorizer.config. "
-          .. "Set suppress_deprecation = true to hide this message.",
-        vim.log.levels.INFO
-      )
-    end)
-  end
 
   -- Setup the buffer with the correct options
   local function bo_type_setup(bo_type)

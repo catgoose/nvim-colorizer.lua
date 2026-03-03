@@ -45,9 +45,13 @@ local DEFAULT_VARIABLE_PATTERN = "^%$([%w_-]+)"
 ---@param bufnr number Buffer number
 ---@return number|nil, string|nil
 function M.parser(line, i, bufnr)
-  local pattern = (state[bufnr] and state[bufnr].opts and state[bufnr].opts.parsers
-    and state[bufnr].opts.parsers.sass and state[bufnr].opts.parsers.sass.variable_pattern)
-    or DEFAULT_VARIABLE_PATTERN
+  local pattern = (
+    state[bufnr]
+    and state[bufnr].opts
+    and state[bufnr].opts.parsers
+    and state[bufnr].opts.parsers.sass
+    and state[bufnr].opts.parsers.sass.variable_pattern
+  ) or DEFAULT_VARIABLE_PATTERN
   local variable_name = line:match(pattern, i)
   if variable_name and state[bufnr] then
     local rgb_hex = state[bufnr].definitions_all[variable_name]
@@ -268,15 +272,7 @@ end -- sass_parse_lines end
 ---@param color_parser function|boolean
 ---@param opts table Options (new format or legacy)
 ---@param buf_local_opts table|nil Buffer local options
-function M.update_variables(
-  bufnr,
-  line_start,
-  line_end,
-  lines,
-  color_parser,
-  opts,
-  buf_local_opts
-)
+function M.update_variables(bufnr, line_start, line_end, lines, color_parser, opts, buf_local_opts)
   lines = lines or vim.api.nvim_buf_get_lines(bufnr, line_start, line_end, false)
 
   if not state[bufnr] then
