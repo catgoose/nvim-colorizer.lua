@@ -168,71 +168,72 @@ hex = { default = false, rrggbb = true }
 
 ```lua
 require("colorizer").setup({
-  filetypes = { "*" },
-  buftypes = {},
-  user_commands = true,
-  lazy_load = false,
+  filetypes = { "*" }, -- filetypes to highlight, "*" for all
+  buftypes = {}, -- buftypes to highlight
+  user_commands = true, -- enable user commands (ColorizerToggle, etc.)
+  lazy_load = false, -- lazily schedule buffer highlighting
   options = {
     parsers = {
       css = false, -- preset: enables names, hex, rgb, hsl, oklch
       css_fn = false, -- preset: enables rgb, hsl, oklch
       names = {
-        enable = false,
-        lowercase = true,
-        camelcase = true,
-        uppercase = false,
-        strip_digits = false,
-        custom = false, -- table|function|false
+        enable = false, -- enable named colors (e.g. "Blue")
+        lowercase = true, -- match lowercase names
+        camelcase = true, -- match CamelCase names (e.g. "LightBlue")
+        uppercase = false, -- match UPPERCASE names
+        strip_digits = false, -- ignore names with trailing digits (e.g. "blue3")
+        custom = false, -- custom name-to-hex mappings; table|function|false
       },
       hex = {
-        default = false, -- default value for format keys (see above)
-        rgb = false, -- #RGB
-        rgba = false, -- #RGBA
-        rrggbb = false, -- #RRGGBB
-        rrggbbaa = false, -- #RRGGBBAA
-        hash_aarrggbb = false, -- #AARRGGBB (QML)
+        default = false, -- default value for unset format keys (see above)
+        rgb = false, -- #RGB (3-digit)
+        rgba = false, -- #RGBA (4-digit)
+        rrggbb = false, -- #RRGGBB (6-digit)
+        rrggbbaa = false, -- #RRGGBBAA (8-digit)
+        hash_aarrggbb = false, -- #AARRGGBB (QML-style, alpha first)
         aarrggbb = false, -- 0xAARRGGBB
-        no_hash = false, -- hex without '#' (e.g. FF0000 at word boundaries)
+        no_hash = false, -- hex without '#' at word boundaries
       },
-      rgb = { enable = false },
-      hsl = { enable = false },
-      oklch = { enable = false },
+      rgb = { enable = false }, -- rgb()/rgba() functions
+      hsl = { enable = false }, -- hsl()/hsla() functions
+      oklch = { enable = false }, -- oklch() function
       tailwind = {
         enable = false, -- parse Tailwind color names
         lsp = false, -- use Tailwind LSP documentColor
-        update_names = false,
+        update_names = false, -- update color names from LSP results
       },
       sass = {
-        enable = false,
-        parsers = { css = true },
-        variable_pattern = "^%$([%w_-]+)",
+        enable = false, -- parse Sass color variables
+        parsers = { css = true }, -- parsers for resolving variable values
+        variable_pattern = "^%$([%w_-]+)", -- Lua pattern for variable names
       },
-      xterm = { enable = false },
-      xcolor = { enable = false },
-      hsluv = { enable = false },
-      css_var_rgb = { enable = false },
-      custom = {},
+      xterm = { enable = false }, -- xterm 256-color codes (#xNN, \e[38;5;NNNm)
+      xcolor = { enable = false }, -- LaTeX xcolor expressions (e.g. red!30)
+      hsluv = { enable = false }, -- hsluv()/hsluvu() functions
+      css_var_rgb = { enable = false }, -- CSS vars with R,G,B (e.g. --color: 240,198,198)
+      custom = {}, -- list of custom parser definitions
     },
     display = {
       mode = "background", -- "background"|"foreground"|"virtualtext"
       background = {
-        bright_fg = "#000000",
-        dark_fg = "#ffffff",
+        bright_fg = "#000000", -- text color on bright backgrounds
+        dark_fg = "#ffffff", -- text color on dark backgrounds
       },
       virtualtext = {
-        char = "■",
+        char = "■", -- character used for virtualtext
         position = "eol", -- "eol"|"before"|"after"
-        hl_mode = "foreground",
+        hl_mode = "foreground", -- "background"|"foreground"
       },
       priority = {
-        default = 150, -- vim.hl.priorities.diagnostics
-        lsp = 200, -- vim.hl.priorities.user
+        default = 150, -- extmark priority for normal highlights
+        lsp = 200, -- extmark priority for LSP/Tailwind highlights
       },
     },
     hooks = {
       should_highlight_line = false, -- function(line, bufnr, line_num) -> bool
     },
-    always_update = false,
+    always_update = false, -- update highlights even in unfocused buffers
+    debounce_ms = 0, -- debounce highlight updates (ms); 0 = no debounce
   },
 })
 ```
@@ -327,7 +328,14 @@ require("colorizer").detach_from_buffer(0)
 
 The flat `user_default_options` format is fully supported and automatically
 translated to the new structured format internally. No migration is required.
-New options will only be added to the structured `options` format.
+
+**Important:**
+
+- The legacy option set is **frozen** — no new options will be added to it.
+  New features (e.g. `hsluv`, `xcolor`, `css_var_rgb`, `debounce_ms`,
+  `hex.hash_aarrggbb`, `hex.no_hash`) are only available via the structured
+  `options` format.
+- If both `options` and `user_default_options` are provided, `options` wins.
 
 ```lua
 require("colorizer").setup({
@@ -342,7 +350,9 @@ require("colorizer").setup({
 })
 ```
 
-See the [full documentation](https://catgoose.github.io/nvim-colorizer.lua/) for the legacy-to-new translation mapping.
+See `:help colorizer.config` and the
+[full documentation](https://catgoose.github.io/nvim-colorizer.lua/) for the
+legacy-to-new translation mapping.
 
 ## Testing
 

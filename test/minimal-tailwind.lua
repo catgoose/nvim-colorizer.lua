@@ -37,13 +37,24 @@ table.insert(settings.plugins, {
 -- Configure colorizer
 local function configure_colorizer()
   vim.opt.termguicolors = true
+  local tw = { enable = false, lsp = false }
+  if settings.tailwind_mode == "normal" or settings.tailwind_mode == "both" then
+    tw.enable = true
+  end
+  if settings.tailwind_mode == "lsp" or settings.tailwind_mode == "both" then
+    tw.lsp = true
+  end
   require("colorizer").setup({
     filetypes = { "*" },
-    user_default_options = {
-      names = false,
-      tailwind = settings.tailwind_mode,
-      mode = "background",
-      virtualtext = "■",
+    options = {
+      parsers = {
+        names = { enable = false },
+        tailwind = tw,
+      },
+      display = {
+        mode = "background",
+        virtualtext = { char = "■" },
+      },
     },
   })
 end

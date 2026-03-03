@@ -146,6 +146,11 @@ T["hsluv invalid"]["line too short"] = function()
   eq(nil, len)
 end
 
+T["hsluv invalid"]["trailing comma with missing lightness"] = function()
+  local len = parser("hsluv(0, 100,)", 1, hsluv_opts)
+  eq(nil, len)
+end
+
 -- HSLuv decimals --------------------------------------------------------------
 
 T["hsluv decimals"] = new_set()
