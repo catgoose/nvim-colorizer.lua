@@ -3,3 +3,4 @@ doc/html/
 deps/
 node_modules/
 colorizer.lua
+scripts/screenshots/output/

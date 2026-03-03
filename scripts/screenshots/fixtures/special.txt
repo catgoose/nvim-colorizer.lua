@@ -1,0 +1,22 @@
+-- Special parsers
+
+-- Xterm 256-color (#xN)
+#x0 #x1 #x9 #x15 #x42
+#x196 #x208 #x226 #x46 #x21
+#x232 #x240 #x248 #x255
+
+-- XColor blending (name!percent)
+red!100  red!50  red!0
+blue!50  green!75  magenta!25
+
+-- CSS variable RGB
+--ctp-flamingo: 240,198,198;
+--color: 255,0,0;
+--my-var: 0,255,0;
+--blue: 0,0,255;
+--custom-bg: 100,200,50;
+
+-- Invalid (should NOT highlight)
+#x256  #x42abc  red!101
+red!  !50  foobar!50
+-color: 255,0,0;

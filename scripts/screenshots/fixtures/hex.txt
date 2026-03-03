@@ -1,0 +1,30 @@
+-- Hex colors: all formats
+
+-- #RGB (3-digit)
+#F00 #0F0 #00F #FF0 #0FF #F0F
+#FFF #000 #def #abc
+
+-- #RGBA (4-digit)
+#F00F #0F0A #00F8 #FF05
+
+-- #RRGGBB (6-digit)
+#FF0000 #00FF00 #0000FF #FFFF00
+#32a14b #1B29FB #abcdef #808080
+
+-- #RRGGBBAA (8-digit)
+#FF000080 #00FF00CC #0000FFFF
+#FFFFFF00 #FF0000FF #32a14bAA
+
+-- #AARRGGBB (QML 8-digit)
+#FFFF0000 #FF00FF00 #80FF0000
+
+-- 0xAARRGGBB (prefix hex)
+0xFFFF0000 0xFF00FF00 0xFF0000FF
+0x80FF0000 0xFFFFFF00 0xFF1B29FB
+
+-- No-hash RRGGBB
+FF0000 00FF00 0000FF abcdef
+
+-- Invalid (should NOT highlight)
+#GGG #F 0xGHI 0xFF ABCDE
+a#FFF #FFF0g colorFF00FF

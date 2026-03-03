@@ -1,0 +1,21 @@
+-- Default config: mixed color formats
+
+-- Hex colors
+#FF0000 #00FF00 #0000FF #F0F #0FF
+#FFFF00CC  background: #32a14b;
+
+-- RGB functions
+rgb(255, 200, 80)  rgb(0, 128, 255)
+rgb(30% 20% 50%)
+
+-- HSL functions
+hsl(60, 100%, 80%)  hsl(300 50% 50%)
+hsl(210, 9.1%, 87%)
+
+-- Named colors
+red  blue  green  magenta  cyan
+DeepSkyBlue  LightCoral  MediumPurple
+
+-- Invalid (should NOT highlight)
+#GGG  rgb()  hsl()  notacolor
+rgb (10,255,100)  #F  ceruleanblue

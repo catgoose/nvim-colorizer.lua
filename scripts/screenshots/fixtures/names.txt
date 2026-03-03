@@ -1,0 +1,24 @@
+-- Named colors
+
+-- Lowercase
+red  blue  green  cyan  magenta
+yellow  white  orange  pink  purple
+teal  coral  tomato  salmon  ivory
+
+-- CamelCase
+DeepSkyBlue  LightCoral  DarkSeaGreen
+MediumPurple  LightGoldenrodYellow
+PaleVioletRed  MidnightBlue
+
+-- Uppercase
+RED  BLUE  GREEN  DEEPSKYBLUE
+LIGHTCORAL  MEDIUMPURPLE
+
+-- Tailwind (with tailwind enabled)
+tw-red-500  tw-blue-300  tw-green-700
+tw-purple-400  tw-amber-200
+tw-slate-900  tw-emerald-500
+
+-- Invalid (should NOT highlight)
+ceruleanblue  notacolor  blueish
+xred  redx  lightblu
