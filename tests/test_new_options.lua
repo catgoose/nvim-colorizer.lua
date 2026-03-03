@@ -1372,6 +1372,47 @@ T["get_setup_options legacy"]["legacy css preset resolves"] = function()
   eq(true, s.options.parsers.rgb.enable)
 end
 
+T["get_setup_options legacy"]["no arguments uses plugin defaults"] = function()
+  local s = config.get_setup_options()
+  eq(true, s.options.parsers.names.enable)
+  eq(true, s.options.parsers.hex.rrggbb)
+  eq(true, s.options.parsers.hex.rgb)
+  eq("background", s.options.display.mode)
+  eq(true, s.user_default_options.names)
+  eq(true, s.user_default_options.RGB)
+  eq(true, s.user_default_options.RRGGBB)
+end
+
+T["get_setup_options legacy"]["empty opts table uses plugin defaults"] = function()
+  local s = config.get_setup_options({})
+  eq(true, s.options.parsers.names.enable)
+  eq(true, s.options.parsers.hex.rrggbb)
+  eq(true, s.options.parsers.hex.rgb)
+  eq(true, s.user_default_options.names)
+  eq(true, s.user_default_options.RGB)
+end
+
+T["get_setup_options legacy"]["sparse user_default_options preserves plugin defaults"] = function()
+  -- Reproduces issue #184: passing only unrecognized keys should not disable parsers
+  local s = config.get_setup_options({
+    user_default_options = { mode = "foreground" },
+  })
+  eq(true, s.options.parsers.names.enable)
+  eq(true, s.options.parsers.hex.rrggbb)
+  eq(true, s.options.parsers.hex.rgb)
+  eq("foreground", s.options.display.mode)
+end
+
+T["get_setup_options legacy"]["single override does not clobber other defaults"] = function()
+  local s = config.get_setup_options({
+    user_default_options = { names = false },
+  })
+  eq(false, s.options.parsers.names.enable)
+  -- Other plugin defaults should still be active
+  eq(true, s.options.parsers.hex.rrggbb)
+  eq(true, s.options.parsers.hex.rgb)
+end
+
 -- matcher cache tests -------------------------------------------------------
 
 T["matcher cache"] = new_set()
