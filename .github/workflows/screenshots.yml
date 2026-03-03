@@ -15,58 +15,71 @@ permissions:
 jobs:
   screenshots:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        category:
+          - default
+          - hex
+          - css
+          - names
+          - special
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
 
-      - uses: rhysd/action-setup-vim@v1
+      - uses: rhysd/action-setup-vim@19e3dd31a84dbc2c5445d65e9b363f616cab96c1
         with:
           neovim: true
           version: nightly
 
       - uses: ./.github/actions/setup-vhs
 
-      - name: Generate screenshots
-        run: nvim --headless -l scripts/screenshots/generate.lua
+      - name: Generate ${{ matrix.category }} screenshots
+        run: nvim --headless -l scripts/screenshots/generate.lua --${{ matrix.category }}
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: screenshots
+          name: screenshots-${{ matrix.category }}
           path: scripts/screenshots/output/*.png
 
   publish:
     runs-on: ubuntu-latest
     needs: [screenshots]
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
-          name: screenshots
+          pattern: screenshots-*
           path: output
+          merge-multiple: true
 
-      - name: Push to screenshots branch
+      - name: Checkout screenshots repo
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          repository: catgoose/screenshots
+          token: ${{ secrets.SCREENSHOTS_REPO_TOKEN }}
+          path: screenshots-repo
+
+      - name: Copy screenshots into screenshots repo
         run: |
-          cd output
-          git init -b screenshots
-          git add *.png
-          git -c user.name="github-actions[bot]" \
-              -c user.email="github-actions[bot]@users.noreply.github.com" \
-              commit -m "Update screenshots [skip ci]"
-          git push --force \
-            "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" \
-            screenshots
+          mkdir -p screenshots-repo/nvim-colorizer.lua
+          cp output/*.png screenshots-repo/nvim-colorizer.lua/
 
-  readme:
-    runs-on: ubuntu-latest
-    needs: [publish]
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Generate SCREENSHOTS.md
-        run: lua scripts/readme/gen_readme.lua
-
-      - name: Commit and push if changed
+      - name: Create PR with screenshots
         run: |
-          git diff --quiet SCREENSHOTS.md && exit 0
-          git -c user.name="github-actions[bot]" \
-              -c user.email="github-actions[bot]@users.noreply.github.com" \
-              commit -m "docs: regenerate SCREENSHOTS.md [skip ci]" SCREENSHOTS.md
-          git push
+          cd screenshots-repo
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add nvim-colorizer.lua
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          branch="nvim-colorizer-lua/screenshots-$(date +%Y%m%d-%H%M%S)"
+          git checkout -b "$branch"
+          git commit -m "Update nvim-colorizer.lua screenshots"
+          git push origin "$branch"
+          pr_url=$(gh pr create --repo catgoose/screenshots --base main --head "$branch" \
+            --title "Update nvim-colorizer.lua screenshots" --body "Auto-generated from nvim-colorizer.lua CI.")
+          gh pr merge "$pr_url" --repo catgoose/screenshots --squash --admin
+        env:
+          GH_TOKEN: ${{ secrets.SCREENSHOTS_REPO_TOKEN }}

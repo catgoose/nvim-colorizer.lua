@@ -4,7 +4,7 @@
 --   lua scripts/readme/gen_readme.lua           -- write SCREENSHOTS.md
 --   lua scripts/readme/gen_readme.lua --check   -- exit 1 if stale
 
-local IMG_BASE = "https://raw.githubusercontent.com/catgoose/nvim-colorizer.lua/screenshots/"
+local IMG_BASE = "https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/"
 local ISSUE_BASE = "https://github.com/catgoose/nvim-colorizer.lua/issues/new"
 
 -- ── CLI args ───────────────────────────────────────────────────────
