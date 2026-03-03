@@ -286,7 +286,6 @@ M.default_options = default_options
 ---@field always_update boolean Always update color values, even if buffer is not focused.
 ---@field hooks colorizer.Hooks Table of hook functions
 ---@field xterm boolean Enables xterm 256-color codes (#xNN, \e[38;5;NNNm)
----@field suppress_deprecation boolean When true, suppress the info message about the new options format. Default: false.
 
 ---@class colorizer.NamesOpts
 ---@field lowercase boolean Converts color names to lowercase.
@@ -1116,15 +1115,27 @@ function M.get_setup_options(opts)
     M.options.user_default_options = M.as_flat(merged)
   else
     -- Legacy format path (or no options)
-    local raw_ud = opts.user_default_options or vim.deepcopy(plugin_user_default_options)
-    -- Translate to new format
-    local translated = M.translate_options(raw_ud)
-    M.apply_presets(translated.parsers)
-    expand_hex_default(translated.parsers)
-    local merged = vim.tbl_deep_extend("force", vim.deepcopy(default_options), translated)
+    -- Translate plugin defaults as baseline (ensures parsers are enabled even
+    -- when user passes sparse overrides like { suppress_deprecation = true })
+    local baseline = M.translate_options(vim.deepcopy(plugin_user_default_options))
+    M.apply_presets(baseline.parsers)
+    expand_hex_default(baseline.parsers)
+    -- Translate user overrides separately so presets see only user-set keys
+    local user_overrides = {}
+    local raw_ud = opts.user_default_options
+    if raw_ud then
+      user_overrides = M.translate_options(raw_ud)
+      if user_overrides.parsers then
+        M.apply_presets(user_overrides.parsers)
+        expand_hex_default(user_overrides.parsers)
+      end
+    end
+    local merged =
+      vim.tbl_deep_extend("force", vim.deepcopy(default_options), baseline, user_overrides)
     M.validate_new_options(merged)
     M.options.options = merged
     -- Also keep legacy flat format (apply aliases + validate)
+    raw_ud = raw_ud or vim.deepcopy(plugin_user_default_options)
     opts.user_default_options = M.apply_alias_options(raw_ud)
     M.options.user_default_options = opts.user_default_options
   end

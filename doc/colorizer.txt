@@ -386,7 +386,6 @@ colorizer.UserDefaultOptions                      *colorizer.UserDefaultOptions*
         {always_update}         (boolean)                                  Always update color values, even if buffer is not focused.
         {hooks}                 (colorizer.Hooks)                          Table of hook functions
         {xterm}                 (boolean)                                  Enables xterm 256-color codes (#xNN, \e[38;5;NNNm)
-        {suppress_deprecation}  (boolean)                                  When true, suppress the info message about the new options format. Default: false.
 
 
 colorizer.NamesOpts                                        *colorizer.NamesOpts*
