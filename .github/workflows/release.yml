@@ -39,7 +39,7 @@ jobs:
             echo "No changes to commit"
             exit 0
           fi
-          git commit -m "style: auto-format with StyLua"
+          git commit -m "style: auto-format with StyLua [skip ci]"
           git pull --rebase origin master
           git push
 
@@ -69,7 +69,7 @@ jobs:
             echo "No changes to commit"
             exit 0
           fi
-          git commit -m "docs: auto-generate vimdoc"
+          git commit -m "docs: auto-generate vimdoc [skip ci]"
           git pull --rebase origin master
           git push
 

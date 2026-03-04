@@ -42,6 +42,6 @@ jobs:
             echo "No changes to commit"
             exit 0
           fi
-          git commit -m "docs: auto-generate SCREENSHOTS.md"
+          git commit -m "docs: auto-generate SCREENSHOTS.md [skip ci]"
           git pull --rebase origin master
           git push
