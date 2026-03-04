@@ -41,4 +41,5 @@ jobs:
             exit 0
           fi
           git commit -m "docs: auto-generate SCREENSHOTS.md"
+          git pull --rebase origin master
           git push

@@ -38,10 +38,12 @@ jobs:
             exit 0
           fi
           git commit -m "style: auto-format with StyLua"
+          git pull --rebase origin master
           git push
 
   vimdoc:
     if: github.event_name == 'workflow_dispatch' || github.actor != 'github-actions[bot]'
+    needs: format
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -64,6 +66,7 @@ jobs:
             exit 0
           fi
           git commit -m "docs: auto-generate vimdoc"
+          git pull --rebase origin master
           git push
 
   pages:
