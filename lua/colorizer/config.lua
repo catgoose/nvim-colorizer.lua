@@ -196,10 +196,10 @@ local function build_default_parsers()
   parsers.css = false
   parsers.css_fn = false
   parsers.hex = {
-    default = false,
-    rgb = false,
-    rgba = false,
-    rrggbb = false,
+    default = true,
+    rgb = true,
+    rgba = true,
+    rrggbb = true,
     rrggbbaa = false,
     aarrggbb = false,
   }
@@ -209,6 +209,10 @@ local function build_default_parsers()
     update_names = false,
   }
   parsers.custom = {}
+
+  -- User-facing defaults: match legacy plugin_user_default_options
+  -- so that partial configs (e.g. only display.mode) still detect colors.
+  parsers.names.enable = true
 
   return parsers
 end
@@ -1102,6 +1106,28 @@ end
 function M.get_setup_options(opts)
   init_config()
   opts = opts or {}
+
+  -- Detect new-format keys (parsers, display, hooks) at the top level
+  -- (e.g. from lazy.nvim `opts = { display = { mode = "virtualtext" } }`)
+  -- and hoist them into opts.options so they're processed correctly.
+  if not opts.options and not opts.user_default_options and has_new_format_keys(opts) then
+    opts.options = {}
+    for _, key in ipairs(new_format_keys) do
+      if opts[key] ~= nil then
+        opts.options[key] = opts[key]
+        opts[key] = nil
+      end
+    end
+    -- Also hoist hooks and always_update if present alongside new-format keys
+    if opts.hooks ~= nil then
+      opts.options.hooks = opts.hooks
+      opts.hooks = nil
+    end
+    if opts.always_update ~= nil then
+      opts.options.always_update = opts.always_update
+      opts.always_update = nil
+    end
+  end
 
   if opts.options then
     -- New format path
