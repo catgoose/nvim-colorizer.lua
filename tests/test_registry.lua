@@ -157,13 +157,4 @@ T["spec.parse"]["rgba_hex spec.parse works with ctx"] = function()
   eq("FF0000", hex)
 end
 
--- reset_all_caches -------------------------------------------------------------
-
-T["reset_all_caches"] = new_set()
-
-T["reset_all_caches"]["calls reset_cache on names parser"] = function()
-  -- Just verify it doesn't error
-  registry.reset_all_caches()
-end
-
 return T

@@ -63,10 +63,11 @@ end
 
 --- Build a definition pattern from the variable pattern.
 -- Appends a value-capture group to match `$var: value` definitions.
+-- Returns three captures: (name, value_start_position, value).
 ---@param var_pattern string Variable reference pattern (e.g. "^%$([%w_-]+)")
----@return string Definition pattern with two captures: (name, value)
+---@return string Definition pattern with three captures: (name, value_pos, value)
 local function make_def_pattern(var_pattern)
-  return var_pattern .. "%s*:%s*(.+)%s*"
+  return var_pattern .. "%s*:%s*()(.+)%s*"
 end
 
 -- Helper function for sass_update_variables
@@ -104,7 +105,7 @@ local function sass_parse_lines(bufnr, line_start, content, name)
         index = #line
       -- line starting with variables $var
       elseif not import_find_colon and line:byte(index) == ("$"):byte() then
-        local variable_name, variable_value = line:match(def_pattern, index)
+        local variable_name, value_pos, variable_value = line:match(def_pattern, index)
         -- Check if we got a variable definition
         if variable_name and variable_value then
           -- Check for a recursive variable definition.
@@ -118,7 +119,6 @@ local function sass_parse_lines(bufnr, line_start, content, name)
             end
             index = index + 1
           else
-            -- Check for a recursive variable definition.
             -- If it's not recursive, then just update the value.
             if state[bufnr].color_parser then
               local length, rgb_hex = state[bufnr].color_parser(variable_value, 1)
@@ -127,9 +127,8 @@ local function sass_parse_lines(bufnr, line_start, content, name)
                 state[bufnr].definitions_recursive_current[variable_name] = rgb_hex
                 state[bufnr].definitions_recursive_current_absolute[variable_name] = rgb_hex
                 state[bufnr].definitions_linewise[name][linenum][variable_name] = true
-                -- added 3 because the color parsers returns 3 less
-                -- todo: need to fix
-                index = index + length + 3
+                -- value_pos is the absolute position in the line where the value starts
+                index = value_pos + length
               end
             end
           end
@@ -349,9 +348,6 @@ M.spec = {
   stateful = true,
   parse = function(ctx)
     return M.parser(ctx.line, ctx.col, ctx.bufnr)
-  end,
-  cleanup = function(ctx)
-    M.cleanup(ctx.bufnr)
   end,
 }
 

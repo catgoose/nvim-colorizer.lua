@@ -255,7 +255,8 @@ local default_options = {
   __resolved = true,
 }
 
---- Expose default_options for external use
+--- Canonical default options (read-only reference for tests/inspection).
+--- Use vim.deepcopy(config.default_options) before mutating.
 M.default_options = default_options
 
 --- Default user options for colorizer.
@@ -599,12 +600,12 @@ function M.translate_filetypes(old_ft)
     return { enable = {}, exclude = {}, overrides = {} }
   end
 
-  -- Already new format
+  -- Already new format — shallow-copy arrays to avoid mutating the caller's input
   if old_ft.enable or old_ft.exclude or old_ft.overrides then
     return {
-      enable = old_ft.enable or {},
-      exclude = old_ft.exclude or {},
-      overrides = old_ft.overrides or {},
+      enable = old_ft.enable and { unpack(old_ft.enable) } or {},
+      exclude = old_ft.exclude and { unpack(old_ft.exclude) } or {},
+      overrides = old_ft.overrides and vim.deepcopy(old_ft.overrides) or {},
     }
   end
 
@@ -631,7 +632,7 @@ function M.translate_filetypes(old_ft)
       end
     end
     if not has_exclusions then
-      return { enable = old_ft, exclude = {}, overrides = {} }
+      return { enable = { unpack(old_ft) }, exclude = {}, overrides = {} }
     end
   end
 
@@ -656,6 +657,10 @@ function M.translate_filetypes(old_ft)
   return new
 end
 
+-- Standard hex format keys affected by hex.default.
+-- hash_aarrggbb and no_hash are intentionally excluded: they are advanced
+-- formats that must be explicitly enabled and should not activate via
+-- a blanket `default = true`.
 local hex_format_keys = { "rgb", "rgba", "rrggbb", "rrggbbaa", "aarrggbb" }
 
 --- Expand hex.default into individual format defaults.
@@ -991,7 +996,7 @@ function M.expand_sass_parsers(sass_parsers)
   opts.parsers = parsers
   opts.__resolved = true
   expand_sass_cache[cache_key] = opts
-  return opts
+  return vim.deepcopy(opts)
 end
 
 --- Validate user options and set defaults (legacy format).
@@ -1061,6 +1066,7 @@ end
 ---@param ud_opts table user_default_options
 ---@return table
 function M.apply_alias_options(ud_opts)
+  ud_opts = vim.deepcopy(ud_opts)
   local aliases = {
     --  TODO: 2024-12-24 - Should aliases be configurable?
     ["css"] = { "names", "RGB", "RGBA", "RRGGBB", "RRGGBBAA", "hsl_fn", "rgb_fn", "oklch_fn" },

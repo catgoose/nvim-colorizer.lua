@@ -501,7 +501,9 @@ function M.attach_to_buffer(bufnr, opts, bo_type)
       if colorizer_state.buffer_options[bufnr] then
         M.detach_from_buffer(bufnr)
       end
-      colorizer_state.buffer_local[bufnr].__init = nil
+      if colorizer_state.buffer_local[bufnr] then
+        colorizer_state.buffer_local[bufnr].__init = nil
+      end
     end,
   })
   colorizer_state.buffer_local[bufnr].__autocmds = autocmds
@@ -528,12 +530,14 @@ function M.detach_from_buffer(bufnr)
     vim.api.nvim_buf_clear_namespace(bufnr, ns_id, 0, -1)
   end
   if colorizer_state.buffer_local[bufnr] then
-    for _, namespace in pairs(colorizer_state.buffer_local[bufnr].__detach.ns_id) do
-      vim.api.nvim_buf_clear_namespace(bufnr, namespace, 0, -1)
-    end
-    for _, f in pairs(colorizer_state.buffer_local[bufnr].__detach.functions) do
-      if type(f) == "function" then
-        f(bufnr)
+    if colorizer_state.buffer_local[bufnr].__detach then
+      for _, namespace in pairs(colorizer_state.buffer_local[bufnr].__detach.ns_id) do
+        vim.api.nvim_buf_clear_namespace(bufnr, namespace, 0, -1)
+      end
+      for _, f in pairs(colorizer_state.buffer_local[bufnr].__detach.functions) do
+        if type(f) == "function" then
+          f(bufnr)
+        end
       end
     end
     local bl = colorizer_state.buffer_local[bufnr]
@@ -609,7 +613,9 @@ function M.setup(opts)
       if colorizer_state.buffer_options[bufnr] then
         M.detach_from_buffer(bufnr)
       end
-      colorizer_state.buffer_local[bufnr].__init = nil
+      if colorizer_state.buffer_local[bufnr] then
+        colorizer_state.buffer_local[bufnr].__init = nil
+      end
       return
     end
 

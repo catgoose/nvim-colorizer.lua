@@ -147,10 +147,10 @@ local function img_cell_detailed(config_name, width)
       .. '<strong><a href="%s">[%d]</a> %s</strong><br>\n'
       .. "<em>%s</em><br>\n"
       .. '<img src="%s%s.png" width="%d"><br>\n'
-      .. "<details><summary>Config</summary>\n"
-      .. '<pre><code class="language-lua">\n'
+      .. "<details><summary>Config</summary>\n\n"
+      .. "```lua\n"
       .. "%s\n"
-      .. "</code></pre>\n"
+      .. "```\n\n"
       .. "</details>\n"
       .. "</td>",
     report_url,

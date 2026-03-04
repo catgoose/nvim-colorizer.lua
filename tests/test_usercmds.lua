@@ -53,13 +53,11 @@ T["make()"]["nil creates no commands"] = function()
   eq(false, cmd_exists("ColorizerAttachToBuffer"))
 end
 
-T["make()"]["table arg still creates all commands (wrap side effect)"] = function()
-  -- Note: wrap() creates commands as a side effect of building cmd_list,
-  -- so any truthy arg creates all commands regardless of list contents
+T["make()"]["table arg creates only requested commands"] = function()
   require("colorizer").setup({ user_commands = false })
   usercmds.make({ "ColorizerToggle" })
   eq(true, cmd_exists("ColorizerToggle"))
-  eq(true, cmd_exists("ColorizerAttachToBuffer"))
+  eq(false, cmd_exists("ColorizerAttachToBuffer"))
 end
 
 T["make()"]["setup creates commands by default"] = function()

@@ -31,9 +31,11 @@ pre-filled issue.
 <em>css = true (names + hex + rgb + hsl + oklch)</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/default.png" width="600"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = { css = true }
-</code></pre>
+```
+
 </details>
 </td>
 </tr>
@@ -53,9 +55,11 @@ Each test shows what the preset enables and what it does not.
 <em>css = true preset (names + hex + rgb + hsl + oklch)</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/preset_css.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = { css = true }
-</code></pre>
+```
+
 </details>
 </td>
 <td align="center">
@@ -63,9 +67,11 @@ parsers = { css = true }
 <em>css_fn = true preset (rgb + hsl + oklch only)</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/preset_css_fn.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = { css_fn = true }
-</code></pre>
+```
+
 </details>
 </td>
 </tr>
@@ -84,9 +90,11 @@ Each test enables one `hex.*` option. The `hex_all` test enables all hex formats
 <em>#RGB (3-digit)</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/hex_rgb.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = { hex = { rgb = true } }
-</code></pre>
+```
+
 </details>
 </td>
 <td align="center">
@@ -94,9 +102,11 @@ parsers = { hex = { rgb = true } }
 <em>#RGBA (4-digit)</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/hex_rgba.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = { hex = { rgba = true } }
-</code></pre>
+```
+
 </details>
 </td>
 <td align="center">
@@ -104,9 +114,11 @@ parsers = { hex = { rgba = true } }
 <em>#RRGGBB (6-digit)</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/hex_rrggbb.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = { hex = { rrggbb = true } }
-</code></pre>
+```
+
 </details>
 </td>
 </tr>
@@ -116,9 +128,11 @@ parsers = { hex = { rrggbb = true } }
 <em>#RRGGBBAA (8-digit)</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/hex_rrggbbaa.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = { hex = { rrggbbaa = true } }
-</code></pre>
+```
+
 </details>
 </td>
 <td align="center">
@@ -126,9 +140,11 @@ parsers = { hex = { rrggbbaa = true } }
 <em>#AARRGGBB (QML 8-digit)</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/hex_hash_aarrggbb.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = { hex = { hash_aarrggbb = true } }
-</code></pre>
+```
+
 </details>
 </td>
 <td align="center">
@@ -136,9 +152,11 @@ parsers = { hex = { hash_aarrggbb = true } }
 <em>0xAARRGGBB (prefix hex)</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/hex_0x_aarrggbb.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = { hex = { aarrggbb = true } }
-</code></pre>
+```
+
 </details>
 </td>
 </tr>
@@ -148,9 +166,11 @@ parsers = { hex = { aarrggbb = true } }
 <em>RRGGBB without # prefix</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/hex_no_hash.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = { hex = { no_hash = true } }
-</code></pre>
+```
+
 </details>
 </td>
 <td align="center">
@@ -158,9 +178,11 @@ parsers = { hex = { no_hash = true } }
 <em>hex.default (all common formats)</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/hex_default.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = { hex = { default = true } }
-</code></pre>
+```
+
 </details>
 </td>
 <td align="center">
@@ -168,11 +190,13 @@ parsers = { hex = { default = true } }
 <em>All hex formats combined</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/hex_all.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = {
   hex = { default = true, hash_aarrggbb = true, no_hash = true },
 }
-</code></pre>
+```
+
 </details>
 </td>
 </tr>
@@ -191,9 +215,11 @@ Each test enables one CSS function parser. The `css_all` test enables all CSS fu
 <em>rgb() / rgba() functions</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/css_rgb.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = { rgb = { enable = true } }
-</code></pre>
+```
+
 </details>
 </td>
 <td align="center">
@@ -201,9 +227,11 @@ parsers = { rgb = { enable = true } }
 <em>hsl() / hsla() functions</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/css_hsl.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = { hsl = { enable = true } }
-</code></pre>
+```
+
 </details>
 </td>
 <td align="center">
@@ -211,9 +239,11 @@ parsers = { hsl = { enable = true } }
 <em>oklch() function</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/css_oklch.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = { oklch = { enable = true } }
-</code></pre>
+```
+
 </details>
 </td>
 </tr>
@@ -223,9 +253,11 @@ parsers = { oklch = { enable = true } }
 <em>hsluv() / hsluvu() functions</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/css_hsluv.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = { hsluv = { enable = true } }
-</code></pre>
+```
+
 </details>
 </td>
 <td align="center">
@@ -233,14 +265,16 @@ parsers = { hsluv = { enable = true } }
 <em>All CSS color functions combined</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/css_all.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = {
   hsl = { enable = true },
   hsluv = { enable = true },
   oklch = { enable = true },
   rgb = { enable = true },
 }
-</code></pre>
+```
+
 </details>
 </td>
 <td></td>
@@ -260,7 +294,8 @@ Each test enables one name case variant or tailwind. The `names_all` test enable
 <em>lowercase named colors only</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/names_lowercase.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = {
   names = {
     camelcase = false,
@@ -269,7 +304,8 @@ parsers = {
     uppercase = false,
   },
 }
-</code></pre>
+```
+
 </details>
 </td>
 <td align="center">
@@ -277,7 +313,8 @@ parsers = {
 <em>CamelCase named colors only</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/names_camelcase.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = {
   names = {
     camelcase = true,
@@ -286,7 +323,8 @@ parsers = {
     uppercase = false,
   },
 }
-</code></pre>
+```
+
 </details>
 </td>
 <td align="center">
@@ -294,7 +332,8 @@ parsers = {
 <em>UPPERCASE named colors only</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/names_uppercase.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = {
   names = {
     camelcase = false,
@@ -303,7 +342,8 @@ parsers = {
     uppercase = true,
   },
 }
-</code></pre>
+```
+
 </details>
 </td>
 </tr>
@@ -313,9 +353,11 @@ parsers = {
 <em>Tailwind CSS color names</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/names_tailwind.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = { tailwind = { enable = true } }
-</code></pre>
+```
+
 </details>
 </td>
 <td align="center">
@@ -323,11 +365,13 @@ parsers = { tailwind = { enable = true } }
 <em>strip_digits rejects names ending in digits</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/names_strip_digits.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = {
   names = { enable = true, lowercase = true, strip_digits = true },
 }
-</code></pre>
+```
+
 </details>
 </td>
 <td align="center">
@@ -335,7 +379,8 @@ parsers = {
 <em>User-defined custom color names</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/names_custom.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = {
   names = {
     camelcase = false,
@@ -352,7 +397,8 @@ parsers = {
     uppercase = false,
   },
 }
-</code></pre>
+```
+
 </details>
 </td>
 </tr>
@@ -362,7 +408,8 @@ parsers = {
 <em>extra_word_chars = "-" (hyphens in names)</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/names_extra_word_chars.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = {
   names = {
     camelcase = false,
@@ -378,7 +425,8 @@ parsers = {
     uppercase = false,
   },
 }
-</code></pre>
+```
+
 </details>
 </td>
 <td align="center">
@@ -386,7 +434,8 @@ parsers = {
 <em>All name styles combined</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/names_all.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = {
   names = {
     camelcase = true,
@@ -396,7 +445,8 @@ parsers = {
   },
   tailwind = { enable = true },
 }
-</code></pre>
+```
+
 </details>
 </td>
 <td></td>
@@ -416,9 +466,11 @@ Each test enables one special parser (xterm, xcolor, css_var_rgb, sass, hooks) w
 <em>Xterm 256-color (#xN)</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/special_xterm.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = { xterm = { enable = true } }
-</code></pre>
+```
+
 </details>
 </td>
 <td align="center">
@@ -426,9 +478,11 @@ parsers = { xterm = { enable = true } }
 <em>XColor blending (name!percent)</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/special_xcolor.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = { xcolor = { enable = true } }
-</code></pre>
+```
+
 </details>
 </td>
 <td align="center">
@@ -436,9 +490,11 @@ parsers = { xcolor = { enable = true } }
 <em>CSS variable RGB (--var: r,g,b;)</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/special_css_var_rgb.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = { css_var_rgb = { enable = true } }
-</code></pre>
+```
+
 </details>
 </td>
 </tr>
@@ -448,9 +504,11 @@ parsers = { css_var_rgb = { enable = true } }
 <em>Sass $variable color resolution</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/special_sass.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = { sass = { enable = true, parsers = { css = true } } }
-</code></pre>
+```
+
 </details>
 </td>
 <td align="center">
@@ -458,7 +516,8 @@ parsers = { sass = { enable = true, parsers = { css = true } } }
 <em>variable_pattern restricts to alpha-only names</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/special_sass_pattern.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = {
   sass = {
     enable = true,
@@ -466,7 +525,8 @@ parsers = {
     variable_pattern = "^%$([%a]+)",
   },
 }
-</code></pre>
+```
+
 </details>
 </td>
 <td align="center">
@@ -474,12 +534,14 @@ parsers = {
 <em>should_highlight_line skips comment lines</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/special_hooks_line_filter.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = { css = true }
 hooks = {
   should_highlight_line = function(...) end -- see configs.lua,
 }
-</code></pre>
+```
+
 </details>
 </td>
 </tr>
@@ -499,10 +561,12 @@ All display tests use the same fixture with `css = true`, showing how different
 <em>mode = background (default)</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/display_background.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = { css = true }
 display = { mode = "background" }
-</code></pre>
+```
+
 </details>
 </td>
 <td align="center">
@@ -510,10 +574,12 @@ display = { mode = "background" }
 <em>mode = foreground (colored text)</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/display_foreground.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = { css = true }
 display = { mode = "foreground" }
-</code></pre>
+```
+
 </details>
 </td>
 <td align="center">
@@ -521,10 +587,12 @@ display = { mode = "foreground" }
 <em>virtualtext at end of line</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/display_virtualtext_eol.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = { css = true }
 display = { mode = "virtualtext", virtualtext = { position = "eol" } }
-</code></pre>
+```
+
 </details>
 </td>
 </tr>
@@ -534,13 +602,15 @@ display = { mode = "virtualtext", virtualtext = { position = "eol" } }
 <em>virtualtext inline after color</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/display_virtualtext_inline.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = { css = true }
 display = {
   mode = "virtualtext",
   virtualtext = { position = "after" },
 }
-</code></pre>
+```
+
 </details>
 </td>
 <td align="center">
@@ -548,13 +618,15 @@ display = {
 <em>virtualtext before color</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/display_virtualtext_before.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = { css = true }
 display = {
   mode = "virtualtext",
   virtualtext = { position = "before" },
 }
-</code></pre>
+```
+
 </details>
 </td>
 <td align="center">
@@ -562,13 +634,15 @@ display = {
 <em>virtualtext eol with hl_mode = background</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/display_virtualtext_hl_bg.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = { css = true }
 display = {
   mode = "virtualtext",
   virtualtext = { hl_mode = "background", position = "eol" },
 }
-</code></pre>
+```
+
 </details>
 </td>
 </tr>
@@ -578,13 +652,15 @@ display = {
 <em>virtualtext before with hl_mode = background</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/display_vt_before_hl_bg.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = { css = true }
 display = {
   mode = "virtualtext",
   virtualtext = { hl_mode = "background", position = "before" },
 }
-</code></pre>
+```
+
 </details>
 </td>
 <td align="center">
@@ -592,13 +668,15 @@ display = {
 <em>virtualtext after with hl_mode = background</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/display_vt_after_hl_bg.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = { css = true }
 display = {
   mode = "virtualtext",
   virtualtext = { hl_mode = "background", position = "after" },
 }
-</code></pre>
+```
+
 </details>
 </td>
 <td align="center">
@@ -606,13 +684,15 @@ display = {
 <em>virtualtext with char = ●</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/display_vt_char_circle.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = { css = true }
 display = {
   mode = "virtualtext",
   virtualtext = { char = "●", position = "eol" },
 }
-</code></pre>
+```
+
 </details>
 </td>
 </tr>
@@ -622,13 +702,15 @@ display = {
 <em>virtualtext with char = █</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/display_vt_char_block.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = { css = true }
 display = {
   mode = "virtualtext",
   virtualtext = { char = "█", position = "eol" },
 }
-</code></pre>
+```
+
 </details>
 </td>
 <td align="center">
@@ -636,13 +718,15 @@ display = {
 <em>background mode with custom contrast colors</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/display_bg_contrast.png" width="400"><br>
 <details><summary>Config</summary>
-<pre><code class="language-lua">
+
+```lua
 parsers = { css = true }
 display = {
   background = { bright_fg = "#1a1a2e", dark_fg = "#e0e0ff" },
   mode = "background",
 }
-</code></pre>
+```
+
 </details>
 </td>
 <td></td>
