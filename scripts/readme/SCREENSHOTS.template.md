@@ -13,6 +13,7 @@ and reference the config key.
 ## Table of Contents
 
 - [Default](#default)
+- [Presets](#presets)
 - [Hex Colors](#hex-colors)
 - [CSS Functions](#css-functions)
 - [Named Colors](#named-colors)
@@ -25,6 +26,14 @@ Mixed showcase with `css = true` preset — enables names, hex, rgb, hsl, oklch 
 
 <!-- gen:default_gallery:start -->
 <!-- gen:default_gallery:end -->
+
+## Presets
+
+The `css` and `css_fn` presets enable groups of parsers with a single flag.
+Each screenshot shows exactly what the preset enables and what it does not.
+
+<!-- gen:preset_gallery:start -->
+<!-- gen:preset_gallery:end -->
 
 ## Hex Colors
 
@@ -52,10 +61,8 @@ The `names_all` screenshot uses [`names_all.css`](scripts/screenshots/fixtures/n
 
 ## Special Parsers
 
-Each special parser uses its own fixture with an appropriate file type:
-[`xterm.sh`](scripts/screenshots/fixtures/xterm.sh),
-[`xcolor.tex`](scripts/screenshots/fixtures/xcolor.tex),
-[`css_var_rgb.css`](scripts/screenshots/fixtures/css_var_rgb.css).
+Each special parser uses its own fixture with an appropriate file type
+(xterm, xcolor, css_var_rgb, sass variables, hooks).
 
 <!-- gen:special_gallery:start -->
 <!-- gen:special_gallery:end -->

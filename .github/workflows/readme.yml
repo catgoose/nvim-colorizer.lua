@@ -25,7 +25,7 @@ jobs:
     if: github.event_name != 'push' || github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/checkout@v4
         with:
           token: ${{ secrets.CI_PAT }}
       - name: Install Lua
