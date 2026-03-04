@@ -24,9 +24,9 @@ dependencies**. Written in performant Luajit.
 
 ![Demo](https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/demo.gif)
 
-**[Screenshot gallery](SCREENSHOTS.md)** — CI-generated screenshot tests for
+**[Screenshot tests](SCREENSHOT_TESTS.md)** — CI-generated visual tests for
 every parser and display mode. If something looks off, click the `[N]` link
-next to the screenshot to open an issue.
+next to the test to report an issue.
 
 ## Why colorizer.lua?
 

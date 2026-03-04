@@ -30,8 +30,8 @@ help:
 	@echo "  make demo              - Generate demo.gif"
 	@echo "  make screenshots       - Generate all screenshots (parallel)"
 	@echo "  make screenshots-list  - List available screenshot configs"
-	@echo "  make readme            - Regenerate SCREENSHOTS.md from template"
-	@echo "  make readme-check      - Check if SCREENSHOTS.md is up-to-date"
+	@echo "  make readme            - Regenerate SCREENSHOT_TESTS.md from template"
+	@echo "  make readme-check      - Check if SCREENSHOT_TESTS.md is up-to-date"
 	@echo "  make clean             - Remove test/colorizer_*"
 
 trie: trie-test trie-benchmark

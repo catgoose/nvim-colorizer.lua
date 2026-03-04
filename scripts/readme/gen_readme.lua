@@ -1,7 +1,7 @@
 #!/usr/bin/env lua
--- Generate SCREENSHOTS.md from template + configs.lua data.
+-- Generate SCREENSHOT_TESTS.md from template + configs.lua data.
 -- Usage:
---   lua scripts/readme/gen_readme.lua           -- write SCREENSHOTS.md
+--   lua scripts/readme/gen_readme.lua           -- write SCREENSHOT_TESTS.md
 --   lua scripts/readme/gen_readme.lua --check   -- exit 1 if stale
 
 local IMG_BASE = "https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/"
@@ -238,24 +238,24 @@ end
 
 -- ── Main ───────────────────────────────────────────────────────────
 
-local template = read_file("scripts/readme/SCREENSHOTS.template.md")
+local template = read_file("scripts/readme/SCREENSHOT_TESTS.template.md")
 local result = replace_markers(template)
 
 if check_mode then
-  local ok, current = pcall(read_file, "SCREENSHOTS.md")
+  local ok, current = pcall(read_file, "SCREENSHOT_TESTS.md")
   if ok and current == result then
-    print("SCREENSHOTS.md is up-to-date.")
+    print("SCREENSHOT_TESTS.md is up-to-date.")
   else
-    io.stderr:write("SCREENSHOTS.md is out-of-date. Run 'make readme' to regenerate.\n")
+    io.stderr:write("SCREENSHOT_TESTS.md is out-of-date. Run 'make readme' to regenerate.\n")
     if ok then
       local tmp = os.tmpname()
       write_file(tmp, result)
-      os.execute(string.format("diff -u SCREENSHOTS.md %s || true", tmp))
+      os.execute(string.format("diff -u SCREENSHOT_TESTS.md %s || true", tmp))
       os.remove(tmp)
     end
     os.exit(1)
   end
 else
-  write_file("SCREENSHOTS.md", result)
-  print("Generated SCREENSHOTS.md")
+  write_file("SCREENSHOT_TESTS.md", result)
+  print("Generated SCREENSHOT_TESTS.md")
 end
