@@ -51,6 +51,7 @@ function M.reset_cache()
     name_maxlen = nil,
   }
   namespace_state = 0
+  utils.reset_byte_category()
 end
 do
   M.reset_cache()
@@ -164,8 +165,6 @@ local function populate_colors(m_opts)
   if not names_cache.trie then
     names_cache.trie = Trie()
   end
-  names_cache.name_minlen = names_cache.name_minlen or nil
-  names_cache.name_maxlen = names_cache.name_maxlen or nil
   -- Register extra word chars as valid color characters so they act as
   -- word boundaries (prevents matching "red" inside "text-red-500")
   if m_opts.extra_word_chars and m_opts.extra_word_chars ~= "" then

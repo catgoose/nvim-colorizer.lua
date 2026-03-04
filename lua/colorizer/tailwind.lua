@@ -72,6 +72,7 @@ local function highlight(bufnr, opts, add_highlight)
         line_start = line_start or 0
         line_end = line_end and (line_end + 2) or -1
         lsp_cache[bufnr].data = data
+        lsp_cache[bufnr].cache_highlighted = false
         add_highlight(bufnr, tw_ns_id, line_start, line_end, data, opts, { tailwind_lsp = true })
       end
     end

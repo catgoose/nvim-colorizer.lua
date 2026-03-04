@@ -25,9 +25,8 @@ local byte_category = ffi.new("uint8_t[256]")
 
 local category_hex = lshift(1, 2)
 local category_alphanum = bor(lshift(1, 1) --[[alpha]], lshift(1, 0) --[[digit]])
-local additional_color_chars = ""
 
-do
+local function init_byte_category()
   local b = string.byte
   local byte_values =
     { ["0"] = b("0"), ["9"] = b("9"), ["a"] = b("a"), ["f"] = b("f"), ["z"] = b("z") }
@@ -50,6 +49,7 @@ do
     byte_category[i] = v
   end
 end
+init_byte_category()
 
 --- Returns HEX format from RGB values
 ---@param r number Red value
@@ -94,6 +94,11 @@ end
 --- Adds additional characters to the list of valid color characters.
 ---@param chars string The additional characters to add.
 ---@return boolean `true` if the characters were added, otherwise `false`.
+--- Reset byte_category to its initial state, clearing any dynamically added chars.
+function M.reset_byte_category()
+  init_byte_category()
+end
+
 function M.add_additional_color_chars(chars)
   for i = 1, #chars do
     local char = chars:sub(i, i)
@@ -105,7 +110,6 @@ function M.add_additional_color_chars(chars)
       and char_byte ~= ('"'):byte()
       and byte_category[char_byte] == 0
     then
-      additional_color_chars = additional_color_chars .. char
       byte_category[char_byte] = 1
     end
   end

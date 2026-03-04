@@ -74,15 +74,6 @@ function M.config_defaults()
   return defaults
 end
 
---- Call reset_cache on all parsers that define it.
-function M.reset_all_caches()
-  for _, spec in pairs(specs) do
-    if spec.reset_cache then
-      spec.reset_cache()
-    end
-  end
-end
-
 --- Clear all registered specs (for testing).
 function M._clear()
   specs = {}
