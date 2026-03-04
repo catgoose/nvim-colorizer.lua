@@ -58,6 +58,8 @@ local function serialize_lua(v, indent)
     return string.format("%q", v)
   elseif t == "number" or t == "boolean" then
     return tostring(v)
+  elseif t == "function" then
+    return "function(...) end -- see configs.lua"
   elseif t ~= "table" then
     return tostring(v)
   end
@@ -95,11 +97,20 @@ local function config_to_lua(name)
   if not raw then
     return "-- (unknown config)"
   end
-  local parsers = raw.setup_opts and raw.setup_opts.options and raw.setup_opts.options.parsers
-  if not parsers then
+  local opts = raw.setup_opts and raw.setup_opts.options
+  if not opts then
     return "-- (default settings)"
   end
-  return "parsers = " .. serialize_lua(parsers, 0)
+  local parts = {}
+  for _, key in ipairs({ "parsers", "display", "hooks" }) do
+    if opts[key] then
+      parts[#parts + 1] = key .. " = " .. serialize_lua(opts[key], 0)
+    end
+  end
+  if #parts == 0 then
+    return "-- (default settings)"
+  end
+  return table.concat(parts, "\n")
 end
 
 -- ── URL helpers ────────────────────────────────────────────────────

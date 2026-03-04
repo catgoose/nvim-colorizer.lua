@@ -476,6 +476,9 @@ parsers = {
 <details><summary>Config</summary>
 <pre><code class="language-lua">
 parsers = { css = true }
+hooks = {
+  should_highlight_line = function(...) end -- see configs.lua,
+}
 </code></pre>
 </details>
 </td>
@@ -498,6 +501,7 @@ All display tests use the same fixture with `css = true`, showing how different
 <details><summary>Config</summary>
 <pre><code class="language-lua">
 parsers = { css = true }
+display = { mode = "background" }
 </code></pre>
 </details>
 </td>
@@ -508,6 +512,7 @@ parsers = { css = true }
 <details><summary>Config</summary>
 <pre><code class="language-lua">
 parsers = { css = true }
+display = { mode = "foreground" }
 </code></pre>
 </details>
 </td>
@@ -518,6 +523,7 @@ parsers = { css = true }
 <details><summary>Config</summary>
 <pre><code class="language-lua">
 parsers = { css = true }
+display = { mode = "virtualtext", virtualtext = { position = "eol" } }
 </code></pre>
 </details>
 </td>
@@ -530,6 +536,10 @@ parsers = { css = true }
 <details><summary>Config</summary>
 <pre><code class="language-lua">
 parsers = { css = true }
+display = {
+  mode = "virtualtext",
+  virtualtext = { position = "after" },
+}
 </code></pre>
 </details>
 </td>
@@ -540,6 +550,10 @@ parsers = { css = true }
 <details><summary>Config</summary>
 <pre><code class="language-lua">
 parsers = { css = true }
+display = {
+  mode = "virtualtext",
+  virtualtext = { position = "before" },
+}
 </code></pre>
 </details>
 </td>
@@ -550,6 +564,10 @@ parsers = { css = true }
 <details><summary>Config</summary>
 <pre><code class="language-lua">
 parsers = { css = true }
+display = {
+  mode = "virtualtext",
+  virtualtext = { hl_mode = "background", position = "eol" },
+}
 </code></pre>
 </details>
 </td>
@@ -562,6 +580,10 @@ parsers = { css = true }
 <details><summary>Config</summary>
 <pre><code class="language-lua">
 parsers = { css = true }
+display = {
+  mode = "virtualtext",
+  virtualtext = { hl_mode = "background", position = "before" },
+}
 </code></pre>
 </details>
 </td>
@@ -572,6 +594,10 @@ parsers = { css = true }
 <details><summary>Config</summary>
 <pre><code class="language-lua">
 parsers = { css = true }
+display = {
+  mode = "virtualtext",
+  virtualtext = { hl_mode = "background", position = "after" },
+}
 </code></pre>
 </details>
 </td>
@@ -582,6 +608,10 @@ parsers = { css = true }
 <details><summary>Config</summary>
 <pre><code class="language-lua">
 parsers = { css = true }
+display = {
+  mode = "virtualtext",
+  virtualtext = { char = "●", position = "eol" },
+}
 </code></pre>
 </details>
 </td>
@@ -594,6 +624,10 @@ parsers = { css = true }
 <details><summary>Config</summary>
 <pre><code class="language-lua">
 parsers = { css = true }
+display = {
+  mode = "virtualtext",
+  virtualtext = { char = "█", position = "eol" },
+}
 </code></pre>
 </details>
 </td>
@@ -604,6 +638,10 @@ parsers = { css = true }
 <details><summary>Config</summary>
 <pre><code class="language-lua">
 parsers = { css = true }
+display = {
+  background = { bright_fg = "#1a1a2e", dark_fg = "#e0e0ff" },
+  mode = "background",
+}
 </code></pre>
 </details>
 </td>
