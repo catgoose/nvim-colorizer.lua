@@ -17,7 +17,8 @@ local function build_names_matcher_opts(opts)
   end
   return {
     color_names = true,
-    color_names_opts = p.names or { lowercase = true, camelcase = true, uppercase = false, strip_digits = false },
+    color_names_opts = p.names
+      or { lowercase = true, camelcase = true, uppercase = false, strip_digits = false },
     names_custom = p.names and p.names.custom_hashed,
     tailwind_names = p.tailwind and p.tailwind.enable,
   }

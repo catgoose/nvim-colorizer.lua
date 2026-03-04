@@ -125,7 +125,7 @@ function M.luv_to_xyz(tuple)
   local varU = U / (13 * L) + M.refU
   local varV = V / (13 * L) + M.refV
   local Y = M.l_to_y(L)
-  local X = 0 - (9 * Y * varU) / ((((varU - 4) * varV) - varU * varV))
+  local X = 0 - (9 * Y * varU) / (((varU - 4) * varV) - varU * varV)
   return { X, Y, (9 * Y - 15 * varV * Y - varV * X) / (3 * varV) }
 end
 

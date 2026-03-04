@@ -378,13 +378,27 @@ end
 
 -- Keys that indicate legacy (old flat) format
 local legacy_keys = {
-  "RGB", "RGBA", "RRGGBB", "RRGGBBAA", "AARRGGBB",
-  "rgb_fn", "hsl_fn", "oklch_fn",
-  "names", "names_opts", "names_custom",
-  "css", "css_fn",
-  "tailwind", "tailwind_opts",
-  "sass", "xterm",
-  "mode", "virtualtext", "virtualtext_inline", "virtualtext_mode",
+  "RGB",
+  "RGBA",
+  "RRGGBB",
+  "RRGGBBAA",
+  "AARRGGBB",
+  "rgb_fn",
+  "hsl_fn",
+  "oklch_fn",
+  "names",
+  "names_opts",
+  "names_custom",
+  "css",
+  "css_fn",
+  "tailwind",
+  "tailwind_opts",
+  "sass",
+  "xterm",
+  "mode",
+  "virtualtext",
+  "virtualtext_inline",
+  "virtualtext_mode",
   "always_update",
 }
 
@@ -436,7 +450,8 @@ function M.translate_options(old_opts)
   end
 
   -- parsers.hex
-  local hex_keys = { RGB = "rgb", RGBA = "rgba", RRGGBB = "rrggbb", RRGGBBAA = "rrggbbaa", AARRGGBB = "aarrggbb" }
+  local hex_keys =
+    { RGB = "rgb", RGBA = "rgba", RRGGBB = "rrggbb", RRGGBBAA = "rrggbbaa", AARRGGBB = "aarrggbb" }
   local has_hex = false
   for old_key, new_key in pairs(hex_keys) do
     if old_opts[old_key] ~= nil then

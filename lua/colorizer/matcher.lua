@@ -101,7 +101,13 @@ local function build_entry_config(spec, opts)
         maxlen = maxlen and max(k, maxlen) or k
       end
     end
-    return { valid_lengths = valid_lengths, minlen = minlen, maxlen = maxlen, hash_aarrggbb = p.hex.hash_aarrggbb }, nil
+    return {
+      valid_lengths = valid_lengths,
+      minlen = minlen,
+      maxlen = maxlen,
+      hash_aarrggbb = p.hex.hash_aarrggbb,
+    },
+      nil
   elseif spec.name == "hex_no_hash" then
     -- no_hash is a simple on/off toggle; both 6- and 8-digit are always
     -- supported when enabled. hex.rrggbb/rrggbbaa control #-prefixed formats.
@@ -413,12 +419,23 @@ local function calculate_matcher_key(f)
     (f.names and f.names_uppercase) or false,
     (f.names and f.names_strip_digits) or false,
     f.names_custom or false,
-    f.RGB or false, f.RGBA or false, f.RRGGBB or false,
-    f.RRGGBBAA or false, f.hash_aarrggbb or false, f.AARRGGBB or false, f.hex_no_hash or false,
-    f.rgb or false, f.hsl or false, f.hsluv or false,
+    f.RGB or false,
+    f.RGBA or false,
+    f.RRGGBB or false,
+    f.RRGGBBAA or false,
+    f.hash_aarrggbb or false,
+    f.AARRGGBB or false,
+    f.hex_no_hash or false,
+    f.rgb or false,
+    f.hsl or false,
+    f.hsluv or false,
     f.tailwind_enable or false,
     f.tailwind_lsp or false,
-    f.sass or false, f.xterm or false, f.xcolor or false, f.css_var_rgb or false, f.oklch or false,
+    f.sass or false,
+    f.xterm or false,
+    f.xcolor or false,
+    f.css_var_rgb or false,
+    f.oklch or false,
   }
   local matcher_mask = 0
   local bit_value = 1
