@@ -19,6 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.CI_PAT }}
       - name: Install StyLua
         run: |
           STYLUA_VERSION="v2.0.2"
@@ -47,6 +49,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.CI_PAT }}
       - name: Install lemmy-help
         run: |
           mkdir -p deps
