@@ -36,8 +36,6 @@ parsers = { css = true }
 </code></pre>
 </details>
 </td>
-<td></td>
-<td></td>
 </tr>
 </table>
 <!-- gen:default_gallery:end -->
@@ -70,7 +68,6 @@ parsers = { css_fn = true }
 </code></pre>
 </details>
 </td>
-<td></td>
 </tr>
 </table>
 <!-- gen:preset_gallery:end -->

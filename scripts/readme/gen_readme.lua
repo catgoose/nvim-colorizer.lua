@@ -154,8 +154,8 @@ local function img_cell_detailed(config_name, width)
 end
 
 local function gallery_table(cat)
-  local cols = 3
   local names = cat.names
+  local cols = #names < 3 and #names or 3
   local width = cat.img_width or 400
   local lines = { "<table>" }
   for i = 1, #names, cols do
