@@ -768,13 +768,17 @@ M.get_non_alphanum_keys({tbl})           *colorizer.utils.get_non_alphanum_keys*
         (string)  extracted non-alphanumeric characters.
 
 
-                                    *colorizer.utils.add_additional_color_chars*
-M.add_additional_color_chars({chars})
+M.reset_byte_category({chars})             *colorizer.utils.reset_byte_category*
      Adds additional characters to the list of valid color characters.
 
     Parameters: ~
         {chars}  (string)  The additional characters to add.
                            @return boolean `true` if the characters were added, otherwise `false`.
+                            Reset byte_category to its initial state, clearing any dynamically added chars.
+
+
+                                    *colorizer.utils.add_additional_color_chars*
+M.add_additional_color_chars()
 
 
 M.byte_is_valid_color_char({byte})    *colorizer.utils.byte_is_valid_color_char*
@@ -982,11 +986,6 @@ M.config_defaults()
 
     Returns: ~
         (table<string,table>)
-
-
-                                    *colorizer.parser.registry.reset_all_caches*
-M.reset_all_caches()
-     Call reset_cache on all parsers that define it.
 
 
 M._clear()                                    *colorizer.parser.registry._clear*
