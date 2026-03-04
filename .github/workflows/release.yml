@@ -10,12 +10,12 @@ concurrency:
 
 permissions:
   contents: write
-  pull-requests: write
   pages: write
   id-token: write
 
 jobs:
   format:
+    if: github.event_name == 'workflow_dispatch' || github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -28,35 +28,20 @@ jobs:
           chmod +x /usr/local/bin/stylua
       - name: Run StyLua
         run: stylua lua/
-      - name: Create PR for formatting
-        id: cpr
-        uses: peter-evans/create-pull-request@v7
-        with:
-          commit-message: "style: auto-format with StyLua"
-          title: "style: auto-format with StyLua"
-          body: "Auto-formatted Lua files with StyLua."
-          branch: style/auto-format
-          add-paths: lua/
-      - name: Auto-approve format PR
-        if: steps.cpr.outputs.pull-request-number != ''
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.APPROVE_PAT }}
-          script: |
-            github.rest.pulls.createReview({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: ${{ steps.cpr.outputs.pull-request-number }},
-              event: 'APPROVE',
-              body: 'Auto-approved: StyLua formatting'
-            })
-      - name: Enable auto-merge
-        if: steps.cpr.outputs.pull-request-number != ''
-        run: gh pr merge --auto --squash ${{ steps.cpr.outputs.pull-request-number }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add lua/
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "style: auto-format with StyLua"
+          git push
 
   vimdoc:
+    if: github.event_name == 'workflow_dispatch' || github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -69,33 +54,17 @@ jobs:
           chmod +x deps/lemmy-help
       - name: Generate vimdoc
         run: scripts/gen_docs.sh
-      - name: Create PR for vimdoc
-        id: cpr
-        uses: peter-evans/create-pull-request@v7
-        with:
-          commit-message: "docs: auto-generate vimdoc"
-          title: "docs: auto-generate vimdoc"
-          body: "Auto-generated vimdoc update from `scripts/gen_docs.sh`."
-          branch: docs/auto-generate-vimdoc
-          add-paths: doc/colorizer.txt
-      - name: Auto-approve vimdoc PR
-        if: steps.cpr.outputs.pull-request-number != ''
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.APPROVE_PAT }}
-          script: |
-            github.rest.pulls.createReview({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: ${{ steps.cpr.outputs.pull-request-number }},
-              event: 'APPROVE',
-              body: 'Auto-approved: generated vimdoc update'
-            })
-      - name: Enable auto-merge
-        if: steps.cpr.outputs.pull-request-number != ''
-        run: gh pr merge --auto --squash ${{ steps.cpr.outputs.pull-request-number }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add doc/colorizer.txt
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "docs: auto-generate vimdoc"
+          git push
 
   pages:
     runs-on: ubuntu-latest

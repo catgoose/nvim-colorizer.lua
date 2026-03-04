@@ -14,16 +14,19 @@ permissions:
 
 jobs:
   screenshots:
+    if: github.event_name == 'workflow_dispatch' || github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         category:
           - default
+          - preset
           - hex
           - css
           - names
           - special
+          - display
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
 
@@ -42,15 +45,41 @@ jobs:
           name: screenshots-${{ matrix.category }}
           path: scripts/screenshots/output/*.png
 
+  demo:
+    if: github.event_name == 'workflow_dispatch' || github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+
+      - uses: rhysd/action-setup-vim@19e3dd31a84dbc2c5445d65e9b363f616cab96c1
+        with:
+          neovim: true
+          version: nightly
+
+      - uses: ./.github/actions/setup-vhs
+
+      - name: Generate demo GIF
+        run: make demo
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: demo-gif
+          path: scripts/screenshots/output/demo.gif
+
   publish:
     runs-on: ubuntu-latest
-    needs: [screenshots]
+    needs: [screenshots, demo]
     steps:
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
           pattern: screenshots-*
           path: output
           merge-multiple: true
+
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: demo-gif
+          path: output
 
       - name: Checkout screenshots repo
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
@@ -59,13 +88,11 @@ jobs:
           token: ${{ secrets.SCREENSHOTS_REPO_TOKEN }}
           path: screenshots-repo
 
-      - name: Copy screenshots into screenshots repo
+      - name: Copy and push screenshots
         run: |
           mkdir -p screenshots-repo/nvim-colorizer.lua
           cp output/*.png screenshots-repo/nvim-colorizer.lua/
-
-      - name: Create PR with screenshots
-        run: |
+          cp output/demo.gif screenshots-repo/nvim-colorizer.lua/
           cd screenshots-repo
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -74,12 +101,7 @@ jobs:
             echo "No changes to commit"
             exit 0
           fi
-          branch="nvim-colorizer-lua/screenshots-$(date +%Y%m%d-%H%M%S)"
-          git checkout -b "$branch"
           git commit -m "Update nvim-colorizer.lua screenshots"
-          git push origin "$branch"
-          pr_url=$(gh pr create --repo catgoose/screenshots --base main --head "$branch" \
-            --title "Update nvim-colorizer.lua screenshots" --body "Auto-generated from nvim-colorizer.lua CI.")
-          gh pr merge "$pr_url" --repo catgoose/screenshots --squash --admin
+          git push
         env:
           GH_TOKEN: ${{ secrets.SCREENSHOTS_REPO_TOKEN }}

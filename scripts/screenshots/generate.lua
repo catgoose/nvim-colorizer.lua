@@ -329,6 +329,7 @@ local function main()
       printf("Options:")
       printf("  --list           List available configs")
       printf("  --install-deps   Install VHS, ttyd, and Nerd Font (for CI)")
+      printf("  --demo           Generate demo.gif showcase")
       printf("  -j<N>            Run N screenshots in parallel")
       for _, cat in ipairs(configs_mod.categories) do
         printf("  --%-13s  Generate %s group only", cat.flag, cat.display)
@@ -340,6 +341,20 @@ local function main()
       os.exit(0)
     elseif a == "--install-deps" then
       install_deps()
+      os.exit(0)
+    elseif a == "--demo" then
+      check_deps()
+      vim.fn.mkdir(output_dir, "p")
+      local tape = script_dir .. "/demo.tape"
+      printf("Generating demo GIF...")
+      local ok = run_vhs(tape)
+      local gif_path = output_dir .. "/demo.gif"
+      if ok and file_exists(gif_path) then
+        printf("  OK: demo.gif (%s)", file_size_human(gif_path))
+      else
+        printf("  FAILED: demo.gif not created")
+        os.exit(1)
+      end
       os.exit(0)
     elseif category_flags[a] then
       local cat = category_flags[a]

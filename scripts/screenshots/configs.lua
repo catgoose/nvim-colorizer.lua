@@ -18,6 +18,9 @@ local function cfg(fixture, parsers, meta)
   if meta.display then
     opts.display = meta.display
   end
+  if meta.hooks then
+    opts.hooks = meta.hooks
+  end
   return {
     setup_opts = { options = opts },
     fixture = fixtures_dir .. "/" .. fixture,
@@ -33,6 +36,17 @@ M.configs = {
   default = cfg("default.css", { css = true }, {
     label = "default",
     description = "css = true (names + hex + rgb + hsl + oklch)",
+  }),
+
+  -- ── Presets ─────────────────────────────────────────────────────
+  preset_css = cfg("preset_css.css", { css = true }, {
+    label = "preset_css",
+    description = "css = true preset (names + hex + rgb + hsl + oklch)",
+    split = true,
+  }),
+  preset_css_fn = cfg("preset_css_fn.scss", { css_fn = true }, {
+    label = "preset_css_fn",
+    description = "css_fn = true preset (rgb + hsl + oklch only)",
   }),
 
   -- ── Hex group ────────────────────────────────────────────────────
@@ -160,6 +174,25 @@ M.configs = {
     description = "User-defined custom color names",
   }),
 
+  names_extra_word_chars = cfg("names_extra_word_chars.css", {
+    names = {
+      enable = true,
+      lowercase = false,
+      camelcase = false,
+      uppercase = false,
+      extra_word_chars = "-",
+      custom = {
+        ["brand-primary"] = "#E63946",
+        ["brand-secondary"] = "#457B9D",
+        ["ui-success"] = "#2A9D8F",
+        ["ui-warning"] = "#E9C46A",
+      },
+    },
+  }, {
+    label = "names_extra_word_chars",
+    description = "extra_word_chars = \"-\" (hyphens in names)",
+  }),
+
   -- ── Special group ────────────────────────────────────────────────
   special_xterm = cfg("xterm.sh", { xterm = { enable = true } }, {
     label = "special_xterm",
@@ -177,8 +210,42 @@ M.configs = {
     label = "special_sass",
     description = "Sass $variable color resolution",
   }),
+  special_sass_pattern = cfg("sass_pattern.scss", {
+    sass = { enable = true, parsers = { css = true }, variable_pattern = "^%$([%a]+)" },
+  }, {
+    label = "special_sass_pattern",
+    description = "variable_pattern restricts to alpha-only names",
+  }),
+  special_hooks_line_filter = cfg("hooks_line_filter.css", { css = true }, {
+    label = "special_hooks_line_filter",
+    description = "should_highlight_line skips comment lines",
+    hooks = {
+      should_highlight_line = function(line)
+        return not line:match("^/%*")
+      end,
+    },
+  }),
+
+  -- ── Demo ────────────────────────────────────────────────────────
+  demo = cfg("demo.css", {
+    css = true,
+    hsluv = { enable = true },
+    tailwind = { enable = true },
+    hex = { no_hash = true },
+    xterm = { enable = true },
+    xcolor = { enable = true },
+    sass = { enable = true, parsers = { css = true } },
+  }, {
+    label = "demo",
+    description = "Full demo showcase",
+  }),
 
   -- ── Display modes ──────────────────────────────────────────────
+  display_background = cfg("display.css", { css = true }, {
+    label = "display_background",
+    description = "mode = background (default)",
+    display = { mode = "background" },
+  }),
   display_foreground = cfg("display.css", { css = true }, {
     label = "display_foreground",
     description = "mode = foreground (colored text)",
@@ -194,6 +261,41 @@ M.configs = {
     description = "virtualtext inline after color",
     display = { mode = "virtualtext", virtualtext = { position = "after" } },
   }),
+  display_virtualtext_before = cfg("display.css", { css = true }, {
+    label = "display_virtualtext_before",
+    description = "virtualtext before color",
+    display = { mode = "virtualtext", virtualtext = { position = "before" } },
+  }),
+  display_virtualtext_hl_bg = cfg("display.css", { css = true }, {
+    label = "display_virtualtext_hl_bg",
+    description = "virtualtext eol with hl_mode = background",
+    display = { mode = "virtualtext", virtualtext = { position = "eol", hl_mode = "background" } },
+  }),
+  display_vt_before_hl_bg = cfg("display.css", { css = true }, {
+    label = "display_vt_before_hl_bg",
+    description = "virtualtext before with hl_mode = background",
+    display = { mode = "virtualtext", virtualtext = { position = "before", hl_mode = "background" } },
+  }),
+  display_vt_after_hl_bg = cfg("display.css", { css = true }, {
+    label = "display_vt_after_hl_bg",
+    description = "virtualtext after with hl_mode = background",
+    display = { mode = "virtualtext", virtualtext = { position = "after", hl_mode = "background" } },
+  }),
+  display_vt_char_circle = cfg("display.css", { css = true }, {
+    label = "display_vt_char_circle",
+    description = "virtualtext with char = ●",
+    display = { mode = "virtualtext", virtualtext = { char = "●", position = "eol" } },
+  }),
+  display_vt_char_block = cfg("display.css", { css = true }, {
+    label = "display_vt_char_block",
+    description = "virtualtext with char = █",
+    display = { mode = "virtualtext", virtualtext = { char = "█", position = "eol" } },
+  }),
+  display_bg_contrast = cfg("display_contrast.css", { css = true }, {
+    label = "display_bg_contrast",
+    description = "background mode with custom contrast colors",
+    display = { mode = "background", background = { bright_fg = "#1a1a2e", dark_fg = "#e0e0ff" } },
+  }),
 }
 
 --- Ordered categories for --list, iteration, and --<flag> filtering.
@@ -203,6 +305,11 @@ M.categories = {
     display = "Default",
     img_width = 600,
     names = { "default" },
+  },
+  {
+    flag = "preset",
+    display = "Presets",
+    names = { "preset_css", "preset_css_fn" },
   },
   {
     flag = "hex",
@@ -227,17 +334,29 @@ M.categories = {
   {
     flag = "names",
     display = "Named Colors",
-    names = { "names_lowercase", "names_camelcase", "names_uppercase", "names_tailwind", "names_strip_digits", "names_custom", "names_all" },
+    names = { "names_lowercase", "names_camelcase", "names_uppercase", "names_tailwind", "names_strip_digits", "names_custom", "names_extra_word_chars", "names_all" },
   },
   {
     flag = "special",
     display = "Special Parsers",
-    names = { "special_xterm", "special_xcolor", "special_css_var_rgb", "special_sass" },
+    names = { "special_xterm", "special_xcolor", "special_css_var_rgb", "special_sass", "special_sass_pattern", "special_hooks_line_filter" },
   },
   {
     flag = "display",
     display = "Display Modes",
-    names = { "display_foreground", "display_virtualtext_eol", "display_virtualtext_inline" },
+    names = {
+      "display_background",
+      "display_foreground",
+      "display_virtualtext_eol",
+      "display_virtualtext_inline",
+      "display_virtualtext_before",
+      "display_virtualtext_hl_bg",
+      "display_vt_before_hl_bg",
+      "display_vt_after_hl_bg",
+      "display_vt_char_circle",
+      "display_vt_char_block",
+      "display_bg_contrast",
+    },
   },
 }
 
@@ -264,6 +383,8 @@ function M.screenshot_init(config_name)
   vim.opt.rtp:prepend(kanagawa_dir)
 
   -- Minimal UI settings
+  vim.o.swapfile = false
+  vim.o.hidden = true
   vim.o.termguicolors = true
   vim.o.cmdheight = 0
   vim.o.laststatus = 0

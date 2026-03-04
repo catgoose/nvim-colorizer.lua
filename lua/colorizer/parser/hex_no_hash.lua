@@ -87,7 +87,7 @@ end
 M.spec = {
   name = "hex_no_hash",
   priority = 12,
-  dispatch = { kind = "byte", bytes = HEX_BYTES },
+  dispatch = { kind = "byte+fallback", bytes = HEX_BYTES },
   parse = function(ctx)
     return M.parser(ctx.line, ctx.col, ctx.parser_config)
   end,

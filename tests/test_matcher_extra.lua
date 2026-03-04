@@ -161,4 +161,154 @@ T["tailwind normal via matcher"]["finds tailwind color names"] = function()
   eq("ef4444", hex)
 end
 
+-- Helper: build new-format options for parsers not in legacy format
+local function make_new_opts(parsers)
+  return config.resolve_options({ parsers = parsers })
+end
+
+-- hex_no_hash via matcher ------------------------------------------------------
+
+T["hex_no_hash via matcher"] = new_set()
+
+T["hex_no_hash via matcher"]["finds RRGGBB without # prefix"] = function()
+  local parse_fn = matcher.make(make_new_opts({ hex = { no_hash = true } }))
+  local len, hex = parse_fn("FF0000 text", 1)
+  eq(6, len)
+  eq("ff0000", hex)
+end
+
+T["hex_no_hash via matcher"]["not found when hex_no_hash disabled"] = function()
+  local parse_fn = matcher.make(make_new_opts({ hex = { rrggbb = true } }))
+  local len = parse_fn("FF0000 text", 1)
+  eq(nil, len)
+end
+
+T["hex_no_hash via matcher"]["does not block named colors starting with hex letter"] = function()
+  local parse_fn = matcher.make(make_new_opts({ css = true, hex = { no_hash = true } }))
+  -- "coral" starts with 'c' (a hex byte) — must still match as a named color
+  local len, hex = parse_fn("coral text", 1)
+  eq(true, len ~= nil)
+  eq("ff7f50", hex)
+end
+
+T["hex_no_hash via matcher"]["does not block DeepSkyBlue starting with D"] = function()
+  local parse_fn = matcher.make(make_new_opts({ css = true, hex = { no_hash = true } }))
+  local len, hex = parse_fn("DeepSkyBlue text", 1)
+  eq(true, len ~= nil)
+  eq("00bfff", hex)
+end
+
+T["hex_no_hash via matcher"]["does not block blue starting with b"] = function()
+  local parse_fn = matcher.make(make_new_opts({ css = true, hex = { no_hash = true } }))
+  local len, hex = parse_fn("blue text", 1)
+  eq(true, len ~= nil)
+  eq("0000ff", hex)
+end
+
+-- hsluv via matcher ------------------------------------------------------------
+
+T["hsluv via matcher"] = new_set()
+
+T["hsluv via matcher"]["finds hsluv() function"] = function()
+  local parse_fn = matcher.make(make_new_opts({ hsluv = { enable = true } }))
+  local len, hex = parse_fn("hsluv(0, 100, 50)", 1)
+  eq(true, len ~= nil)
+  eq(true, hex ~= nil)
+end
+
+T["hsluv via matcher"]["finds hsluvu() with alpha"] = function()
+  local parse_fn = matcher.make(make_new_opts({ hsluv = { enable = true } }))
+  local len, hex = parse_fn("hsluvu(0, 100, 50, 0.5)", 1)
+  eq(true, len ~= nil)
+  eq(true, hex ~= nil)
+end
+
+T["hsluv via matcher"]["not found when hsluv disabled"] = function()
+  local parse_fn = matcher.make(make_new_opts({ hex = { rrggbb = true } }))
+  local len = parse_fn("hsluv(0, 100, 50)", 1)
+  eq(nil, len)
+end
+
+-- xcolor via matcher -----------------------------------------------------------
+
+T["xcolor via matcher"] = new_set()
+
+T["xcolor via matcher"]["finds red!50 blended color"] = function()
+  local parse_fn = matcher.make(make_new_opts({
+    names = { enable = true, lowercase = true },
+    xcolor = { enable = true },
+  }))
+  local len, hex = parse_fn("red!50 text", 1)
+  eq(true, len ~= nil)
+  -- red!50 blends red (#ff0000) 50% with white (#ffffff) → pinkish
+  eq(true, hex ~= nil)
+end
+
+T["xcolor via matcher"]["not found when xcolor disabled"] = function()
+  local parse_fn = matcher.make(make_new_opts({
+    names = { enable = true, lowercase = true },
+  }))
+  -- Without xcolor, "red!50" should match "red" (3 chars) not "red!50" (6 chars)
+  local len = parse_fn("red!50 text", 1)
+  -- names matches "red" (3 chars), not the full "red!50"
+  eq(3, len)
+end
+
+-- css_var_rgb via matcher ------------------------------------------------------
+
+T["css_var_rgb via matcher"] = new_set()
+
+T["css_var_rgb via matcher"]["finds --color: R,G,B"] = function()
+  local parse_fn = matcher.make(make_new_opts({ css_var_rgb = { enable = true } }))
+  local len, hex = parse_fn("--color: 255,0,0;", 1)
+  eq(true, len ~= nil)
+  eq("ff0000", hex)
+end
+
+T["css_var_rgb via matcher"]["not found when css_var_rgb disabled"] = function()
+  local parse_fn = matcher.make(make_new_opts({ hex = { rrggbb = true } }))
+  local len = parse_fn("--color: 255,0,0;", 1)
+  eq(nil, len)
+end
+
+-- hash_aarrggbb via matcher ----------------------------------------------------
+
+T["hash_aarrggbb via matcher"] = new_set()
+
+T["hash_aarrggbb via matcher"]["finds #AARRGGBB format"] = function()
+  local parse_fn = matcher.make(make_new_opts({ hex = { hash_aarrggbb = true } }))
+  -- #FFFF0000 = fully opaque red in AARRGGBB format
+  local len, hex = parse_fn("#FFFF0000 text", 1)
+  eq(true, len ~= nil)
+  eq("ff0000", hex)
+end
+
+-- Caching with new flags -------------------------------------------------------
+
+T["caching new flags"] = new_set()
+
+T["caching new flags"]["hex_no_hash toggle produces different cache key"] = function()
+  local fn1 = matcher.make(make_new_opts({ hex = { rrggbb = true } }))
+  local fn2 = matcher.make(make_new_opts({ hex = { rrggbb = true, no_hash = true } }))
+  eq(true, fn1 ~= fn2)
+end
+
+T["caching new flags"]["hsluv toggle produces different cache key"] = function()
+  local fn1 = matcher.make(make_new_opts({ hex = { rrggbb = true } }))
+  local fn2 = matcher.make(make_new_opts({ hex = { rrggbb = true }, hsluv = { enable = true } }))
+  eq(true, fn1 ~= fn2)
+end
+
+T["caching new flags"]["xcolor toggle produces different cache key"] = function()
+  local fn1 = matcher.make(make_new_opts({ names = { enable = true, lowercase = true } }))
+  local fn2 = matcher.make(make_new_opts({ names = { enable = true, lowercase = true }, xcolor = { enable = true } }))
+  eq(true, fn1 ~= fn2)
+end
+
+T["caching new flags"]["css_var_rgb toggle produces different cache key"] = function()
+  local fn1 = matcher.make(make_new_opts({ hex = { rrggbb = true } }))
+  local fn2 = matcher.make(make_new_opts({ hex = { rrggbb = true }, css_var_rgb = { enable = true } }))
+  eq(true, fn1 ~= fn2)
+end
+
 return T

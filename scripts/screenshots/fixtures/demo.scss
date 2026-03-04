@@ -1,0 +1,11 @@
+$primary:   #E63946;
+$secondary: #457B9D;
+$accent:    #2A9D8F;
+$warm:      #E9C46A;
+$highlight: #F4A261;
+
+.header   { color: $primary; }
+.sidebar  { background: $secondary; }
+.link     { color: $accent; }
+.badge    { background: $warm; }
+.alert    { border-color: $highlight; }

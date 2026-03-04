@@ -1,0 +1,12 @@
+/* ── extra_word_chars = "-" ───────────────────── */
+
+/* Should highlight: hyphenated custom names match
+   because "-" is treated as a word character */
+.brand { color: brand-primary; background: brand-secondary; }
+.ui { color: ui-success; background: ui-warning; }
+
+/* Should NOT highlight: undefined names */
+.bad { color: brand-tertiary; background: ui-unknown; }
+
+/* Should NOT highlight: standard names (not enabled) */
+.std { color: red; background: DeepSkyBlue; }

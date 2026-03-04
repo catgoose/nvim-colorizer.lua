@@ -1,0 +1,15 @@
+// ── Custom variable_pattern: alpha-only names ──
+
+// All definitions are parsed (uses default pattern)
+$primary: #FF0000;
+$accent: #0000FF;
+$my-var: #00FF00;
+$color_2: #FFAA00;
+
+// ── Should highlight (alpha-only names match) ───
+.a { color: $primary; }
+.b { color: $accent; }
+
+// ── Should NOT highlight (pattern rejects these) ─
+.c { color: $my-var; }
+.d { color: $color_2; }
