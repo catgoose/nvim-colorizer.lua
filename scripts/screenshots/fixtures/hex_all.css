@@ -1,0 +1,13 @@
+/* ── Should highlight ────────────────────────── */
+
+/* #RGB */       .a { color: #F00; background: #0F0; border: #00F; }
+/* #RGBA */      .b { color: #F00F; background: #0F0A; border: #00F8; }
+/* #RRGGBB */    .c { color: #FF0000; background: #00FF00; border: #0000FF; }
+/* #RRGGBBAA */  .d { color: #FF000080; background: #00FF00CC; border: #32a14bAA; }
+/* #AARRGGBB */  .e { color: #FFFF0000; background: #80FF0000; }
+/* 0xAARRGGBB */ .f { color: 0xFFFF0000; background: 0xFF00FF00; border: 0x80FF0000; }
+/* No-hash */    .g { color: FF0000; background: 00FF00; border: abcdef; }
+
+/* ── Should NOT highlight ───────────────────── */
+
+.invalid { color: #GGG; background: #F; border: 0xGHI; outline: ABCDE; }

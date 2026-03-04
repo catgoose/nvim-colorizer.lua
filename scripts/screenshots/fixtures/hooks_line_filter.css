@@ -1,0 +1,10 @@
+/* ── hooks.should_highlight_line ──────────────── */
+
+/* These comment lines should NOT be highlighted */
+/* color: #FF0000; background: #00FF00; */
+/* border: rgb(255, 200, 80); */
+
+/* These code lines SHOULD be highlighted */
+.yes { color: #FF0000; background: #00FF00; }
+.also { border: rgb(255, 200, 80); }
+.names { color: red; background: DeepSkyBlue; }

@@ -1720,6 +1720,77 @@ T["get_setup_options legacy"]["single override does not clobber other defaults"]
   eq(true, s.options.parsers.hex.rgb)
 end
 
+-- new-only options tests ----------------------------------------------------
+
+T["new-only options"] = new_set()
+
+T["new-only options"]["new parsers available via options format"] = function()
+  local s = config.get_setup_options({
+    options = {
+      parsers = {
+        hsluv = { enable = true },
+        xcolor = { enable = true },
+        css_var_rgb = { enable = true },
+        hex = { hash_aarrggbb = true, no_hash = true },
+      },
+      debounce_ms = 100,
+    },
+  })
+  eq(true, s.options.parsers.hsluv.enable)
+  eq(true, s.options.parsers.xcolor.enable)
+  eq(true, s.options.parsers.css_var_rgb.enable)
+  eq(true, s.options.parsers.hex.hash_aarrggbb)
+  eq(true, s.options.parsers.hex.no_hash)
+  eq(100, s.options.debounce_ms)
+end
+
+T["new-only options"]["new parsers not in legacy flat view"] = function()
+  local s = config.get_setup_options({
+    options = {
+      parsers = {
+        hsluv = { enable = true },
+        xcolor = { enable = true },
+        css_var_rgb = { enable = true },
+      },
+      debounce_ms = 50,
+    },
+  })
+  -- These keys should NOT appear in the legacy flat view
+  eq(nil, s.user_default_options.hsluv_fn)
+  eq(nil, s.user_default_options.xcolor)
+  eq(nil, s.user_default_options.css_var_rgb)
+  eq(nil, s.user_default_options.QML_AARRGGBB)
+  eq(nil, s.user_default_options.hex_no_hash)
+  eq(nil, s.user_default_options.debounce_ms)
+end
+
+T["new-only options"]["legacy format does not accept new-only keys"] = function()
+  -- Passing new-only keys via user_default_options should have no effect
+  local s = config.get_setup_options({
+    user_default_options = { hsluv_fn = true, xcolor = true, debounce_ms = 100 },
+  })
+  -- Should not be recognized as legacy keys, so parsers stay at defaults
+  eq(false, s.options.parsers.hsluv.enable)
+  eq(false, s.options.parsers.xcolor.enable)
+  eq(0, s.options.debounce_ms)
+end
+
+T["new-only options"]["options wins over user_default_options"] = function()
+  local s = config.get_setup_options({
+    options = {
+      parsers = { names = { enable = false } },
+      display = { mode = "foreground" },
+    },
+    user_default_options = {
+      names = true,
+      mode = "background",
+    },
+  })
+  -- options takes precedence
+  eq(false, s.options.parsers.names.enable)
+  eq("foreground", s.options.display.mode)
+end
+
 -- matcher cache tests -------------------------------------------------------
 
 T["matcher cache"] = new_set()
@@ -2119,11 +2190,10 @@ T["resolve_options"]["hex without enable key uses defaults"] = function()
   eq(true, result.parsers.hex.rrggbbaa)
 end
 
-T["resolve_options"]["hex default true does not add spurious keys"] = function()
+T["resolve_options"]["hex default true includes new hex keys as false"] = function()
   local result = config.resolve_options({ parsers = { hex = { enable = true } } })
-  -- Only valid keys should exist
-  eq(nil, result.parsers.hex.hash_aarrggbb)
-  eq(nil, result.parsers.hex.no_hash)
+  eq(false, result.parsers.hex.hash_aarrggbb)
+  eq(false, result.parsers.hex.no_hash)
 end
 
 -- resolve_options edge cases -------------------------------------------------

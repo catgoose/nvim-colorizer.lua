@@ -182,4 +182,71 @@ T["no match invalid"]["ceruleanblue does not match"] = function()
   eq(nil, len)
 end
 
+-- lookup_name() ---------------------------------------------------------------
+
+T["lookup_name"] = new_set()
+
+T["lookup_name"]["returns hex for valid lowercase name"] = function()
+  local opts = make_names_opts()
+  local hex = names.lookup_name("red", opts)
+  eq("ff0000", hex)
+end
+
+T["lookup_name"]["returns hex for valid camelcase name"] = function()
+  local opts = make_names_opts({ color_names_opts = { camelcase = true } })
+  local hex = names.lookup_name("DeepSkyBlue", opts)
+  eq("00bfff", hex)
+end
+
+T["lookup_name"]["returns nil for unrecognized name"] = function()
+  local opts = make_names_opts()
+  local hex = names.lookup_name("notacolor", opts)
+  eq(nil, hex)
+end
+
+T["lookup_name"]["returns nil when color_names disabled"] = function()
+  local opts = make_names_opts({ color_names = false })
+  local hex = names.lookup_name("red", opts)
+  eq(nil, hex)
+end
+
+T["lookup_name"]["returns nil for CamelCase when only lowercase enabled"] = function()
+  local opts = make_names_opts({ color_names_opts = { camelcase = false } })
+  local hex = names.lookup_name("DeepSkyBlue", opts)
+  eq(nil, hex)
+end
+
+T["lookup_name"]["returns nil for nil m_opts"] = function()
+  local hex = names.lookup_name("red", nil)
+  eq(nil, hex)
+end
+
+-- extra_word_chars -------------------------------------------------------------
+
+T["extra_word_chars"] = new_set()
+
+T["extra_word_chars"]["hyphen as word boundary prevents matching inside compound"] = function()
+  local opts = make_names_opts({ extra_word_chars = "-" })
+  -- "text-red-500": when hyphen is a word char, 'red' at position 6 is preceded by '-'
+  -- which is now a word char, so it should NOT match
+  local len = names.parser("text-red-500", 6, opts)
+  eq(nil, len)
+end
+
+T["extra_word_chars"]["matches standalone name with hyphen boundaries"] = function()
+  local opts = make_names_opts({ extra_word_chars = "-" })
+  -- space-delimited: 'red' at position 1 should still match
+  local len, hex = names.parser("red text", 1, opts)
+  eq(3, len)
+  eq("ff0000", hex)
+end
+
+T["extra_word_chars"]["default extra_word_chars includes hyphen"] = function()
+  -- The default extra_word_chars is "-", so names at word start should still match
+  local opts = make_names_opts()
+  local len, hex = names.parser("red;", 1, opts)
+  eq(3, len)
+  eq("ff0000", hex)
+end
+
 return T

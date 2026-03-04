@@ -27,6 +27,11 @@ help:
 	@echo "  make fmt-check         - Check Lua formatting (no changes)"
 	@echo "  make docs              - Generate vimdoc and HTML docs"
 	@echo "  make docs-html         - Generate HTML docs only"
+	@echo "  make demo              - Generate demo.gif"
+	@echo "  make screenshots       - Generate all screenshots (parallel)"
+	@echo "  make screenshots-list  - List available screenshot configs"
+	@echo "  make readme            - Regenerate SCREENSHOTS.md from template"
+	@echo "  make readme-check      - Check if SCREENSHOTS.md is up-to-date"
 	@echo "  make clean             - Remove test/colorizer_*"
 
 trie: trie-test trie-benchmark
@@ -86,4 +91,19 @@ docs-html:
 	@echo "Generating HTML docs..."
 	@bash $(SCRIPTS_DIR)/gen_html.sh
 
-.PHONY: help fmt fmt-check test test-file trie trie-test trie-benchmark minimal minimal-dev minimal-tailwind minimal-tailwind-dev clean docs docs-html
+demo:
+	@nvim --headless -l scripts/screenshots/generate.lua --demo
+
+screenshots:
+	@nvim --headless -l scripts/screenshots/generate.lua -j8
+
+screenshots-list:
+	@nvim --headless -l scripts/screenshots/generate.lua --list
+
+readme:
+	@lua scripts/readme/gen_readme.lua
+
+readme-check:
+	@lua scripts/readme/gen_readme.lua --check
+
+.PHONY: help fmt fmt-check test test-file trie trie-test trie-benchmark minimal minimal-dev minimal-tailwind minimal-tailwind-dev clean docs docs-html demo screenshots screenshots-list readme readme-check

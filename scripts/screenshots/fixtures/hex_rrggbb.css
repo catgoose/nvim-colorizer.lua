@@ -1,0 +1,12 @@
+/* ── Should highlight ────────────────────────── */
+
+/* #RRGGBB (6-digit) */
+.a { color: #FF0000; background: #00FF00; border: #0000FF; }
+.b { color: #FFFF00; background: #32a14b; border: #abcdef; }
+
+/* ── Should NOT highlight ───────────────────── */
+
+/* Other hex formats */
+.c { color: #F00; background: #FF000080; border: 0xFFFF0000; }
+/* Invalid */
+.d { color: #GGGGGG; background: #F; }

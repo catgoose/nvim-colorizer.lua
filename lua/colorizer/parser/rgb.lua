@@ -43,6 +43,13 @@ function M.parser(line, i, opts)
   local r, unit1, ssep1, csep1, g, unit2, ssep2, csep2, b, unit3, sep3, a, unit_a, match_end =
     line:sub(i):match(pattern)
   if not match_end then
+    -- Fall through to Hyprlang format below
+  elseif csep1 ~= csep2 then
+    -- Reject mismatched separators caused by pattern backtracking
+    -- e.g. "rgb(255, 200,)" where Lua splits "200" into g=20,b=0
+    match_end = nil
+  end
+  if not match_end then
     -- Reuse this function to avoid inefficiencies in trie parsing with identical prefixes (rgb/rgba)
     -- Hyprlang format: rgb(RRGGBB) or rgba(RRGGBBAA)
     local hex_pattern = hex_pattern_cache[opts.prefix]

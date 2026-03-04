@@ -1,0 +1,24 @@
+/* ── Should highlight ────────────────────────── */
+
+/* Lowercase */
+.base { color: red; background: blue; border: green; }
+.warm { color: yellow; background: orange; border: coral; }
+.cool { color: cyan; background: teal; border: purple; }
+
+/* CamelCase */
+.deep { color: DeepSkyBlue; background: LightCoral; }
+.sea { color: DarkSeaGreen; background: MediumPurple; }
+.pale { color: PaleVioletRed; background: MidnightBlue; }
+
+/* Uppercase */
+.loud { color: RED; background: BLUE; border: GREEN; }
+.upper { color: DEEPSKYBLUE; background: LIGHTCORAL; }
+
+/* Tailwind */
+.tw { color: text-red-500; background: bg-blue-300; }
+.tw2 { color: text-green-700; background: bg-amber-200; }
+
+/* ── Should NOT highlight ───────────────────── */
+
+.invalid { color: ceruleanblue; background: notacolor; }
+.invalid2 { color: blueish; background: xred; border: lightblu; }

@@ -115,6 +115,60 @@ T["#RGBA"]["full alpha F"] = function()
   eq("ff00ff", hex)
 end
 
+-- #AARRGGBB (QML-style) -------------------------------------------------------
+
+T["#AARRGGBB"] = new_set()
+
+local function make_aarrggbb_opts()
+  local opts = make_opts({ RRGGBBAA = true })
+  opts.hash_aarrggbb = true
+  return opts
+end
+
+T["#AARRGGBB"]["full alpha #FFFF0000 is red"] = function()
+  local opts = make_aarrggbb_opts()
+  local len, hex = parser("#FFFF0000", 1, opts)
+  eq(9, len)
+  eq("ff0000", hex)
+end
+
+T["#AARRGGBB"]["full alpha #FF00FF00 is green"] = function()
+  local opts = make_aarrggbb_opts()
+  local len, hex = parser("#FF00FF00", 1, opts)
+  eq(9, len)
+  eq("00ff00", hex)
+end
+
+T["#AARRGGBB"]["zero alpha #00FF0000 is black"] = function()
+  local opts = make_aarrggbb_opts()
+  local len, hex = parser("#00FF0000", 1, opts)
+  eq(9, len)
+  eq("000000", hex)
+end
+
+T["#AARRGGBB"]["half alpha"] = function()
+  local opts = make_aarrggbb_opts()
+  local len, hex = parser("#80FF0000", 1, opts)
+  eq(9, len)
+  eq(true, hex ~= nil)
+  local r = tonumber(hex:sub(1, 2), 16)
+  eq(true, math.abs(r - 128) <= 1)
+end
+
+T["#AARRGGBB"]["full alpha #FFFFFFFF is white"] = function()
+  local opts = make_aarrggbb_opts()
+  local len, hex = parser("#FFFFFFFF", 1, opts)
+  eq(9, len)
+  eq("ffffff", hex)
+end
+
+T["#AARRGGBB"]["#FF000000 with full alpha is black"] = function()
+  local opts = make_aarrggbb_opts()
+  local len, hex = parser("#FF000000", 1, opts)
+  eq(9, len)
+  eq("000000", hex)
+end
+
 -- Boundary rejection ----------------------------------------------------------
 
 T["boundary rejection"] = new_set()

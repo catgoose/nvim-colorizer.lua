@@ -1,0 +1,36 @@
+/* ── css = true: Should highlight ─────────────── */
+
+/* Named colors (lowercase + camelCase) */
+.names { color: red; background: DeepSkyBlue; }
+
+/* Hex formats */
+:root {
+  --short: #0FF;
+  --full: #FF0000;
+  --alpha: #FFFF00CC;
+  --0x: 0xFFFF0000;
+}
+
+/* CSS functions */
+body {
+  color: rgb(255, 200, 80);
+  background: hsl(300 50% 50%);
+  border: oklch(0.5 0.2 180);
+}
+
+/* ── css = true: Should NOT highlight ────────── */
+
+/* UPPERCASE names are off by default */
+.no-upper { color: RED; background: BLUE; }
+
+/* Tailwind classes need tailwind = true */
+.no-tw { @apply text-red-500 bg-sky-300; }
+
+/* hsluv needs hsluv = true */
+.no-hsluv { color: hsluv(0, 100, 50); }
+
+/* No-hash hex needs hex.no_hash = true */
+.no-nohash { color: FF0000; }
+
+/* Invalid syntax */
+.invalid { color: #GGG; background: rgb(); }

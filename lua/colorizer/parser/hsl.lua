@@ -45,6 +45,11 @@ function M.parser(line, i, opts)
   if not match_end then
     return
   end
+  -- Reject mismatched separators caused by pattern backtracking
+  -- e.g. "hsl(300, 50%,)" where Lua splits "50" into s=5,l=0
+  if csep1 ~= csep2 then
+    return
+  end
   if a == "" then
     a = nil
   else

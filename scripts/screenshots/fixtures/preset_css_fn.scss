@@ -1,0 +1,29 @@
+// ── css_fn = true: Should highlight ──────────────
+
+// rgb() / rgba()
+$rgb-basic: rgb(255, 200, 80);
+$rgba-val: rgba(255, 240, 200, 0.5);
+
+// hsl() / hsla()
+$hsl-basic: hsl(60, 100%, 80%);
+$hsla-val: hsla(300, 50%, 50%, 0.8);
+
+// oklch()
+$oklch-teal: oklch(0.5 0.2 180);
+
+// ── css_fn = true: Should NOT highlight ─────────
+
+// Named colors need names or css = true
+$no-name: red;
+$no-camel: DeepSkyBlue;
+
+// Hex needs hex or css = true
+$no-hex: #FF0000;
+$no-short: #0FF;
+
+// hsluv needs hsluv = true
+$no-hsluv: hsluv(0, 100, 50);
+
+// Invalid syntax
+$bad1: rgb();
+$bad2: hsl();

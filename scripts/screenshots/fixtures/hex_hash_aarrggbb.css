@@ -1,0 +1,12 @@
+/* ── Should highlight ────────────────────────── */
+
+/* #AARRGGBB (QML-style) */
+.a { color: #FFFF0000; background: #80FF0000; }
+.b { color: #FF00FF00; background: #CC0000FF; }
+
+/* ── Should NOT highlight ───────────────────── */
+
+/* Other hex formats */
+.c { color: #F00; background: #FF0000; border: 0xFFFF0000; }
+/* Invalid */
+.d { color: #GGGGGGFF; background: #F; }

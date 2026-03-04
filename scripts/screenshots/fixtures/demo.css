@@ -1,0 +1,18 @@
+:root {
+  --red:     #E63946;
+  --blue:    #457B9D;
+  --teal:    #2A9D8F;
+  --yellow:  #E9C46A;
+  --orange:  #F4A261;
+  --dark:    #1D3557;
+  --light:   #F1FAEE;
+  --alpha:   #457B9DCC;
+}
+
+body {
+  color: rgb(42, 157, 143);
+  background: hsl(48 89% 66%);
+  border: oklch(0.72 0.19 155);
+}
+
+.names { color: coral; background: DeepSkyBlue; border: MediumSeaGreen; }

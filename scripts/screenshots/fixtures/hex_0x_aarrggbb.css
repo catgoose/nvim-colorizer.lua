@@ -1,0 +1,12 @@
+/* ── Should highlight ────────────────────────── */
+
+/* 0xAARRGGBB (prefix hex) */
+.a { color: 0xFFFF0000; background: 0xFF00FF00; border: 0x80FF0000; }
+.b { color: 0xFF0000FF; background: 0xCCFFFF00; }
+
+/* ── Should NOT highlight ───────────────────── */
+
+/* Other hex formats */
+.c { color: #F00; background: #FF0000; border: #FF000080; }
+/* Invalid */
+.d { color: 0xGGGGGGFF; background: 0xF; }

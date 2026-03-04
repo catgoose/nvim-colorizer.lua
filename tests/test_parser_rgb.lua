@@ -163,4 +163,14 @@ T["rgb invalid"]["hyprlang non-hex"] = function()
   eq(nil, len)
 end
 
+T["rgb invalid"]["trailing comma with missing blue"] = function()
+  local len = parser("rgb(255, 200,)", 1, rgb_opts)
+  eq(nil, len)
+end
+
+T["rgb invalid"]["trailing comma with missing green"] = function()
+  local len = parser("rgb(255,,200)", 1, rgb_opts)
+  eq(nil, len)
+end
+
 return T

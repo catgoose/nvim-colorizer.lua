@@ -1,0 +1,12 @@
+/* ── Should highlight ────────────────────────── */
+
+/* Custom color names */
+.brand { color: brand-primary; background: brand-secondary; }
+.ui { color: ui-success; background: ui-warning; border: ui-danger; }
+
+/* ── Should NOT highlight ───────────────────── */
+
+/* Undefined custom names */
+.bad { color: brand-tertiary; background: ui-unknown; }
+/* Standard names (not enabled) */
+.std { color: red; background: DeepSkyBlue; }

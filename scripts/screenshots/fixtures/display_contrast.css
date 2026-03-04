@@ -1,0 +1,17 @@
+/* ── Background contrast: bright vs dark colors ── */
+
+.bright {
+  color: #FFFFFF;
+  background: #FFFF00;
+  border: rgb(200, 255, 150);
+  outline: hsl(60, 100%, 80%);
+}
+
+.dark {
+  color: #000000;
+  background: #330044;
+  border: rgb(20, 10, 50);
+  outline: hsl(240, 80%, 20%);
+}
+
+.mixed { color: red; background: DeepSkyBlue; }

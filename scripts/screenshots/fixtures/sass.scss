@@ -1,0 +1,20 @@
+// ── Should highlight ─────────────────────────
+
+// Sass variable definitions
+$primary: #FF0000;
+$secondary: #00FF00;
+$accent: #0000FF;
+$warm: #FFAA00;
+
+// Sass variable usage
+.header { color: $primary; }
+.nav { background: $secondary; }
+.link { color: $accent; }
+.btn { border-color: $warm; }
+
+// ── Should NOT highlight ────────────────────
+
+// Undefined variables
+.bad { color: $undefined; background: $notset; }
+// Non-sass syntax
+.other { color: red; background: hsl(300 50% 50%); }

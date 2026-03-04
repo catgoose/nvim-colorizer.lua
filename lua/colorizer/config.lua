@@ -123,6 +123,7 @@ local plugin_user_default_options = {
 ---@field display colorizer.DisplayOptions Display configuration
 ---@field hooks colorizer.Hooks Hook functions
 ---@field always_update boolean Update color values even if buffer is not focused
+---@field debounce_ms number Debounce highlight updates by this many ms (0 = no debounce)
 
 ---@class colorizer.ParsersOptions
 ---@field css boolean Preset: enables names, hex (all), rgb, hsl, oklch. Individual settings override.
@@ -151,7 +152,9 @@ local plugin_user_default_options = {
 ---@field rgba boolean #RGBA (4-digit)
 ---@field rrggbb boolean #RRGGBB (6-digit)
 ---@field rrggbbaa boolean #RRGGBBAA (8-digit)
+---@field hash_aarrggbb boolean #AARRGGBB (QML-style, 8-digit with alpha first)
 ---@field aarrggbb boolean 0xAARRGGBB
+---@field no_hash boolean Hex without '#' (6- or 8-digit words at word boundaries)
 
 ---@class colorizer.ParsersSimple
 ---@field enable boolean Enable this parser
@@ -201,7 +204,9 @@ local function build_default_parsers()
     rgba = true,
     rrggbb = true,
     rrggbbaa = false,
+    hash_aarrggbb = false,
     aarrggbb = false,
+    no_hash = false,
   }
   parsers.tailwind = {
     enable = false,
@@ -242,6 +247,7 @@ local default_options = {
   },
 
   always_update = false,
+  debounce_ms = 0,
 
   -- Stamp indicating this options table has been fully resolved (merged with
   -- defaults, presets expanded, validated). Checked by normalize_opts and
@@ -372,27 +378,13 @@ end
 
 -- Keys that indicate legacy (old flat) format
 local legacy_keys = {
-  "RGB",
-  "RGBA",
-  "RRGGBB",
-  "RRGGBBAA",
-  "AARRGGBB",
-  "rgb_fn",
-  "hsl_fn",
-  "oklch_fn",
-  "names",
-  "names_opts",
-  "names_custom",
-  "css",
-  "css_fn",
-  "tailwind",
-  "tailwind_opts",
-  "sass",
-  "xterm",
-  "mode",
-  "virtualtext",
-  "virtualtext_inline",
-  "virtualtext_mode",
+  "RGB", "RGBA", "RRGGBB", "RRGGBBAA", "AARRGGBB",
+  "rgb_fn", "hsl_fn", "oklch_fn",
+  "names", "names_opts", "names_custom",
+  "css", "css_fn",
+  "tailwind", "tailwind_opts",
+  "sass", "xterm",
+  "mode", "virtualtext", "virtualtext_inline", "virtualtext_mode",
   "always_update",
 }
 
@@ -444,8 +436,7 @@ function M.translate_options(old_opts)
   end
 
   -- parsers.hex
-  local hex_keys =
-    { RGB = "rgb", RGBA = "rgba", RRGGBB = "rrggbb", RRGGBBAA = "rrggbbaa", AARRGGBB = "aarrggbb" }
+  local hex_keys = { RGB = "rgb", RGBA = "rgba", RRGGBB = "rrggbb", RRGGBBAA = "rrggbbaa", AARRGGBB = "aarrggbb" }
   local has_hex = false
   for old_key, new_key in pairs(hex_keys) do
     if old_opts[old_key] ~= nil then
@@ -518,7 +509,6 @@ function M.translate_options(old_opts)
     end
   end
 
-  -- Xterm
   if old_opts.xterm ~= nil then
     new.parsers.xterm = { enable = old_opts.xterm }
   end
@@ -890,7 +880,6 @@ function M.as_flat(opts)
     end
   end
 
-  -- Always update
   flat.always_update = opts.always_update
 
   return flat

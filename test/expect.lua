@@ -4,48 +4,51 @@ local opts = {
     "*",
     "!dashboard",
     lua = {
-      names = true,
-      names_opts = {
-        lowercase = true,
-        camelcase = true,
-        uppercase = true,
-        strip_digits = false,
+      parsers = {
+        names = {
+          enable = true,
+          lowercase = true,
+          camelcase = true,
+          uppercase = true,
+          strip_digits = false,
+        },
+        tailwind = { enable = true },
       },
-      tailwind = true,
     },
   },
   buftypes = { "*", "!prompt", "!popup" },
   user_commands = true,
-  user_default_options = {
-    names = true,
-    names_opts = {
-      lowercase = true,
-      camelcase = true,
-      uppercase = true,
-      strip_digits = false,
+  lazy_load = true,
+  options = {
+    parsers = {
+      css = true,
+      names = {
+        enable = true,
+        lowercase = true,
+        camelcase = true,
+        uppercase = true,
+        strip_digits = false,
+        custom = function()
+          local colors = require("kanagawa.colors").setup()
+          return colors.palette
+        end,
+      },
+      hex = { default = true },
+      rgb = { enable = true },
+      hsl = { enable = true },
+      oklch = { enable = true },
+      tailwind = { enable = true },
+      sass = { enable = true, parsers = { css = true } },
+      xterm = { enable = true },
     },
-    names_custom = function()
-      local colors = require("kanagawa.colors").setup()
-      return colors.palette
-    end,
-    RGB = true,
-    RGBA = true,
-    RRGGBB = true,
-    RRGGBBAA = true,
-    AARRGGBB = true,
-    rgb_fn = true,
-    hsl_fn = true,
-    oklch_fn = true,
-    css = true,
-    css_fn = true,
-    xterm = true,
-    mode = "background",
-    tailwind = true,
-    sass = { enable = true, parsers = { css = true } },
-    virtualtext = "■",
-    virtualtext_inline = false,
-    virtualtext_mode = "foreground",
-    lazy_load = true,
+    display = {
+      mode = "background",
+      virtualtext = {
+        char = "■",
+        position = "eol",
+        hl_mode = "foreground",
+      },
+    },
     always_update = false,
   },
 }

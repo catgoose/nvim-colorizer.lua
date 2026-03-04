@@ -1,0 +1,12 @@
+/* ── Should highlight ────────────────────────── */
+
+/* #RGB (3-digit) */
+.a { color: #F00; background: #0F0; border: #00F; }
+.b { color: #FFF; background: #000; border: #0FF; }
+
+/* ── Should NOT highlight ───────────────────── */
+
+/* Other hex formats */
+.c { color: #FF0000; background: #FF000080; border: 0xFFFF0000; }
+/* Invalid */
+.d { color: #GGG; background: #F; }

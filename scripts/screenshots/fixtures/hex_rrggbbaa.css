@@ -1,0 +1,12 @@
+/* ── Should highlight ────────────────────────── */
+
+/* #RRGGBBAA (8-digit) */
+.a { color: #FF000080; background: #00FF00CC; border: #0000FFAA; }
+.b { color: #32a14bFF; background: #abcdef40; }
+
+/* ── Should NOT highlight ───────────────────── */
+
+/* Other hex formats */
+.c { color: #F00; background: #FF0000; border: 0xFFFF0000; }
+/* Invalid */
+.d { color: #GGGGGGFF; background: #F; }

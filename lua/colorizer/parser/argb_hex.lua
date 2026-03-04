@@ -32,6 +32,11 @@ function M.parser(line, i)
     return
   end
 
+  -- Verify "0x" prefix (needed for byte-dispatch where prefix isn't pre-checked)
+  if line:byte(i) ~= 0x30 or (line:byte(i + 1) ~= 0x78 and line:byte(i + 1) ~= 0x58) then
+    return
+  end
+
   local j = i + 2 -- Skip the "0x" prefix
   local n = j + maxlen
   local alpha, r, g, b
@@ -81,7 +86,7 @@ end
 M.spec = {
   name = "argb_hex",
   priority = 20,
-  dispatch = { kind = "prefix", prefixes = { "0x" } },
+  dispatch = { kind = "byte+prefix", bytes = { 0x30 }, prefixes = { "0x" } },
   -- No config_defaults: controlled by hex.aarrggbb in config
   parse = function(ctx)
     return M.parser(ctx.line, ctx.col)
