@@ -305,9 +305,16 @@ colorizer.ParsersSimple                                *colorizer.ParsersSimple*
 colorizer.ParsersTailwind                            *colorizer.ParsersTailwind*
 
     Fields: ~
-        {enable}        (boolean)  Enable Tailwind CSS color name parsing
-        {lsp}           (boolean)  Enable Tailwind LSP documentColor highlighting
-        {update_names}  (boolean)  Update tailwind_names color mapping from LSP results
+        {enable}        (boolean)                               Enable Tailwind CSS color name parsing
+        {lsp}           (boolean|colorizer.ParsersTailwindLsp)  Enable Tailwind LSP documentColor highlighting
+        {update_names}  (boolean)                               Feed LSP colors back into parsed name table so fast name-based highlighting uses accurate colors from tailwind.config (only meaningful when both enable and lsp.enable are true)
+
+
+colorizer.ParsersTailwindLsp                      *colorizer.ParsersTailwindLsp*
+
+    Fields: ~
+        {enable}                  (boolean)  Enable Tailwind LSP documentColor highlighting
+        {disable_document_color}  (boolean)  Auto-disable vim.lsp.document_color on attach (default true)
 
 
 colorizer.ParsersSass                                    *colorizer.ParsersSass*
