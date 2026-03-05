@@ -385,7 +385,7 @@ local function read_parser_flags(opts)
     names_custom = names.custom_hashed,
     sass = p.sass and p.sass.enable,
     tailwind_enable = tw.enable or false,
-    tailwind_lsp = tw.lsp or false,
+    tailwind_lsp = (tw.lsp and tw.lsp.enable) or false,
     RGB = hex.rgb,
     RGBA = hex.rgba,
     RRGGBB = hex.rrggbb,

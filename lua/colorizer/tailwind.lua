@@ -114,6 +114,10 @@ function M.lsp_highlight(
           local client = clients[1]
           if client and client.name == "tailwindcss" then
             lsp_cache[bufnr].client = client
+            local tw_lsp = opts.parsers and opts.parsers.tailwind and opts.parsers.tailwind.lsp
+            if tw_lsp and tw_lsp.disable_document_color and vim.lsp.document_color then
+              vim.lsp.document_color.enable(false, bufnr)
+            end
             vim.defer_fn(function()
               if vim.api.nvim_buf_is_valid(bufnr) and lsp_cache[bufnr] then
                 highlight(bufnr, opts, add_highlight)
@@ -142,6 +146,10 @@ function M.lsp_highlight(
     end
 
     lsp_cache[bufnr].client = client
+    local tw_lsp = opts.parsers and opts.parsers.tailwind and opts.parsers.tailwind.lsp
+    if tw_lsp and tw_lsp.disable_document_color and vim.lsp.document_color then
+      vim.lsp.document_color.enable(false, bufnr)
+    end
     highlight(bufnr, opts, add_highlight)
 
     return true
