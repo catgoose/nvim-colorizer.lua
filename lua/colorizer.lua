@@ -494,6 +494,23 @@ function M.attach_to_buffer(bufnr, opts, bo_type)
         colorizer_state.buffer_local[bufnr].__event = args.event
         schedule_rehighlight(bufnr, buf_opts, colorizer_state.buffer_local[bufnr])
       end
+      -- When scrollbind is active, the non-active window also scrolls but its
+      -- per-buffer WinScrolled autocmd does not fire.  Re-highlight any other
+      -- visible attached buffers so they stay in sync.
+      for _, win in ipairs(vim.api.nvim_list_wins()) do
+        if vim.api.nvim_win_is_valid(win) then
+          local win_buf = vim.api.nvim_win_get_buf(win)
+          if win_buf ~= bufnr and colorizer_state.buffer_options[win_buf] then
+            colorizer_state.buffer_local[win_buf] = colorizer_state.buffer_local[win_buf] or {}
+            colorizer_state.buffer_local[win_buf].__event = args.event
+            schedule_rehighlight(
+              win_buf,
+              colorizer_state.buffer_options[win_buf],
+              colorizer_state.buffer_local[win_buf]
+            )
+          end
+        end
+      end
     end,
   })
   vim.api.nvim_create_autocmd({ "BufUnload", "BufDelete" }, {
