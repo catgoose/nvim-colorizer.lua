@@ -102,6 +102,7 @@ jobs:
             exit 0
           fi
           git commit -m "Update nvim-colorizer.lua screenshots"
+          git pull --rebase origin main
           git push
         env:
           GH_TOKEN: ${{ secrets.SCREENSHOTS_REPO_TOKEN }}

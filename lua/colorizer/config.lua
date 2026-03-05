@@ -161,8 +161,12 @@ local plugin_user_default_options = {
 
 ---@class colorizer.ParsersTailwind
 ---@field enable boolean Enable Tailwind CSS color name parsing
----@field lsp boolean Enable Tailwind LSP documentColor highlighting
----@field update_names boolean Update tailwind_names color mapping from LSP results
+---@field lsp boolean|colorizer.ParsersTailwindLsp Enable Tailwind LSP documentColor highlighting
+---@field update_names boolean Feed LSP colors back into parsed name table so fast name-based highlighting uses accurate colors from tailwind.config (only meaningful when both enable and lsp.enable are true)
+
+---@class colorizer.ParsersTailwindLsp
+---@field enable boolean Enable Tailwind LSP documentColor highlighting
+---@field disable_document_color boolean Auto-disable vim.lsp.document_color on attach (default true)
 
 ---@class colorizer.ParsersSass
 ---@field enable boolean Enable Sass color variable parsing
@@ -210,7 +214,10 @@ local function build_default_parsers()
   }
   parsers.tailwind = {
     enable = false,
-    lsp = false,
+    lsp = {
+      enable = false,
+      disable_document_color = true,
+    },
     update_names = false,
   }
   parsers.custom = {}
@@ -497,10 +504,10 @@ function M.translate_options(old_opts)
     elseif old_opts.tailwind == true or old_opts.tailwind == "normal" then
       new.parsers.tailwind.enable = true
     elseif old_opts.tailwind == "lsp" then
-      new.parsers.tailwind.lsp = true
+      new.parsers.tailwind.lsp = { enable = true }
     elseif old_opts.tailwind == "both" then
       new.parsers.tailwind.enable = true
-      new.parsers.tailwind.lsp = true
+      new.parsers.tailwind.lsp = { enable = true }
     end
   end
   if old_opts.tailwind_opts then
@@ -739,6 +746,35 @@ function M.apply_presets(user_parsers)
   user_parsers.css_fn = nil
 end
 
+--- Default tailwind.lsp table for normalization fallback
+local default_tailwind_lsp = {
+  enable = false,
+  disable_document_color = true,
+}
+
+--- Normalize tailwind.lsp to table form.
+--- Expands boolean shorthand, fills missing keys from defaults.
+---@param tw table parsers.tailwind table (mutated in place)
+local function normalize_tailwind_lsp(tw)
+  if tw == nil then
+    return
+  end
+
+  -- Expand boolean shorthand
+  if type(tw.lsp) == "boolean" then
+    tw.lsp = { enable = tw.lsp }
+  elseif type(tw.lsp) ~= "table" then
+    tw.lsp = {}
+  end
+
+  -- Fill missing keys from defaults
+  for k, v in pairs(default_tailwind_lsp) do
+    if tw.lsp[k] == nil then
+      tw.lsp[k] = v
+    end
+  end
+end
+
 --- Validate new-format options. Validates enums, processes names.custom, checks hook types.
 ---@param opts table New-format options (fully merged with defaults)
 function M.validate_new_options(opts)
@@ -748,10 +784,9 @@ function M.validate_new_options(opts)
     opts.display.mode = default_options.display.mode
   end
 
-  -- Validate tailwind.lsp is boolean
-  local tw = opts.parsers and opts.parsers.tailwind
-  if tw and type(tw.lsp) ~= "boolean" then
-    tw.lsp = default_options.parsers.tailwind.lsp
+  -- Normalize tailwind.lsp to table form
+  if opts.parsers and opts.parsers.tailwind then
+    normalize_tailwind_lsp(opts.parsers.tailwind)
   end
 
   -- Validate virtualtext.position
@@ -859,17 +894,19 @@ function M.as_flat(opts)
   flat.css_fn = false
 
   -- Tailwind
-  if p.tailwind.enable and p.tailwind.lsp then
+  local tw_lsp = p.tailwind.lsp
+  local tw_lsp_enable = type(tw_lsp) == "table" and tw_lsp.enable or false
+  if p.tailwind.enable and tw_lsp_enable then
     flat.tailwind = "both"
   elseif p.tailwind.enable then
     flat.tailwind = "normal"
-  elseif p.tailwind.lsp then
+  elseif tw_lsp_enable then
     flat.tailwind = "lsp"
   else
     flat.tailwind = false
   end
   flat.tailwind_opts = {
-    update_names = p.tailwind.update_names,
+    update_names = p.tailwind.update_names or false,
   }
 
   -- Sass

@@ -119,7 +119,7 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, opts, hl_opts
         vim.api.nvim_buf_clear_namespace(bufnr, const.namespace.default, linenr, linenr + 1)
       end
       for _, hl in ipairs(hls) do
-        if tw_both and tw_lsp.update_names then
+        if tw_both and tw.update_names then
           local txt = slice_line(bufnr, linenr, hl.range[1], hl.range[2])
           if txt and not hl_state.updated_colors[txt] then
             hl_state.updated_colors[txt] = true
@@ -155,7 +155,7 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, opts, hl_opts
         vim.api.nvim_buf_clear_namespace(bufnr, const.namespace.default, linenr, linenr + 1)
       end
       for _, hl in ipairs(hls) do
-        if tw_both and tw_lsp2.update_names then
+        if tw_both and tw.update_names then
           local txt = slice_line(bufnr, linenr, hl.range[1], hl.range[2])
           if txt and not hl_state.updated_colors[txt] then
             hl_state.updated_colors[txt] = true

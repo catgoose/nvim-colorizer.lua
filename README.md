@@ -8,6 +8,8 @@
   - [Examples](#examples)
   - [Default configuration](#default-configuration)
   - [Tailwind CSS](#tailwind-css)
+    - [Neovim built-in LSP document colors (0.12+)](#neovim-built-in-lsp-document-colors-012)
+  - [Highlight priority](#highlight-priority)
   - [Custom parsers](#custom-parsers)
   - [Hooks](#hooks)
   - [Lua API](#lua-api)
@@ -151,8 +153,11 @@ require("colorizer").setup({
       oklch = { enable = false }, -- oklch() function
       tailwind = {
         enable = false, -- parse Tailwind color names
-        lsp = false, -- use Tailwind LSP documentColor
-        update_names = false, -- update color names from LSP results
+        update_names = false, -- feed LSP colors back into name parser (requires both enable + lsp.enable)
+        lsp = { -- accepts boolean, true is shortcut for { enable = true, disable_document_color = true }
+          enable = false, -- use Tailwind LSP documentColor
+          disable_document_color = true, -- auto-disable vim.lsp.document_color on attach
+        },
       },
       sass = {
         enable = false, -- parse Sass color variables
@@ -200,19 +205,117 @@ Tailwind colors can be parsed from the bundled color data (`enable`) or via `tex
 | `lsp = true`    | Use Tailwind LSP document colors    |
 | Both `true`     | Combine both sources                |
 
-With `update_names = true` and both enabled, the color name mapping is updated with LSP results including custom colors from `tailwind.config.{js,ts}`.
+`lsp` accepts a boolean shorthand or a table for fine-grained control:
 
 ```lua
 require("colorizer").setup({
   options = {
     parsers = {
-      tailwind = { enable = true, lsp = true, update_names = true },
+      tailwind = { enable = true, lsp = true },
     },
   },
 })
 ```
 
+```lua
+require("colorizer").setup({
+  options = {
+    parsers = {
+      tailwind = {
+        enable = true,
+        lsp = {
+          enable = true,
+          disable_document_color = true, -- default
+        },
+        update_names = true,
+      },
+    },
+  },
+})
+```
+
+With `lsp.update_names = true` and both `enable` + `lsp.enable` active, LSP
+results are fed back into the name parser's color table. Name-based parsing is
+instant (works in cmp windows, new buffers, etc.) but uses bundled color data.
+The LSP is slower (requires server response) but reads custom colors from
+`tailwind.config.{js,ts}`. By combining both, buffers are painted immediately
+with name-based matches, then LSP results correct the colors and update the
+name table so subsequent name-based highlights use accurate values.
+
 ![tailwind.update_names](https://github.com/catgoose/screenshots/blob/51466fa599efe6d9821715616106c1712aad00c3/nvim-colorizer.lua/tailwind_update_names.png)
+
+### Neovim built-in LSP document colors (0.12+)
+
+Neovim 0.12+ has built-in `textDocument/documentColor` support via
+`vim.lsp.document_color` that is **enabled by default** on `LspAttach`. When
+colorizer's `tailwind.lsp` is active, `disable_document_color` (default `true`)
+automatically calls `vim.lsp.document_color.enable(false, bufnr)` to prevent
+duplicate highlights. No manual `LspAttach` autocmd is needed.
+
+To **keep the built-in feature active** alongside colorizer:
+
+```lua
+tailwind = {
+  enable = true,
+  lsp = { enable = true, disable_document_color = false },
+},
+```
+
+**Or use the built-in feature instead** and disable colorizer's LSP integration:
+
+```lua
+-- Let Neovim handle LSP colors, colorizer handles everything else
+require("colorizer").setup({
+  options = {
+    parsers = {
+      tailwind = { enable = true, lsp = false },
+    },
+  },
+})
+```
+
+The built-in `vim.lsp.document_color.enable()` supports style options:
+`'background'` (default), `'foreground'`, `'virtual'`, or a custom string/function.
+See `:help vim.lsp.document_color.enable()` for details.
+
+> **Note:** This only applies to Neovim 0.12+. Neovim 0.10 and 0.11 do not
+> have this feature and are unaffected.
+
+## Highlight priority
+
+Colorizer uses extmark priorities from `display.priority` to control which
+highlights win when multiple sources target the same range:
+
+| Key       | Default | Based on                        | Purpose                        |
+| --------- | ------- | ------------------------------- | ------------------------------ |
+| `default` | 150     | `vim.hl.priorities.diagnostics` | Normal parser-based highlights |
+| `lsp`     | 200     | `vim.hl.priorities.user`        | Tailwind LSP highlights        |
+
+These defaults are higher than treesitter (100) and semantic tokens (125), so
+colorizer highlights always win over syntax highlighting. The LSP priority is
+higher than default so Tailwind LSP results take precedence over parser-based
+matches on the same range.
+
+Neovim's built-in `vim.lsp.document_color` sets **no explicit priority** on its
+extmarks (effectively 0), so if both are active on the same buffer you get
+duplicate highlights rather than a priority conflict. This is why
+`disable_document_color` defaults to `true` — it prevents the duplicates
+entirely.
+
+To customize priorities:
+
+```lua
+require("colorizer").setup({
+  options = {
+    display = {
+      priority = {
+        default = 50, -- lower than treesitter, color highlights lose
+        lsp = 300, -- higher than default user priority
+      },
+    },
+  },
+})
+```
 
 ## Custom parsers
 

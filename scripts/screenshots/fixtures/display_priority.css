@@ -1,0 +1,15 @@
+/* ── Custom priority (default=50, lsp=300) ── */
+
+:root {
+  --hex: #FF0000;
+  --short: #0FF;
+  --alpha: #FFFF00CC;
+}
+
+body {
+  color: rgb(255, 200, 80);
+  background: hsl(300 50% 50%);
+  border: oklch(0.5 0.2 180);
+}
+
+.names { color: red; background: DeepSkyBlue; }

@@ -314,4 +314,130 @@ T["tw_lsp priority"]["custom lsp priority from opts"] = function()
   vim.api.nvim_buf_delete(buf, { force = true })
 end
 
+-- disable_document_color ------------------------------------------------------
+
+T["disable_document_color"] = new_set()
+
+T["disable_document_color"]["calls vim.lsp.document_color.enable(false) when available"] = function()
+  -- Mock vim.lsp.document_color
+  local original_dc = vim.lsp.document_color
+  local called_with = {}
+  vim.lsp.document_color = {
+    enable = function(flag, buf)
+      table.insert(called_with, { flag = flag, buf = buf })
+    end,
+  }
+
+  local buf = make_buf({ "bg-red-500" })
+  local augroup = vim.api.nvim_create_augroup("test_tw_dc", { clear = true })
+  local buf_local_opts = { __augroup_id = augroup, __event = "TextChanged" }
+  -- Build resolved opts with disable_document_color = true (the default)
+  local opts = config.resolve_options({
+    tailwind = "lsp",
+  })
+
+  -- Mock a tailwindcss client
+  local mock_client = {
+    name = "tailwindcss",
+    is_stopped = function()
+      return false
+    end,
+    request = function() end,
+  }
+  -- Patch get_clients to return our mock
+  local orig_get_clients = vim.lsp.get_clients
+  vim.lsp.get_clients = function()
+    return { mock_client }
+  end
+
+  tailwind.lsp_highlight(buf, opts, buf_local_opts, function() end, tailwind.cleanup, 0, -1)
+
+  eq(true, #called_with > 0)
+  eq(false, called_with[1].flag)
+  eq(buf, called_with[1].buf)
+
+  -- Restore
+  vim.lsp.get_clients = orig_get_clients
+  vim.lsp.document_color = original_dc
+  tailwind.cleanup(buf)
+  vim.api.nvim_del_augroup_by_id(augroup)
+  vim.api.nvim_buf_delete(buf, { force = true })
+end
+
+T["disable_document_color"]["does not call when disable_document_color is false"] = function()
+  local original_dc = vim.lsp.document_color
+  local called = false
+  vim.lsp.document_color = {
+    enable = function()
+      called = true
+    end,
+  }
+
+  local buf = make_buf({ "bg-red-500" })
+  local augroup = vim.api.nvim_create_augroup("test_tw_dc_off", { clear = true })
+  local buf_local_opts = { __augroup_id = augroup, __event = "TextChanged" }
+  local opts = config.resolve_options({
+    parsers = {
+      tailwind = {
+        enable = false,
+        lsp = { enable = true, disable_document_color = false },
+      },
+    },
+  })
+
+  local mock_client = {
+    name = "tailwindcss",
+    is_stopped = function()
+      return false
+    end,
+    request = function() end,
+  }
+  local orig_get_clients = vim.lsp.get_clients
+  vim.lsp.get_clients = function()
+    return { mock_client }
+  end
+
+  tailwind.lsp_highlight(buf, opts, buf_local_opts, function() end, tailwind.cleanup, 0, -1)
+
+  eq(false, called)
+
+  vim.lsp.get_clients = orig_get_clients
+  vim.lsp.document_color = original_dc
+  tailwind.cleanup(buf)
+  vim.api.nvim_del_augroup_by_id(augroup)
+  vim.api.nvim_buf_delete(buf, { force = true })
+end
+
+T["disable_document_color"]["safe when vim.lsp.document_color is nil"] = function()
+  -- Simulate Neovim 0.10/0.11 (no document_color module)
+  local original_dc = vim.lsp.document_color
+  vim.lsp.document_color = nil
+
+  local buf = make_buf({ "bg-red-500" })
+  local augroup = vim.api.nvim_create_augroup("test_tw_dc_nil", { clear = true })
+  local buf_local_opts = { __augroup_id = augroup, __event = "TextChanged" }
+  local opts = config.resolve_options({ tailwind = "lsp" })
+
+  local mock_client = {
+    name = "tailwindcss",
+    is_stopped = function()
+      return false
+    end,
+    request = function() end,
+  }
+  local orig_get_clients = vim.lsp.get_clients
+  vim.lsp.get_clients = function()
+    return { mock_client }
+  end
+
+  -- Should not error
+  tailwind.lsp_highlight(buf, opts, buf_local_opts, function() end, tailwind.cleanup, 0, -1)
+
+  vim.lsp.get_clients = orig_get_clients
+  vim.lsp.document_color = original_dc
+  tailwind.cleanup(buf)
+  vim.api.nvim_del_augroup_by_id(augroup)
+  vim.api.nvim_buf_delete(buf, { force = true })
+end
+
 return T
