@@ -98,6 +98,7 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, opts, hl_opts
   end
   opts = normalize_opts(opts)
   hl_opts = hl_opts or {}
+
   vim.api.nvim_buf_clear_namespace(bufnr, ns_id, line_start, line_end)
 
   local d = opts.display
@@ -109,8 +110,14 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, opts, hl_opts
   local tw = opts.parsers.tailwind or {}
 
   if d.mode == "background" or d.mode == "foreground" then
-    local tw_both = tw.enable and tw.lsp and hl_opts.tailwind_lsp
+    local tw_lsp = tw.lsp
+    local tw_both = tw.enable and tw_lsp and tw_lsp.enable and hl_opts.tailwind_lsp
     for linenr, hls in pairs(data) do
+      -- When LSP data supersedes name-based tailwind matches, clear the
+      -- default namespace for this line to avoid hidden duplicate extmarks.
+      if tw_both then
+        vim.api.nvim_buf_clear_namespace(bufnr, const.namespace.default, linenr, linenr + 1)
+      end
       for _, hl in ipairs(hls) do
         if tw_both and tw.update_names then
           local txt = slice_line(bufnr, linenr, hl.range[1], hl.range[2])
@@ -140,16 +147,19 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, opts, hl_opts
     -- Reuse a single inner table for virt_text entries
     local virt_text_entry = { "", "" }
     local virt_text_list = { virt_text_entry }
+    local tw_lsp2 = tw.lsp
+    local tw_both = tw.enable and tw_lsp2 and tw_lsp2.enable and hl_opts.tailwind_lsp
     for linenr, hls in pairs(data) do
+      if tw_both then
+        vim.api.nvim_buf_clear_namespace(bufnr, ns_id, linenr, linenr + 1)
+        vim.api.nvim_buf_clear_namespace(bufnr, const.namespace.default, linenr, linenr + 1)
+      end
       for _, hl in ipairs(hls) do
-        if tw.enable and tw.lsp and hl_opts.tailwind_lsp then
-          vim.api.nvim_buf_clear_namespace(bufnr, ns_id, linenr, linenr + 1)
-          if tw.update_names then
-            local txt = slice_line(bufnr, linenr, hl.range[1], hl.range[2])
-            if txt and not hl_state.updated_colors[txt] then
-              hl_state.updated_colors[txt] = true
-              names.update_color(txt, hl.rgb_hex, "tailwind_names")
-            end
+        if tw_both and tw.update_names then
+          local txt = slice_line(bufnr, linenr, hl.range[1], hl.range[2])
+          if txt and not hl_state.updated_colors[txt] then
+            hl_state.updated_colors[txt] = true
+            names.update_color(txt, hl.rgb_hex, "tailwind_names")
           end
         end
         local hlname = create_highlight(hl.rgb_hex, vt.hl_mode, bg_opts)
@@ -215,7 +225,7 @@ function M.highlight(bufnr, ns_id, line_start, line_end, opts, buf_local_opts)
   local data = M.parse_lines(bufnr, lines, line_start, opts) or {}
   M.add_highlight(bufnr, ns_id, line_start, line_end, data, opts)
 
-  if tw.lsp then
+  if tw.lsp and tw.lsp.enable then
     tailwind.lsp_highlight(
       bufnr,
       opts,

@@ -389,12 +389,14 @@ function M.attach_to_buffer(bufnr, opts, bo_type)
 
   bo_type = bo_type or "buftype"
 
+  local filetype = vim.api.nvim_get_option_value("filetype", { buf = bufnr })
+  local buftype = vim.api.nvim_get_option_value("buftype", { buf = bufnr })
   opts = opts
-    -- explicit options passed
-    or config.options.filetypes and config.options.filetypes[vim.bo.filetype]
-    -- cached buffer options
+    -- cached buffer options (previously attached with resolved opts)
     or get_attached_buffer_options(bufnr)
-    -- new buffer options from config
+    -- resolved filetype options from setup (options_cache)
+    or config.get_bo_options("filetype", buftype, filetype)
+    -- resolved bo_type options from setup (options_cache)
     or config.new_bo_options(bufnr, bo_type)
 
   -- Ensure options are in new format

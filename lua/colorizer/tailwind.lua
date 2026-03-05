@@ -69,11 +69,10 @@ local function highlight(bufnr, opts, add_highlight)
           data[cur_line] = data[cur_line] or {}
           table.insert(data[cur_line], { rgb_hex = rgb_hex, range = { first_col, end_col } })
         end
-        line_start = line_start or 0
-        line_end = line_end and (line_end + 2) or -1
         lsp_cache[bufnr].data = data
-        lsp_cache[bufnr].cache_highlighted = false
-        add_highlight(bufnr, tw_ns_id, line_start, line_end, data, opts, { tailwind_lsp = true })
+        vim.api.nvim_buf_clear_namespace(bufnr, tw_ns_id, 0, -1)
+        add_highlight(bufnr, tw_ns_id, 0, -1, data, opts, { tailwind_lsp = true })
+        lsp_cache[bufnr].cache_highlighted = true
       end
     end
   )
@@ -113,13 +112,17 @@ function M.lsp_highlight(
         callback = function(args)
           local clients = vim.lsp.get_clients({ id = args.data.client_id })
           local client = clients[1]
-          if
-            client
-            and client.name == "tailwindcss"
-            and client:supports_method("textDocument/documentColor", bufnr)
-          then
+          if client and client.name == "tailwindcss" then
             lsp_cache[bufnr].client = client
-            highlight(bufnr, opts, add_highlight)
+            local tw_lsp = opts.parsers and opts.parsers.tailwind and opts.parsers.tailwind.lsp
+            if tw_lsp and tw_lsp.disable_document_color and vim.lsp.document_color then
+              vim.lsp.document_color.enable(false, bufnr)
+            end
+            vim.defer_fn(function()
+              if vim.api.nvim_buf_is_valid(bufnr) and lsp_cache[bufnr] then
+                highlight(bufnr, opts, add_highlight)
+              end
+            end, 200)
           end
         end,
       })
@@ -138,32 +141,24 @@ function M.lsp_highlight(
 
     local clients = vim.lsp.get_clients({ bufnr = bufnr, name = "tailwindcss" })
     local client = clients[1]
-    if not client or not client:supports_method("textDocument/documentColor", bufnr) then
+    if not client then
       return
     end
 
     lsp_cache[bufnr].client = client
+    local tw_lsp = opts.parsers and opts.parsers.tailwind and opts.parsers.tailwind.lsp
+    if tw_lsp and tw_lsp.disable_document_color and vim.lsp.document_color then
+      vim.lsp.document_color.enable(false, bufnr)
+    end
     highlight(bufnr, opts, add_highlight)
 
     return true
   end
 
   if lsp_cache[bufnr].client then
-    if
-      lsp_cache[bufnr].data
-      and not lsp_cache[bufnr].cache_highlighted
-      and buf_local_opts.__event == "WinScrolled"
-    then
-      add_highlight(
-        bufnr,
-        tw_ns_id,
-        line_start,
-        line_end,
-        lsp_cache[bufnr].data,
-        opts,
-        { tailwind_lsp = true }
-      )
-      lsp_cache[bufnr].cache_highlighted = true
+    if buf_local_opts.__event == "WinScrolled" and lsp_cache[bufnr].data then
+      vim.api.nvim_buf_clear_namespace(bufnr, tw_ns_id, 0, -1)
+      add_highlight(bufnr, tw_ns_id, 0, -1, lsp_cache[bufnr].data, opts, { tailwind_lsp = true })
     else
       highlight(bufnr, opts, add_highlight)
     end

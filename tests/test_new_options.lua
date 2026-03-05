@@ -67,7 +67,7 @@ end
 
 T["translate_options"]["translates tailwind string lsp"] = function()
   local new = config.translate_options({ tailwind = "lsp" })
-  eq(true, new.parsers.tailwind.lsp)
+  eq(true, new.parsers.tailwind.lsp.enable)
 end
 
 T["translate_options"]["translates tailwind false"] = function()
@@ -181,11 +181,12 @@ T["validate_new_options"]["resets invalid display.mode"] = function()
   eq("background", opts.display.mode)
 end
 
-T["validate_new_options"]["resets invalid tailwind.lsp"] = function()
+T["validate_new_options"]["normalizes invalid tailwind.lsp to table"] = function()
   local opts = vim.deepcopy(config.default_options)
   opts.parsers.tailwind.lsp = "invalid"
   config.validate_new_options(opts)
-  eq(false, opts.parsers.tailwind.lsp)
+  eq("table", type(opts.parsers.tailwind.lsp))
+  eq(false, opts.parsers.tailwind.lsp.enable)
 end
 
 T["validate_new_options"]["resets invalid virtualtext.position"] = function()
@@ -262,7 +263,7 @@ end
 T["as_flat"]["tailwind enable+lsp becomes both"] = function()
   local opts = vim.deepcopy(config.default_options)
   opts.parsers.tailwind.enable = true
-  opts.parsers.tailwind.lsp = true
+  opts.parsers.tailwind.lsp.enable = true
   local flat = config.as_flat(opts)
   eq("both", flat.tailwind)
 end
@@ -803,7 +804,7 @@ end
 T["translate_options"]["translates tailwind both"] = function()
   local new = config.translate_options({ tailwind = "both" })
   eq(true, new.parsers.tailwind.enable)
-  eq(true, new.parsers.tailwind.lsp)
+  eq(true, new.parsers.tailwind.lsp.enable)
 end
 
 T["translate_options"]["translates tailwind_opts.update_names"] = function()
@@ -988,18 +989,45 @@ T["validate_new_options"]["valid display.mode is preserved"] = function()
   eq("virtualtext", opts.display.mode)
 end
 
-T["validate_new_options"]["valid tailwind.lsp true is preserved"] = function()
+T["validate_new_options"]["tailwind.lsp boolean true normalizes to table"] = function()
   local opts = vim.deepcopy(config.default_options)
   opts.parsers.tailwind.lsp = true
   config.validate_new_options(opts)
-  eq(true, opts.parsers.tailwind.lsp)
+  eq("table", type(opts.parsers.tailwind.lsp))
+  eq(true, opts.parsers.tailwind.lsp.enable)
+  eq(true, opts.parsers.tailwind.lsp.disable_document_color)
 end
 
-T["validate_new_options"]["valid tailwind.lsp false is preserved"] = function()
+T["validate_new_options"]["tailwind.lsp boolean false normalizes to table"] = function()
   local opts = vim.deepcopy(config.default_options)
   opts.parsers.tailwind.lsp = false
   config.validate_new_options(opts)
-  eq(false, opts.parsers.tailwind.lsp)
+  eq("table", type(opts.parsers.tailwind.lsp))
+  eq(false, opts.parsers.tailwind.lsp.enable)
+end
+
+T["validate_new_options"]["tailwind.lsp table form preserved"] = function()
+  local opts = vim.deepcopy(config.default_options)
+  opts.parsers.tailwind.lsp = { enable = true }
+  config.validate_new_options(opts)
+  eq(true, opts.parsers.tailwind.lsp.enable)
+  eq(true, opts.parsers.tailwind.lsp.disable_document_color)
+end
+
+T["validate_new_options"]["tailwind.update_names stays at tailwind level"] = function()
+  local opts = vim.deepcopy(config.default_options)
+  opts.parsers.tailwind.lsp = true
+  opts.parsers.tailwind.update_names = true
+  config.validate_new_options(opts)
+  eq(true, opts.parsers.tailwind.update_names)
+  eq(true, opts.parsers.tailwind.lsp.enable)
+end
+
+T["validate_new_options"]["disable_document_color defaults to true"] = function()
+  local opts = vim.deepcopy(config.default_options)
+  opts.parsers.tailwind.lsp = { enable = true }
+  config.validate_new_options(opts)
+  eq(true, opts.parsers.tailwind.lsp.disable_document_color)
 end
 
 T["validate_new_options"]["valid virtualtext.position values preserved"] = function()
@@ -1434,7 +1462,9 @@ end
 
 T["default_options consistency"]["tailwind disabled by default"] = function()
   eq(false, config.default_options.parsers.tailwind.enable)
-  eq(false, config.default_options.parsers.tailwind.lsp)
+  eq("table", type(config.default_options.parsers.tailwind.lsp))
+  eq(false, config.default_options.parsers.tailwind.lsp.enable)
+  eq(true, config.default_options.parsers.tailwind.lsp.disable_document_color)
 end
 
 T["default_options consistency"]["sass disabled by default"] = function()
@@ -2135,19 +2165,19 @@ end
 T["resolve_options legacy"]["legacy tailwind both enables enable and lsp"] = function()
   local result = config.resolve_options({ tailwind = "both" })
   eq(true, result.parsers.tailwind.enable)
-  eq(true, result.parsers.tailwind.lsp)
+  eq(true, result.parsers.tailwind.lsp.enable)
 end
 
 T["resolve_options legacy"]["legacy tailwind normal enables enable only"] = function()
   local result = config.resolve_options({ tailwind = "normal" })
   eq(true, result.parsers.tailwind.enable)
-  eq(false, result.parsers.tailwind.lsp)
+  eq(false, result.parsers.tailwind.lsp.enable)
 end
 
 T["resolve_options legacy"]["legacy tailwind lsp enables lsp only"] = function()
   local result = config.resolve_options({ tailwind = "lsp" })
   eq(false, result.parsers.tailwind.enable)
-  eq(true, result.parsers.tailwind.lsp)
+  eq(true, result.parsers.tailwind.lsp.enable)
 end
 
 T["resolve_options legacy"]["legacy sass false disables sass"] = function()
@@ -2218,7 +2248,7 @@ T["as_flat"] = new_set()
 T["as_flat"]["tailwind both encodes as both"] = function()
   local opts = vim.deepcopy(config.default_options)
   opts.parsers.tailwind.enable = true
-  opts.parsers.tailwind.lsp = true
+  opts.parsers.tailwind.lsp.enable = true
   local flat = config.as_flat(opts)
   eq("both", flat.tailwind)
 end
@@ -2226,7 +2256,7 @@ end
 T["as_flat"]["tailwind enable only encodes as normal"] = function()
   local opts = vim.deepcopy(config.default_options)
   opts.parsers.tailwind.enable = true
-  opts.parsers.tailwind.lsp = false
+  opts.parsers.tailwind.lsp.enable = false
   local flat = config.as_flat(opts)
   eq("normal", flat.tailwind)
 end
@@ -2234,7 +2264,7 @@ end
 T["as_flat"]["tailwind lsp only encodes as lsp"] = function()
   local opts = vim.deepcopy(config.default_options)
   opts.parsers.tailwind.enable = false
-  opts.parsers.tailwind.lsp = true
+  opts.parsers.tailwind.lsp.enable = true
   local flat = config.as_flat(opts)
   eq("lsp", flat.tailwind)
 end
@@ -2242,7 +2272,7 @@ end
 T["as_flat"]["tailwind disabled encodes as false"] = function()
   local opts = vim.deepcopy(config.default_options)
   opts.parsers.tailwind.enable = false
-  opts.parsers.tailwind.lsp = false
+  opts.parsers.tailwind.lsp.enable = false
   local flat = config.as_flat(opts)
   eq(false, flat.tailwind)
 end
@@ -2301,11 +2331,12 @@ T["validate_new_options"]["invalid virtualtext hl_mode resets to default"] = fun
   eq("foreground", opts.display.virtualtext.hl_mode)
 end
 
-T["validate_new_options"]["non-boolean tailwind lsp resets to default"] = function()
+T["validate_new_options"]["non-boolean tailwind lsp normalizes to table"] = function()
   local opts = vim.deepcopy(config.default_options)
   opts.parsers.tailwind.lsp = "yes"
   config.validate_new_options(opts)
-  eq(false, opts.parsers.tailwind.lsp)
+  eq("table", type(opts.parsers.tailwind.lsp))
+  eq(false, opts.parsers.tailwind.lsp.enable)
 end
 
 T["validate_new_options"]["empty names custom table set to false"] = function()
@@ -2338,7 +2369,7 @@ end
 T["translate_options"]["translates tailwind both"] = function()
   local new = config.translate_options({ tailwind = "both" })
   eq(true, new.parsers.tailwind.enable)
-  eq(true, new.parsers.tailwind.lsp)
+  eq(true, new.parsers.tailwind.lsp.enable)
 end
 
 T["translate_options"]["translates tailwind normal"] = function()
@@ -2481,14 +2512,14 @@ end
 T["roundtrip"]["new -> flat -> resolve preserves tailwind"] = function()
   local original = vim.deepcopy(config.default_options)
   original.parsers.tailwind.enable = true
-  original.parsers.tailwind.lsp = true
+  original.parsers.tailwind.lsp.enable = true
   original.parsers.tailwind.update_names = true
 
   local flat = config.as_flat(original)
   local restored = config.resolve_options(flat)
 
   eq(true, restored.parsers.tailwind.enable)
-  eq(true, restored.parsers.tailwind.lsp)
+  eq(true, restored.parsers.tailwind.lsp.enable)
   eq(true, restored.parsers.tailwind.update_names)
 end
 
@@ -2528,6 +2559,77 @@ T["roundtrip"]["new -> flat -> resolve preserves sass"] = function()
   local flat = config.as_flat(original)
   local restored = config.resolve_options(flat)
   eq(true, restored.parsers.sass.enable)
+end
+
+-- tailwind.lsp normalization --------------------------------------------------
+
+T["tailwind.lsp normalization"] = new_set()
+
+T["tailwind.lsp normalization"]["resolve new-format lsp = true shorthand"] = function()
+  local result = config.resolve_options({
+    parsers = { tailwind = { enable = true, lsp = true } },
+  })
+  eq(true, result.parsers.tailwind.enable)
+  eq("table", type(result.parsers.tailwind.lsp))
+  eq(true, result.parsers.tailwind.lsp.enable)
+  eq(true, result.parsers.tailwind.lsp.disable_document_color)
+  eq(false, result.parsers.tailwind.update_names)
+end
+
+T["tailwind.lsp normalization"]["resolve new-format lsp = false shorthand"] = function()
+  local result = config.resolve_options({
+    parsers = { tailwind = { enable = true, lsp = false } },
+  })
+  eq(true, result.parsers.tailwind.enable)
+  eq("table", type(result.parsers.tailwind.lsp))
+  eq(false, result.parsers.tailwind.lsp.enable)
+  eq(true, result.parsers.tailwind.lsp.disable_document_color)
+end
+
+T["tailwind.lsp normalization"]["resolve new-format lsp table with disable_document_color false"] = function()
+  local result = config.resolve_options({
+    parsers = {
+      tailwind = {
+        enable = true,
+        lsp = { enable = true, disable_document_color = false },
+      },
+    },
+  })
+  eq(true, result.parsers.tailwind.lsp.enable)
+  eq(false, result.parsers.tailwind.lsp.disable_document_color)
+end
+
+T["tailwind.lsp normalization"]["empty lsp table fills defaults"] = function()
+  local result = config.resolve_options({
+    parsers = { tailwind = { enable = true, lsp = {} } },
+  })
+  eq("table", type(result.parsers.tailwind.lsp))
+  eq(false, result.parsers.tailwind.lsp.enable)
+  eq(true, result.parsers.tailwind.lsp.disable_document_color)
+end
+
+T["tailwind.lsp normalization"]["update_names stays at tailwind level"] = function()
+  local result = config.resolve_options({
+    parsers = { tailwind = { enable = true, lsp = true, update_names = true } },
+  })
+  eq(true, result.parsers.tailwind.lsp.enable)
+  eq(true, result.parsers.tailwind.update_names)
+end
+
+T["tailwind.lsp normalization"]["roundtrip preserves disable_document_color false"] = function()
+  local original = vim.deepcopy(config.default_options)
+  original.parsers.tailwind.enable = true
+  original.parsers.tailwind.lsp.enable = true
+  original.parsers.tailwind.lsp.disable_document_color = false
+
+  local flat = config.as_flat(original)
+  local restored = config.resolve_options(flat)
+
+  eq(true, restored.parsers.tailwind.enable)
+  eq(true, restored.parsers.tailwind.lsp.enable)
+  -- Note: disable_document_color is not roundtripped through flat format
+  -- (flat format doesn't carry it), so it defaults back to true
+  eq(true, restored.parsers.tailwind.lsp.disable_document_color)
 end
 
 -- display.background options --------------------------------------------------

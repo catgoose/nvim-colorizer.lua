@@ -140,6 +140,15 @@ M.configs = {
     label = "names_tailwind",
     description = "Tailwind CSS color names",
   }),
+  names_tailwind_lsp_config = cfg("tailwind_lsp_config.html", {
+    tailwind = {
+      enable = true,
+      lsp = { enable = false, update_names = false, disable_document_color = true },
+    },
+  }, {
+    label = "names_tailwind_lsp_config",
+    description = "Tailwind with lsp table config (parser names only)",
+  }),
   names_strip_digits = cfg("names_strip_digits.css", {
     names = { enable = true, lowercase = true, strip_digits = true },
   }, {
@@ -296,6 +305,11 @@ M.configs = {
     description = "background mode with custom contrast colors",
     display = { mode = "background", background = { bright_fg = "#1a1a2e", dark_fg = "#e0e0ff" } },
   }),
+  display_priority = cfg("display_priority.css", { css = true }, {
+    label = "display_priority",
+    description = "custom priority (default=50, lsp=300)",
+    display = { mode = "background", priority = { default = 50, lsp = 300 } },
+  }),
 }
 
 --- Ordered categories for --list, iteration, and --<flag> filtering.
@@ -334,7 +348,7 @@ M.categories = {
   {
     flag = "names",
     display = "Named Colors",
-    names = { "names_lowercase", "names_camelcase", "names_uppercase", "names_tailwind", "names_strip_digits", "names_custom", "names_extra_word_chars", "names_all" },
+    names = { "names_lowercase", "names_camelcase", "names_uppercase", "names_tailwind", "names_tailwind_lsp_config", "names_strip_digits", "names_custom", "names_extra_word_chars", "names_all" },
   },
   {
     flag = "special",
@@ -356,6 +370,7 @@ M.categories = {
       "display_vt_char_circle",
       "display_vt_char_block",
       "display_bg_contrast",
+      "display_priority",
     },
   },
 }
