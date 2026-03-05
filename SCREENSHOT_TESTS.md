@@ -520,7 +520,22 @@ parsers = { css_var_rgb = { enable = true } }
 </tr>
 <tr>
 <td align="center">
-<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B30%5D%20special_sass&body=%2A%2AScreenshot%20index%3A%2A%2A%2030%0A%2A%2AConfig%20key%3A%2A%2A%20%60special_sass%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[30]</a> special_sass</strong><br>
+<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B30%5D%20special_css_var&body=%2A%2AScreenshot%20index%3A%2A%2A%2030%0A%2A%2AConfig%20key%3A%2A%2A%20%60special_css_var%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[30]</a> special_css_var</strong><br>
+<em>CSS custom properties var(--name) resolution</em><br>
+<img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/special_css_var.png" width="400"><br>
+<details><summary>Config</summary>
+
+```lua
+parsers = {
+  css = true,
+  css_var = { enable = true, parsers = { css = true } },
+}
+```
+
+</details>
+</td>
+<td align="center">
+<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B31%5D%20special_sass&body=%2A%2AScreenshot%20index%3A%2A%2A%2031%0A%2A%2AConfig%20key%3A%2A%2A%20%60special_sass%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[31]</a> special_sass</strong><br>
 <em>Sass $variable color resolution</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/special_sass.png" width="400"><br>
 <details><summary>Config</summary>
@@ -532,7 +547,7 @@ parsers = { sass = { enable = true, parsers = { css = true } } }
 </details>
 </td>
 <td align="center">
-<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B31%5D%20special_sass_pattern&body=%2A%2AScreenshot%20index%3A%2A%2A%2031%0A%2A%2AConfig%20key%3A%2A%2A%20%60special_sass_pattern%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[31]</a> special_sass_pattern</strong><br>
+<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B32%5D%20special_sass_pattern&body=%2A%2AScreenshot%20index%3A%2A%2A%2032%0A%2A%2AConfig%20key%3A%2A%2A%20%60special_sass_pattern%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[32]</a> special_sass_pattern</strong><br>
 <em>variable_pattern restricts to alpha-only names</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/special_sass_pattern.png" width="400"><br>
 <details><summary>Config</summary>
@@ -549,8 +564,10 @@ parsers = {
 
 </details>
 </td>
+</tr>
+<tr>
 <td align="center">
-<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B32%5D%20special_hooks_line_filter&body=%2A%2AScreenshot%20index%3A%2A%2A%2032%0A%2A%2AConfig%20key%3A%2A%2A%20%60special_hooks_line_filter%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[32]</a> special_hooks_line_filter</strong><br>
+<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B33%5D%20special_hooks_line_filter&body=%2A%2AScreenshot%20index%3A%2A%2A%2033%0A%2A%2AConfig%20key%3A%2A%2A%20%60special_hooks_line_filter%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[33]</a> special_hooks_line_filter</strong><br>
 <em>should_highlight_line skips comment lines</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/special_hooks_line_filter.png" width="400"><br>
 <details><summary>Config</summary>
@@ -564,6 +581,8 @@ hooks = {
 
 </details>
 </td>
+<td></td>
+<td></td>
 </tr>
 </table>
 <!-- gen:special_gallery:end -->
@@ -577,7 +596,7 @@ All display tests use the same fixture with `css = true`, showing how different
 <table>
 <tr>
 <td align="center">
-<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B33%5D%20display_background&body=%2A%2AScreenshot%20index%3A%2A%2A%2033%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_background%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[33]</a> display_background</strong><br>
+<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B34%5D%20display_background&body=%2A%2AScreenshot%20index%3A%2A%2A%2034%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_background%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[34]</a> display_background</strong><br>
 <em>mode = background (default)</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/display_background.png" width="400"><br>
 <details><summary>Config</summary>
@@ -590,7 +609,7 @@ display = { mode = "background" }
 </details>
 </td>
 <td align="center">
-<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B34%5D%20display_foreground&body=%2A%2AScreenshot%20index%3A%2A%2A%2034%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_foreground%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[34]</a> display_foreground</strong><br>
+<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B35%5D%20display_foreground&body=%2A%2AScreenshot%20index%3A%2A%2A%2035%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_foreground%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[35]</a> display_foreground</strong><br>
 <em>mode = foreground (colored text)</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/display_foreground.png" width="400"><br>
 <details><summary>Config</summary>
@@ -603,7 +622,7 @@ display = { mode = "foreground" }
 </details>
 </td>
 <td align="center">
-<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B35%5D%20display_virtualtext_eol&body=%2A%2AScreenshot%20index%3A%2A%2A%2035%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_virtualtext_eol%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[35]</a> display_virtualtext_eol</strong><br>
+<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B36%5D%20display_virtualtext_eol&body=%2A%2AScreenshot%20index%3A%2A%2A%2036%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_virtualtext_eol%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[36]</a> display_virtualtext_eol</strong><br>
 <em>virtualtext at end of line</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/display_virtualtext_eol.png" width="400"><br>
 <details><summary>Config</summary>
@@ -618,7 +637,7 @@ display = { mode = "virtualtext", virtualtext = { position = "eol" } }
 </tr>
 <tr>
 <td align="center">
-<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B36%5D%20display_virtualtext_inline&body=%2A%2AScreenshot%20index%3A%2A%2A%2036%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_virtualtext_inline%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[36]</a> display_virtualtext_inline</strong><br>
+<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B37%5D%20display_virtualtext_inline&body=%2A%2AScreenshot%20index%3A%2A%2A%2037%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_virtualtext_inline%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[37]</a> display_virtualtext_inline</strong><br>
 <em>virtualtext inline after color</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/display_virtualtext_inline.png" width="400"><br>
 <details><summary>Config</summary>
@@ -634,7 +653,7 @@ display = {
 </details>
 </td>
 <td align="center">
-<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B37%5D%20display_virtualtext_before&body=%2A%2AScreenshot%20index%3A%2A%2A%2037%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_virtualtext_before%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[37]</a> display_virtualtext_before</strong><br>
+<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B38%5D%20display_virtualtext_before&body=%2A%2AScreenshot%20index%3A%2A%2A%2038%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_virtualtext_before%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[38]</a> display_virtualtext_before</strong><br>
 <em>virtualtext before color</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/display_virtualtext_before.png" width="400"><br>
 <details><summary>Config</summary>
@@ -650,7 +669,7 @@ display = {
 </details>
 </td>
 <td align="center">
-<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B38%5D%20display_virtualtext_hl_bg&body=%2A%2AScreenshot%20index%3A%2A%2A%2038%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_virtualtext_hl_bg%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[38]</a> display_virtualtext_hl_bg</strong><br>
+<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B39%5D%20display_virtualtext_hl_bg&body=%2A%2AScreenshot%20index%3A%2A%2A%2039%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_virtualtext_hl_bg%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[39]</a> display_virtualtext_hl_bg</strong><br>
 <em>virtualtext eol with hl_mode = background</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/display_virtualtext_hl_bg.png" width="400"><br>
 <details><summary>Config</summary>
@@ -668,7 +687,7 @@ display = {
 </tr>
 <tr>
 <td align="center">
-<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B39%5D%20display_vt_before_hl_bg&body=%2A%2AScreenshot%20index%3A%2A%2A%2039%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_vt_before_hl_bg%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[39]</a> display_vt_before_hl_bg</strong><br>
+<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B40%5D%20display_vt_before_hl_bg&body=%2A%2AScreenshot%20index%3A%2A%2A%2040%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_vt_before_hl_bg%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[40]</a> display_vt_before_hl_bg</strong><br>
 <em>virtualtext before with hl_mode = background</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/display_vt_before_hl_bg.png" width="400"><br>
 <details><summary>Config</summary>
@@ -684,7 +703,7 @@ display = {
 </details>
 </td>
 <td align="center">
-<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B40%5D%20display_vt_after_hl_bg&body=%2A%2AScreenshot%20index%3A%2A%2A%2040%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_vt_after_hl_bg%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[40]</a> display_vt_after_hl_bg</strong><br>
+<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B41%5D%20display_vt_after_hl_bg&body=%2A%2AScreenshot%20index%3A%2A%2A%2041%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_vt_after_hl_bg%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[41]</a> display_vt_after_hl_bg</strong><br>
 <em>virtualtext after with hl_mode = background</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/display_vt_after_hl_bg.png" width="400"><br>
 <details><summary>Config</summary>
@@ -700,7 +719,7 @@ display = {
 </details>
 </td>
 <td align="center">
-<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B41%5D%20display_vt_char_circle&body=%2A%2AScreenshot%20index%3A%2A%2A%2041%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_vt_char_circle%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[41]</a> display_vt_char_circle</strong><br>
+<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B42%5D%20display_vt_char_circle&body=%2A%2AScreenshot%20index%3A%2A%2A%2042%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_vt_char_circle%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[42]</a> display_vt_char_circle</strong><br>
 <em>virtualtext with char = ●</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/display_vt_char_circle.png" width="400"><br>
 <details><summary>Config</summary>
@@ -718,7 +737,7 @@ display = {
 </tr>
 <tr>
 <td align="center">
-<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B42%5D%20display_vt_char_block&body=%2A%2AScreenshot%20index%3A%2A%2A%2042%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_vt_char_block%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[42]</a> display_vt_char_block</strong><br>
+<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B43%5D%20display_vt_char_block&body=%2A%2AScreenshot%20index%3A%2A%2A%2043%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_vt_char_block%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[43]</a> display_vt_char_block</strong><br>
 <em>virtualtext with char = █</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/display_vt_char_block.png" width="400"><br>
 <details><summary>Config</summary>
@@ -734,7 +753,7 @@ display = {
 </details>
 </td>
 <td align="center">
-<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B43%5D%20display_bg_contrast&body=%2A%2AScreenshot%20index%3A%2A%2A%2043%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_bg_contrast%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[43]</a> display_bg_contrast</strong><br>
+<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B44%5D%20display_bg_contrast&body=%2A%2AScreenshot%20index%3A%2A%2A%2044%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_bg_contrast%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[44]</a> display_bg_contrast</strong><br>
 <em>background mode with custom contrast colors</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/display_bg_contrast.png" width="400"><br>
 <details><summary>Config</summary>
@@ -750,7 +769,7 @@ display = {
 </details>
 </td>
 <td align="center">
-<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B44%5D%20display_priority&body=%2A%2AScreenshot%20index%3A%2A%2A%2044%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_priority%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[44]</a> display_priority</strong><br>
+<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B45%5D%20display_priority&body=%2A%2AScreenshot%20index%3A%2A%2A%2045%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_priority%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[45]</a> display_priority</strong><br>
 <em>custom priority (default=50, lsp=300)</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/display_priority.png" width="400"><br>
 <details><summary>Config</summary>
