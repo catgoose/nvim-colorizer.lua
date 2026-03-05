@@ -19,5 +19,6 @@ require("colorizer.parser.names")
 require("colorizer.parser.sass")
 require("colorizer.parser.xcolor")
 require("colorizer.parser.css_var_rgb")
+require("colorizer.parser.css_var")
 
 return registry

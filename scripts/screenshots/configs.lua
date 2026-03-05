@@ -215,6 +215,13 @@ M.configs = {
     label = "special_css_var_rgb",
     description = "CSS variable RGB (--var: r,g,b;)",
   }),
+  special_css_var = cfg("css_var.css", {
+    css = true,
+    css_var = { enable = true, parsers = { css = true } },
+  }, {
+    label = "special_css_var",
+    description = "CSS custom properties var(--name) resolution",
+  }),
   special_sass = cfg("sass.scss", { sass = { enable = true, parsers = { css = true } } }, {
     label = "special_sass",
     description = "Sass $variable color resolution",
@@ -353,7 +360,7 @@ M.categories = {
   {
     flag = "special",
     display = "Special Parsers",
-    names = { "special_xterm", "special_xcolor", "special_css_var_rgb", "special_sass", "special_sass_pattern", "special_hooks_line_filter" },
+    names = { "special_xterm", "special_xcolor", "special_css_var_rgb", "special_css_var", "special_sass", "special_sass_pattern", "special_hooks_line_filter" },
   },
   {
     flag = "display",
