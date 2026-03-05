@@ -1,0 +1,41 @@
+/* CSS Custom Properties (var()) — css_var parser */
+
+/* ── Definitions (highlighted by other parsers) ── */
+:root {
+  --primary: #E63946;
+  --secondary: #457B9D;
+  --accent: #2A9D8F;
+  --warning: #E9C46A;
+  --bg-dark: #1D3557;
+}
+
+/* ── var() references (highlighted by css_var) ── */
+.hero {
+  color: var(--primary);
+  background: var(--secondary);
+  border-color: var(--accent);
+}
+
+.alert {
+  color: var(--warning);
+  background-color: var(--bg-dark);
+}
+
+/* ── var() with fallback ── */
+.fallback {
+  color: var(--primary, #ff0000);
+}
+
+/* ── Aliased variables ── */
+:root {
+  --alias: var(--primary);
+}
+.alias-test {
+  color: var(--alias);
+}
+
+/* ── NOT highlighted (undefined) ── */
+.missing {
+  color: var(--undefined-var);
+  font-size: var(--spacing);
+}

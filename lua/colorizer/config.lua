@@ -725,13 +725,14 @@ function M.apply_presets(user_parsers)
     end
   end
 
-  -- css preset: enables names, hex (all), rgb, hsl, oklch
+  -- css preset: enables names, hex (all), rgb, hsl, oklch, css_var
   if user_parsers.css then
     preset_enable("names")
     preset_enable("hex", "default")
     preset_enable("rgb")
     preset_enable("hsl")
     preset_enable("oklch")
+    preset_enable("css_var")
   end
 
   -- css_fn preset: enables rgb, hsl, oklch

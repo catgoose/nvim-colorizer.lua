@@ -9,6 +9,7 @@ local config = require("colorizer.config")
 local const = require("colorizer.constants")
 local matcher = require("colorizer.matcher")
 local names = require("colorizer.parser.names")
+local css_var = require("colorizer.parser.css_var")
 local sass = require("colorizer.parser.sass")
 local tailwind = require("colorizer.tailwind")
 local utils = require("colorizer.utils")
@@ -219,6 +220,14 @@ function M.highlight(bufnr, ns_id, line_start, line_end, opts, buf_local_opts)
 
     local sass_matcher_opts = config.expand_sass_parsers(sass_cfg.parsers)
     sass.update_variables(bufnr, 0, -1, nil, matcher.make(sass_matcher_opts), opts, buf_local_opts)
+  end
+
+  local css_var_cfg = opts.parsers.css_var
+  if buf_local_opts.__event ~= "WinScrolled" and css_var_cfg and css_var_cfg.enable then
+    table.insert(detach.functions, css_var.cleanup)
+
+    local css_var_matcher_opts = config.expand_sass_parsers(css_var_cfg.parsers)
+    css_var.update_variables(bufnr, 0, -1, nil, matcher.make(css_var_matcher_opts))
   end
 
   -- Parse lines from matcher
