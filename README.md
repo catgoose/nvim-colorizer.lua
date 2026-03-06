@@ -6,6 +6,8 @@
   - [Why colorizer.lua?](#why-colorizerlua)
   - [Installation](#installation)
   - [Examples](#examples)
+  - [Parser options](#parser-options)
+    - [Hex `default` key](#hex-default-key)
   - [Default configuration](#default-configuration)
   - [Tailwind CSS](#tailwind-css)
     - [Neovim built-in LSP document colors (0.12+)](#neovim-built-in-lsp-document-colors-012)
@@ -395,9 +397,11 @@ require("colorizer").setup({
 ```
 
 Features:
+
 - Resolves aliased variables: `--alias: var(--base)` chains are followed
 - Handles `var(--name, fallback)` syntax (highlights using the definition)
 - Re-scans definitions on every text change
+
 ## Lua API
 
 ```lua
@@ -426,7 +430,7 @@ translated to the new structured format internally. No migration is required.
 
 - The legacy option set is **frozen** — no new options will be added to it.
   New features (e.g. `hsluv`, `xcolor`, `css_var_rgb`, `css_var`,
-  `cursor_moved`, `debounce_ms`, `hex.hash_aarrggbb`, `hex.no_hash`) are
+  `debounce_ms`, `hex.hash_aarrggbb`, `hex.no_hash`) are
   only available via the structured `options` format.
 - If both `options` and `user_default_options` are provided, `options` wins.
 
