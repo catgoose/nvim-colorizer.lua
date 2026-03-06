@@ -1,0 +1,6 @@
+/* ── hooks.transform_color ────────────────────── */
+
+/* All colors are transformed to grayscale */
+.gray { color: #FF0000; background: #00FF00; }
+.gray { color: rgb(100, 200, 50); border: hsl(240, 100%, 50%); }
+.gray { color: DeepSkyBlue; background: Coral; }

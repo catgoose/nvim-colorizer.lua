@@ -1,0 +1,10 @@
+/* ── hooks.should_highlight_color ─────────────── */
+
+/* Black and white are filtered out */
+.skip { color: #000000; background: #FFFFFF; }
+.skip { color: rgb(0, 0, 0); background: rgb(255, 255, 255); }
+
+/* Other colors are highlighted normally */
+.yes { color: #FF0000; background: #00FF00; }
+.yes { color: rgb(100, 200, 50); border: hsl(240, 100%, 50%); }
+.yes { color: DeepSkyBlue; background: Coral; }

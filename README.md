@@ -199,6 +199,10 @@ require("colorizer").setup({
     },
     hooks = {
       should_highlight_line = false, -- function(line, bufnr, line_num) -> bool
+      should_highlight_color = false, -- function(rgb_hex, parser_name, ctx) -> bool
+      transform_color = false, -- function(rgb_hex, ctx) -> string
+      on_attach = false, -- function(bufnr, opts)
+      on_detach = false, -- function(bufnr)
     },
     always_update = false, -- update highlights even in unfocused buffers
     debounce_ms = 0, -- debounce highlight updates (ms); 0 = no debounce
@@ -369,6 +373,45 @@ require("colorizer").setup({
     },
   },
 })
+```
+
+`should_highlight_color` is called after a color is parsed. Return `false` to skip that color:
+
+```lua
+hooks = {
+  should_highlight_color = function(rgb_hex, parser_name, ctx)
+    -- Skip black and white
+    return rgb_hex:lower() ~= "000000" and rgb_hex:lower() ~= "ffffff"
+  end,
+}
+```
+
+`transform_color` remaps the color before display:
+
+```lua
+hooks = {
+  transform_color = function(rgb_hex, ctx)
+    -- Desaturate: convert everything to grayscale
+    local r = tonumber(rgb_hex:sub(1, 2), 16)
+    local g = tonumber(rgb_hex:sub(3, 4), 16)
+    local b = tonumber(rgb_hex:sub(5, 6), 16)
+    local gray = math.floor(0.299 * r + 0.587 * g + 0.114 * b)
+    return string.format("%02x%02x%02x", gray, gray, gray)
+  end,
+}
+```
+
+`on_attach` and `on_detach` are called when colorizer attaches to or detaches from a buffer:
+
+```lua
+hooks = {
+  on_attach = function(bufnr, opts)
+    vim.notify("Colorizer attached to buffer " .. bufnr)
+  end,
+  on_detach = function(bufnr)
+    vim.notify("Colorizer detached from buffer " .. bufnr)
+  end,
+}
 ```
 
 ## CSS custom properties

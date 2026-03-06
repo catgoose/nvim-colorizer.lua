@@ -2364,6 +2364,48 @@ T["validate_new_options"]["non-function hook resets to false"] = function()
   eq(false, opts.hooks.should_highlight_line)
 end
 
+T["validate_new_options"]["non-function should_highlight_color resets to false"] = function()
+  local opts = vim.deepcopy(config.default_options)
+  opts.hooks.should_highlight_color = "bad"
+  config.validate_new_options(opts)
+  eq(false, opts.hooks.should_highlight_color)
+end
+
+T["validate_new_options"]["non-function transform_color resets to false"] = function()
+  local opts = vim.deepcopy(config.default_options)
+  opts.hooks.transform_color = 42
+  config.validate_new_options(opts)
+  eq(false, opts.hooks.transform_color)
+end
+
+T["validate_new_options"]["non-function on_attach resets to false"] = function()
+  local opts = vim.deepcopy(config.default_options)
+  opts.hooks.on_attach = "bad"
+  config.validate_new_options(opts)
+  eq(false, opts.hooks.on_attach)
+end
+
+T["validate_new_options"]["non-function on_detach resets to false"] = function()
+  local opts = vim.deepcopy(config.default_options)
+  opts.hooks.on_detach = true
+  config.validate_new_options(opts)
+  eq(false, opts.hooks.on_detach)
+end
+
+T["validate_new_options"]["valid hook functions are preserved"] = function()
+  local opts = vim.deepcopy(config.default_options)
+  local fn = function() end
+  opts.hooks.should_highlight_color = fn
+  opts.hooks.transform_color = fn
+  opts.hooks.on_attach = fn
+  opts.hooks.on_detach = fn
+  config.validate_new_options(opts)
+  eq(fn, opts.hooks.should_highlight_color)
+  eq(fn, opts.hooks.transform_color)
+  eq(fn, opts.hooks.on_attach)
+  eq(fn, opts.hooks.on_detach)
+end
+
 -- translate_options additional cases -----------------------------------------
 
 T["translate_options"]["translates tailwind both"] = function()

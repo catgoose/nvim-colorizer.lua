@@ -413,6 +413,11 @@ function M.attach_to_buffer(bufnr, opts, bo_type)
   -- Setup custom parser state
   setup_custom_parsers(bufnr, opts)
 
+  -- Call on_attach hook
+  if opts.hooks and opts.hooks.on_attach then
+    opts.hooks.on_attach(bufnr, opts)
+  end
+
   local detach = M.rehighlight(bufnr, opts)
 
   colorizer_state.buffer_local[bufnr].__detach = colorizer_state.buffer_local[bufnr].__detach
@@ -539,8 +544,13 @@ function M.detach_from_buffer(bufnr)
     return -1
   end
 
-  -- Teardown custom parsers
+  -- Call on_detach hook
   local opts = colorizer_state.buffer_options[bufnr]
+  if opts and opts.hooks and opts.hooks.on_detach then
+    opts.hooks.on_detach(bufnr)
+  end
+
+  -- Teardown custom parsers
   if opts then
     teardown_custom_parsers(bufnr, opts)
   end

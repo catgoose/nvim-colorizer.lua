@@ -255,6 +255,10 @@ local default_options = {
 
   hooks = {
     should_highlight_line = false,
+    should_highlight_color = false,
+    transform_color = false,
+    on_attach = false,
+    on_detach = false,
   },
 
   always_update = false,
@@ -324,6 +328,10 @@ M.default_options = default_options
 
 ---@class colorizer.Hooks
 ---@field should_highlight_line function|false Return true to highlight the line, false to skip. Signature: (line, bufnr, line_num) -> boolean
+---@field should_highlight_color function|false Return true to highlight the color, false to skip. Signature: (rgb_hex, parser_name, { line, col, bufnr, line_nr }) -> boolean
+---@field transform_color function|false Transform the rgb_hex before display. Signature: (rgb_hex, { line, col, bufnr, line_nr }) -> string
+---@field on_attach function|false Called after colorizer attaches to a buffer. Signature: (bufnr, opts)
+---@field on_detach function|false Called before colorizer detaches from a buffer. Signature: (bufnr)
 
 ---@class colorizer.CustomParserDef
 ---@field name string unique identifier
@@ -840,6 +848,18 @@ function M.validate_new_options(opts)
   if opts.hooks then
     if type(opts.hooks.should_highlight_line) ~= "function" then
       opts.hooks.should_highlight_line = false
+    end
+    if type(opts.hooks.should_highlight_color) ~= "function" then
+      opts.hooks.should_highlight_color = false
+    end
+    if type(opts.hooks.transform_color) ~= "function" then
+      opts.hooks.transform_color = false
+    end
+    if type(opts.hooks.on_attach) ~= "function" then
+      opts.hooks.on_attach = false
+    end
+    if type(opts.hooks.on_detach) ~= "function" then
+      opts.hooks.on_detach = false
     end
   end
 
