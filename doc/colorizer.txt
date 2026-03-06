@@ -185,7 +185,7 @@ NEW FORMAT EXAMPLE ~
   require("colorizer").setup({
     options = {
       parsers = {
-        css = true,  -- preset: enables names, hex, rgb, hsl, oklch
+        css = true,  -- preset: enables names, hex, rgb, hsl, oklch, css_var
         tailwind = { enable = true },
       },
       display = {
@@ -211,7 +211,7 @@ LEGACY FORMAT EXAMPLE ~
 
 PRESETS ~
 
-  `parsers.css = true` enables: names, hex (all), rgb, hsl, oklch
+  `parsers.css = true` enables: names, hex (all), rgb, hsl, oklch, css_var
   `parsers.css_fn = true` enables: rgb, hsl, oklch
 
   Individual settings always override presets:
@@ -259,7 +259,7 @@ colorizer.NewOptions                                      *colorizer.NewOptions*
 colorizer.ParsersOptions                              *colorizer.ParsersOptions*
 
     Fields: ~
-        {css}       (boolean)                      Preset: enables names, hex (all), rgb, hsl, oklch. Individual settings override.
+        {css}       (boolean)                      Preset: enables names, hex (all), rgb, hsl, oklch, css_var. Individual settings override.
         {css_fn}    (boolean)                      Preset: enables rgb, hsl, oklch. Individual settings override.
         {names}     (colorizer.ParsersNames)       Named color options
         {hex}       (colorizer.ParsersHex)         Hex color options
@@ -367,7 +367,7 @@ colorizer.UserDefaultOptions                      *colorizer.UserDefaultOptions*
 
      Alias Options: `css` and `css_fn` enable multiple options at once.
        - `css_fn = true` enables `hsl_fn`, `rgb_fn`, and `oklch_fn`.
-       - `css = true` enables `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn`, and `oklch_fn`.
+       - `css = true` enables `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn`, `oklch_fn`, and `css_var`.
 
      Option Priority: Individual options have higher priority than aliases.
      If both `css` and `css_fn` are true, `css_fn` has more priority over `css`.
@@ -1182,6 +1182,45 @@ M.update_variables({bufnr}, {line_start}, {line_end}, {lines}, {color_parser}, {
         {color_parser}    (function|boolean)
         {opts}            (table)             Options (new format or legacy)
         {buf_local_opts}  (table|nil)         Buffer local options
+
+
+==============================================================================
+CSS Custom Properties Parser                          *colorizer.parser.css_var*
+
+Parses CSS custom property definitions (--name: <color>) and resolves
+var(--name) references. Stateful: scans the buffer for definitions before
+parsing, similar to the Sass variable parser.
+
+M.cleanup({bufnr})                            *colorizer.parser.css_var.cleanup*
+     Cleanup per-buffer state
+
+    Parameters: ~
+        {bufnr}  (number)
+
+
+M.parser({line}, {i}, {bufnr})                 *colorizer.parser.css_var.parser*
+     Parse a var(--name) reference and look up its color
+
+    Parameters: ~
+        {line}   (string)
+        {i}      (number)  1-indexed column
+        {bufnr}  (number)
+
+    Returns: ~
+        (number|nil)  consumed
+        (string|nil)  rgb_hex
+
+
+                                     *colorizer.parser.css_var.update_variables*
+M.update_variables({bufnr}, {line_start}, {line_end}, {lines}, {color_parser})
+     Scan buffer lines for CSS custom property definitions
+
+    Parameters: ~
+        {bufnr}         (number)
+        {line_start}    (number)     0-indexed
+        {line_end}      (number)     -1 for end of buffer
+        {lines}         (table|nil)
+        {color_parser}  (function)   Parser function to extract colors from values
 
 
 ==============================================================================
