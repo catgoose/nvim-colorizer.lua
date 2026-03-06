@@ -20,7 +20,7 @@ T["registration"] = new_set()
 T["registration"]["all built-in parsers are registered"] = function()
   local expected = {
     "rgba_hex", "argb_hex", "hex_no_hash", "xterm", "rgb", "hsl", "hsluv",
-    "oklch", "hwb", "lab", "lch", "names", "sass", "xcolor", "css_var_rgb", "css_var",
+    "oklch", "hwb", "lab", "lch", "css_color", "names", "sass", "xcolor", "css_var_rgb", "css_var",
   }
   for _, name in ipairs(expected) do
     local spec = registry.get(name)
@@ -39,7 +39,7 @@ T["ordering"] = new_set()
 
 T["ordering"]["all() returns specs sorted by priority ascending"] = function()
   local all = registry.all()
-  eq(true, #all >= 16, "expected at least 16 registered parsers")
+  eq(true, #all >= 17, "expected at least 17 registered parsers")
   for i = 2, #all do
     eq(true, all[i].priority >= all[i - 1].priority,
       string.format("expected priority %d >= %d for %s after %s",

@@ -155,6 +155,183 @@ function M.oklch_to_rgb(L, C, H)
   return r, g, b
 end
 
+--- Converts linear sRGB to gamma-corrected sRGB.
+-- Shared by multiple color space converters.
+---@param c number Linear sRGB channel value
+---@return number Gamma-corrected sRGB value in [0, 1]
+function M.linear_to_srgb(c)
+  if c <= 0.0031308 then
+    return 12.92 * c
+  else
+    return 1.055 * (c ^ (1 / 2.4)) - 0.055
+  end
+end
+
+--- Converts sRGB gamma to linear sRGB.
+---@param c number Gamma-corrected sRGB channel value in [0, 1]
+---@return number Linear sRGB value
+function M.srgb_to_linear(c)
+  if c <= 0.04045 then
+    return c / 12.92
+  else
+    return ((c + 0.055) / 1.055) ^ 2.4
+  end
+end
+
+--- Converts a CSS color() function value to sRGB.
+-- Supports: srgb, srgb-linear, display-p3, a98-rgb, prophoto-rgb, rec2020.
+--
+-- References:
+--   - W3C CSS Color Module Level 4: https://www.w3.org/TR/css-color-4/#color-function
+--   - Color space matrices: https://www.w3.org/TR/css-color-4/#color-conversion
+--
+---@param space string Color space name (e.g. "srgb", "display-p3")
+---@param r number Red/first channel, in [0, 1]
+---@param g number Green/second channel, in [0, 1]
+---@param b number Blue/third channel, in [0, 1]
+---@return number|nil,number|nil,number|nil Returns red, green, blue in [0, 255], or nil
+function M.css_color_to_rgb(space, r, g, b)
+  local min, max = math.min, math.max
+
+  if space == "srgb" then
+    -- Already in sRGB gamut, just scale to 0-255
+    r = max(0, min(1, r)) * 255
+    g = max(0, min(1, g)) * 255
+    b = max(0, min(1, b)) * 255
+    return r, g, b
+  end
+
+  if space == "srgb-linear" then
+    -- Linear sRGB, apply gamma correction
+    r = max(0, min(1, M.linear_to_srgb(r))) * 255
+    g = max(0, min(1, M.linear_to_srgb(g))) * 255
+    b = max(0, min(1, M.linear_to_srgb(b))) * 255
+    return r, g, b
+  end
+
+  if space == "display-p3" then
+    -- Display P3: linearize P3 gamma -> XYZ D65 -> linear sRGB -> sRGB gamma
+    -- P3 uses the same transfer function as sRGB
+    local rl = M.srgb_to_linear(max(0, min(1, r)))
+    local gl = M.srgb_to_linear(max(0, min(1, g)))
+    local bl = M.srgb_to_linear(max(0, min(1, b)))
+
+    -- P3 to XYZ (D65)
+    local x = 0.4865709486 * rl + 0.2656676932 * gl + 0.1982172852 * bl
+    local y = 0.2289745641 * rl + 0.6917385218 * gl + 0.0792869141 * bl
+    local z = 0.0000000000 * rl + 0.0451133819 * gl + 1.0439443689 * bl
+
+    -- XYZ to linear sRGB
+    local sr = 3.2404541621 * x - 1.5371385940 * y - 0.4985314096 * z
+    local sg = -0.9692660305 * x + 1.8760108454 * y + 0.0415560175 * z
+    local sb = 0.0556434310 * x - 0.2040259135 * y + 1.0572251882 * z
+
+    r = max(0, min(1, M.linear_to_srgb(sr))) * 255
+    g = max(0, min(1, M.linear_to_srgb(sg))) * 255
+    b = max(0, min(1, M.linear_to_srgb(sb))) * 255
+    return r, g, b
+  end
+
+  if space == "a98-rgb" then
+    -- Adobe RGB 1998: linearize -> XYZ D65 -> linear sRGB -> sRGB gamma
+    -- A98 uses gamma = 563/256 ≈ 2.19921875
+    local gamma = 563 / 256
+    local rl = max(0, min(1, r)) ^ gamma
+    local gl = max(0, min(1, g)) ^ gamma
+    local bl = max(0, min(1, b)) ^ gamma
+
+    -- A98-RGB to XYZ (D65)
+    local x = 0.5766690429 * rl + 0.1855582379 * gl + 0.1882286462 * bl
+    local y = 0.2973449753 * rl + 0.6273635663 * gl + 0.0752914585 * bl
+    local z = 0.0270313614 * rl + 0.0706888525 * gl + 0.9913375368 * bl
+
+    -- XYZ to linear sRGB
+    local sr = 3.2404541621 * x - 1.5371385940 * y - 0.4985314096 * z
+    local sg = -0.9692660305 * x + 1.8760108454 * y + 0.0415560175 * z
+    local sb = 0.0556434310 * x - 0.2040259135 * y + 1.0572251882 * z
+
+    r = max(0, min(1, M.linear_to_srgb(sr))) * 255
+    g = max(0, min(1, M.linear_to_srgb(sg))) * 255
+    b = max(0, min(1, M.linear_to_srgb(sb))) * 255
+    return r, g, b
+  end
+
+  if space == "prophoto-rgb" then
+    -- ProPhoto RGB: linearize -> XYZ D50 -> XYZ D65 -> linear sRGB -> sRGB gamma
+    -- ProPhoto uses gamma = 1.8
+    local function prophoto_to_linear(c)
+      local abs_c = math.abs(c)
+      if abs_c <= 16 / 512 then
+        return c / 16
+      else
+        local sign = c < 0 and -1 or 1
+        return sign * (abs_c ^ 1.8)
+      end
+    end
+
+    local rl = prophoto_to_linear(max(0, min(1, r)))
+    local gl = prophoto_to_linear(max(0, min(1, g)))
+    local bl = prophoto_to_linear(max(0, min(1, b)))
+
+    -- ProPhoto to XYZ (D50)
+    local x50 = 0.7977604896 * rl + 0.1351917082 * gl + 0.0313493495 * bl
+    local y50 = 0.2880711282 * rl + 0.7118432178 * gl + 0.0000856540 * bl
+    local z50 = 0.0000000000 * rl + 0.0000000000 * gl + 0.8251046026 * bl
+
+    -- D50 to D65 (Bradford)
+    local x = 0.9555766 * x50 + -0.0230393 * y50 + 0.0631636 * z50
+    local y = -0.0282895 * x50 + 1.0099416 * y50 + 0.0210077 * z50
+    local z = 0.0122982 * x50 + -0.0204830 * y50 + 1.3299098 * z50
+
+    -- XYZ to linear sRGB
+    local sr = 3.2404541621 * x - 1.5371385940 * y - 0.4985314096 * z
+    local sg = -0.9692660305 * x + 1.8760108454 * y + 0.0415560175 * z
+    local sb = 0.0556434310 * x - 0.2040259135 * y + 1.0572251882 * z
+
+    r = max(0, min(1, M.linear_to_srgb(sr))) * 255
+    g = max(0, min(1, M.linear_to_srgb(sg))) * 255
+    b = max(0, min(1, M.linear_to_srgb(sb))) * 255
+    return r, g, b
+  end
+
+  if space == "rec2020" then
+    -- Rec. 2020: linearize -> XYZ D65 -> linear sRGB -> sRGB gamma
+    local alpha_r = 1.09929682680944
+    local beta_r = 0.018053968510807
+    local function rec2020_to_linear(c)
+      local abs_c = math.abs(c)
+      if abs_c < beta_r * 4.5 then
+        return c / 4.5
+      else
+        local sign = c < 0 and -1 or 1
+        return sign * (((abs_c + alpha_r - 1) / alpha_r) ^ (1 / 0.45))
+      end
+    end
+
+    local rl = rec2020_to_linear(max(0, min(1, r)))
+    local gl = rec2020_to_linear(max(0, min(1, g)))
+    local bl = rec2020_to_linear(max(0, min(1, b)))
+
+    -- Rec2020 to XYZ (D65)
+    local x = 0.6369580483 * rl + 0.1446169036 * gl + 0.1688809752 * bl
+    local y = 0.2627002120 * rl + 0.6779980715 * gl + 0.0593017165 * bl
+    local z = 0.0000000000 * rl + 0.0280726930 * gl + 1.0609850577 * bl
+
+    -- XYZ to linear sRGB
+    local sr = 3.2404541621 * x - 1.5371385940 * y - 0.4985314096 * z
+    local sg = -0.9692660305 * x + 1.8760108454 * y + 0.0415560175 * z
+    local sb = 0.0556434310 * x - 0.2040259135 * y + 1.0572251882 * z
+
+    r = max(0, min(1, M.linear_to_srgb(sr))) * 255
+    g = max(0, min(1, M.linear_to_srgb(sg))) * 255
+    b = max(0, min(1, M.linear_to_srgb(sb))) * 255
+    return r, g, b
+  end
+
+  -- Unknown color space
+  return nil
+end
+
 --- Converts an HWB color value to RGB.
 -- HWB (Hue, Whiteness, Blackness) is a CSS Color Level 4 color model.
 -- When whiteness + blackness >= 1, the result is a shade of gray.

@@ -33,6 +33,11 @@ $lch-red: lch(50 100 0);
 $lch-green: lch(50 100 140);
 $lch-alpha: lch(50 100 0 / 0.5);
 
+// color()
+$color-srgb: color(srgb 1 0 0);
+$color-p3: color(display-p3 0 1 0);
+$color-alpha: color(srgb 0 0 1 / 0.5);
+
 // hsluv()
 $hsluv-red: hsluv(0, 100, 50);
 $hsluv-white: hsluv(0, 0, 100);
