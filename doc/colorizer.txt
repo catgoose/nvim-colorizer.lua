@@ -427,7 +427,11 @@ colorizer.SassOpts                                          *colorizer.SassOpts*
 colorizer.Hooks                                                *colorizer.Hooks*
 
     Fields: ~
-        {should_highlight_line}  (function|false)  Return true to highlight the line, false to skip. Signature: (line, bufnr, line_num) -> boolean
+        {should_highlight_line}   (function|false)  Return true to highlight the line, false to skip. Signature: (line, bufnr, line_num) -> boolean
+        {should_highlight_color}  (function|false)  Return true to highlight the color, false to skip. Signature: (rgb_hex, parser_name, { line, col, bufnr, line_nr }) -> boolean
+        {transform_color}         (function|false)  Transform the rgb_hex before display. Signature: (rgb_hex, { line, col, bufnr, line_nr }) -> string
+        {on_attach}               (function|false)  Called after colorizer attaches to a buffer. Signature: (bufnr, opts)
+        {on_detach}               (function|false)  Called before colorizer detaches from a buffer. Signature: (bufnr)
 
 
 colorizer.CustomParserDef                            *colorizer.CustomParserDef*
