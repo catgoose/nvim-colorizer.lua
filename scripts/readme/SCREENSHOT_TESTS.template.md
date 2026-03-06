@@ -21,7 +21,7 @@ pre-filled issue.
 
 ## Default
 
-`css = true` preset — enables names, hex, rgb, hsl, oklch all at once.
+`css = true` preset — enables names, hex, rgb, hsl, oklch, css_var all at once.
 
 <!-- gen:default_gallery:start -->
 <!-- gen:default_gallery:end -->

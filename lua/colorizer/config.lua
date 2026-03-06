@@ -17,7 +17,7 @@
 ---  require("colorizer").setup({
 ---    options = {
 ---      parsers = {
----        css = true,  -- preset: enables names, hex, rgb, hsl, oklch
+---        css = true,  -- preset: enables names, hex, rgb, hsl, oklch, css_var
 ---        tailwind = { enable = true },
 ---      },
 ---      display = {
@@ -43,7 +43,7 @@
 ---
 ---PRESETS ~
 ---
----  `parsers.css = true` enables: names, hex (all), rgb, hsl, oklch
+---  `parsers.css = true` enables: names, hex (all), rgb, hsl, oklch, css_var
 ---  `parsers.css_fn = true` enables: rgb, hsl, oklch
 ---
 ---  Individual settings always override presets:
@@ -126,7 +126,7 @@ local plugin_user_default_options = {
 ---@field debounce_ms number Debounce highlight updates by this many ms (0 = no debounce)
 
 ---@class colorizer.ParsersOptions
----@field css boolean Preset: enables names, hex (all), rgb, hsl, oklch. Individual settings override.
+---@field css boolean Preset: enables names, hex (all), rgb, hsl, oklch, css_var. Individual settings override.
 ---@field css_fn boolean Preset: enables rgb, hsl, oklch. Individual settings override.
 ---@field names colorizer.ParsersNames Named color options
 ---@field hex colorizer.ParsersHex Hex color options
@@ -276,7 +276,7 @@ M.default_options = default_options
 ---
 --- Alias Options: `css` and `css_fn` enable multiple options at once.
 ---   - `css_fn = true` enables `hsl_fn`, `rgb_fn`, and `oklch_fn`.
----   - `css = true` enables `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn`, and `oklch_fn`.
+---   - `css = true` enables `names`, `RGB`, `RRGGBB`, `RRGGBBAA`, `hsl_fn`, `rgb_fn`, `oklch_fn`, and `css_var`.
 ---
 --- Option Priority: Individual options have higher priority than aliases.
 --- If both `css` and `css_fn` are true, `css_fn` has more priority over `css`.

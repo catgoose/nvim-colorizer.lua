@@ -35,13 +35,13 @@ M.configs = {
   -- ── Default showcase ─────────────────────────────────────────────
   default = cfg("default.css", { css = true }, {
     label = "default",
-    description = "css = true (names + hex + rgb + hsl + oklch)",
+    description = "css = true (names + hex + rgb + hsl + oklch + css_var)",
   }),
 
   -- ── Presets ─────────────────────────────────────────────────────
   preset_css = cfg("preset_css.css", { css = true }, {
     label = "preset_css",
-    description = "css = true preset (names + hex + rgb + hsl + oklch)",
+    description = "css = true preset (names + hex + rgb + hsl + oklch + css_var)",
     split = true,
   }),
   preset_css_fn = cfg("preset_css_fn.scss", { css_fn = true }, {
