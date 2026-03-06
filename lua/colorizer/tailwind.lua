@@ -32,7 +32,11 @@ local function highlight(bufnr, opts, add_highlight)
   end
   lsp_cache[bufnr].document_params = lsp_cache[bufnr].document_params
     or { textDocument = vim.lsp.util.make_text_document_params(bufnr) }
-  lsp_cache[bufnr].client:request(
+  local client = lsp_cache[bufnr].client
+  if not client.server_capabilities or not client.server_capabilities.colorProvider then
+    return
+  end
+  client:request(
     "textDocument/documentColor",
     lsp_cache[bufnr].document_params,
     function(err, results, _, _)
