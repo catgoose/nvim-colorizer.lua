@@ -12,6 +12,7 @@
   - [Highlight priority](#highlight-priority)
   - [Custom parsers](#custom-parsers)
   - [Hooks](#hooks)
+  - [CSS custom properties](#css-custom-properties)
   - [Lua API](#lua-api)
   - [User commands](#user-commands)
   - [Legacy options](#legacy-options)
@@ -34,7 +35,7 @@ next to the test to report an issue.
 
 - **Fast:** Handwritten trie-based parser with byte-level dispatch. Only visible lines are processed.
 - **Zero dependencies:** As long as you have `malloc()` and `free()`, it works (Linux, macOS, Windows).
-- **Broad format support:** Hex (`#RGB`, `#RRGGBB`, `#RRGGBBAA`, `#AARRGGBB` QML, `0xAARRGGBB`), CSS functions (`rgb()`, `hsl()`, `oklch()`), named colors, xterm/ANSI 256, Tailwind CSS, Sass variables, and custom parsers — in any filetype.
+- **Broad format support:** Hex (`#RGB`, `#RRGGBB`, `#RRGGBBAA`, `#AARRGGBB` QML, `0xAARRGGBB`), CSS functions (`rgb()`, `hsl()`, `oklch()`), CSS custom properties (`var(--name)`), named colors, xterm/ANSI 256, Tailwind CSS, Sass variables, and custom parsers — in any filetype.
 - **Display modes:** Background (with auto-contrast text), foreground, and virtualtext (inline or end-of-line).
 - **Higher priority than treesitter:** Uses `vim.hl.priorities` (diagnostics/user) so colorizer highlights always win over treesitter syntax colors.
 
@@ -128,7 +129,7 @@ require("colorizer").setup({
   lazy_load = false, -- lazily schedule buffer highlighting
   options = {
     parsers = {
-      css = false, -- preset: enables names, hex, rgb, hsl, oklch
+      css = false, -- preset: enables names, hex, rgb, hsl, oklch, css_var
       css_fn = false, -- preset: enables rgb, hsl, oklch
       names = {
         enable = false, -- enable named colors (e.g. "Blue")
@@ -168,6 +169,10 @@ require("colorizer").setup({
       xcolor = { enable = false }, -- LaTeX xcolor expressions (e.g. red!30)
       hsluv = { enable = false }, -- hsluv()/hsluvu() functions
       css_var_rgb = { enable = false }, -- CSS vars with R,G,B (e.g. --color: 240,198,198)
+      css_var = {
+        enable = false, -- resolve var(--name) references to their defined color
+        parsers = { css = true }, -- parsers for resolving variable values
+      },
       custom = {}, -- list of custom parser definitions
     },
     display = {
@@ -360,6 +365,39 @@ require("colorizer").setup({
 })
 ```
 
+## CSS custom properties
+
+The `css_var` parser resolves `var(--name)` references by scanning the buffer
+for `--name: <color>` definitions. Any color format recognized by the configured
+parsers (hex, rgb, hsl, etc.) works in definitions.
+
+```lua
+require("colorizer").setup({
+  options = {
+    parsers = {
+      css = true, -- also enables css_var via the css preset
+    },
+  },
+})
+```
+
+Or enable it explicitly without the full css preset:
+
+```lua
+require("colorizer").setup({
+  options = {
+    parsers = {
+      hex = { default = true },
+      css_var = { enable = true, parsers = { css = true } },
+    },
+  },
+})
+```
+
+Features:
+- Resolves aliased variables: `--alias: var(--base)` chains are followed
+- Handles `var(--name, fallback)` syntax (highlights using the definition)
+- Re-scans definitions on every text change
 ## Lua API
 
 ```lua
@@ -387,9 +425,9 @@ translated to the new structured format internally. No migration is required.
 **Important:**
 
 - The legacy option set is **frozen** — no new options will be added to it.
-  New features (e.g. `hsluv`, `xcolor`, `css_var_rgb`, `debounce_ms`,
-  `hex.hash_aarrggbb`, `hex.no_hash`) are only available via the structured
-  `options` format.
+  New features (e.g. `hsluv`, `xcolor`, `css_var_rgb`, `css_var`,
+  `cursor_moved`, `debounce_ms`, `hex.hash_aarrggbb`, `hex.no_hash`) are
+  only available via the structured `options` format.
 - If both `options` and `user_default_options` are provided, `options` wins.
 
 ```lua
