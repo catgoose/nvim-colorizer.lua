@@ -155,4 +155,121 @@ function M.oklch_to_rgb(L, C, H)
   return r, g, b
 end
 
+--- Converts an HWB color value to RGB.
+-- HWB (Hue, Whiteness, Blackness) is a CSS Color Level 4 color model.
+-- When whiteness + blackness >= 1, the result is a shade of gray.
+--
+-- References:
+--   - W3C CSS Color Module Level 4: https://www.w3.org/TR/css-color-4/#the-hwb-notation
+--
+---@param h number Hue, in degrees [0, 360].
+---@param w number Whiteness, in the range [0, 1].
+---@param b number Blackness, in the range [0, 1].
+---@return number|nil,number|nil,number|nil Returns red, green, and blue values
+--         scaled to [0, 255], or nil if any input value is out of range.
+function M.hwb_to_rgb(h, w, b)
+  if w < 0 or b < 0 then
+    return
+  end
+
+  -- When whiteness + blackness >= 1, normalize and return gray
+  local sum = w + b
+  if sum >= 1 then
+    local gray = math.floor((w / sum) * 255)
+    return gray, gray, gray
+  end
+
+  -- Get the base RGB from the hue (equivalent to hsl with S=100%, L=50%)
+  local r, g, bl = M.hsl_to_rgb(h / 360, 1, 0.5)
+  if not r or not g or not bl then
+    return
+  end
+
+  -- Apply whiteness and blackness
+  local scale = 1 - w - b
+  r = r / 255 * scale + w
+  g = g / 255 * scale + w
+  bl = bl / 255 * scale + w
+
+  return r * 255, g * 255, bl * 255
+end
+
+--- Converts a CIE Lab color value to RGB.
+-- CIE Lab is a perceptually uniform color space.
+--
+-- References:
+--   - W3C CSS Color Module Level 4: https://www.w3.org/TR/css-color-4/#lab-colors
+--   - Conversion: Lab -> D50 XYZ -> D65 XYZ -> linear sRGB -> sRGB
+--
+---@param L number Lightness, in the range [0, 100].
+---@param a number Green-red axis, typically [-125, 125].
+---@param b_lab number Blue-yellow axis, typically [-125, 125].
+---@return number|nil,number|nil,number|nil Returns red, green, and blue values
+--         scaled to [0, 255], or nil if conversion fails.
+function M.lab_to_rgb(L, a, b_lab)
+  local min, max = math.min, math.max
+
+  -- Lab to D50 XYZ
+  local fy = (L + 16) / 116
+  local fx = a / 500 + fy
+  local fz = fy - b_lab / 200
+
+  local delta = 6 / 29
+  local delta_sq = delta * delta
+  local delta_cb = delta_sq * delta
+
+  local x = (fx > delta) and (fx * fx * fx) or (3 * delta_sq * (fx - 4 / 29))
+  local y = (fy > delta) and (fy * fy * fy) or (3 * delta_sq * (fy - 4 / 29))
+  local z = (fz > delta) and (fz * fz * fz) or (3 * delta_sq * (fz - 4 / 29))
+
+  -- Scale by D50 white point
+  x = x * 0.3457 / 0.3585
+  -- y = y * 1.0 (D50 Yn = 1.0)
+  z = z * (1.0 - 0.3457 - 0.3585) / 0.3585
+
+  -- D50 XYZ to D65 XYZ (Bradford chromatic adaptation)
+  local xd65 = 0.9555766 * x + (-0.0230393) * y + 0.0631636 * z
+  local yd65 = (-0.0282895) * x + 1.0099416 * y + 0.0210077 * z
+  local zd65 = 0.0122982 * x + (-0.0204830) * y + 1.3299098 * z
+
+  -- D65 XYZ to linear sRGB
+  local r_lin = 3.2404541621 * xd65 - 1.5371385940 * yd65 - 0.4985314096 * zd65
+  local g_lin = -0.9692660305 * xd65 + 1.8760108454 * yd65 + 0.0415560175 * zd65
+  local b_lin = 0.0556434310 * xd65 - 0.2040259135 * yd65 + 1.0572251882 * zd65
+
+  -- Linear sRGB to sRGB gamma
+  local function linear_to_srgb(c)
+    if c <= 0.0031308 then
+      return 12.92 * c
+    else
+      return 1.055 * (c ^ (1 / 2.4)) - 0.055
+    end
+  end
+
+  local r = max(0, min(1, linear_to_srgb(r_lin))) * 255
+  local g = max(0, min(1, linear_to_srgb(g_lin))) * 255
+  local b = max(0, min(1, linear_to_srgb(b_lin))) * 255
+
+  return r, g, b
+end
+
+--- Converts a CIE LCH color value to RGB.
+-- CIE LCH is the cylindrical form of CIE Lab.
+--
+-- References:
+--   - W3C CSS Color Module Level 4: https://www.w3.org/TR/css-color-4/#lab-colors
+--
+---@param L number Lightness, in the range [0, 100].
+---@param C number Chroma, typically [0, 150].
+---@param H number Hue, in degrees [0, 360].
+---@return number|nil,number|nil,number|nil Returns red, green, and blue values
+--         scaled to [0, 255], or nil if conversion fails.
+function M.lch_to_rgb(L, C, H)
+  -- Convert cylindrical LCH to cartesian Lab
+  local h_rad = H * (math.pi / 180)
+  local a = C * math.cos(h_rad)
+  local b = C * math.sin(h_rad)
+  return M.lab_to_rgb(L, a, b)
+end
+
 return M

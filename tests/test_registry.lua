@@ -19,7 +19,8 @@ T["registration"] = new_set()
 
 T["registration"]["all built-in parsers are registered"] = function()
   local expected = {
-    "rgba_hex", "argb_hex", "xterm", "rgb", "hsl", "oklch", "names", "sass",
+    "rgba_hex", "argb_hex", "hex_no_hash", "xterm", "rgb", "hsl", "hsluv",
+    "oklch", "hwb", "lab", "lch", "names", "sass", "xcolor", "css_var_rgb", "css_var",
   }
   for _, name in ipairs(expected) do
     local spec = registry.get(name)
@@ -38,7 +39,7 @@ T["ordering"] = new_set()
 
 T["ordering"]["all() returns specs sorted by priority ascending"] = function()
   local all = registry.all()
-  eq(true, #all >= 8, "expected at least 8 registered parsers")
+  eq(true, #all >= 16, "expected at least 16 registered parsers")
   for i = 2, #all do
     eq(true, all[i].priority >= all[i - 1].priority,
       string.format("expected priority %d >= %d for %s after %s",
@@ -124,6 +125,30 @@ end
 T["spec.parse"]["oklch spec.parse works with ctx"] = function()
   local spec = registry.get("oklch")
   local ctx = { line = "oklch(0.6 0.2 30)", col = 1 }
+  local len, hex = spec.parse(ctx)
+  eq(true, len ~= nil)
+  eq(true, hex ~= nil)
+end
+
+T["spec.parse"]["hwb spec.parse works with ctx"] = function()
+  local spec = registry.get("hwb")
+  local ctx = { line = "hwb(0 0% 0%)", col = 1 }
+  local len, hex = spec.parse(ctx)
+  eq(true, len ~= nil)
+  eq("ff0000", hex)
+end
+
+T["spec.parse"]["lab spec.parse works with ctx"] = function()
+  local spec = registry.get("lab")
+  local ctx = { line = "lab(0 0 0)", col = 1 }
+  local len, hex = spec.parse(ctx)
+  eq(true, len ~= nil)
+  eq(true, hex ~= nil)
+end
+
+T["spec.parse"]["lch spec.parse works with ctx"] = function()
+  local spec = registry.get("lch")
+  local ctx = { line = "lch(0 0 0)", col = 1 }
   local len, hex = spec.parse(ctx)
   eq(true, len ~= nil)
   eq(true, hex ~= nil)

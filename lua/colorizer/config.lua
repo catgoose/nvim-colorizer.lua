@@ -133,6 +133,9 @@ local plugin_user_default_options = {
 ---@field rgb colorizer.ParsersSimple rgb()/rgba() function parser
 ---@field hsl colorizer.ParsersSimple hsl()/hsla() function parser
 ---@field oklch colorizer.ParsersSimple oklch() function parser
+---@field hwb colorizer.ParsersSimple hwb() function parser (CSS Color Level 4)
+---@field lab colorizer.ParsersSimple lab() function parser (CIE Lab)
+---@field lch colorizer.ParsersSimple lch() function parser (CIE LCH)
 ---@field tailwind colorizer.ParsersTailwind Tailwind CSS color options
 ---@field sass colorizer.ParsersSass Sass variable color options
 ---@field xterm colorizer.ParsersSimple xterm 256-color code parser

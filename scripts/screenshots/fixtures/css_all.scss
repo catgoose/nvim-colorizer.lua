@@ -18,6 +18,21 @@ $oklch-teal: oklch(0.5 0.2 180);
 $oklch-pct: oklch(75% 0.15 240);
 $oklch-alpha: oklch(0.5 0.2 180 / 0.5);
 
+// hwb()
+$hwb-red: hwb(0 0% 0%);
+$hwb-green: hwb(120 0% 0%);
+$hwb-alpha: hwb(240 0% 0% / 0.5);
+
+// lab()
+$lab-red: lab(50 80 0);
+$lab-green: lab(50 -80 0);
+$lab-alpha: lab(50 80 0 / 0.5);
+
+// lch()
+$lch-red: lch(50 100 0);
+$lch-green: lch(50 100 140);
+$lch-alpha: lch(50 100 0 / 0.5);
+
 // hsluv()
 $hsluv-red: hsluv(0, 100, 50);
 $hsluv-white: hsluv(0, 0, 100);
