@@ -123,6 +123,7 @@ local plugin_user_default_options = {
 ---@field display colorizer.DisplayOptions Display configuration
 ---@field hooks colorizer.Hooks Hook functions
 ---@field always_update boolean Update color values even if buffer is not focused
+---@field rehighlight_events string[] Additional autocmd events that trigger rehighlighting (e.g. {"CursorMoved"})
 ---@field debounce_ms number Debounce highlight updates by this many ms (0 = no debounce)
 
 ---@class colorizer.ParsersOptions
@@ -254,6 +255,7 @@ local default_options = {
   },
 
   always_update = false,
+  rehighlight_events = {},
   debounce_ms = 0,
 
   -- Stamp indicating this options table has been fully resolved (merged with
@@ -1174,6 +1176,10 @@ function M.get_setup_options(opts)
     if opts.always_update ~= nil then
       opts.options.always_update = opts.always_update
       opts.always_update = nil
+    end
+    if opts.rehighlight_events ~= nil then
+      opts.options.rehighlight_events = opts.rehighlight_events
+      opts.rehighlight_events = nil
     end
   end
 

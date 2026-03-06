@@ -513,6 +513,19 @@ function M.attach_to_buffer(bufnr, opts, bo_type)
       end
     end,
   })
+  if opts.rehighlight_events and #opts.rehighlight_events > 0 then
+    autocmds[#autocmds + 1] = vim.api.nvim_create_autocmd(opts.rehighlight_events, {
+      group = colorizer_state.augroup,
+      buffer = bufnr,
+      callback = function(args)
+        local buf_opts = colorizer_state.buffer_options[bufnr]
+        if buf_opts then
+          colorizer_state.buffer_local[bufnr].__event = args.event
+          schedule_rehighlight(bufnr, buf_opts, colorizer_state.buffer_local[bufnr])
+        end
+      end,
+    })
+  end
   vim.api.nvim_create_autocmd({ "BufUnload", "BufDelete" }, {
     group = colorizer_state.augroup,
     buffer = bufnr,

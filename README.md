@@ -13,6 +13,7 @@
   - [Custom parsers](#custom-parsers)
   - [Hooks](#hooks)
   - [CSS custom properties](#css-custom-properties)
+  - [Rehighlight events](#rehighlight-events)
   - [Lua API](#lua-api)
   - [User commands](#user-commands)
   - [Legacy options](#legacy-options)
@@ -195,6 +196,7 @@ require("colorizer").setup({
       should_highlight_line = false, -- function(line, bufnr, line_num) -> bool
     },
     always_update = false, -- update highlights even in unfocused buffers
+    rehighlight_events = {}, -- additional autocmd events to trigger rehighlighting
     debounce_ms = 0, -- debounce highlight updates (ms); 0 = no debounce
   },
 })
@@ -398,6 +400,57 @@ Features:
 - Resolves aliased variables: `--alias: var(--base)` chains are followed
 - Handles `var(--name, fallback)` syntax (highlights using the definition)
 - Re-scans definitions on every text change
+
+## Rehighlight events
+
+By default, colorizer rehighlights on `TextChanged` and `WinScrolled`.
+`rehighlight_events` lets you add any autocmd events to trigger rehighlighting —
+useful with `conceallevel` or plugins like
+[tailwind-fold.nvim](https://github.com/razak17/tailwind-fold.nvim) that
+conceal text.
+
+```lua
+require("colorizer").setup({
+  options = {
+    rehighlight_events = { "CursorMoved", "CursorMovedI" },
+    parsers = { css = true },
+    hooks = {
+      should_highlight_line = function(line, bufnr, line_nr)
+        -- Skip concealed lines unless cursor is on them
+        local win = vim.fn.bufwinid(bufnr)
+        if win == -1 then return true end
+        if vim.wo[win].conceallevel < 2 then return true end
+        local cursor_line = vim.api.nvim_win_get_cursor(win)[1] - 1
+        if line_nr == cursor_line then return true end
+        local col = line:find("%S")
+        if col and vim.fn.synconcealed(line_nr + 1, col)[1] == 1 then
+          return false
+        end
+        return true
+      end,
+    },
+  },
+})
+```
+
+Per-filetype overrides work too — only add events for filetypes that need them:
+
+```lua
+require("colorizer").setup({
+  filetypes = {
+    "*",
+    typescript = { rehighlight_events = { "CursorHold" } },
+    typescriptreact = { rehighlight_events = { "CursorHold" } },
+  },
+  options = {
+    parsers = { css = true },
+  },
+})
+```
+
+> **Note:** Adding high-frequency events like `CursorMoved` has a performance
+> cost. Only add events you actually need.
+
 ## Lua API
 
 ```lua
@@ -426,7 +479,7 @@ translated to the new structured format internally. No migration is required.
 
 - The legacy option set is **frozen** — no new options will be added to it.
   New features (e.g. `hsluv`, `xcolor`, `css_var_rgb`, `css_var`,
-  `cursor_moved`, `debounce_ms`, `hex.hash_aarrggbb`, `hex.no_hash`) are
+  `rehighlight_events`, `debounce_ms`, `hex.hash_aarrggbb`, `hex.no_hash`) are
   only available via the structured `options` format.
 - If both `options` and `user_default_options` are provided, `options` wins.
 
