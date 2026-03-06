@@ -266,6 +266,9 @@ colorizer.ParsersOptions                              *colorizer.ParsersOptions*
         {rgb}       (colorizer.ParsersSimple)      rgb()/rgba() function parser
         {hsl}       (colorizer.ParsersSimple)      hsl()/hsla() function parser
         {oklch}     (colorizer.ParsersSimple)      oklch() function parser
+        {hwb}       (colorizer.ParsersSimple)      hwb() function parser (CSS Color Level 4)
+        {lab}       (colorizer.ParsersSimple)      lab() function parser (CIE Lab)
+        {lch}       (colorizer.ParsersSimple)      lch() function parser (CIE LCH)
         {tailwind}  (colorizer.ParsersTailwind)    Tailwind CSS color options
         {sass}      (colorizer.ParsersSass)        Sass variable color options
         {xterm}     (colorizer.ParsersSimple)      xterm 256-color code parser
@@ -677,6 +680,15 @@ M.apply_alpha({r}, {g}, {b}, {alpha})              *colorizer.color.apply_alpha*
 
 
 M.oklch_to_rgb()                                  *colorizer.color.oklch_to_rgb*
+
+
+M.hwb_to_rgb()                                      *colorizer.color.hwb_to_rgb*
+
+
+M.lab_to_rgb()                                      *colorizer.color.lab_to_rgb*
+
+
+M.lch_to_rgb()                                      *colorizer.color.lch_to_rgb*
 
 
 ==============================================================================
@@ -1108,6 +1120,69 @@ M.parser({line}, {i}, {_})                       *colorizer.parser.oklch.parser*
 
     Returns: ~
         (number|nil)  end index of the parsed `oklch` function within the line, or `nil` if no match was found.
+        (string|nil)  RGB hexadecimal color (e.g., "ff0000" for red), or `nil` if parsing failed
+
+
+==============================================================================
+HWB Parser                                                *colorizer.parser.hwb*
+
+This module provides a parser for identifying and converting `hwb()` CSS functions to RGB hexadecimal format.
+HWB (Hue, Whiteness, Blackness) is a CSS Color Level 4 color model that is more intuitive than HSL.
+It supports hue in degrees (with angle units), whiteness and blackness as percentages,
+and optional alpha transparency.
+
+M.parser({line}, {i}, {_})                         *colorizer.parser.hwb.parser*
+     Parses `hwb()` CSS functions and converts them to RGB hexadecimal format.
+
+    Parameters: ~
+        {line}  (string)  The line of text to parse
+        {i}     (number)  The starting index within the line where parsing should begin
+        {_}     (table)   Parsing options (unused)
+
+    Returns: ~
+        (number|nil)  end index of the parsed `hwb` function within the line, or `nil` if no match was found.
+        (string|nil)  RGB hexadecimal color (e.g., "ff0000" for red), or `nil` if parsing failed
+
+
+==============================================================================
+CIE Lab Parser                                            *colorizer.parser.lab*
+
+This module provides a parser for identifying and converting `lab()` CSS functions to RGB hexadecimal format.
+CIE Lab is a perceptually uniform color space defined in CSS Color Level 4.
+It supports lightness as a number or percentage, a/b axes as numbers or percentages,
+and optional alpha transparency.
+
+M.parser({line}, {i}, {_})                         *colorizer.parser.lab.parser*
+     Parses `lab()` CSS functions and converts them to RGB hexadecimal format.
+
+    Parameters: ~
+        {line}  (string)  The line of text to parse
+        {i}     (number)  The starting index within the line where parsing should begin
+        {_}     (table)   Parsing options (unused)
+
+    Returns: ~
+        (number|nil)  end index of the parsed `lab` function within the line, or `nil` if no match was found.
+        (string|nil)  RGB hexadecimal color (e.g., "ff0000" for red), or `nil` if parsing failed
+
+
+==============================================================================
+CIE LCH Parser                                            *colorizer.parser.lch*
+
+This module provides a parser for identifying and converting `lch()` CSS functions to RGB hexadecimal format.
+CIE LCH is the cylindrical form of CIE Lab, defined in CSS Color Level 4.
+It supports lightness as a number or percentage, chroma as a number or percentage,
+hue in degrees (with angle units), and optional alpha transparency.
+
+M.parser({line}, {i}, {_})                         *colorizer.parser.lch.parser*
+     Parses `lch()` CSS functions and converts them to RGB hexadecimal format.
+
+    Parameters: ~
+        {line}  (string)  The line of text to parse
+        {i}     (number)  The starting index within the line where parsing should begin
+        {_}     (table)   Parsing options (unused)
+
+    Returns: ~
+        (number|nil)  end index of the parsed `lch` function within the line, or `nil` if no match was found.
         (string|nil)  RGB hexadecimal color (e.g., "ff0000" for red), or `nil` if parsing failed
 
 
