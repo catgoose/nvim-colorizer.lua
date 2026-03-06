@@ -21,14 +21,14 @@ pre-filled issue.
 
 ## Default
 
-`css = true` preset — enables names, hex, rgb, hsl, oklch all at once.
+`css = true` preset — enables names, hex, rgb, hsl, oklch, css_var all at once.
 
 <!-- gen:default_gallery:start -->
 <table>
 <tr>
 <td align="center">
 <strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B1%5D%20default&body=%2A%2AScreenshot%20index%3A%2A%2A%201%0A%2A%2AConfig%20key%3A%2A%2A%20%60default%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[1]</a> default</strong><br>
-<em>css = true (names + hex + rgb + hsl + oklch)</em><br>
+<em>css = true (names + hex + rgb + hsl + oklch + css_var)</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/default.png" width="600"><br>
 <details><summary>Config</summary>
 
@@ -52,7 +52,7 @@ Each test shows what the preset enables and what it does not.
 <tr>
 <td align="center">
 <strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B2%5D%20preset_css&body=%2A%2AScreenshot%20index%3A%2A%2A%202%0A%2A%2AConfig%20key%3A%2A%2A%20%60preset_css%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[2]</a> preset_css</strong><br>
-<em>css = true preset (names + hex + rgb + hsl + oklch)</em><br>
+<em>css = true preset (names + hex + rgb + hsl + oklch + css_var)</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/preset_css.png" width="400"><br>
 <details><summary>Config</summary>
 
