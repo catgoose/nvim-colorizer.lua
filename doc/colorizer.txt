@@ -259,20 +259,21 @@ colorizer.NewOptions                                      *colorizer.NewOptions*
 colorizer.ParsersOptions                              *colorizer.ParsersOptions*
 
     Fields: ~
-        {css}       (boolean)                      Preset: enables names, hex (all), rgb, hsl, oklch, css_var. Individual settings override.
-        {css_fn}    (boolean)                      Preset: enables rgb, hsl, oklch. Individual settings override.
-        {names}     (colorizer.ParsersNames)       Named color options
-        {hex}       (colorizer.ParsersHex)         Hex color options
-        {rgb}       (colorizer.ParsersSimple)      rgb()/rgba() function parser
-        {hsl}       (colorizer.ParsersSimple)      hsl()/hsla() function parser
-        {oklch}     (colorizer.ParsersSimple)      oklch() function parser
-        {hwb}       (colorizer.ParsersSimple)      hwb() function parser (CSS Color Level 4)
-        {lab}       (colorizer.ParsersSimple)      lab() function parser (CIE Lab)
-        {lch}       (colorizer.ParsersSimple)      lch() function parser (CIE LCH)
-        {tailwind}  (colorizer.ParsersTailwind)    Tailwind CSS color options
-        {sass}      (colorizer.ParsersSass)        Sass variable color options
-        {xterm}     (colorizer.ParsersSimple)      xterm 256-color code parser
-        {custom}    (colorizer.CustomParserDef[])  List of custom parser definitions
+        {css}        (boolean)                      Preset: enables names, hex (all), rgb, hsl, oklch, css_var. Individual settings override.
+        {css_fn}     (boolean)                      Preset: enables rgb, hsl, oklch. Individual settings override.
+        {names}      (colorizer.ParsersNames)       Named color options
+        {hex}        (colorizer.ParsersHex)         Hex color options
+        {rgb}        (colorizer.ParsersSimple)      rgb()/rgba() function parser
+        {hsl}        (colorizer.ParsersSimple)      hsl()/hsla() function parser
+        {oklch}      (colorizer.ParsersSimple)      oklch() function parser
+        {hwb}        (colorizer.ParsersSimple)      hwb() function parser (CSS Color Level 4)
+        {lab}        (colorizer.ParsersSimple)      lab() function parser (CIE Lab)
+        {lch}        (colorizer.ParsersSimple)      lch() function parser (CIE LCH)
+        {css_color}  (colorizer.ParsersSimple)      color() function parser (srgb, display-p3, a98-rgb, etc.)
+        {tailwind}   (colorizer.ParsersTailwind)    Tailwind CSS color options
+        {sass}       (colorizer.ParsersSass)        Sass variable color options
+        {xterm}      (colorizer.ParsersSimple)      xterm 256-color code parser
+        {custom}     (colorizer.CustomParserDef[])  List of custom parser definitions
 
 
 colorizer.ParsersNames                                  *colorizer.ParsersNames*
@@ -680,6 +681,30 @@ M.apply_alpha({r}, {g}, {b}, {alpha})              *colorizer.color.apply_alpha*
 
 
 M.oklch_to_rgb()                                  *colorizer.color.oklch_to_rgb*
+
+
+M.linear_to_srgb()                              *colorizer.color.linear_to_srgb*
+
+
+M.srgb_to_linear({c})                           *colorizer.color.srgb_to_linear*
+     Converts sRGB gamma to linear sRGB.
+
+    Parameters: ~
+        {c}  (number)  Gamma-corrected sRGB channel value in [0, 1]
+
+    Returns: ~
+        (number)  sRGB value
+
+
+                                              *colorizer.color.css_color_to_rgb*
+M.css_color_to_rgb({space}, {r}, {g}, {b})
+
+    Parameters: ~
+        {space}  (string)  Color space name (e.g. "srgb", "display-p3")
+        {r}      (number)  Red/first channel, in [0, 1]
+        {g}      (number)  Green/second channel, in [0, 1]
+        {b}      (number)  Blue/third channel, in [0, 1]
+                           @return number|nil,number|nil,number|nil Returns red, green, blue in [0, 255], or nil
 
 
 M.hwb_to_rgb()                                      *colorizer.color.hwb_to_rgb*
@@ -1187,6 +1212,27 @@ M.parser({line}, {i}, {_})                         *colorizer.parser.lch.parser*
 
 
 ==============================================================================
+CSS color() Parser                                  *colorizer.parser.css_color*
+
+This module provides a parser for identifying and converting CSS `color()` functions to RGB hexadecimal format.
+The CSS `color()` function allows specifying colors in arbitrary color spaces.
+Supported color spaces: srgb, srgb-linear, display-p3, a98-rgb, prophoto-rgb, rec2020.
+Values can be numbers (0-1) or percentages. Optional alpha transparency is supported.
+
+M.parser({line}, {i}, {_})                   *colorizer.parser.css_color.parser*
+     Parses `color()` CSS functions and converts them to RGB hexadecimal format.
+
+    Parameters: ~
+        {line}  (string)  The line of text to parse
+        {i}     (number)  The starting index within the line where parsing should begin
+        {_}     (table)   Parsing options (unused)
+
+    Returns: ~
+        (number|nil)  end index of the parsed `color` function within the line, or `nil` if no match was found.
+        (string|nil)  RGB hexadecimal color (e.g., "ff0000" for red), or `nil` if parsing failed
+
+
+==============================================================================
 RGB Parser                                                *colorizer.parser.rgb*
 
 This module provides a parser for identifying and converting `rgb()` and `rgba()` CSS functions to RGB hexadecimal format.
@@ -1301,9 +1347,12 @@ M.update_variables({bufnr}, {line_start}, {line_end}, {lines}, {color_parser})
 ==============================================================================
 Xterm Parser                                            *colorizer.parser.xterm*
 
-This module provides a parser for identifying and converting xterm color codes to RGB hexadecimal format.
-It supports both #xNN format (decimal, 0-255) and ANSI escape sequences \e[38;5;NNNm for xterm 256-color palette.
-The function reads the color code and returns the corresponding RGB hex string from the xterm color palette.
+This module provides a parser for identifying and converting xterm/ANSI color codes to RGB hexadecimal format.
+Supported formats:
+  - #xNN (decimal, 0-255) for xterm 256-color palette
+  - \e[38;5;NNNm / \e[48;5;NNNm for 256-color foreground/background
+  - \e[38;2;R;G;Bm / \e[48;2;R;G;Bm for 24-bit true-color foreground/background
+  - \e[X;Ym for 16-color foreground (30-37) and background (40-47) with brightness
 
 M.parser({line}, {i})                            *colorizer.parser.xterm.parser*
 
