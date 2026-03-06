@@ -228,9 +228,9 @@ function M.lab_to_rgb(L, a, b_lab)
   z = z * (1.0 - 0.3457 - 0.3585) / 0.3585
 
   -- D50 XYZ to D65 XYZ (Bradford chromatic adaptation)
-  local xd65 = 0.9555766 * x + (-0.0230393) * y + 0.0631636 * z
-  local yd65 = (-0.0282895) * x + 1.0099416 * y + 0.0210077 * z
-  local zd65 = 0.0122982 * x + (-0.0204830) * y + 1.3299098 * z
+  local xd65 = 0.9555766 * x + -0.0230393 * y + 0.0631636 * z
+  local yd65 = -0.0282895 * x + 1.0099416 * y + 0.0210077 * z
+  local zd65 = 0.0122982 * x + -0.0204830 * y + 1.3299098 * z
 
   -- D65 XYZ to linear sRGB
   local r_lin = 3.2404541621 * xd65 - 1.5371385940 * yd65 - 0.4985314096 * zd65
