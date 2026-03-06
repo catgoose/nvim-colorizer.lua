@@ -102,6 +102,18 @@ M.configs = {
     label = "css_oklch",
     description = "oklch() function",
   }),
+  css_hwb = cfg("css_hwb.scss", { hwb = { enable = true } }, {
+    label = "css_hwb",
+    description = "hwb() function (CSS Color Level 4)",
+  }),
+  css_lab = cfg("css_lab.scss", { lab = { enable = true } }, {
+    label = "css_lab",
+    description = "lab() function (CIE Lab)",
+  }),
+  css_lch = cfg("css_lch.scss", { lch = { enable = true } }, {
+    label = "css_lch",
+    description = "lch() function (CIE LCH)",
+  }),
   css_hsluv = cfg("css_hsluv.scss", { hsluv = { enable = true } }, {
     label = "css_hsluv",
     description = "hsluv() / hsluvu() functions",
@@ -110,6 +122,9 @@ M.configs = {
     rgb = { enable = true },
     hsl = { enable = true },
     oklch = { enable = true },
+    hwb = { enable = true },
+    lab = { enable = true },
+    lch = { enable = true },
     hsluv = { enable = true },
   }, {
     label = "css_all",
@@ -350,7 +365,7 @@ M.categories = {
   {
     flag = "css",
     display = "CSS Functions",
-    names = { "css_rgb", "css_hsl", "css_oklch", "css_hsluv", "css_all" },
+    names = { "css_rgb", "css_hsl", "css_oklch", "css_hwb", "css_lab", "css_lch", "css_hsluv", "css_all" },
   },
   {
     flag = "names",

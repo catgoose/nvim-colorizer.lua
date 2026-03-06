@@ -1,0 +1,18 @@
+// ── Should highlight ─────────────────────────
+
+// hwb()
+$hwb-red: hwb(0 0% 0%);
+$hwb-green: hwb(120 0% 0%);
+$hwb-white: hwb(0 100% 0%);
+$hwb-gray: hwb(0 50% 50%);
+$hwb-alpha: hwb(240 0% 0% / 0.5);
+$hwb-deg: hwb(120deg 20% 10%);
+$hwb-turn: hwb(0.5turn 10% 10%);
+
+// ── Should NOT highlight ────────────────────
+
+// Other CSS functions
+$rgb: rgb(255, 200, 80);
+$hsl: hsl(300 50% 50%);
+// Invalid
+$bad: hwb();

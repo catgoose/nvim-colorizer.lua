@@ -37,7 +37,7 @@ next to the test to report an issue.
 
 - **Fast:** Handwritten trie-based parser with byte-level dispatch. Only visible lines are processed.
 - **Zero dependencies:** As long as you have `malloc()` and `free()`, it works (Linux, macOS, Windows).
-- **Broad format support:** Hex (`#RGB`, `#RRGGBB`, `#RRGGBBAA`, `#AARRGGBB` QML, `0xAARRGGBB`), CSS functions (`rgb()`, `hsl()`, `oklch()`), CSS custom properties (`var(--name)`), named colors, xterm/ANSI 256, Tailwind CSS, Sass variables, and custom parsers — in any filetype.
+- **Broad format support:** Hex (`#RGB`, `#RRGGBB`, `#RRGGBBAA`, `#AARRGGBB` QML, `0xAARRGGBB`), CSS functions (`rgb()`, `hsl()`, `hwb()`, `lab()`, `lch()`, `oklch()`), CSS custom properties (`var(--name)`), named colors, xterm/ANSI 256, Tailwind CSS, Sass variables, and custom parsers — in any filetype.
 - **Display modes:** Background (with auto-contrast text), foreground, and virtualtext (inline or end-of-line).
 - **Higher priority than treesitter:** Uses `vim.hl.priorities` (diagnostics/user) so colorizer highlights always win over treesitter syntax colors.
 
@@ -154,6 +154,9 @@ require("colorizer").setup({
       rgb = { enable = false }, -- rgb()/rgba() functions
       hsl = { enable = false }, -- hsl()/hsla() functions
       oklch = { enable = false }, -- oklch() function
+      hwb = { enable = false }, -- hwb() function (CSS Color Level 4)
+      lab = { enable = false }, -- lab() function (CIE Lab)
+      lch = { enable = false }, -- lch() function (CIE LCH)
       tailwind = {
         enable = false, -- parse Tailwind color names
         update_names = false, -- feed LSP colors back into name parser (requires both enable + lsp.enable)

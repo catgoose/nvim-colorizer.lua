@@ -45,6 +45,9 @@ $LEMMY -f \
   "$PROJECT_DIR/lua/colorizer/parser/hsl.lua" \
   "$PROJECT_DIR/lua/colorizer/parser/names.lua" \
   "$PROJECT_DIR/lua/colorizer/parser/oklch.lua" \
+  "$PROJECT_DIR/lua/colorizer/parser/hwb.lua" \
+  "$PROJECT_DIR/lua/colorizer/parser/lab.lua" \
+  "$PROJECT_DIR/lua/colorizer/parser/lch.lua" \
   "$PROJECT_DIR/lua/colorizer/parser/rgb.lua" \
   "$PROJECT_DIR/lua/colorizer/parser/rgba_hex.lua" \
   "$PROJECT_DIR/lua/colorizer/parser/sass.lua" \

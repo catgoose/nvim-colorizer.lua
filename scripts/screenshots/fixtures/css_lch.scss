@@ -1,0 +1,19 @@
+// ── Should highlight ─────────────────────────
+
+// lch()
+$lch-white: lch(100 0 0);
+$lch-black: lch(0 0 0);
+$lch-red: lch(50 100 0);
+$lch-green: lch(50 100 140);
+$lch-pct: lch(50% 50% 180);
+$lch-alpha: lch(50 100 0 / 0.5);
+$lch-deg: lch(50 100 180deg);
+$lch-turn: lch(50 100 0.5turn);
+
+// ── Should NOT highlight ────────────────────
+
+// Other CSS functions
+$rgb: rgb(255, 200, 80);
+$hsl: hsl(300 50% 50%);
+// Invalid
+$bad: lch();

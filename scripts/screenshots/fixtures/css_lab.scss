@@ -1,0 +1,17 @@
+// ── Should highlight ─────────────────────────
+
+// lab()
+$lab-white: lab(100 0 0);
+$lab-black: lab(0 0 0);
+$lab-red: lab(50 80 0);
+$lab-green: lab(50 -80 0);
+$lab-pct: lab(50% 50% 0);
+$lab-alpha: lab(50 80 0 / 0.5);
+
+// ── Should NOT highlight ────────────────────
+
+// Other CSS functions
+$rgb: rgb(255, 200, 80);
+$hsl: hsl(300 50% 50%);
+// Invalid
+$bad: lab();
