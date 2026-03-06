@@ -114,6 +114,10 @@ M.configs = {
     label = "css_lch",
     description = "lch() function (CIE LCH)",
   }),
+  css_color_fn = cfg("css_color_fn.scss", { css_color = { enable = true } }, {
+    label = "css_color_fn",
+    description = "color() function (srgb, display-p3, a98-rgb, etc.)",
+  }),
   css_hsluv = cfg("css_hsluv.scss", { hsluv = { enable = true } }, {
     label = "css_hsluv",
     description = "hsluv() / hsluvu() functions",
@@ -125,6 +129,7 @@ M.configs = {
     hwb = { enable = true },
     lab = { enable = true },
     lch = { enable = true },
+    css_color = { enable = true },
     hsluv = { enable = true },
   }, {
     label = "css_all",
@@ -365,7 +370,7 @@ M.categories = {
   {
     flag = "css",
     display = "CSS Functions",
-    names = { "css_rgb", "css_hsl", "css_oklch", "css_hwb", "css_lab", "css_lch", "css_hsluv", "css_all" },
+    names = { "css_rgb", "css_hsl", "css_oklch", "css_hwb", "css_lab", "css_lch", "css_color_fn", "css_hsluv", "css_all" },
   },
   {
     flag = "names",

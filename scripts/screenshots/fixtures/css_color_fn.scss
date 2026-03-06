@@ -1,0 +1,24 @@
+// ── Should highlight ─────────────────────────
+
+// color() with srgb
+$srgb-red: color(srgb 1 0 0);
+$srgb-green: color(srgb 0 1 0);
+$srgb-blue: color(srgb 0 0 1);
+$srgb-alpha: color(srgb 1 0 0 / 0.5);
+
+// color() with display-p3
+$p3-red: color(display-p3 1 0 0);
+$p3-green: color(display-p3 0 1 0);
+
+// color() with other spaces
+$a98: color(a98-rgb 1 0 0);
+$rec: color(rec2020 0.5 0.5 0.5);
+
+// ── Should NOT highlight ────────────────────
+
+// Other CSS functions
+$rgb: rgb(255, 200, 80);
+$hsl: hsl(300 50% 50%);
+// Invalid
+$bad: color();
+$bad2: color(unknown 1 0 0);

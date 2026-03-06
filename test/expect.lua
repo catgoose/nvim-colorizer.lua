@@ -37,6 +37,10 @@ local opts = {
       rgb = { enable = true },
       hsl = { enable = true },
       oklch = { enable = true },
+      hwb = { enable = true },
+      lab = { enable = true },
+      lch = { enable = true },
+      css_color = { enable = true },
       tailwind = { enable = true },
       sass = { enable = true, parsers = { css = true } },
       xterm = { enable = true },
@@ -301,6 +305,54 @@ oklch(1.5 0.2 180) oklch(-0.1 0.2 180) oklch(150% 0.2 180)
 oklch(0.5 -0.1 180) oklch(0.5 -50% 180) oklch(0.5 150% 180)
 oklch(0.5 0.2 180 / 1.5) oklch(0.5 0.2 180 / -0.1) oklch(0.5 0.2 180 / 150%)
 
+HWB:
+hwb(0 0% 0%) hwb(120 0% 0%) hwb(240 0% 0%)
+hwb(0 100% 0%) hwb(0 0% 100%) hwb(0 50% 50%)
+hwb(120deg 0% 0%) hwb(0.5turn 0% 0%) hwb(200grad 0% 0%) hwb(3.14159rad 0% 0%)
+hwb(0 0% 0% / 0.5) hwb(0 0% 0% / 50%) hwb(240 0% 0% / 0.8)
+hwb(0 75% 75%) hwb(0 20% 30%) hwb(180 10% 10%)
+hwb(-120 0% 0%) hwb(480 0% 0%) hwb(120.5 10.5% 20.5%)
+
+CIE Lab:
+lab(100 0 0) lab(0 0 0) lab(50 0 0)
+lab(50 80 0) lab(50 -80 0) lab(50 0 80) lab(50 0 -80)
+lab(50% 0 0) lab(50 50% 0) lab(50 0 -50%)
+lab(50 80 0 / 0.5) lab(50 80 0 / 50%)
+lab(50.5 30.2 -10.7) lab(75 -50 60)
+
+CIE LCH:
+lch(100 0 0) lch(0 0 0) lch(50 0 0)
+lch(50 100 0) lch(50 100 120) lch(50 100 240)
+lch(50% 0 0) lch(50 50% 0) lch(50 50% 180)
+lch(50 100 180deg) lch(50 100 0.5turn) lch(50 100 200grad) lch(50 100 3.14159rad)
+lch(50 100 0 / 0.5) lch(50 100 0 / 50%)
+lch(50.5 80.2 120.7)
+
+CSS color():
+color(srgb 1 0 0) color(srgb 0 1 0) color(srgb 0 0 1)
+color(srgb 1 1 1) color(srgb 0 0 0) color(srgb 0.5 0.5 0.5)
+color(srgb 100% 0% 0%) color(srgb 50% 50% 50%)
+color(srgb 1 0 0 / 0.5) color(srgb 0 0 1 / 50%)
+color(srgb-linear 1 0 0) color(srgb-linear 0.5 0.5 0.5)
+color(display-p3 1 0 0) color(display-p3 0 1 0) color(display-p3 0 0 1)
+color(display-p3 1 1 1) color(display-p3 0 0 0)
+color(a98-rgb 1 0 0) color(a98-rgb 0 1 0) color(a98-rgb 0.5 0.5 0.5)
+color(prophoto-rgb 1 1 1) color(prophoto-rgb 0 0 0) color(prophoto-rgb 0.5 0.3 0.8)
+color(rec2020 1 0 0) color(rec2020 0 1 0) color(rec2020 0.5 0.5 0.5)
+
+Xterm ANSI background 256-color:
+\e[48;5;0m \e[48;5;15m \e[48;5;42m \e[48;5;196m \e[48;5;255m
+
+Xterm ANSI background 16-color:
+\e[40;0m \e[41;1m \e[42;0m \e[43;1m \e[44;0m \e[45;1m \e[46;0m \e[47;1m
+\e[1;42m \e[0;47m
+
+Xterm ANSI true-color (24-bit):
+\e[38;2;255;0;0m \e[38;2;0;255;0m \e[38;2;0;0;255m
+\e[38;2;255;255;255m \e[38;2;0;0;0m \e[38;2;128;128;128m
+\e[48;2;255;128;0m \e[48;2;100;200;50m \e[48;2;200;100;200m
+\e[38;2;255;200;80m \e[38;2;80;160;240m
+
 ################################################################################
 
 FAIL CASES:
@@ -352,6 +404,25 @@ oklch(0.5 0.2) oklch(0.5, 0.2, 180) oklch()
 oklch(,0.2,180) oklch(0.5,,180) oklch(0.5,0.2,)
 oklch (0.5 0.2 180)
 oklch(0.5  0.2  180  1)
+
+Invalid HWB:
+hwb() hwb(0 50%) hwb(0, 50%, 50%) hwb (0 50% 50%)
+hwb(0 50% 50% 1) hwb(120foo 0% 0%)
+
+Invalid Lab:
+lab() lab(50 80) lab(50, 80, 0) lab (50 80 0)
+lab(50 80 0 1)
+
+Invalid LCH:
+lch() lch(50 100) lch(50, 100, 0) lch (50 100 0)
+lch(50 100 0 1) lch(50 100 180foo)
+
+Invalid CSS color():
+color() color(unknown 1 0 0) color(srgb 1 0) color (srgb 1 0 0)
+color(srgb, 1, 0, 0) color(srgb 1 0 0 0.5)
+
+Invalid ANSI true-color:
+\e[38;2;256;0;0m \e[38;2;0;0;256m
 
 Invalid Hyprlang:
 rgb(12345) rgb(1234567) rgb(gggggg)
