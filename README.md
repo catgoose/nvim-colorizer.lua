@@ -134,18 +134,19 @@ require("colorizer").setup({
       css = false, -- preset: enables names, hex, rgb, hsl, oklch, css_var
       css_fn = false, -- preset: enables rgb, hsl, oklch
       names = {
-        enable = false, -- enable named colors (e.g. "Blue")
+        enable = true, -- enable named colors (e.g. "Blue")
         lowercase = true, -- match lowercase names
         camelcase = true, -- match CamelCase names (e.g. "LightBlue")
         uppercase = false, -- match UPPERCASE names
         strip_digits = false, -- ignore names with trailing digits (e.g. "blue3")
         custom = false, -- custom name-to-hex mappings; table|function|false
+        extra_word_chars = "-", -- extra chars treated as part of color name
       },
       hex = {
-        default = false, -- default value for unset format keys (see above)
-        rgb = false, -- #RGB (3-digit)
-        rgba = false, -- #RGBA (4-digit)
-        rrggbb = false, -- #RRGGBB (6-digit)
+        default = true, -- default value for unset format keys (see above)
+        rgb = true, -- #RGB (3-digit)
+        rgba = true, -- #RGBA (4-digit)
+        rrggbb = true, -- #RRGGBB (6-digit)
         rrggbbaa = false, -- #RRGGBBAA (8-digit)
         hash_aarrggbb = false, -- #AARRGGBB (QML-style, alpha first)
         aarrggbb = false, -- 0xAARRGGBB
