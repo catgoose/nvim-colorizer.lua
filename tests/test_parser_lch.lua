@@ -105,6 +105,87 @@ T["alpha"]["zero alpha is black"] = function()
   eq("000000", hex)
 end
 
+-- Clamping --------------------------------------------------------------------
+
+T["clamping"] = new_set()
+
+T["clamping"]["L > 100 clamped to 100"] = function()
+  local len1, hex1 = parser("lch(150 0 0)", 1, {})
+  local len2, hex2 = parser("lch(100 0 0)", 1, {})
+  eq(true, len1 ~= nil)
+  eq(hex1, hex2) -- both should be white
+end
+
+T["clamping"]["negative L clamped to 0"] = function()
+  local len1, hex1 = parser("lch(-50 0 0)", 1, {})
+  local len2, hex2 = parser("lch(0 0 0)", 1, {})
+  eq(true, len1 ~= nil)
+  eq(hex1, hex2) -- both should be black
+end
+
+T["clamping"]["negative chroma clamped to 0"] = function()
+  local len1, hex1 = parser("lch(50 -100 0)", 1, {})
+  local len2, hex2 = parser("lch(50 0 0)", 1, {})
+  eq(true, len1 ~= nil)
+  eq(hex1, hex2) -- both should be mid-gray
+end
+
+T["clamping"]["negative hue wraps"] = function()
+  local len, hex = parser("lch(50 100 -90)", 1, {})
+  eq(true, len ~= nil)
+  eq(true, hex ~= nil)
+end
+
+T["clamping"]["negative alpha clamped to 0"] = function()
+  local len, hex = parser("lch(50 100 0 / -0.5)", 1, {})
+  eq(true, len ~= nil)
+  eq("000000", hex)
+end
+
+-- Decimals --------------------------------------------------------------------
+
+T["decimals"] = new_set()
+
+T["decimals"]["decimal L, C, H"] = function()
+  local len, hex = parser("lch(50.5 80.2 120.7)", 1, {})
+  eq(true, len ~= nil)
+  eq(true, hex ~= nil)
+end
+
+-- Extra whitespace ------------------------------------------------------------
+
+T["whitespace"] = new_set()
+
+T["whitespace"]["extra internal spaces"] = function()
+  local len, hex = parser("lch(  0   0   0  )", 1, {})
+  eq(true, len ~= nil)
+end
+
+T["whitespace"]["extra spaces around alpha slash"] = function()
+  local len, hex = parser("lch(50 100 0   /   0.5)", 1, {})
+  eq(true, len ~= nil)
+end
+
+-- Return length ---------------------------------------------------------------
+
+T["return length"] = new_set()
+
+T["return length"]["returns correct end index"] = function()
+  local len, hex = parser("lch(0 0 0)", 1, {})
+  eq(10, len) -- length of "lch(0 0 0)"
+end
+
+-- Cross-parser consistency ----------------------------------------------------
+
+T["cross-parser"] = new_set()
+
+T["cross-parser"]["lch(50 0 0) matches lab(50 0 0) (both are gray)"] = function()
+  local lab_parser = require("colorizer.parser.lab").parser
+  local _, lch_hex = parser("lch(50 0 0)", 1, {})
+  local _, lab_hex = lab_parser("lab(50 0 0)", 1, {})
+  eq(lch_hex, lab_hex) -- C=0 means a=0,b=0, so LCH and Lab should agree
+end
+
 -- Invalid ---------------------------------------------------------------------
 
 T["invalid"] = new_set()

@@ -95,6 +95,63 @@ T["alpha"]["zero alpha is black"] = function()
   eq("000000", hex)
 end
 
+-- Clamping --------------------------------------------------------------------
+
+T["clamping"] = new_set()
+
+T["clamping"]["L > 100 clamped to 100"] = function()
+  local len1, hex1 = parser("lab(150 0 0)", 1, {})
+  local len2, hex2 = parser("lab(100 0 0)", 1, {})
+  eq(true, len1 ~= nil)
+  eq(hex1, hex2) -- both should be white
+end
+
+T["clamping"]["negative L clamped to 0"] = function()
+  local len1, hex1 = parser("lab(-50 0 0)", 1, {})
+  local len2, hex2 = parser("lab(0 0 0)", 1, {})
+  eq(true, len1 ~= nil)
+  eq(hex1, hex2) -- both should be black
+end
+
+T["clamping"]["negative alpha clamped to 0"] = function()
+  local len, hex = parser("lab(50 80 0 / -0.5)", 1, {})
+  eq(true, len ~= nil)
+  eq("000000", hex)
+end
+
+-- Decimals --------------------------------------------------------------------
+
+T["decimals"] = new_set()
+
+T["decimals"]["decimal L, a, b"] = function()
+  local len, hex = parser("lab(50.5 30.2 -10.7)", 1, {})
+  eq(true, len ~= nil)
+  eq(true, hex ~= nil)
+end
+
+-- Extra whitespace ------------------------------------------------------------
+
+T["whitespace"] = new_set()
+
+T["whitespace"]["extra internal spaces"] = function()
+  local len, hex = parser("lab(  0   0   0  )", 1, {})
+  eq(true, len ~= nil)
+end
+
+T["whitespace"]["extra spaces around alpha slash"] = function()
+  local len, hex = parser("lab(50 80 0   /   0.5)", 1, {})
+  eq(true, len ~= nil)
+end
+
+-- Return length ---------------------------------------------------------------
+
+T["return length"] = new_set()
+
+T["return length"]["returns correct end index"] = function()
+  local len, hex = parser("lab(0 0 0)", 1, {})
+  eq(10, len) -- length of "lab(0 0 0)"
+end
+
 -- Invalid ---------------------------------------------------------------------
 
 T["invalid"] = new_set()

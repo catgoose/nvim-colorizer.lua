@@ -119,6 +119,77 @@ T["alpha"]["zero alpha is black"] = function()
   eq("000000", hex)
 end
 
+-- Clamping --------------------------------------------------------------------
+
+T["clamping"] = new_set()
+
+T["clamping"]["negative hue wraps"] = function()
+  local len, hex = parser("hwb(-120 0% 0%)", 1, {})
+  eq(true, len ~= nil)
+  -- -120 degrees wraps to 240 degrees (blue)
+  eq("0000ff", hex)
+end
+
+T["clamping"]["negative whiteness clamped to 0"] = function()
+  local len, hex = parser("hwb(0 -10% 0%)", 1, {})
+  eq(true, len ~= nil)
+  -- Negative whiteness clamped to 0, same as hwb(0 0% 0%)
+  eq("ff0000", hex)
+end
+
+T["clamping"]["negative blackness clamped to 0"] = function()
+  local len, hex = parser("hwb(0 0% -10%)", 1, {})
+  eq(true, len ~= nil)
+  eq("ff0000", hex)
+end
+
+T["clamping"]["negative alpha clamped to 0"] = function()
+  local len, hex = parser("hwb(0 0% 0% / -0.5)", 1, {})
+  eq(true, len ~= nil)
+  eq("000000", hex)
+end
+
+-- Decimals --------------------------------------------------------------------
+
+T["decimals"] = new_set()
+
+T["decimals"]["decimal hue, whiteness, blackness"] = function()
+  local len, hex = parser("hwb(120.5 10.5% 20.5%)", 1, {})
+  eq(true, len ~= nil)
+  eq(true, hex ~= nil)
+end
+
+-- Extra whitespace ------------------------------------------------------------
+
+T["whitespace"] = new_set()
+
+T["whitespace"]["extra internal spaces"] = function()
+  local len, hex = parser("hwb(  0   0%   0%  )", 1, {})
+  eq(true, len ~= nil)
+  eq("ff0000", hex)
+end
+
+T["whitespace"]["extra spaces around alpha slash"] = function()
+  local len, hex = parser("hwb(0 0% 0%   /   0.5)", 1, {})
+  eq(true, len ~= nil)
+end
+
+-- Return length ---------------------------------------------------------------
+
+T["return length"] = new_set()
+
+T["return length"]["returns correct end index"] = function()
+  local len, hex = parser("hwb(0 0% 0%)", 1, {})
+  eq(12, len) -- length of "hwb(0 0% 0%)"
+  eq("ff0000", hex)
+end
+
+T["return length"]["mid-line returns length relative to start"] = function()
+  local len, hex = parser("x hwb(0 0% 0%) y", 3, {})
+  eq(12, len) -- length of "hwb(0 0% 0%)" from the sub(i) perspective
+  eq("ff0000", hex)
+end
+
 -- Invalid ---------------------------------------------------------------------
 
 T["invalid"] = new_set()
