@@ -53,6 +53,20 @@ local opts = {
         hl_mode = "foreground",
       },
     },
+    hooks = {
+      -- Example: skip black and white
+      should_highlight_color = function(rgb_hex)
+        local h = rgb_hex:lower()
+        return h ~= "000000" and h ~= "ffffff"
+      end,
+      -- Example: on_attach / on_detach lifecycle
+      on_attach = function(bufnr, _opts)
+        vim.b[bufnr].colorizer_attached = true
+      end,
+      on_detach = function(bufnr)
+        vim.b[bufnr].colorizer_attached = nil
+      end,
+    },
     always_update = false,
   },
 }
@@ -352,6 +366,15 @@ Xterm ANSI true-color (24-bit):
 \e[38;2;255;255;255m \e[38;2;0;0;0m \e[38;2;128;128;128m
 \e[48;2;255;128;0m \e[48;2;100;200;50m \e[48;2;200;100;200m
 \e[38;2;255;200;80m \e[38;2;80;160;240m
+
+Hooks — should_highlight_color (skips black #000000 and white #FFFFFF):
+These SHOULD highlight (not black/white):
+#FF0000 #00FF00 #0000FF #808080 #FFAA00
+rgb(255, 128, 0) hsl(120, 100%, 50%) oklch(0.5 0.2 180)
+red blue green coral DeepSkyBlue
+These should NOT highlight (black/white filtered by hook):
+#000000 #FFFFFF rgb(0, 0, 0) rgb(255, 255, 255)
+hsl(0, 0%, 0%) hsl(0, 0%, 100%)
 
 ################################################################################
 

@@ -200,4 +200,123 @@ T["hooks"]["should_highlight_line returning true allows parsing"] = function()
   eq("ff0000", hex:lower())
 end
 
+T["hooks"]["should_highlight_color returning false suppresses color"] = function()
+  local opts = make_opts({ RRGGBB = true })
+  opts.hooks = {
+    should_highlight_color = function(rgb_hex)
+      -- Skip white (hex is uppercase from parser)
+      return rgb_hex:lower() ~= "ffffff"
+    end,
+  }
+  local parse_fn = matcher.make(opts)
+  -- White should be suppressed
+  local len, hex = parse_fn("#FFFFFF", 1, 1, 1)
+  eq(nil, len)
+  eq(nil, hex)
+  -- Red should still work
+  len, hex = parse_fn("#FF0000", 1, 1, 1)
+  eq(7, len)
+  eq("ff0000", hex:lower())
+end
+
+T["hooks"]["should_highlight_color receives parser_name and context"] = function()
+  local captured_name, captured_ctx
+  local opts = make_opts({ RRGGBB = true })
+  opts.hooks = {
+    should_highlight_color = function(rgb_hex, parser_name, ctx)
+      captured_name = parser_name
+      captured_ctx = ctx
+      return true
+    end,
+  }
+  local parse_fn = matcher.make(opts)
+  parse_fn("#FF0000 text", 1, 42, 10)
+  eq("rgba_hex", captured_name)
+  eq(42, captured_ctx.bufnr)
+  eq(10, captured_ctx.line_nr)
+  eq(1, captured_ctx.col)
+  eq("#FF0000 text", captured_ctx.line)
+end
+
+T["hooks"]["transform_color remaps rgb_hex"] = function()
+  local opts = make_opts({ RRGGBB = true })
+  opts.hooks = {
+    transform_color = function()
+      -- Force everything to green
+      return "00ff00"
+    end,
+  }
+  local parse_fn = matcher.make(opts)
+  local len, hex = parse_fn("#FF0000", 1, 1, 1)
+  eq(7, len)
+  eq("00ff00", hex)
+end
+
+T["hooks"]["transform_color receives rgb_hex and context"] = function()
+  local captured_hex, captured_ctx
+  local opts = make_opts({ RRGGBB = true })
+  opts.hooks = {
+    transform_color = function(rgb_hex, ctx)
+      captured_hex = rgb_hex
+      captured_ctx = ctx
+      return rgb_hex
+    end,
+  }
+  local parse_fn = matcher.make(opts)
+  parse_fn("#FF0000 text", 1, 42, 10)
+  eq("ff0000", captured_hex:lower())
+  eq(42, captured_ctx.bufnr)
+  eq(10, captured_ctx.line_nr)
+end
+
+T["hooks"]["transform_color nil return keeps original hex"] = function()
+  local opts = make_opts({ RRGGBB = true })
+  opts.hooks = {
+    transform_color = function()
+      return nil
+    end,
+  }
+  local parse_fn = matcher.make(opts)
+  local len, hex = parse_fn("#FF0000", 1, 1, 1)
+  eq(7, len)
+  eq("ff0000", hex:lower())
+end
+
+T["hooks"]["should_highlight_color runs before transform_color"] = function()
+  local transform_called = false
+  local opts = make_opts({ RRGGBB = true })
+  opts.hooks = {
+    should_highlight_color = function()
+      return false
+    end,
+    transform_color = function(rgb_hex)
+      transform_called = true
+      return rgb_hex
+    end,
+  }
+  local parse_fn = matcher.make(opts)
+  parse_fn("#FF0000", 1, 1, 1)
+  eq(false, transform_called)
+end
+
+T["hooks"]["combined: filter + transform"] = function()
+  local opts = make_opts({ RRGGBB = true })
+  opts.hooks = {
+    should_highlight_color = function(rgb_hex)
+      return rgb_hex:lower() ~= "ffffff"
+    end,
+    transform_color = function()
+      return "00ff00"
+    end,
+  }
+  local parse_fn = matcher.make(opts)
+  -- White is filtered out
+  local len, hex = parse_fn("#FFFFFF", 1, 1, 1)
+  eq(nil, len)
+  -- Red passes filter, then gets transformed to green
+  len, hex = parse_fn("#FF0000", 1, 1, 1)
+  eq(7, len)
+  eq("00ff00", hex)
+end
+
 return T

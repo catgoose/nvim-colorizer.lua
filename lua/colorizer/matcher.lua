@@ -279,6 +279,10 @@ local function compile(enabled_parsers, hooks, opts)
     state = nil,
   }
 
+  -- Cache hook references for fast access in hot path
+  local hook_should_color = hooks and hooks.should_highlight_color
+  local hook_transform = hooks and hooks.transform_color
+
   --- Try dispatching to a parser entry.
   ---@return number|nil, string|nil
   local function try_parser(entry, prefix)
@@ -297,7 +301,31 @@ local function compile(enabled_parsers, hooks, opts)
       ctx.parser_opts = nil
       ctx.state = nil
     end
-    return entry.spec.parse(ctx)
+    local len, rgb_hex = entry.spec.parse(ctx)
+    if not (len and rgb_hex) then
+      return
+    end
+    -- Apply color-level hooks
+    if hook_should_color then
+      local ok = hook_should_color(rgb_hex, entry.spec.name, {
+        line = ctx.line,
+        col = ctx.col,
+        bufnr = ctx.bufnr,
+        line_nr = ctx.line_nr,
+      })
+      if ok == false then
+        return
+      end
+    end
+    if hook_transform then
+      rgb_hex = hook_transform(rgb_hex, {
+        line = ctx.line,
+        col = ctx.col,
+        bufnr = ctx.bufnr,
+        line_nr = ctx.line_nr,
+      }) or rgb_hex
+    end
+    return len, rgb_hex
   end
 
   local function parse_fn(line, i, bufnr, line_nr)

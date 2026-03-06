@@ -261,6 +261,29 @@ M.configs = {
       end,
     },
   }),
+  special_hooks_color_filter = cfg("hooks_color_filter.css", { css = true }, {
+    label = "special_hooks_color_filter",
+    description = "should_highlight_color skips black and white",
+    hooks = {
+      should_highlight_color = function(rgb_hex)
+        local h = rgb_hex:lower()
+        return h ~= "000000" and h ~= "ffffff"
+      end,
+    },
+  }),
+  special_hooks_transform = cfg("hooks_transform.css", { css = true }, {
+    label = "special_hooks_transform",
+    description = "transform_color converts all colors to grayscale",
+    hooks = {
+      transform_color = function(rgb_hex)
+        local r = tonumber(rgb_hex:sub(1, 2), 16)
+        local g = tonumber(rgb_hex:sub(3, 4), 16)
+        local b = tonumber(rgb_hex:sub(5, 6), 16)
+        local gray = math.floor(0.299 * r + 0.587 * g + 0.114 * b)
+        return string.format("%02x%02x%02x", gray, gray, gray)
+      end,
+    },
+  }),
 
   -- ── Demo ────────────────────────────────────────────────────────
   demo = cfg("demo.css", {
@@ -380,7 +403,7 @@ M.categories = {
   {
     flag = "special",
     display = "Special Parsers",
-    names = { "special_xterm", "special_xcolor", "special_css_var_rgb", "special_css_var", "special_sass", "special_sass_pattern", "special_hooks_line_filter" },
+    names = { "special_xterm", "special_xcolor", "special_css_var_rgb", "special_css_var", "special_sass", "special_sass_pattern", "special_hooks_line_filter", "special_hooks_color_filter", "special_hooks_transform" },
   },
   {
     flag = "display",
