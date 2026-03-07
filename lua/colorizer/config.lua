@@ -1078,7 +1078,12 @@ local function validate_options(opts)
   if opts.virtualtext_inline ~= "before" and opts.virtualtext_inline ~= "after" then
     opts.virtualtext_inline = plugin_user_default_options.virtualtext_inline
   end
-  if opts.mode ~= "background" and opts.mode ~= "foreground" and opts.mode ~= "underline" and opts.mode ~= "virtualtext" then
+  if
+    opts.mode ~= "background"
+    and opts.mode ~= "foreground"
+    and opts.mode ~= "underline"
+    and opts.mode ~= "virtualtext"
+  then
     opts.mode = plugin_user_default_options.mode
   end
   if opts.virtualtext_mode ~= "background" and opts.virtualtext_mode ~= "foreground" then
