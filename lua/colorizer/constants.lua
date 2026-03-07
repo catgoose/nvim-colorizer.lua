@@ -29,10 +29,12 @@ M.autocmd = {
 --- Highlight mode names.  Used to create highlight names to be used with vim.api.nvim_buf_set_extmark
 -- - background - Background mode
 -- - foreground - Foreground mode
+-- - underline - Underline mode (colored via special/sp)
 -- - virtualtext - Virtual text mode
 M.highlight_mode_names = {
   background = "mb",
   foreground = "mf",
+  underline = "mu",
   virtualtext = "mv",
 }
 

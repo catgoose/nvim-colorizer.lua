@@ -38,7 +38,7 @@ next to the test to report an issue.
 - **Fast:** Handwritten trie-based parser with byte-level dispatch. Only visible lines are processed.
 - **Zero dependencies:** As long as you have `malloc()` and `free()`, it works (Linux, macOS, Windows).
 - **Broad format support:** Hex (`#RGB`, `#RRGGBB`, `#RRGGBBAA`, `#AARRGGBB` QML, `0xAARRGGBB`), CSS functions (`rgb()`, `hsl()`, `hwb()`, `lab()`, `lch()`, `oklch()`, `color()`), CSS custom properties (`var(--name)`), named colors, xterm/ANSI 256, Tailwind CSS, Sass variables, and custom parsers — in any filetype.
-- **Display modes:** Background (with auto-contrast text), foreground, and virtualtext (inline or end-of-line).
+- **Display modes:** Background (with auto-contrast text), foreground, underline (colored via `sp`), and virtualtext (inline or end-of-line).
 - **Higher priority than treesitter:** Uses `vim.hl.priorities` (diagnostics/user) so colorizer highlights always win over treesitter syntax colors.
 
 ## Installation
@@ -183,7 +183,7 @@ require("colorizer").setup({
       custom = {}, -- list of custom parser definitions
     },
     display = {
-      mode = "background", -- "background"|"foreground"|"virtualtext"
+      mode = "background", -- "background"|"foreground"|"underline"|"virtualtext"
       background = {
         bright_fg = "#000000", -- text color on bright backgrounds
         dark_fg = "#ffffff", -- text color on dark backgrounds

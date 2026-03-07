@@ -44,46 +44,46 @@ M.configs = {
     description = "css = true preset (names + hex + rgb + hsl + oklch + css_var)",
     split = true,
   }),
-  preset_css_fn = cfg("preset_css_fn.scss", { css_fn = true }, {
+  preset_css_fn = cfg("preset_css_fn.scss", { names = { enable = false }, hex = { default = false }, css_fn = true }, {
     label = "preset_css_fn",
     description = "css_fn = true preset (rgb + hsl + oklch only)",
   }),
 
   -- ── Hex group ────────────────────────────────────────────────────
-  hex_rgb = cfg("hex_rgb.css", { hex = { rgb = true } }, {
+  hex_rgb = cfg("hex_rgb.css", { names = { enable = false }, hex = { default = false, rgb = true } }, {
     label = "hex_rgb",
     description = "#RGB (3-digit)",
   }),
-  hex_rgba = cfg("hex_rgba.css", { hex = { rgba = true } }, {
+  hex_rgba = cfg("hex_rgba.css", { names = { enable = false }, hex = { default = false, rgba = true } }, {
     label = "hex_rgba",
     description = "#RGBA (4-digit)",
   }),
-  hex_rrggbb = cfg("hex_rrggbb.css", { hex = { rrggbb = true } }, {
+  hex_rrggbb = cfg("hex_rrggbb.css", { names = { enable = false }, hex = { default = false, rrggbb = true } }, {
     label = "hex_rrggbb",
     description = "#RRGGBB (6-digit)",
   }),
-  hex_rrggbbaa = cfg("hex_rrggbbaa.css", { hex = { rrggbbaa = true } }, {
+  hex_rrggbbaa = cfg("hex_rrggbbaa.css", { names = { enable = false }, hex = { default = false, rrggbbaa = true } }, {
     label = "hex_rrggbbaa",
     description = "#RRGGBBAA (8-digit)",
   }),
-  hex_hash_aarrggbb = cfg("hex_hash_aarrggbb.css", { hex = { hash_aarrggbb = true } }, {
+  hex_hash_aarrggbb = cfg("hex_hash_aarrggbb.css", { names = { enable = false }, hex = { default = false, hash_aarrggbb = true } }, {
     label = "hex_hash_aarrggbb",
     description = "#AARRGGBB (QML 8-digit)",
   }),
-  hex_0x_aarrggbb = cfg("hex_0x_aarrggbb.css", { hex = { aarrggbb = true } }, {
+  hex_0x_aarrggbb = cfg("hex_0x_aarrggbb.css", { names = { enable = false }, hex = { default = false, aarrggbb = true } }, {
     label = "hex_0x_aarrggbb",
     description = "0xAARRGGBB (prefix hex)",
   }),
-  hex_no_hash = cfg("hex_no_hash.lua", { hex = { no_hash = true } }, {
+  hex_no_hash = cfg("hex_no_hash.lua", { names = { enable = false }, hex = { default = false, no_hash = true } }, {
     label = "hex_no_hash",
     description = "RRGGBB without # prefix",
   }),
-  hex_default = cfg("hex_default.css", { hex = { default = true } }, {
+  hex_default = cfg("hex_default.css", { names = { enable = false }, hex = { default = true } }, {
     label = "hex_default",
     description = "hex.default (all common formats)",
   }),
   hex_all = cfg("hex_all.css", {
-    hex = { default = true, hash_aarrggbb = true, no_hash = true },
+    names = { enable = false }, hex = { default = true, hash_aarrggbb = true, no_hash = true },
   }, {
     label = "hex_all",
     description = "All hex formats combined",
@@ -156,11 +156,12 @@ M.configs = {
     label = "names_uppercase",
     description = "UPPERCASE named colors only",
   }),
-  names_tailwind = cfg("names_tailwind.html", { tailwind = { enable = true } }, {
+  names_tailwind = cfg("names_tailwind.html", { names = { enable = false }, tailwind = { enable = true } }, {
     label = "names_tailwind",
     description = "Tailwind CSS color names",
   }),
   names_tailwind_lsp_config = cfg("tailwind_lsp_config.html", {
+    names = { enable = false },
     tailwind = {
       enable = true,
       lsp = { enable = false, update_names = false, disable_document_color = true },
@@ -227,7 +228,7 @@ M.configs = {
     label = "special_xterm",
     description = "Xterm 256-color (#xN)",
   }),
-  special_xcolor = cfg("xcolor.tex", { xcolor = { enable = true } }, {
+  special_xcolor = cfg("xcolor.tex", { names = { enable = false }, xcolor = { enable = true } }, {
     label = "special_xcolor",
     description = "XColor blending (name!percent)",
   }),
@@ -242,12 +243,12 @@ M.configs = {
     label = "special_css_var",
     description = "CSS custom properties var(--name) resolution",
   }),
-  special_sass = cfg("sass.scss", { sass = { enable = true, parsers = { css = true } } }, {
+  special_sass = cfg("sass.scss", { names = { enable = false }, sass = { enable = true, parsers = { css = true } } }, {
     label = "special_sass",
     description = "Sass $variable color resolution",
   }),
   special_sass_pattern = cfg("sass_pattern.scss", {
-    sass = { enable = true, parsers = { css = true }, variable_pattern = "^%$([%a]+)" },
+    names = { enable = false }, sass = { enable = true, parsers = { css = true }, variable_pattern = "^%$([%a]+)" },
   }, {
     label = "special_sass_pattern",
     description = "variable_pattern restricts to alpha-only names",
@@ -309,6 +310,11 @@ M.configs = {
     label = "display_foreground",
     description = "mode = foreground (colored text)",
     display = { mode = "foreground" },
+  }),
+  display_underline = cfg("display_underline.css", { names = { enable = true, lowercase = true, camelcase = true } }, {
+    label = "display_underline",
+    description = "mode = underline (colored underline via sp)",
+    display = { mode = "underline" },
   }),
   display_virtualtext_eol = cfg("display.css", { css = true }, {
     label = "display_virtualtext_eol",
@@ -411,6 +417,7 @@ M.categories = {
     names = {
       "display_background",
       "display_foreground",
+      "display_underline",
       "display_virtualtext_eol",
       "display_virtualtext_inline",
       "display_virtualtext_before",

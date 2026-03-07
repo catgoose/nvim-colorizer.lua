@@ -54,6 +54,8 @@ local function create_highlight(rgb_hex, mode, bg_opts)
   highlight_name = make_highlight_name(rgb_hex, mode)
   if mode == "foreground" then
     vim.api.nvim_set_hl(0, highlight_name, { fg = "#" .. rgb_hex })
+  elseif mode == "underline" then
+    vim.api.nvim_set_hl(0, highlight_name, { sp = "#" .. rgb_hex, underline = true })
   else
     local rr, gg, bb = rgb_hex:sub(1, 2), rgb_hex:sub(3, 4), rgb_hex:sub(5, 6)
     local r, g, b = tonumber(rr, 16), tonumber(gg, 16), tonumber(bb, 16)
@@ -110,7 +112,7 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, opts, hl_opts
   local bg_opts = d.background
   local tw = opts.parsers.tailwind or {}
 
-  if d.mode == "background" or d.mode == "foreground" then
+  if d.mode == "background" or d.mode == "foreground" or d.mode == "underline" then
     local tw_lsp = tw.lsp
     local tw_both = tw.enable and tw_lsp and tw_lsp.enable and hl_opts.tailwind_lsp
     for linenr, hls in pairs(data) do

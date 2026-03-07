@@ -989,6 +989,13 @@ T["validate_new_options"]["valid display.mode is preserved"] = function()
   eq("virtualtext", opts.display.mode)
 end
 
+T["validate_new_options"]["underline display.mode is preserved"] = function()
+  local opts = vim.deepcopy(config.default_options)
+  opts.display.mode = "underline"
+  config.validate_new_options(opts)
+  eq("underline", opts.display.mode)
+end
+
 T["validate_new_options"]["tailwind.lsp boolean true normalizes to table"] = function()
   local opts = vim.deepcopy(config.default_options)
   opts.parsers.tailwind.lsp = true
@@ -1247,6 +1254,14 @@ T["resolve_options"]["preserves display settings"] = function()
     display = { mode = "foreground" },
   })
   eq("foreground", result.display.mode)
+end
+
+T["resolve_options"]["preserves underline display mode"] = function()
+  local result = config.resolve_options({
+    parsers = { names = { enable = true } },
+    display = { mode = "underline" },
+  })
+  eq("underline", result.display.mode)
 end
 
 -- Option interpretation: hex.default = true (with no other hex keys) must enable
@@ -1578,6 +1593,13 @@ end
 T["config entry paths"]["resolve_options with legacy mode only detects colors"] = function()
   local result = config.resolve_options({ mode = "virtualtext" })
   eq("virtualtext", result.display.mode)
+  eq(true, result.parsers.names.enable)
+  eq(true, result.parsers.hex.rrggbb)
+end
+
+T["config entry paths"]["resolve_options with legacy underline mode"] = function()
+  local result = config.resolve_options({ mode = "underline" })
+  eq("underline", result.display.mode)
   eq(true, result.parsers.names.enable)
   eq(true, result.parsers.hex.rrggbb)
 end
