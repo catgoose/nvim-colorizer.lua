@@ -69,7 +69,11 @@ parsers = { css = true }
 <details><summary>Config</summary>
 
 ```lua
-parsers = { css_fn = true }
+parsers = {
+  css_fn = true,
+  hex = { default = false },
+  names = { enable = false },
+}
 ```
 
 </details>
@@ -92,7 +96,10 @@ Each test enables one `hex.*` option. The `hex_all` test enables all hex formats
 <details><summary>Config</summary>
 
 ```lua
-parsers = { hex = { rgb = true } }
+parsers = {
+  hex = { default = false, rgb = true },
+  names = { enable = false },
+}
 ```
 
 </details>
@@ -104,7 +111,10 @@ parsers = { hex = { rgb = true } }
 <details><summary>Config</summary>
 
 ```lua
-parsers = { hex = { rgba = true } }
+parsers = {
+  hex = { default = false, rgba = true },
+  names = { enable = false },
+}
 ```
 
 </details>
@@ -116,7 +126,10 @@ parsers = { hex = { rgba = true } }
 <details><summary>Config</summary>
 
 ```lua
-parsers = { hex = { rrggbb = true } }
+parsers = {
+  hex = { default = false, rrggbb = true },
+  names = { enable = false },
+}
 ```
 
 </details>
@@ -130,7 +143,10 @@ parsers = { hex = { rrggbb = true } }
 <details><summary>Config</summary>
 
 ```lua
-parsers = { hex = { rrggbbaa = true } }
+parsers = {
+  hex = { default = false, rrggbbaa = true },
+  names = { enable = false },
+}
 ```
 
 </details>
@@ -142,7 +158,10 @@ parsers = { hex = { rrggbbaa = true } }
 <details><summary>Config</summary>
 
 ```lua
-parsers = { hex = { hash_aarrggbb = true } }
+parsers = {
+  hex = { default = false, hash_aarrggbb = true },
+  names = { enable = false },
+}
 ```
 
 </details>
@@ -154,7 +173,10 @@ parsers = { hex = { hash_aarrggbb = true } }
 <details><summary>Config</summary>
 
 ```lua
-parsers = { hex = { aarrggbb = true } }
+parsers = {
+  hex = { aarrggbb = true, default = false },
+  names = { enable = false },
+}
 ```
 
 </details>
@@ -168,7 +190,10 @@ parsers = { hex = { aarrggbb = true } }
 <details><summary>Config</summary>
 
 ```lua
-parsers = { hex = { no_hash = true } }
+parsers = {
+  hex = { default = false, no_hash = true },
+  names = { enable = false },
+}
 ```
 
 </details>
@@ -180,7 +205,7 @@ parsers = { hex = { no_hash = true } }
 <details><summary>Config</summary>
 
 ```lua
-parsers = { hex = { default = true } }
+parsers = { hex = { default = true }, names = { enable = false } }
 ```
 
 </details>
@@ -194,6 +219,7 @@ parsers = { hex = { default = true } }
 ```lua
 parsers = {
   hex = { default = true, hash_aarrggbb = true, no_hash = true },
+  names = { enable = false },
 }
 ```
 
@@ -408,7 +434,7 @@ parsers = {
 <details><summary>Config</summary>
 
 ```lua
-parsers = { tailwind = { enable = true } }
+parsers = { names = { enable = false }, tailwind = { enable = true } }
 ```
 
 </details>
@@ -421,6 +447,7 @@ parsers = { tailwind = { enable = true } }
 
 ```lua
 parsers = {
+  names = { enable = false },
   tailwind = {
     enable = true,
     lsp = {
@@ -553,7 +580,7 @@ parsers = { xterm = { enable = true } }
 <details><summary>Config</summary>
 
 ```lua
-parsers = { xcolor = { enable = true } }
+parsers = { names = { enable = false }, xcolor = { enable = true } }
 ```
 
 </details>
@@ -594,7 +621,10 @@ parsers = {
 <details><summary>Config</summary>
 
 ```lua
-parsers = { sass = { enable = true, parsers = { css = true } } }
+parsers = {
+  names = { enable = false },
+  sass = { enable = true, parsers = { css = true } },
+}
 ```
 
 </details>
@@ -607,6 +637,7 @@ parsers = { sass = { enable = true, parsers = { css = true } } }
 
 ```lua
 parsers = {
+  names = { enable = false },
   sass = {
     enable = true,
     parsers = { css = true },
@@ -701,7 +732,24 @@ display = { mode = "foreground" }
 </details>
 </td>
 <td align="center">
-<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B42%5D%20display_virtualtext_eol&body=%2A%2AScreenshot%20index%3A%2A%2A%2042%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_virtualtext_eol%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[42]</a> display_virtualtext_eol</strong><br>
+<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B42%5D%20display_underline&body=%2A%2AScreenshot%20index%3A%2A%2A%2042%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_underline%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[42]</a> display_underline</strong><br>
+<em>mode = underline (colored underline via sp)</em><br>
+<img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/display_underline.png" width="400"><br>
+<details><summary>Config</summary>
+
+```lua
+parsers = {
+  names = { camelcase = true, enable = true, lowercase = true },
+}
+display = { mode = "underline" }
+```
+
+</details>
+</td>
+</tr>
+<tr>
+<td align="center">
+<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B43%5D%20display_virtualtext_eol&body=%2A%2AScreenshot%20index%3A%2A%2A%2043%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_virtualtext_eol%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[43]</a> display_virtualtext_eol</strong><br>
 <em>virtualtext at end of line</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/display_virtualtext_eol.png" width="400"><br>
 <details><summary>Config</summary>
@@ -713,10 +761,8 @@ display = { mode = "virtualtext", virtualtext = { position = "eol" } }
 
 </details>
 </td>
-</tr>
-<tr>
 <td align="center">
-<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B43%5D%20display_virtualtext_inline&body=%2A%2AScreenshot%20index%3A%2A%2A%2043%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_virtualtext_inline%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[43]</a> display_virtualtext_inline</strong><br>
+<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B44%5D%20display_virtualtext_inline&body=%2A%2AScreenshot%20index%3A%2A%2A%2044%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_virtualtext_inline%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[44]</a> display_virtualtext_inline</strong><br>
 <em>virtualtext inline after color</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/display_virtualtext_inline.png" width="400"><br>
 <details><summary>Config</summary>
@@ -732,7 +778,7 @@ display = {
 </details>
 </td>
 <td align="center">
-<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B44%5D%20display_virtualtext_before&body=%2A%2AScreenshot%20index%3A%2A%2A%2044%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_virtualtext_before%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[44]</a> display_virtualtext_before</strong><br>
+<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B45%5D%20display_virtualtext_before&body=%2A%2AScreenshot%20index%3A%2A%2A%2045%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_virtualtext_before%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[45]</a> display_virtualtext_before</strong><br>
 <em>virtualtext before color</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/display_virtualtext_before.png" width="400"><br>
 <details><summary>Config</summary>
@@ -747,8 +793,10 @@ display = {
 
 </details>
 </td>
+</tr>
+<tr>
 <td align="center">
-<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B45%5D%20display_virtualtext_hl_bg&body=%2A%2AScreenshot%20index%3A%2A%2A%2045%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_virtualtext_hl_bg%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[45]</a> display_virtualtext_hl_bg</strong><br>
+<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B46%5D%20display_virtualtext_hl_bg&body=%2A%2AScreenshot%20index%3A%2A%2A%2046%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_virtualtext_hl_bg%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[46]</a> display_virtualtext_hl_bg</strong><br>
 <em>virtualtext eol with hl_mode = background</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/display_virtualtext_hl_bg.png" width="400"><br>
 <details><summary>Config</summary>
@@ -763,10 +811,8 @@ display = {
 
 </details>
 </td>
-</tr>
-<tr>
 <td align="center">
-<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B46%5D%20display_vt_before_hl_bg&body=%2A%2AScreenshot%20index%3A%2A%2A%2046%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_vt_before_hl_bg%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[46]</a> display_vt_before_hl_bg</strong><br>
+<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B47%5D%20display_vt_before_hl_bg&body=%2A%2AScreenshot%20index%3A%2A%2A%2047%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_vt_before_hl_bg%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[47]</a> display_vt_before_hl_bg</strong><br>
 <em>virtualtext before with hl_mode = background</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/display_vt_before_hl_bg.png" width="400"><br>
 <details><summary>Config</summary>
@@ -782,7 +828,7 @@ display = {
 </details>
 </td>
 <td align="center">
-<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B47%5D%20display_vt_after_hl_bg&body=%2A%2AScreenshot%20index%3A%2A%2A%2047%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_vt_after_hl_bg%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[47]</a> display_vt_after_hl_bg</strong><br>
+<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B48%5D%20display_vt_after_hl_bg&body=%2A%2AScreenshot%20index%3A%2A%2A%2048%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_vt_after_hl_bg%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[48]</a> display_vt_after_hl_bg</strong><br>
 <em>virtualtext after with hl_mode = background</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/display_vt_after_hl_bg.png" width="400"><br>
 <details><summary>Config</summary>
@@ -797,8 +843,10 @@ display = {
 
 </details>
 </td>
+</tr>
+<tr>
 <td align="center">
-<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B48%5D%20display_vt_char_circle&body=%2A%2AScreenshot%20index%3A%2A%2A%2048%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_vt_char_circle%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[48]</a> display_vt_char_circle</strong><br>
+<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B49%5D%20display_vt_char_circle&body=%2A%2AScreenshot%20index%3A%2A%2A%2049%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_vt_char_circle%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[49]</a> display_vt_char_circle</strong><br>
 <em>virtualtext with char = ●</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/display_vt_char_circle.png" width="400"><br>
 <details><summary>Config</summary>
@@ -813,10 +861,8 @@ display = {
 
 </details>
 </td>
-</tr>
-<tr>
 <td align="center">
-<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B49%5D%20display_vt_char_block&body=%2A%2AScreenshot%20index%3A%2A%2A%2049%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_vt_char_block%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[49]</a> display_vt_char_block</strong><br>
+<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B50%5D%20display_vt_char_block&body=%2A%2AScreenshot%20index%3A%2A%2A%2050%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_vt_char_block%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[50]</a> display_vt_char_block</strong><br>
 <em>virtualtext with char = █</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/display_vt_char_block.png" width="400"><br>
 <details><summary>Config</summary>
@@ -832,7 +878,7 @@ display = {
 </details>
 </td>
 <td align="center">
-<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B50%5D%20display_bg_contrast&body=%2A%2AScreenshot%20index%3A%2A%2A%2050%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_bg_contrast%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[50]</a> display_bg_contrast</strong><br>
+<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B51%5D%20display_bg_contrast&body=%2A%2AScreenshot%20index%3A%2A%2A%2051%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_bg_contrast%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[51]</a> display_bg_contrast</strong><br>
 <em>background mode with custom contrast colors</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/display_bg_contrast.png" width="400"><br>
 <details><summary>Config</summary>
@@ -847,8 +893,10 @@ display = {
 
 </details>
 </td>
+</tr>
+<tr>
 <td align="center">
-<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B51%5D%20display_priority&body=%2A%2AScreenshot%20index%3A%2A%2A%2051%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_priority%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[51]</a> display_priority</strong><br>
+<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B52%5D%20display_priority&body=%2A%2AScreenshot%20index%3A%2A%2A%2052%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_priority%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[52]</a> display_priority</strong><br>
 <em>custom priority (default=50, lsp=300)</em><br>
 <img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/display_priority.png" width="400"><br>
 <details><summary>Config</summary>
@@ -863,6 +911,8 @@ display = {
 
 </details>
 </td>
+<td></td>
+<td></td>
 </tr>
 </table>
 <!-- gen:display_gallery:end -->
