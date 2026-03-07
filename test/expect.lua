@@ -46,7 +46,7 @@ local opts = {
       xterm = { enable = true },
     },
     display = {
-      mode = "background",
+      mode = "background", -- "background"|"foreground"|"underline"|"virtualtext"
       virtualtext = {
         char = "■",
         position = "eol",

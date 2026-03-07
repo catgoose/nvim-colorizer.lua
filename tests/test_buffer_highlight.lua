@@ -79,6 +79,33 @@ T["add_highlight"]["sets extmarks in foreground mode"] = function()
   vim.api.nvim_buf_delete(buf, { force = true })
 end
 
+T["add_highlight"]["sets extmarks in underline mode"] = function()
+  local buf = make_buf({ "#FF8800 text" })
+  local ns = vim.api.nvim_create_namespace("test_add_hl_ul")
+  local opts = all_opts({ mode = "underline" })
+  local data = buffer.parse_lines(buf, { "#FF8800 text" }, 0, opts)
+  buffer.add_highlight(buf, ns, 0, 1, data, opts)
+  local marks = vim.api.nvim_buf_get_extmarks(buf, ns, 0, -1, { details = true })
+  eq(true, #marks > 0)
+  -- Underline highlight name should contain "mu" (underline mode)
+  eq(true, marks[1][4].hl_group:find("mu") ~= nil)
+  vim.api.nvim_buf_delete(buf, { force = true })
+end
+
+T["add_highlight"]["underline mode sets sp and underline attribute"] = function()
+  local buf = make_buf({ "#FF8800 text" })
+  local ns = vim.api.nvim_create_namespace("test_add_hl_ul_attrs")
+  local opts = all_opts({ mode = "underline" })
+  local data = buffer.parse_lines(buf, { "#FF8800 text" }, 0, opts)
+  buffer.add_highlight(buf, ns, 0, 1, data, opts)
+  local marks = vim.api.nvim_buf_get_extmarks(buf, ns, 0, -1, { details = true })
+  local hl_name = marks[1][4].hl_group
+  local hl_def = vim.api.nvim_get_hl(0, { name = hl_name })
+  eq(true, hl_def.underline == true)
+  eq(true, hl_def.sp ~= nil)
+  vim.api.nvim_buf_delete(buf, { force = true })
+end
+
 T["add_highlight"]["sets virtualtext extmarks"] = function()
   local buf = make_buf({ "#0000FF text" })
   local ns = vim.api.nvim_create_namespace("test_add_hl_vt")

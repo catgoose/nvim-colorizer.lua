@@ -60,6 +60,10 @@ T["highlight_mode_names"]["foreground is 'mf'"] = function()
   eq("mf", const.highlight_mode_names.foreground)
 end
 
+T["highlight_mode_names"]["underline is 'mu'"] = function()
+  eq("mu", const.highlight_mode_names.underline)
+end
+
 T["highlight_mode_names"]["virtualtext is 'mv'"] = function()
   eq("mv", const.highlight_mode_names.virtualtext)
 end

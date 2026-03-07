@@ -134,6 +134,11 @@ T["mode validation"]["'foreground' is accepted"] = function()
   eq("foreground", opts.mode)
 end
 
+T["mode validation"]["'underline' is accepted"] = function()
+  local opts = config.apply_alias_options({ mode = "underline" })
+  eq("underline", opts.mode)
+end
+
 T["mode validation"]["'virtualtext' is accepted"] = function()
   local opts = config.apply_alias_options({ mode = "virtualtext" })
   eq("virtualtext", opts.mode)
