@@ -89,7 +89,6 @@ local const = require("colorizer.constants")
 local matcher_mod = require("colorizer.matcher")
 local utils = require("colorizer.utils")
 
-
 --- State and configuration dynamic holding information table tracking
 local colorizer_state = {
   -- augroup: augroup id
@@ -414,12 +413,18 @@ function M.attach_to_buffer(bufnr, opts, bo_type)
   -- highlights from conflicting with colorizer's own highlights).
   -- Accepts true (disable for all LSPs), false (no-op), or a table of
   -- { lsp_name = bool } pairs to selectively disable per-server.
+  --
+  -- Two mechanisms work together:
+  -- 1. Immediate disable: handles LSP clients already attached when colorizer
+  --    loads (e.g. lazy-loaded plugin after LSP is running).
+  -- 2. LspAttach autocmd (below): handles clients that attach later. Neovim's
+  --    Client:on_attach() re-enables document_color before firing LspAttach,
+  --    so the autocmd re-disables it after each new client attaches.
   local ddc = opts.display and opts.display.disable_document_color
   if ddc and vim.lsp.document_color then
     if ddc == true then
       vim.lsp.document_color.enable(false, bufnr)
     elseif type(ddc) == "table" then
-      -- Check currently attached clients
       for _, client in ipairs(vim.lsp.get_clients({ bufnr = bufnr })) do
         if ddc[client.name] then
           vim.lsp.document_color.enable(false, bufnr)
@@ -480,15 +485,20 @@ function M.attach_to_buffer(bufnr, opts, bo_type)
 
   local autocmds = {}
 
-  -- When disable_document_color is a table, also handle LSPs that attach later.
-  if type(ddc) == "table" and vim.lsp.document_color then
+  -- Neovim re-enables document_color on every LspAttach (Client:on_attach),
+  -- so we must re-disable after each new client attaches.
+  if ddc and vim.lsp.document_color then
     autocmds[#autocmds + 1] = vim.api.nvim_create_autocmd("LspAttach", {
       group = colorizer_state.augroup,
       buffer = bufnr,
       callback = function(args)
-        local client = vim.lsp.get_client_by_id(args.data.client_id)
-        if client and ddc[client.name] then
+        if ddc == true then
           vim.lsp.document_color.enable(false, bufnr)
+        elseif type(ddc) == "table" then
+          local client = vim.lsp.get_client_by_id(args.data.client_id)
+          if client and ddc[client.name] then
+            vim.lsp.document_color.enable(false, bufnr)
+          end
         end
       end,
     })
