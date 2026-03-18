@@ -410,6 +410,25 @@ function M.attach_to_buffer(bufnr, opts, bo_type)
   colorizer_state.buffer_options[bufnr] = opts
   colorizer_state.buffer_local[bufnr] = colorizer_state.buffer_local[bufnr] or {}
 
+  -- Disable vim.lsp.document_color when configured (prevents LSP background
+  -- highlights from conflicting with colorizer's own highlights).
+  -- Accepts true (disable for all LSPs), false (no-op), or a table of
+  -- { lsp_name = bool } pairs to selectively disable per-server.
+  local ddc = opts.display and opts.display.disable_document_color
+  if ddc and vim.lsp.document_color then
+    if ddc == true then
+      vim.lsp.document_color.enable(false, bufnr)
+    elseif type(ddc) == "table" then
+      -- Check currently attached clients
+      for _, client in ipairs(vim.lsp.get_clients({ bufnr = bufnr })) do
+        if ddc[client.name] then
+          vim.lsp.document_color.enable(false, bufnr)
+          break
+        end
+      end
+    end
+  end
+
   -- Setup custom parser state
   setup_custom_parsers(bufnr, opts)
 
@@ -460,6 +479,21 @@ function M.attach_to_buffer(bufnr, opts, bo_type)
   end
 
   local autocmds = {}
+
+  -- When disable_document_color is a table, also handle LSPs that attach later.
+  if type(ddc) == "table" and vim.lsp.document_color then
+    autocmds[#autocmds + 1] = vim.api.nvim_create_autocmd("LspAttach", {
+      group = colorizer_state.augroup,
+      buffer = bufnr,
+      callback = function(args)
+        local client = vim.lsp.get_client_by_id(args.data.client_id)
+        if client and ddc[client.name] then
+          vim.lsp.document_color.enable(false, bufnr)
+        end
+      end,
+    })
+  end
+
   local text_changed_au = { "TextChanged", "TextChangedI", "TextChangedP" }
   -- Only enable InsertLeave in sass mode, other modes do not require it
   local sass_enable = opts.parsers and opts.parsers.sass and opts.parsers.sass.enable

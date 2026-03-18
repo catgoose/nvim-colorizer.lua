@@ -182,6 +182,7 @@ local plugin_user_default_options = {
 ---@field background colorizer.DisplayBackground Background mode settings
 ---@field virtualtext colorizer.DisplayVirtualtext Virtual text display settings
 ---@field priority colorizer.DisplayPriority Extmark priority settings
+---@field disable_document_color boolean|table<string,boolean> Auto-disable vim.lsp.document_color on attach. `true` disables for all LSPs, a table like `{ cssls = true }` disables selectively per-server (default true)
 
 ---@class colorizer.DisplayBackground
 ---@field bright_fg string Foreground color for bright backgrounds (default "#000000")
@@ -251,6 +252,7 @@ local default_options = {
       default = (vim.hl and vim.hl.priorities and vim.hl.priorities.diagnostics) or 150,
       lsp = (vim.hl and vim.hl.priorities and vim.hl.priorities.user) or 200,
     },
+    disable_document_color = true,
   },
 
   hooks = {

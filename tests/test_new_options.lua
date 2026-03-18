@@ -2793,6 +2793,74 @@ T["display.priority"]["preserved through resolve"] = function()
   eq(99, opts.display.priority.lsp)
 end
 
+-- display.disable_document_color -----------------------------------------------
+
+T["display.disable_document_color"] = new_set()
+
+T["display.disable_document_color"]["defaults to true"] = function()
+  eq(true, config.default_options.display.disable_document_color)
+end
+
+T["display.disable_document_color"]["preserved through resolve with default"] = function()
+  local opts = config.resolve_options({
+    parsers = { hex = { enable = true } },
+  })
+  eq(true, opts.display.disable_document_color)
+end
+
+T["display.disable_document_color"]["can be set to false"] = function()
+  local opts = config.resolve_options({
+    display = { disable_document_color = false },
+  })
+  eq(false, opts.display.disable_document_color)
+end
+
+T["display.disable_document_color"]["preserved through get_setup_options new format"] = function()
+  local s = config.get_setup_options({
+    options = { display = { disable_document_color = false } },
+  })
+  eq(false, s.options.display.disable_document_color)
+end
+
+T["display.disable_document_color"]["preserved through top-level hoist"] = function()
+  local s = config.get_setup_options({
+    display = { disable_document_color = false },
+  })
+  eq(false, s.options.display.disable_document_color)
+end
+
+T["display.disable_document_color"]["defaults to true when not specified"] = function()
+  local s = config.get_setup_options({
+    display = { mode = "virtualtext" },
+  })
+  eq(true, s.options.display.disable_document_color)
+end
+
+T["display.disable_document_color"]["accepts table of lsp names"] = function()
+  local opts = config.resolve_options({
+    display = { disable_document_color = { cssls = true, html = true } },
+  })
+  eq("table", type(opts.display.disable_document_color))
+  eq(true, opts.display.disable_document_color.cssls)
+  eq(true, opts.display.disable_document_color.html)
+end
+
+T["display.disable_document_color"]["table preserved through get_setup_options"] = function()
+  local s = config.get_setup_options({
+    display = { disable_document_color = { cssls = true } },
+  })
+  eq("table", type(s.options.display.disable_document_color))
+  eq(true, s.options.display.disable_document_color.cssls)
+end
+
+T["display.disable_document_color"]["table with false values preserved"] = function()
+  local opts = config.resolve_options({
+    display = { disable_document_color = { cssls = true, tailwindcss = false } },
+  })
+  eq(true, opts.display.disable_document_color.cssls)
+  eq(false, opts.display.disable_document_color.tailwindcss)
+end
+
 -- parsers.sass.variable_pattern -----------------------------------------------
 
 T["parsers.sass.variable_pattern"] = new_set()
