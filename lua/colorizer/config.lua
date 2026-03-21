@@ -170,7 +170,6 @@ local plugin_user_default_options = {
 
 ---@class colorizer.ParsersTailwindLsp
 ---@field enable boolean Enable Tailwind LSP documentColor highlighting
----@field disable_document_color boolean Auto-disable vim.lsp.document_color on attach (default true)
 
 ---@class colorizer.ParsersSass
 ---@field enable boolean Enable Sass color variable parsing
@@ -221,7 +220,6 @@ local function build_default_parsers()
     enable = false,
     lsp = {
       enable = false,
-      disable_document_color = true,
     },
     update_names = false,
   }
@@ -764,7 +762,6 @@ end
 --- Default tailwind.lsp table for normalization fallback
 local default_tailwind_lsp = {
   enable = false,
-  disable_document_color = true,
 }
 
 --- Normalize tailwind.lsp to table form.
