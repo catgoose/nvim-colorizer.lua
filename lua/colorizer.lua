@@ -89,8 +89,21 @@ local const = require("colorizer.constants")
 local matcher_mod = require("colorizer.matcher")
 local utils = require("colorizer.utils")
 
-
 --- State and configuration dynamic holding information table tracking
+--- Disable vim.lsp.document_color for a buffer.
+--- Handles both old (enable, bufnr) and new (enable, filter) Neovim APIs.
+local function disable_document_color(bufnr)
+  if not vim.lsp.document_color then
+    return
+  end
+  -- Neovim nightly changed the signature to enable(enable, filter_table).
+  -- Detect by trying the new API first; fall back to the old one.
+  local ok = pcall(vim.lsp.document_color.enable, false, { bufnr = bufnr })
+  if not ok then
+    disable_document_color(bufnr)
+  end
+end
+
 local colorizer_state = {
   -- augroup: augroup id
   augroup = vim.api.nvim_create_augroup(const.autocmd.setup, { clear = true }),
@@ -410,6 +423,31 @@ function M.attach_to_buffer(bufnr, opts, bo_type)
   colorizer_state.buffer_options[bufnr] = opts
   colorizer_state.buffer_local[bufnr] = colorizer_state.buffer_local[bufnr] or {}
 
+  -- Disable vim.lsp.document_color when configured (prevents LSP background
+  -- highlights from conflicting with colorizer's own highlights).
+  -- Accepts true (disable for all LSPs), false (no-op), or a table of
+  -- { lsp_name = bool } pairs to selectively disable per-server.
+  --
+  -- Two mechanisms work together:
+  -- 1. Immediate disable: handles LSP clients already attached when colorizer
+  --    loads (e.g. lazy-loaded plugin after LSP is running).
+  -- 2. LspAttach autocmd (below): handles clients that attach later. Neovim's
+  --    Client:on_attach() re-enables document_color before firing LspAttach,
+  --    so the autocmd re-disables it after each new client attaches.
+  local ddc = opts.display and opts.display.disable_document_color
+  if ddc and vim.lsp.document_color then
+    if ddc == true then
+      disable_document_color(bufnr)
+    elseif type(ddc) == "table" then
+      for _, client in ipairs(vim.lsp.get_clients({ bufnr = bufnr })) do
+        if ddc[client.name] then
+          disable_document_color(bufnr)
+          break
+        end
+      end
+    end
+  end
+
   -- Setup custom parser state
   setup_custom_parsers(bufnr, opts)
 
@@ -460,6 +498,26 @@ function M.attach_to_buffer(bufnr, opts, bo_type)
   end
 
   local autocmds = {}
+
+  -- Neovim re-enables document_color on every LspAttach (Client:on_attach),
+  -- so we must re-disable after each new client attaches.
+  if ddc and vim.lsp.document_color then
+    autocmds[#autocmds + 1] = vim.api.nvim_create_autocmd("LspAttach", {
+      group = colorizer_state.augroup,
+      buffer = bufnr,
+      callback = function(args)
+        if ddc == true then
+          disable_document_color(bufnr)
+        elseif type(ddc) == "table" then
+          local client = vim.lsp.get_client_by_id(args.data.client_id)
+          if client and ddc[client.name] then
+            disable_document_color(bufnr)
+          end
+        end
+      end,
+    })
+  end
+
   local text_changed_au = { "TextChanged", "TextChangedI", "TextChangedP" }
   -- Only enable InsertLeave in sass mode, other modes do not require it
   local sass_enable = opts.parsers and opts.parsers.sass and opts.parsers.sass.enable

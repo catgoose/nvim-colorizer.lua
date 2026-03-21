@@ -332,10 +332,11 @@ colorizer.ParsersSass                                    *colorizer.ParsersSass*
 colorizer.DisplayOptions                              *colorizer.DisplayOptions*
 
     Fields: ~
-        {mode}         ("background"|"foreground"|"virtualtext")  How to display detected colors
-        {background}   (colorizer.DisplayBackground)              Background mode settings
-        {virtualtext}  (colorizer.DisplayVirtualtext)             Virtual text display settings
-        {priority}     (colorizer.DisplayPriority)                Extmark priority settings
+        {mode}                    ("background"|"foreground"|"virtualtext")  How to display detected colors
+        {background}              (colorizer.DisplayBackground)              Background mode settings
+        {virtualtext}             (colorizer.DisplayVirtualtext)             Virtual text display settings
+        {priority}                (colorizer.DisplayPriority)                Extmark priority settings
+        {disable_document_color}  (boolean|table<string,boolean>)             Auto-disable vim.lsp.document_color on attach. `true` disables for all LSPs, a table like `{ cssls = true }` disables selectively per-server (default true)
 
 
 colorizer.DisplayBackground                        *colorizer.DisplayBackground*

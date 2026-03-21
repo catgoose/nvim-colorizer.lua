@@ -1002,7 +1002,6 @@ T["validate_new_options"]["tailwind.lsp boolean true normalizes to table"] = fun
   config.validate_new_options(opts)
   eq("table", type(opts.parsers.tailwind.lsp))
   eq(true, opts.parsers.tailwind.lsp.enable)
-  eq(true, opts.parsers.tailwind.lsp.disable_document_color)
 end
 
 T["validate_new_options"]["tailwind.lsp boolean false normalizes to table"] = function()
@@ -1018,7 +1017,6 @@ T["validate_new_options"]["tailwind.lsp table form preserved"] = function()
   opts.parsers.tailwind.lsp = { enable = true }
   config.validate_new_options(opts)
   eq(true, opts.parsers.tailwind.lsp.enable)
-  eq(true, opts.parsers.tailwind.lsp.disable_document_color)
 end
 
 T["validate_new_options"]["tailwind.update_names stays at tailwind level"] = function()
@@ -1028,13 +1026,6 @@ T["validate_new_options"]["tailwind.update_names stays at tailwind level"] = fun
   config.validate_new_options(opts)
   eq(true, opts.parsers.tailwind.update_names)
   eq(true, opts.parsers.tailwind.lsp.enable)
-end
-
-T["validate_new_options"]["disable_document_color defaults to true"] = function()
-  local opts = vim.deepcopy(config.default_options)
-  opts.parsers.tailwind.lsp = { enable = true }
-  config.validate_new_options(opts)
-  eq(true, opts.parsers.tailwind.lsp.disable_document_color)
 end
 
 T["validate_new_options"]["valid virtualtext.position values preserved"] = function()
@@ -1479,7 +1470,6 @@ T["default_options consistency"]["tailwind disabled by default"] = function()
   eq(false, config.default_options.parsers.tailwind.enable)
   eq("table", type(config.default_options.parsers.tailwind.lsp))
   eq(false, config.default_options.parsers.tailwind.lsp.enable)
-  eq(true, config.default_options.parsers.tailwind.lsp.disable_document_color)
 end
 
 T["default_options consistency"]["sass disabled by default"] = function()
@@ -2636,7 +2626,6 @@ T["tailwind.lsp normalization"]["resolve new-format lsp = true shorthand"] = fun
   eq(true, result.parsers.tailwind.enable)
   eq("table", type(result.parsers.tailwind.lsp))
   eq(true, result.parsers.tailwind.lsp.enable)
-  eq(true, result.parsers.tailwind.lsp.disable_document_color)
   eq(false, result.parsers.tailwind.update_names)
 end
 
@@ -2647,20 +2636,6 @@ T["tailwind.lsp normalization"]["resolve new-format lsp = false shorthand"] = fu
   eq(true, result.parsers.tailwind.enable)
   eq("table", type(result.parsers.tailwind.lsp))
   eq(false, result.parsers.tailwind.lsp.enable)
-  eq(true, result.parsers.tailwind.lsp.disable_document_color)
-end
-
-T["tailwind.lsp normalization"]["resolve new-format lsp table with disable_document_color false"] = function()
-  local result = config.resolve_options({
-    parsers = {
-      tailwind = {
-        enable = true,
-        lsp = { enable = true, disable_document_color = false },
-      },
-    },
-  })
-  eq(true, result.parsers.tailwind.lsp.enable)
-  eq(false, result.parsers.tailwind.lsp.disable_document_color)
 end
 
 T["tailwind.lsp normalization"]["empty lsp table fills defaults"] = function()
@@ -2669,7 +2644,6 @@ T["tailwind.lsp normalization"]["empty lsp table fills defaults"] = function()
   })
   eq("table", type(result.parsers.tailwind.lsp))
   eq(false, result.parsers.tailwind.lsp.enable)
-  eq(true, result.parsers.tailwind.lsp.disable_document_color)
 end
 
 T["tailwind.lsp normalization"]["update_names stays at tailwind level"] = function()
@@ -2678,22 +2652,6 @@ T["tailwind.lsp normalization"]["update_names stays at tailwind level"] = functi
   })
   eq(true, result.parsers.tailwind.lsp.enable)
   eq(true, result.parsers.tailwind.update_names)
-end
-
-T["tailwind.lsp normalization"]["roundtrip preserves disable_document_color false"] = function()
-  local original = vim.deepcopy(config.default_options)
-  original.parsers.tailwind.enable = true
-  original.parsers.tailwind.lsp.enable = true
-  original.parsers.tailwind.lsp.disable_document_color = false
-
-  local flat = config.as_flat(original)
-  local restored = config.resolve_options(flat)
-
-  eq(true, restored.parsers.tailwind.enable)
-  eq(true, restored.parsers.tailwind.lsp.enable)
-  -- Note: disable_document_color is not roundtripped through flat format
-  -- (flat format doesn't carry it), so it defaults back to true
-  eq(true, restored.parsers.tailwind.lsp.disable_document_color)
 end
 
 -- display.background options --------------------------------------------------
@@ -2791,6 +2749,74 @@ T["display.priority"]["preserved through resolve"] = function()
   })
   eq(42, opts.display.priority.default)
   eq(99, opts.display.priority.lsp)
+end
+
+-- display.disable_document_color -----------------------------------------------
+
+T["display.disable_document_color"] = new_set()
+
+T["display.disable_document_color"]["defaults to true"] = function()
+  eq(true, config.default_options.display.disable_document_color)
+end
+
+T["display.disable_document_color"]["preserved through resolve with default"] = function()
+  local opts = config.resolve_options({
+    parsers = { hex = { enable = true } },
+  })
+  eq(true, opts.display.disable_document_color)
+end
+
+T["display.disable_document_color"]["can be set to false"] = function()
+  local opts = config.resolve_options({
+    display = { disable_document_color = false },
+  })
+  eq(false, opts.display.disable_document_color)
+end
+
+T["display.disable_document_color"]["preserved through get_setup_options new format"] = function()
+  local s = config.get_setup_options({
+    options = { display = { disable_document_color = false } },
+  })
+  eq(false, s.options.display.disable_document_color)
+end
+
+T["display.disable_document_color"]["preserved through top-level hoist"] = function()
+  local s = config.get_setup_options({
+    display = { disable_document_color = false },
+  })
+  eq(false, s.options.display.disable_document_color)
+end
+
+T["display.disable_document_color"]["defaults to true when not specified"] = function()
+  local s = config.get_setup_options({
+    display = { mode = "virtualtext" },
+  })
+  eq(true, s.options.display.disable_document_color)
+end
+
+T["display.disable_document_color"]["accepts table of lsp names"] = function()
+  local opts = config.resolve_options({
+    display = { disable_document_color = { cssls = true, html = true } },
+  })
+  eq("table", type(opts.display.disable_document_color))
+  eq(true, opts.display.disable_document_color.cssls)
+  eq(true, opts.display.disable_document_color.html)
+end
+
+T["display.disable_document_color"]["table preserved through get_setup_options"] = function()
+  local s = config.get_setup_options({
+    display = { disable_document_color = { cssls = true } },
+  })
+  eq("table", type(s.options.display.disable_document_color))
+  eq(true, s.options.display.disable_document_color.cssls)
+end
+
+T["display.disable_document_color"]["table with false values preserved"] = function()
+  local opts = config.resolve_options({
+    display = { disable_document_color = { cssls = true, tailwindcss = false } },
+  })
+  eq(true, opts.display.disable_document_color.cssls)
+  eq(false, opts.display.disable_document_color.tailwindcss)
 end
 
 -- parsers.sass.variable_pattern -----------------------------------------------

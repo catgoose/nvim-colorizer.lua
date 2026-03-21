@@ -197,6 +197,7 @@ require("colorizer").setup({
         default = 150, -- extmark priority for normal highlights
         lsp = 200, -- extmark priority for LSP/Tailwind highlights
       },
+      disable_document_color = true, -- true (all LSPs) | false | { lsp_name = true, ... }
     },
     hooks = {
       should_highlight_line = false, -- function(line, bufnr, line_num) -> bool
@@ -263,18 +264,48 @@ name table so subsequent name-based highlights use accurate values.
 ### Neovim built-in LSP document colors (0.12+)
 
 Neovim 0.12+ has built-in `textDocument/documentColor` support via
-`vim.lsp.document_color` that is **enabled by default** on `LspAttach`. When
-colorizer's `tailwind.lsp` is active, `disable_document_color` (default `true`)
-automatically calls `vim.lsp.document_color.enable(false, bufnr)` to prevent
-duplicate highlights. No manual `LspAttach` autocmd is needed.
+`vim.lsp.document_color` that is **enabled by default** on `LspAttach`. This
+can cause duplicate highlights — for example, background highlighting on hex
+codes even when colorizer is set to `virtualtext` mode.
+
+Colorizer automatically disables `vim.lsp.document_color` on buffer attach via
+`display.disable_document_color` (default `true`). This applies to **all LSP
+servers**, not just Tailwind. No manual `LspAttach` autocmd is needed.
+
+`disable_document_color` accepts three forms:
+
+| Value | Behavior |
+| --- | --- |
+| `true` | Disable document color for all LSP servers (default) |
+| `false` | Keep `vim.lsp.document_color` active |
+| `{ lsp_name = true, ... }` | Disable only for the listed servers |
+
+Additionally, when `tailwind.lsp` is active, the Tailwind-specific
+`tailwind.lsp.disable_document_color` (also default `true`) handles the case
+where the Tailwind LSP attaches after colorizer.
 
 To **keep the built-in feature active** alongside colorizer:
 
 ```lua
-tailwind = {
-  enable = true,
-  lsp = { enable = true, disable_document_color = false },
-},
+require("colorizer").setup({
+  options = {
+    display = {
+      disable_document_color = false, -- keep vim.lsp.document_color active
+    },
+  },
+})
+```
+
+To **disable only for specific LSP servers**:
+
+```lua
+require("colorizer").setup({
+  options = {
+    display = {
+      disable_document_color = { cssls = true, html = true },
+    },
+  },
+})
 ```
 
 **Or use the built-in feature instead** and disable colorizer's LSP integration:
