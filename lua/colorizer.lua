@@ -90,6 +90,20 @@ local matcher_mod = require("colorizer.matcher")
 local utils = require("colorizer.utils")
 
 --- State and configuration dynamic holding information table tracking
+--- Disable vim.lsp.document_color for a buffer.
+--- Handles both old (enable, bufnr) and new (enable, filter) Neovim APIs.
+local function disable_document_color(bufnr)
+  if not vim.lsp.document_color then
+    return
+  end
+  -- Neovim nightly changed the signature to enable(enable, filter_table).
+  -- Detect by trying the new API first; fall back to the old one.
+  local ok = pcall(vim.lsp.document_color.enable, false, { bufnr = bufnr })
+  if not ok then
+    disable_document_color(bufnr)
+  end
+end
+
 local colorizer_state = {
   -- augroup: augroup id
   augroup = vim.api.nvim_create_augroup(const.autocmd.setup, { clear = true }),
@@ -423,11 +437,11 @@ function M.attach_to_buffer(bufnr, opts, bo_type)
   local ddc = opts.display and opts.display.disable_document_color
   if ddc and vim.lsp.document_color then
     if ddc == true then
-      vim.lsp.document_color.enable(false, bufnr)
+      disable_document_color(bufnr)
     elseif type(ddc) == "table" then
       for _, client in ipairs(vim.lsp.get_clients({ bufnr = bufnr })) do
         if ddc[client.name] then
-          vim.lsp.document_color.enable(false, bufnr)
+          disable_document_color(bufnr)
           break
         end
       end
@@ -493,11 +507,11 @@ function M.attach_to_buffer(bufnr, opts, bo_type)
       buffer = bufnr,
       callback = function(args)
         if ddc == true then
-          vim.lsp.document_color.enable(false, bufnr)
+          disable_document_color(bufnr)
         elseif type(ddc) == "table" then
           local client = vim.lsp.get_client_by_id(args.data.client_id)
           if client and ddc[client.name] then
-            vim.lsp.document_color.enable(false, bufnr)
+            disable_document_color(bufnr)
           end
         end
       end,
