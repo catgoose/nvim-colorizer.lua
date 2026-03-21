@@ -89,30 +89,15 @@ local const = require("colorizer.constants")
 local matcher_mod = require("colorizer.matcher")
 local utils = require("colorizer.utils")
 
---- State and configuration dynamic holding information table tracking
---- Detect whether vim.lsp.document_color.enable accepts a filter table
---- as its second argument instead of a plain bufnr number.
-local dc_uses_filter_api = (function()
-  if not vim.lsp.document_color then
-    return false
-  end
-  local info = debug.getinfo(vim.lsp.document_color.enable, "u")
-  if info.nparams == 2 then
-    -- 2-param version is the new (enable, filter) API
-    return true
-  end
-  return false
-end)()
-
 --- Disable vim.lsp.document_color for a buffer.
 --- Handles both old `enable(enable, bufnr)` and new `enable(enable, filter)` Neovim APIs.
 local function disable_document_color(bufnr)
   if not vim.lsp.document_color then
     return
   end
-  if dc_uses_filter_api then
-    vim.lsp.document_color.enable(false, { bufnr = bufnr })
-  else
+  -- Try the new filter-table API first; fall back to the old plain-bufnr API.
+  local ok = pcall(vim.lsp.document_color.enable, false, { bufnr = bufnr })
+  if not ok then
     vim.lsp.document_color.enable(false, bufnr)
   end
 end
