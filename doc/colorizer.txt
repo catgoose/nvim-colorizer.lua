@@ -317,8 +317,7 @@ colorizer.ParsersTailwind                            *colorizer.ParsersTailwind*
 colorizer.ParsersTailwindLsp                      *colorizer.ParsersTailwindLsp*
 
     Fields: ~
-        {enable}                  (boolean)  Enable Tailwind LSP documentColor highlighting
-        {disable_document_color}  (boolean)  Auto-disable vim.lsp.document_color on attach (default true)
+        {enable}  (boolean)  Enable Tailwind LSP documentColor highlighting
 
 
 colorizer.ParsersSass                                    *colorizer.ParsersSass*
@@ -336,7 +335,7 @@ colorizer.DisplayOptions                              *colorizer.DisplayOptions*
         {background}              (colorizer.DisplayBackground)              Background mode settings
         {virtualtext}             (colorizer.DisplayVirtualtext)             Virtual text display settings
         {priority}                (colorizer.DisplayPriority)                Extmark priority settings
-        {disable_document_color}  (boolean|table<string,boolean>)             Auto-disable vim.lsp.document_color on attach. `true` disables for all LSPs, a table like `{ cssls = true }` disables selectively per-server (default true)
+        {disable_document_color}  (boolean|table<string,boolean>)            Auto-disable vim.lsp.document_color on attach. `true` disables for all LSPs, a table like `{ cssls = true }` disables selectively per-server (default true)
 
 
 colorizer.DisplayBackground                        *colorizer.DisplayBackground*
