@@ -7,4 +7,7 @@ if [ ! -d node_modules ]; then
   npm install
 fi
 
+# Clear Neovim's bytecode cache so local source changes are always picked up
+rm -rf "${XDG_CACHE_HOME:-$HOME/.cache}/nvim/luac"
+
 nvim --clean -u ../minimal-tailwind-dev.lua tailwind.html

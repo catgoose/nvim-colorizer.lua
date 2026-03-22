@@ -52,6 +52,74 @@ end
 
 local DEF_PATTERN = "^%-%-([%w_-]+)%s*:%s*()(.+)"
 
+--- Scan lines for CSS custom property definitions into defs/recursive tables.
+---@param lines table Lines to scan
+---@param defs table Direct color definitions (name -> rgb_hex), mutated
+---@param recursive table Recursive references (name -> ref_name), mutated
+---@param color_parser function|nil
+local function scan_lines_for_defs(lines, defs, recursive, color_parser)
+  for _, line in ipairs(lines) do
+    local s = line:find("%-%-")
+    if s then
+      local name, _, value = line:match(DEF_PATTERN, s)
+      if name and value then
+        value = value:match("^(.-)%s*;?%s*$")
+        value = value and value:match("^(.-)%s*!important%s*$") or value
+        if value and #value > 0 then
+          local ref_name = value:match("^var%(%s*%-%-([%w_-]+)")
+          if ref_name then
+            recursive[name] = ref_name
+          elseif color_parser then
+            local length, rgb_hex = color_parser(value, 1)
+            if length and rgb_hex then
+              defs[name] = rgb_hex
+            end
+          end
+        end
+      end
+    end
+  end
+end
+
+--- Extract @import file paths from CSS lines.
+--- Supports @import url("..."), @import url('...'), @import "...", @import '...'.
+---@param lines table Lines to scan
+---@return string[] import_paths
+local function extract_imports(lines)
+  local paths = {}
+  for _, line in ipairs(lines) do
+    -- @import url("path") or @import url('path')
+    local p = line:match('@import%s+url%(%s*"([^"]+)"')
+      or line:match("@import%s+url%(%s*'([^']+)'")
+      -- @import "path" or @import 'path'
+      or line:match('@import%s+"([^"]+)"')
+      or line:match("@import%s+'([^']+)'")
+    if p then
+      paths[#paths + 1] = p
+    end
+  end
+  return paths
+end
+
+--- Read an imported CSS file relative to the buffer's directory.
+---@param bufnr number
+---@param import_path string
+---@return string[]|nil lines
+local function read_import(bufnr, import_path)
+  local buf_name = vim.api.nvim_buf_get_name(bufnr)
+  if buf_name == "" then
+    return nil
+  end
+  local buf_dir = vim.fn.fnamemodify(buf_name, ":h")
+  local full_path = buf_dir .. "/" .. import_path
+  -- Normalize and check existence
+  full_path = vim.fn.resolve(full_path)
+  if vim.fn.filereadable(full_path) ~= 1 then
+    return nil
+  end
+  return vim.fn.readfile(full_path)
+end
+
 --- Scan buffer lines for CSS custom property definitions
 ---@param bufnr number
 ---@param line_start number 0-indexed
@@ -66,32 +134,19 @@ function M.update_variables(bufnr, line_start, line_end, lines, color_parser)
   end
 
   local defs = {}
-  -- First pass: collect direct color definitions
   local recursive = {}
-  for _, line in ipairs(lines) do
-    -- Find -- at any position in the line (CSS custom properties can be indented)
-    local s = line:find("%-%-")
-    if s then
-      local name, value_pos, value = line:match(DEF_PATTERN, s)
-      if name and value then
-        -- Strip trailing semicolons, whitespace, !important
-        value = value:match("^(.-)%s*;?%s*$")
-        value = value and value:match("^(.-)%s*!important%s*$") or value
-        if value and #value > 0 then
-          -- Check if value references another variable
-          local ref_name = value:match("^var%(%s*%-%-([%w_-]+)")
-          if ref_name then
-            recursive[name] = ref_name
-          elseif color_parser then
-            local length, rgb_hex = color_parser(value, 1)
-            if length and rgb_hex then
-              defs[name] = rgb_hex
-            end
-          end
-        end
-      end
+
+  -- Scan imported files first (lower priority — buffer definitions override)
+  local imports = extract_imports(lines)
+  for _, import_path in ipairs(imports) do
+    local import_lines = read_import(bufnr, import_path)
+    if import_lines then
+      scan_lines_for_defs(import_lines, defs, recursive, color_parser)
     end
   end
+
+  -- Scan buffer lines (higher priority — overwrites imported definitions)
+  scan_lines_for_defs(lines, defs, recursive, color_parser)
 
   -- Resolve recursive references (var(--other))
   local function resolve(name, seen)
@@ -120,34 +175,6 @@ function M.update_variables(bufnr, line_start, line_end, lines, color_parser)
   state[bufnr].definitions = defs
 end
 
---- Check if a variable is already resolved from buffer scanning.
----@param bufnr number
----@param name string Variable name (without --)
----@return boolean
-function M.has_buffer_definition(bufnr, name)
-  return state[bufnr] ~= nil
-    and state[bufnr].definitions[name] ~= nil
-end
-
---- Merge LSP-provided variable definitions into per-buffer state.
---- LSP definitions are lower priority: buffer-scanned definitions take precedence.
----@param bufnr number
----@param definitions table<string, string> variable name -> rgb_hex
-function M.update_from_lsp(bufnr, definitions)
-  if not definitions or not next(definitions) then
-    return
-  end
-  if not state[bufnr] then
-    state[bufnr] = { definitions = {} }
-  end
-  for name, rgb_hex in pairs(definitions) do
-    -- Buffer-local definitions take precedence over LSP
-    if not state[bufnr].definitions[name] then
-      state[bufnr].definitions[name] = rgb_hex
-    end
-  end
-end
-
 M.spec = {
   name = "css_var",
   priority = 19,
@@ -155,7 +182,6 @@ M.spec = {
   config_defaults = {
     enable = false,
     parsers = { css = true },
-    lsp = { enable = false },
   },
   stateful = true,
   parse = function(ctx)

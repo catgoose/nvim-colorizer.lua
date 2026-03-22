@@ -15,7 +15,6 @@ M.plugin = {
 M.namespace = {
   default = vim.api.nvim_create_namespace(M.plugin.name),
   tailwind_lsp = vim.api.nvim_create_namespace(M.plugin.name .. "_tailwind_lsp"),
-  css_var_lsp = vim.api.nvim_create_namespace(M.plugin.name .. "_css_var_lsp"),
 }
 
 --- Autocommand group for setting up Colorizer

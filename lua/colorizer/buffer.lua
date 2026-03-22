@@ -7,7 +7,6 @@ local M = {}
 local color = require("colorizer.color")
 local config = require("colorizer.config")
 local const = require("colorizer.constants")
-local css_lsp = require("colorizer.css_lsp")
 local css_var = require("colorizer.parser.css_var")
 local matcher = require("colorizer.matcher")
 local names = require("colorizer.parser.names")
@@ -247,11 +246,6 @@ function M.highlight(bufnr, ns_id, line_start, line_end, opts, buf_local_opts)
       line_start,
       line_end
     )
-  end
-
-  if css_var_cfg and css_var_cfg.lsp and css_var_cfg.lsp.enable then
-    table.insert(detach.functions, css_lsp.cleanup)
-    css_lsp.lsp_highlight(bufnr, opts, buf_local_opts, M.add_highlight, css_lsp.cleanup)
   end
 
   return detach

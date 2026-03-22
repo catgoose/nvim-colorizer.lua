@@ -759,30 +759,30 @@ function M.apply_presets(user_parsers)
   user_parsers.css_fn = nil
 end
 
---- Default lsp sub-option table for normalization fallback
-local default_lsp_sub = {
+--- Default tailwind.lsp table for normalization fallback
+local default_tailwind_lsp = {
   enable = false,
 }
 
---- Normalize a .lsp sub-option to table form.
+--- Normalize tailwind.lsp to table form.
 --- Expands boolean shorthand, fills missing keys from defaults.
----@param parent table Parent table containing the .lsp key (mutated in place)
-local function normalize_lsp_sub(parent)
-  if parent == nil then
+---@param tw table parsers.tailwind table (mutated in place)
+local function normalize_tailwind_lsp(tw)
+  if tw == nil then
     return
   end
 
   -- Expand boolean shorthand
-  if type(parent.lsp) == "boolean" then
-    parent.lsp = { enable = parent.lsp }
-  elseif type(parent.lsp) ~= "table" then
-    parent.lsp = {}
+  if type(tw.lsp) == "boolean" then
+    tw.lsp = { enable = tw.lsp }
+  elseif type(tw.lsp) ~= "table" then
+    tw.lsp = {}
   end
 
   -- Fill missing keys from defaults
-  for k, v in pairs(default_lsp_sub) do
-    if parent.lsp[k] == nil then
-      parent.lsp[k] = v
+  for k, v in pairs(default_tailwind_lsp) do
+    if tw.lsp[k] == nil then
+      tw.lsp[k] = v
     end
   end
 end
@@ -796,12 +796,9 @@ function M.validate_new_options(opts)
     opts.display.mode = default_options.display.mode
   end
 
-  -- Normalize .lsp sub-options to table form
+  -- Normalize tailwind.lsp to table form
   if opts.parsers and opts.parsers.tailwind then
-    normalize_lsp_sub(opts.parsers.tailwind)
-  end
-  if opts.parsers and opts.parsers.css_var then
-    normalize_lsp_sub(opts.parsers.css_var)
+    normalize_tailwind_lsp(opts.parsers.tailwind)
   end
 
   -- Validate virtualtext.position
