@@ -429,6 +429,7 @@ local function read_parser_flags(opts)
     xcolor = p.xcolor and p.xcolor.enable,
     css_var_rgb = p.css_var_rgb and p.css_var_rgb.enable,
     css_var = p.css_var and p.css_var.enable,
+    css_var_lsp = p.css_var and p.css_var.lsp and p.css_var.lsp.enable,
     custom = p.custom and #p.custom > 0 and p.custom or nil,
     hooks = opts.hooks,
   }
@@ -466,6 +467,7 @@ local function calculate_matcher_key(f)
     f.css_var_rgb or false,
     f.oklch or false,
     f.css_var or false,
+    f.css_var_lsp or false,
   }
   local matcher_mask = 0
   local bit_value = 1

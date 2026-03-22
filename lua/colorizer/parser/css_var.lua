@@ -120,6 +120,34 @@ function M.update_variables(bufnr, line_start, line_end, lines, color_parser)
   state[bufnr].definitions = defs
 end
 
+--- Check if a variable is already resolved from buffer scanning.
+---@param bufnr number
+---@param name string Variable name (without --)
+---@return boolean
+function M.has_buffer_definition(bufnr, name)
+  return state[bufnr] ~= nil
+    and state[bufnr].definitions[name] ~= nil
+end
+
+--- Merge LSP-provided variable definitions into per-buffer state.
+--- LSP definitions are lower priority: buffer-scanned definitions take precedence.
+---@param bufnr number
+---@param definitions table<string, string> variable name -> rgb_hex
+function M.update_from_lsp(bufnr, definitions)
+  if not definitions or not next(definitions) then
+    return
+  end
+  if not state[bufnr] then
+    state[bufnr] = { definitions = {} }
+  end
+  for name, rgb_hex in pairs(definitions) do
+    -- Buffer-local definitions take precedence over LSP
+    if not state[bufnr].definitions[name] then
+      state[bufnr].definitions[name] = rgb_hex
+    end
+  end
+end
+
 M.spec = {
   name = "css_var",
   priority = 19,
@@ -127,6 +155,7 @@ M.spec = {
   config_defaults = {
     enable = false,
     parsers = { css = true },
+    lsp = { enable = false },
   },
   stateful = true,
   parse = function(ctx)

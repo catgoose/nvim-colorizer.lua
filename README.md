@@ -179,6 +179,7 @@ require("colorizer").setup({
       css_var = {
         enable = false, -- resolve var(--name) references to their defined color
         parsers = { css = true }, -- parsers for resolving variable values
+        lsp = { enable = false }, -- use CSS LSP documentColor for cross-file var() resolution
       },
       custom = {}, -- list of custom parser definitions
     },
@@ -336,7 +337,7 @@ highlights win when multiple sources target the same range:
 | Key       | Default | Based on                        | Purpose                        |
 | --------- | ------- | ------------------------------- | ------------------------------ |
 | `default` | 150     | `vim.hl.priorities.diagnostics` | Normal parser-based highlights |
-| `lsp`     | 200     | `vim.hl.priorities.user`        | Tailwind LSP highlights        |
+| `lsp`     | 200     | `vim.hl.priorities.user`        | LSP highlights (Tailwind, CSS var) |
 
 These defaults are higher than treesitter (100) and semantic tokens (125), so
 colorizer highlights always win over syntax highlighting. The LSP priority is
@@ -480,6 +481,34 @@ Features:
 - Resolves aliased variables: `--alias: var(--base)` chains are followed
 - Handles `var(--name, fallback)` syntax (highlights using the definition)
 - Re-scans definitions on every text change
+
+### LSP integration for cross-file variables
+
+By default, `css_var` only resolves variables defined in the same buffer.
+Enable `lsp` to also resolve variables from imported files via any CSS-capable
+Language Server that supports `textDocument/documentColor` (e.g. `cssls`,
+`css-variables-language-server`):
+
+```lua
+require("colorizer").setup({
+  options = {
+    parsers = {
+      css = true,
+      css_var = { lsp = { enable = true } },
+    },
+  },
+})
+```
+
+`lsp` accepts a boolean shorthand (`lsp = true`) or a table. When enabled,
+colorizer queries attached CSS LSPs for document colors and applies highlights
+for `var()` references the LSP resolves. Buffer-local definitions always take
+precedence over LSP-provided values.
+
+| Source          | Scope                              |
+| --------------- | ---------------------------------- |
+| Buffer scanning | Variables defined in the same file |
+| LSP             | Variables from imports, `:root` in other files, etc. |
 
 ## Lua API
 
