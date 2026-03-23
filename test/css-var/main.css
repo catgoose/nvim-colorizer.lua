@@ -1,0 +1,79 @@
+/* Import shared variables — LSP resolves these across files */
+@import url("variables.css");
+
+/* Same-buffer definitions (resolved by buffer scanning) */
+:root {
+  --local-color: #ff6b6b;
+  --local-accent: #4ecdc4;
+}
+
+/* Cross-file var() references (resolved by LSP) */
+body {
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+header {
+  background-color: var(--primary);
+  color: var(--primary-light);
+  border-bottom: 2px solid var(--border);
+}
+
+.alert-success {
+  background-color: var(--success);
+  color: var(--bg);
+}
+
+.alert-warning {
+  background-color: var(--warning);
+}
+
+.alert-danger {
+  background-color: var(--danger);
+}
+
+.alert-info {
+  background-color: var(--info);
+}
+
+/* Same-buffer var() references (resolved by buffer scanning) */
+.local-example {
+  color: var(--local-color);
+  border: 1px solid var(--local-accent);
+}
+
+/* Mixed: some from this file, some from import */
+.card {
+  background: var(--bg-muted);
+  color: var(--text);
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 3px var(--overlay);
+}
+
+/* Aliased variables (chain resolution) */
+a {
+  color: var(--link-color);
+}
+
+a:hover {
+  color: var(--brand);
+}
+
+/* Var with fallback */
+.fallback-example {
+  color: var(--undefined-color, #888888);
+}
+
+/* Semantic usage */
+.sidebar {
+  background-color: var(--bg-muted);
+  color: var(--text-muted);
+  accent-color: var(--accent);
+}
+
+/* Direct color values (highlighted by parser, not LSP) */
+.direct-colors {
+  color: #ff0000;
+  background: rgb(0, 128, 255);
+  border-color: hsl(120, 50%, 50%);
+}

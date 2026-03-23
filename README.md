@@ -479,7 +479,22 @@ Features:
 
 - Resolves aliased variables: `--alias: var(--base)` chains are followed
 - Handles `var(--name, fallback)` syntax (highlights using the definition)
+- Follows `@import` declarations to resolve variables from imported CSS files
 - Re-scans definitions on every text change
+
+### Cross-file variable resolution
+
+`css_var` automatically follows `@import` declarations to resolve variables
+defined in other files. All standard import syntaxes are supported:
+
+```css
+@import url("variables.css");
+@import url('tokens.css');
+@import "theme.css";
+```
+
+Import paths are resolved relative to the current file. Buffer-local
+definitions always take precedence over imported ones.
 
 ## Lua API
 
