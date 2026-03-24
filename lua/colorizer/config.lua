@@ -790,10 +790,30 @@ end
 --- Validate new-format options. Validates enums, processes names.custom, checks hook types.
 ---@param opts table New-format options (fully merged with defaults)
 function M.validate_new_options(opts)
-  -- Validate display.mode enum
+  -- Validate display.mode: accept string or list of strings, normalize to sorted table
   local valid_modes = { background = true, foreground = true, underline = true, virtualtext = true }
-  if not valid_modes[opts.display.mode] then
-    opts.display.mode = default_options.display.mode
+  local mode = opts.display.mode
+  if type(mode) == "string" then
+    if not valid_modes[mode] then
+      mode = default_options.display.mode
+    end
+    opts.display.mode = { mode }
+  elseif type(mode) == "table" then
+    local seen = {}
+    local cleaned = {}
+    for _, m in ipairs(mode) do
+      if valid_modes[m] and not seen[m] then
+        seen[m] = true
+        cleaned[#cleaned + 1] = m
+      end
+    end
+    if #cleaned == 0 then
+      cleaned = { default_options.display.mode }
+    end
+    table.sort(cleaned)
+    opts.display.mode = cleaned
+  else
+    opts.display.mode = { default_options.display.mode }
   end
 
   -- Normalize tailwind.lsp to table form
@@ -1077,13 +1097,15 @@ local function validate_options(opts)
   if opts.virtualtext_inline ~= "before" and opts.virtualtext_inline ~= "after" then
     opts.virtualtext_inline = plugin_user_default_options.virtualtext_inline
   end
-  if
-    opts.mode ~= "background"
-    and opts.mode ~= "foreground"
-    and opts.mode ~= "underline"
-    and opts.mode ~= "virtualtext"
-  then
-    opts.mode = plugin_user_default_options.mode
+  if type(opts.mode) ~= "table" then
+    if
+      opts.mode ~= "background"
+      and opts.mode ~= "foreground"
+      and opts.mode ~= "underline"
+      and opts.mode ~= "virtualtext"
+    then
+      opts.mode = plugin_user_default_options.mode
+    end
   end
   if opts.virtualtext_mode ~= "background" and opts.virtualtext_mode ~= "foreground" then
     opts.virtualtext_mode = plugin_user_default_options.virtualtext_mode

@@ -366,6 +366,28 @@ M.configs = {
     description = "custom priority (default=50, lsp=300)",
     display = { mode = "background", priority = { default = 50, lsp = 300 } },
   }),
+
+  -- ── Combined display modes ──────────────────────────────────────
+  display_bg_vt = cfg("display.css", { css = true }, {
+    label = "display_bg_vt",
+    description = "combined: background + virtualtext",
+    display = { mode = { "background", "virtualtext" }, virtualtext = { position = "after" } },
+  }),
+  display_fg_underline = cfg("display.css", { css = true }, {
+    label = "display_fg_underline",
+    description = "combined: foreground + underline",
+    display = { mode = { "foreground", "underline" } },
+  }),
+  display_bg_underline = cfg("display.css", { css = true }, {
+    label = "display_bg_underline",
+    description = "combined: background + underline",
+    display = { mode = { "background", "underline" } },
+  }),
+  display_bg_underline_vt = cfg("display.css", { css = true }, {
+    label = "display_bg_underline_vt",
+    description = "combined: background + underline + virtualtext (eol)",
+    display = { mode = { "background", "underline", "virtualtext" } },
+  }),
 }
 
 --- Ordered categories for --list, iteration, and --<flag> filtering.
@@ -428,6 +450,10 @@ M.categories = {
       "display_vt_char_block",
       "display_bg_contrast",
       "display_priority",
+      "display_bg_vt",
+      "display_fg_underline",
+      "display_bg_underline",
+      "display_bg_underline_vt",
     },
   },
 }

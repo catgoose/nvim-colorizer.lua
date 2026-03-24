@@ -183,7 +183,7 @@ require("colorizer").setup({
       custom = {}, -- list of custom parser definitions
     },
     display = {
-      mode = "background", -- "background"|"foreground"|"underline"|"virtualtext"
+      mode = "background", -- string or list: "background"|"foreground"|"underline"|"virtualtext"
       background = {
         bright_fg = "#000000", -- text color on bright backgrounds
         dark_fg = "#ffffff", -- text color on dark backgrounds
@@ -327,6 +327,28 @@ See `:help vim.lsp.document_color.enable()` for details.
 
 > **Note:** This only applies to Neovim 0.12+. Neovim 0.10 and 0.11 do not
 > have this feature and are unaffected.
+
+## Combined display modes
+
+`display.mode` accepts a list to apply multiple modes simultaneously:
+
+```lua
+require("colorizer").setup({
+  options = {
+    display = {
+      mode = { "background", "virtualtext" }, -- colored background + color swatch
+    },
+  },
+})
+```
+
+Non-virtualtext modes (`background`, `foreground`, `underline`) merge into a
+single extmark since their highlight attributes don't overlap. `virtualtext`
+always gets its own extmark. Any combination of the four modes is valid.
+
+> **Note:** `background` and `foreground` both set the `fg` attribute.
+> When combined, `background` wins (auto-contrast text is needed for
+> readability). Use `background` + `underline` if you want both effects.
 
 ## Highlight priority
 

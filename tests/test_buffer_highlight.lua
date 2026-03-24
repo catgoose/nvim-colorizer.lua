@@ -252,4 +252,117 @@ T["priority"]["tailwind_lsp priority matches user"] = function()
   vim.api.nvim_buf_delete(buf, { force = true })
 end
 
+-- combined display modes ------------------------------------------------------
+
+T["combined modes"] = new_set()
+
+T["combined modes"]["table mode works like string for single mode"] = function()
+  local buf = make_buf({ "#FF0000 text" })
+  local ns = vim.api.nvim_create_namespace("test_combined_single")
+  local opts = config.resolve_options({ parsers = { css = true }, display = { mode = { "background" } } })
+  local data = buffer.parse_lines(buf, { "#FF0000 text" }, 0, opts)
+  buffer.add_highlight(buf, ns, 0, 1, data, opts)
+  local marks = vim.api.nvim_buf_get_extmarks(buf, ns, 0, -1, { details = true })
+  eq(true, #marks > 0)
+  eq(true, marks[1][4].hl_group:find("mb") ~= nil)
+  vim.api.nvim_buf_delete(buf, { force = true })
+end
+
+T["combined modes"]["background + underline produces one extmark with both attrs"] = function()
+  local buf = make_buf({ "#FF0000 text" })
+  local ns = vim.api.nvim_create_namespace("test_combined_bg_ul")
+  local opts = config.resolve_options({
+    parsers = { css = true },
+    display = { mode = { "background", "underline" } },
+  })
+  local data = buffer.parse_lines(buf, { "#FF0000 text" }, 0, opts)
+  buffer.add_highlight(buf, ns, 0, 1, data, opts)
+  local marks = vim.api.nvim_buf_get_extmarks(buf, ns, 0, -1, { details = true })
+  eq(1, #marks) -- single extmark, not two
+  local hl_name = marks[1][4].hl_group
+  -- Should contain both mode codes
+  eq(true, hl_name:find("mb") ~= nil)
+  eq(true, hl_name:find("mu") ~= nil)
+  -- Verify actual highlight attributes
+  local hl = vim.api.nvim_get_hl(0, { name = hl_name })
+  eq(true, hl.bg ~= nil) -- background set
+  eq(true, hl.sp ~= nil) -- underline sp set
+  eq(true, hl.underline == true)
+  vim.api.nvim_buf_delete(buf, { force = true })
+end
+
+T["combined modes"]["foreground + underline produces one extmark"] = function()
+  local buf = make_buf({ "#00FF00 text" })
+  local ns = vim.api.nvim_create_namespace("test_combined_fg_ul")
+  local opts = config.resolve_options({
+    parsers = { css = true },
+    display = { mode = { "foreground", "underline" } },
+  })
+  local data = buffer.parse_lines(buf, { "#00FF00 text" }, 0, opts)
+  buffer.add_highlight(buf, ns, 0, 1, data, opts)
+  local marks = vim.api.nvim_buf_get_extmarks(buf, ns, 0, -1, { details = true })
+  eq(1, #marks)
+  local hl = vim.api.nvim_get_hl(0, { name = marks[1][4].hl_group })
+  eq(true, hl.fg ~= nil) -- foreground color set
+  eq(true, hl.sp ~= nil) -- underline sp set
+  eq(true, hl.underline == true)
+  vim.api.nvim_buf_delete(buf, { force = true })
+end
+
+T["combined modes"]["background + virtualtext produces two extmarks"] = function()
+  local buf = make_buf({ "#FF0000 text" })
+  local ns = vim.api.nvim_create_namespace("test_combined_bg_vt")
+  local opts = config.resolve_options({
+    parsers = { css = true },
+    display = { mode = { "background", "virtualtext" }, virtualtext = { position = "eol" } },
+  })
+  local data = buffer.parse_lines(buf, { "#FF0000 text" }, 0, opts)
+  buffer.add_highlight(buf, ns, 0, 1, data, opts)
+  local marks = vim.api.nvim_buf_get_extmarks(buf, ns, 0, -1, { details = true })
+  eq(2, #marks) -- one hl_group extmark + one virtualtext extmark
+  -- One should have hl_group (background), the other virt_text
+  local has_hl = false
+  local has_vt = false
+  for _, m in ipairs(marks) do
+    if m[4].hl_group then
+      has_hl = true
+    end
+    if m[4].virt_text then
+      has_vt = true
+    end
+  end
+  eq(true, has_hl)
+  eq(true, has_vt)
+  vim.api.nvim_buf_delete(buf, { force = true })
+end
+
+T["combined modes"]["virtualtext-only table works"] = function()
+  local buf = make_buf({ "#FF0000 text" })
+  local ns = vim.api.nvim_create_namespace("test_combined_vt_only")
+  local opts = config.resolve_options({
+    parsers = { css = true },
+    display = { mode = { "virtualtext" } },
+  })
+  local data = buffer.parse_lines(buf, { "#FF0000 text" }, 0, opts)
+  buffer.add_highlight(buf, ns, 0, 1, data, opts)
+  local marks = vim.api.nvim_buf_get_extmarks(buf, ns, 0, -1, { details = true })
+  eq(1, #marks) -- only virtualtext
+  eq(true, marks[1][4].virt_text ~= nil)
+  vim.api.nvim_buf_delete(buf, { force = true })
+end
+
+T["combined modes"]["all four modes produces two extmarks"] = function()
+  local buf = make_buf({ "#0000FF text" })
+  local ns = vim.api.nvim_create_namespace("test_combined_all")
+  local opts = config.resolve_options({
+    parsers = { css = true },
+    display = { mode = { "background", "foreground", "underline", "virtualtext" } },
+  })
+  local data = buffer.parse_lines(buf, { "#0000FF text" }, 0, opts)
+  buffer.add_highlight(buf, ns, 0, 1, data, opts)
+  local marks = vim.api.nvim_buf_get_extmarks(buf, ns, 0, -1, { details = true })
+  eq(2, #marks) -- one combined non-vt + one vt
+  vim.api.nvim_buf_delete(buf, { force = true })
+end
+
 return T

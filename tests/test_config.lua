@@ -99,4 +99,50 @@ T["get_setup_options"]["custom filetypes are preserved"] = function()
   eq("css", opts.filetypes[2])
 end
 
+-- display.mode table validation -----------------------------------------------
+
+T["display.mode"] = new_set()
+
+T["display.mode"]["string normalizes to single-element table"] = function()
+  local opts = config.resolve_options({ parsers = { css = true }, display = { mode = "foreground" } })
+  eq({ "foreground" }, opts.display.mode)
+end
+
+T["display.mode"]["table passes through sorted and deduped"] = function()
+  local opts = config.resolve_options({
+    parsers = { css = true },
+    display = { mode = { "underline", "background", "background" } },
+  })
+  eq({ "background", "underline" }, opts.display.mode)
+end
+
+T["display.mode"]["empty table falls back to default"] = function()
+  local opts = config.resolve_options({ parsers = { css = true }, display = { mode = {} } })
+  eq({ "background" }, opts.display.mode)
+end
+
+T["display.mode"]["invalid entries filtered out"] = function()
+  local opts = config.resolve_options({
+    parsers = { css = true },
+    display = { mode = { "background", "invalid", "underline" } },
+  })
+  eq({ "background", "underline" }, opts.display.mode)
+end
+
+T["display.mode"]["all-invalid falls back to default"] = function()
+  local opts = config.resolve_options({
+    parsers = { css = true },
+    display = { mode = { "nope", "bad" } },
+  })
+  eq({ "background" }, opts.display.mode)
+end
+
+T["display.mode"]["all four modes accepted"] = function()
+  local opts = config.resolve_options({
+    parsers = { css = true },
+    display = { mode = { "virtualtext", "underline", "foreground", "background" } },
+  })
+  eq({ "background", "foreground", "underline", "virtualtext" }, opts.display.mode)
+end
+
 return T

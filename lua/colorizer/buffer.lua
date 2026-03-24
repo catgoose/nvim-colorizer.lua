@@ -32,9 +32,10 @@ local function make_highlight_name(rgb, mode)
   return table.concat({ hl_state.name_prefix, const.highlight_mode_names[mode], rgb }, "_")
 end
 
---- Create a highlight with the given rgb_hex and mode
+--- Create a highlight with the given rgb_hex and a single mode.
+--- Used for virtualtext's hl_mode (always a single string).
 ---@param rgb_hex string RGB hex code
----@param mode 'background'|'foreground' Mode of the highlight
+---@param mode string Single mode name
 ---@param bg_opts table|nil Background display options { bright_fg, dark_fg }
 local function create_highlight(rgb_hex, mode, bg_opts)
   mode = mode or "background"
@@ -45,12 +46,10 @@ local function create_highlight(rgb_hex, mode, bg_opts)
     table.concat({ const.highlight_mode_names[mode], rgb_hex, bright_fg, dark_fg }, "_")
   local highlight_name = hl_state.cache[cache_key]
 
-  -- Look up in our cache.
   if highlight_name then
     return highlight_name
   end
 
-  -- Create the highlight
   highlight_name = make_highlight_name(rgb_hex, mode)
   if mode == "foreground" then
     vim.api.nvim_set_hl(0, highlight_name, { fg = "#" .. rgb_hex })
@@ -62,6 +61,62 @@ local function create_highlight(rgb_hex, mode, bg_opts)
     local fg_color = color.is_bright(r, g, b) and bright_fg or dark_fg
     vim.api.nvim_set_hl(0, highlight_name, { fg = fg_color, bg = "#" .. rgb_hex })
   end
+  hl_state.cache[cache_key] = highlight_name
+  return highlight_name
+end
+
+--- Create a combined highlight merging multiple non-virtualtext modes.
+---@param rgb_hex string RGB hex code
+---@param modes string[] Sorted list of mode names (no "virtualtext")
+---@param bg_opts table|nil Background display options { bright_fg, dark_fg }
+local function create_combined_highlight(rgb_hex, modes, bg_opts)
+  -- Fast path: single mode delegates to existing function
+  if #modes == 1 then
+    return create_highlight(rgb_hex, modes[1], bg_opts)
+  end
+
+  rgb_hex = rgb_hex:lower()
+  local bright_fg = bg_opts and bg_opts.bright_fg or "#000000"
+  local dark_fg = bg_opts and bg_opts.dark_fg or "#ffffff"
+
+  -- Build sorted mode key for caching (modes already sorted by config validation)
+  local mode_keys = {}
+  for _, m in ipairs(modes) do
+    mode_keys[#mode_keys + 1] = const.highlight_mode_names[m]
+  end
+  local mode_key = table.concat(mode_keys, "_")
+
+  local cache_key = table.concat({ mode_key, rgb_hex, bright_fg, dark_fg }, "_")
+  local highlight_name = hl_state.cache[cache_key]
+  if highlight_name then
+    return highlight_name
+  end
+
+  highlight_name = table.concat({ hl_state.name_prefix, mode_key, rgb_hex }, "_")
+
+  -- Merge attributes from all modes
+  local hl_def = {}
+  local mode_set = {}
+  for _, m in ipairs(modes) do
+    mode_set[m] = true
+  end
+
+  if mode_set["foreground"] then
+    hl_def.fg = "#" .. rgb_hex
+  end
+  if mode_set["underline"] then
+    hl_def.sp = "#" .. rgb_hex
+    hl_def.underline = true
+  end
+  if mode_set["background"] then
+    -- background overrides foreground's fg (auto-contrast needed for readability)
+    local rr, gg, bb = rgb_hex:sub(1, 2), rgb_hex:sub(3, 4), rgb_hex:sub(5, 6)
+    local r, g, b = tonumber(rr, 16), tonumber(gg, 16), tonumber(bb, 16)
+    hl_def.fg = color.is_bright(r, g, b) and bright_fg or dark_fg
+    hl_def.bg = "#" .. rgb_hex
+  end
+
+  vim.api.nvim_set_hl(0, highlight_name, hl_def)
   hl_state.cache[cache_key] = highlight_name
   return highlight_name
 end
@@ -112,66 +167,75 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, opts, hl_opts
   local bg_opts = d.background
   local tw = opts.parsers.tailwind or {}
 
-  if d.mode == "background" or d.mode == "foreground" or d.mode == "underline" then
-    local tw_lsp = tw.lsp
-    local tw_both = tw.enable and tw_lsp and tw_lsp.enable and hl_opts.tailwind_lsp
-    for linenr, hls in pairs(data) do
-      -- When LSP data supersedes name-based tailwind matches, clear the
-      -- default namespace for this line to avoid hidden duplicate extmarks.
-      if tw_both then
-        vim.api.nvim_buf_clear_namespace(bufnr, const.namespace.default, linenr, linenr + 1)
-      end
-      for _, hl in ipairs(hls) do
-        if tw_both and tw.update_names then
-          local txt = slice_line(bufnr, linenr, hl.range[1], hl.range[2])
-          if txt and not hl_state.updated_colors[txt] then
-            hl_state.updated_colors[txt] = true
-            names.update_color(txt, hl.rgb_hex, "tailwind_names")
-          end
-        end
-        local hlname = create_highlight(hl.rgb_hex, d.mode, bg_opts)
-        vim.api.nvim_buf_set_extmark(bufnr, ns_id, linenr, hl.range[1], {
-          end_col = hl.range[2],
-          hl_group = hlname,
-          priority = priority,
-        })
-      end
+  -- Normalize mode to table (may be string from pre-resolved defaults)
+  local mode_list = type(d.mode) == "table" and d.mode or { d.mode }
+
+  -- Split mode list into non-virtualtext modes and virtualtext flag
+  local non_vt_modes = {}
+  local has_virtualtext = false
+  for _, m in ipairs(mode_list) do
+    if m == "virtualtext" then
+      has_virtualtext = true
+    else
+      non_vt_modes[#non_vt_modes + 1] = m
     end
-  elseif d.mode == "virtualtext" then
-    local vt = d.virtualtext
-    -- Reuse a single opts table across iterations to reduce allocations
-    local extmark_opts = {
+  end
+
+  -- Virtualtext setup (reusable tables to reduce allocations)
+  local vt, vt_extmark_opts, vt_entry, vt_list
+  if has_virtualtext then
+    vt = d.virtualtext
+    vt_extmark_opts = {
       virt_text = nil,
       hl_mode = "combine",
       priority = 0,
       virt_text_pos = nil,
       end_col = nil,
     }
-    -- Reuse a single inner table for virt_text entries
-    local virt_text_entry = { "", "" }
-    local virt_text_list = { virt_text_entry }
-    local tw_lsp2 = tw.lsp
-    local tw_both = tw.enable and tw_lsp2 and tw_lsp2.enable and hl_opts.tailwind_lsp
-    for linenr, hls in pairs(data) do
-      if tw_both then
+    vt_entry = { "", "" }
+    vt_list = { vt_entry }
+  end
+
+  local tw_lsp = tw.lsp
+  local tw_both = tw.enable and tw_lsp and tw_lsp.enable and hl_opts.tailwind_lsp
+
+  for linenr, hls in pairs(data) do
+    -- When LSP data supersedes name-based tailwind matches, clear the
+    -- default namespace for this line to avoid hidden duplicate extmarks.
+    if tw_both then
+      if has_virtualtext then
         vim.api.nvim_buf_clear_namespace(bufnr, ns_id, linenr, linenr + 1)
-        vim.api.nvim_buf_clear_namespace(bufnr, const.namespace.default, linenr, linenr + 1)
       end
-      for _, hl in ipairs(hls) do
-        if tw_both and tw.update_names then
-          local txt = slice_line(bufnr, linenr, hl.range[1], hl.range[2])
-          if txt and not hl_state.updated_colors[txt] then
-            hl_state.updated_colors[txt] = true
-            names.update_color(txt, hl.rgb_hex, "tailwind_names")
-          end
+      vim.api.nvim_buf_clear_namespace(bufnr, const.namespace.default, linenr, linenr + 1)
+    end
+    for _, hl in ipairs(hls) do
+      if tw_both and tw.update_names then
+        local txt = slice_line(bufnr, linenr, hl.range[1], hl.range[2])
+        if txt and not hl_state.updated_colors[txt] then
+          hl_state.updated_colors[txt] = true
+          names.update_color(txt, hl.rgb_hex, "tailwind_names")
         end
+      end
+
+      -- Non-virtualtext: one extmark with combined highlight group
+      if #non_vt_modes > 0 then
+        local hlname = create_combined_highlight(hl.rgb_hex, non_vt_modes, bg_opts)
+        vim.api.nvim_buf_set_extmark(bufnr, ns_id, linenr, hl.range[1], {
+          end_col = hl.range[2],
+          hl_group = hlname,
+          priority = priority,
+        })
+      end
+
+      -- Virtualtext: separate extmark
+      if has_virtualtext then
         local hlname = create_highlight(hl.rgb_hex, vt.hl_mode, bg_opts)
         local start_col = hl.range[2]
-        virt_text_entry[2] = hlname
+        vt_entry[2] = hlname
         if vt.position == "before" or vt.position == "after" then
-          extmark_opts.virt_text_pos = "inline"
+          vt_extmark_opts.virt_text_pos = "inline"
           local vt_char = vt.char or const.defaults.virtualtext
-          virt_text_entry[1] = string.format(
+          vt_entry[1] = string.format(
             "%s%s%s",
             vt.position == "before" and vt_char or " ",
             vt.position == "before" and " " or "",
@@ -181,13 +245,13 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, opts, hl_opts
             start_col = hl.range[1]
           end
         else
-          extmark_opts.virt_text_pos = nil
-          virt_text_entry[1] = vt.char or const.defaults.virtualtext
+          vt_extmark_opts.virt_text_pos = nil
+          vt_entry[1] = vt.char or const.defaults.virtualtext
         end
-        extmark_opts.virt_text = virt_text_list
-        extmark_opts.end_col = start_col
+        vt_extmark_opts.virt_text = vt_list
+        vt_extmark_opts.end_col = start_col
         pcall(function()
-          vim.api.nvim_buf_set_extmark(bufnr, ns_id, linenr, start_col, extmark_opts)
+          vim.api.nvim_buf_set_extmark(bufnr, ns_id, linenr, start_col, vt_extmark_opts)
         end)
       end
     end
