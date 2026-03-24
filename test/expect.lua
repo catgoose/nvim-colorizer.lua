@@ -33,7 +33,13 @@ local opts = {
           return colors.palette
         end,
       },
-      hex = { default = true },
+      hex = {
+        default = true,
+        rrggbbaa = true,
+        hash_aarrggbb = true,
+        aarrggbb = true,
+        no_hash = false,
+      },
       rgb = { enable = true },
       hsl = { enable = true },
       oklch = { enable = true },
@@ -41,17 +47,30 @@ local opts = {
       lab = { enable = true },
       lch = { enable = true },
       css_color = { enable = true },
+      hsluv = { enable = true },
       tailwind = { enable = true },
       sass = { enable = true, parsers = { css = true } },
       xterm = { enable = true },
+      xcolor = { enable = true },
+      css_var_rgb = { enable = true },
+      css_var = { enable = true, parsers = { css = true } },
     },
     display = {
-      mode = "background", -- "background"|"foreground"|"underline"|"virtualtext"
+      mode = { "background", "virtualtext" }, -- combined: colored background + color swatch
+      background = {
+        bright_fg = "#000000",
+        dark_fg = "#ffffff",
+      },
       virtualtext = {
         char = "■",
-        position = "eol",
+        position = "after",
         hl_mode = "foreground",
       },
+      priority = {
+        default = 150,
+        lsp = 200,
+      },
+      disable_document_color = true,
     },
     hooks = {
       -- Example: skip black and white
@@ -68,6 +87,7 @@ local opts = {
       end,
     },
     always_update = false,
+    debounce_ms = 0,
   },
 }
 
@@ -152,7 +172,7 @@ SUCCESS CASES:
 \e[38;5;42m, #00d75f
 \e[38;5;42m #00d75f \e[38;5;43m #00d787
 
-[38;5;42m #00d75f
+[38;5;42m #00d75f
 
 \e[30;0m #000000
 \e[31;0m #800000
@@ -302,6 +322,11 @@ hsl(255, 100%, 100%, 1)
 hsl(255000, 100000%, 100000%, 1000)
 hsla(300, 50, 50%, 0.5) hsla(300,50%,50,0.5) hsla(300,50,50,0.5)
 
+HSLuv:
+hsluv(0 100 50) hsluv(120 100 50) hsluv(240 100 50)
+hsluv(60 80 70) hsluv(300 60 30) hsluv(180 50 80)
+hsluv(0 100 50 / 0.5) hsluv(120 100 50 / 50%)
+
 OKLCH:
 oklch(0.5 0.2 180)
 oklch(0.628 0.258 29.234) oklch(0.519 0.176 142.495) oklch(0.452 0.313 264.052)
@@ -353,6 +378,18 @@ color(display-p3 1 1 1) color(display-p3 0 0 0)
 color(a98-rgb 1 0 0) color(a98-rgb 0 1 0) color(a98-rgb 0.5 0.5 0.5)
 color(prophoto-rgb 1 1 1) color(prophoto-rgb 0 0 0) color(prophoto-rgb 0.5 0.3 0.8)
 color(rec2020 1 0 0) color(rec2020 0 1 0) color(rec2020 0.5 0.5 0.5)
+
+CSS custom properties (var):
+:root { --primary: #3b82f6; --accent: #ef4444; }
+color: var(--primary);
+background: var(--accent);
+
+CSS variable RGB (--name: R,G,B):
+--ctp-flamingo: 240,198,198;
+--theme-red: 255,0,0;
+
+LaTeX xcolor:
+red!50 blue!30!green red!25!blue!75
 
 Xterm ANSI background 256-color:
 \e[48;5;0m \e[48;5;15m \e[48;5;42m \e[48;5;196m \e[48;5;255m

@@ -82,7 +82,7 @@ T["translate_options"]["translates display options"] = function()
     virtualtext_inline = true,
     virtualtext_mode = "background",
   })
-  eq("foreground", new.display.mode)
+  eq("foreground", new.display.mode) -- translate_options doesn't normalize mode to table
   eq("X", new.display.virtualtext.char)
   eq("after", new.display.virtualtext.position)
   eq("background", new.display.virtualtext.hl_mode)
@@ -123,7 +123,7 @@ end
 T["translate_filetypes"]["handles overrides"] = function()
   local new = config.translate_filetypes({ "*", html = { mode = "foreground" } })
   eq("*", new.enable[1])
-  eq("foreground", new.overrides.html.display.mode)
+  eq({ "foreground" }, new.overrides.html.display.mode)
 end
 
 T["translate_filetypes"]["passes through new format"] = function()
@@ -178,7 +178,7 @@ T["validate_new_options"]["resets invalid display.mode"] = function()
   local opts = vim.deepcopy(config.default_options)
   opts.display.mode = "invalid"
   config.validate_new_options(opts)
-  eq("background", opts.display.mode)
+  eq({ "background" }, opts.display.mode)
 end
 
 T["validate_new_options"]["normalizes invalid tailwind.lsp to table"] = function()
@@ -899,7 +899,7 @@ T["translate_filetypes"]["handles multiple overrides"] = function()
     css = { RGB = true },
   })
   eq("*", new.enable[1])
-  eq("foreground", new.overrides.html.display.mode)
+  eq({ "foreground" }, new.overrides.html.display.mode)
   eq(true, new.overrides.css.parsers.hex.rgb)
 end
 
@@ -986,14 +986,14 @@ T["validate_new_options"]["valid display.mode is preserved"] = function()
   local opts = vim.deepcopy(config.default_options)
   opts.display.mode = "virtualtext"
   config.validate_new_options(opts)
-  eq("virtualtext", opts.display.mode)
+  eq({ "virtualtext" }, opts.display.mode)
 end
 
 T["validate_new_options"]["underline display.mode is preserved"] = function()
   local opts = vim.deepcopy(config.default_options)
   opts.display.mode = "underline"
   config.validate_new_options(opts)
-  eq("underline", opts.display.mode)
+  eq({ "underline" }, opts.display.mode)
 end
 
 T["validate_new_options"]["tailwind.lsp boolean true normalizes to table"] = function()
@@ -1236,7 +1236,7 @@ T["resolve_options"]["validates after merge"] = function()
   eq(true, result.parsers.names.enable)
   -- Other defaults should be preserved
   eq(true, result.parsers.hex.default)
-  eq("background", result.display.mode)
+  eq({ "background" }, result.display.mode)
 end
 
 T["resolve_options"]["preserves display settings"] = function()
@@ -1244,7 +1244,7 @@ T["resolve_options"]["preserves display settings"] = function()
     parsers = { names = { enable = true } },
     display = { mode = "foreground" },
   })
-  eq("foreground", result.display.mode)
+  eq({ "foreground" }, result.display.mode)
 end
 
 T["resolve_options"]["preserves underline display mode"] = function()
@@ -1252,7 +1252,7 @@ T["resolve_options"]["preserves underline display mode"] = function()
     parsers = { names = { enable = true } },
     display = { mode = "underline" },
   })
-  eq("underline", result.display.mode)
+  eq({ "underline" }, result.display.mode)
 end
 
 -- Option interpretation: hex.default = true (with no other hex keys) must enable
@@ -1392,7 +1392,7 @@ T["get_setup_options new format"]["display options propagate"] = function()
       },
     },
   })
-  eq("virtualtext", s.options.display.mode)
+  eq({ "virtualtext" }, s.options.display.mode)
   eq("X", s.options.display.virtualtext.char)
   eq("before", s.options.display.virtualtext.position)
   eq("background", s.options.display.virtualtext.hl_mode)
@@ -1407,7 +1407,7 @@ T["get_setup_options new format"]["hoists top-level display to options"] = funct
       mode = "virtualtext",
     },
   })
-  eq("virtualtext", s.options.display.mode)
+  eq({ "virtualtext" }, s.options.display.mode)
   -- Should also get sensible parser defaults (legacy baseline)
   eq(true, s.options.parsers.names.enable)
   eq(true, s.options.parsers.hex.rrggbb)
@@ -1427,7 +1427,7 @@ T["get_setup_options new format"]["hoists top-level parsers and display together
     display = { mode = "foreground" },
   })
   eq(true, s.options.parsers.names.enable)
-  eq("foreground", s.options.display.mode)
+  eq({ "foreground" }, s.options.display.mode)
 end
 
 T["get_setup_options new format"]["top-level hoist preserves filetypes"] = function()
@@ -1435,7 +1435,7 @@ T["get_setup_options new format"]["top-level hoist preserves filetypes"] = funct
     filetypes = { "lua", "css" },
     display = { mode = "virtualtext" },
   })
-  eq("virtualtext", s.options.display.mode)
+  eq({ "virtualtext" }, s.options.display.mode)
   eq("lua", s.filetypes[1])
   eq("css", s.filetypes[2])
 end
@@ -1536,7 +1536,7 @@ T["config entry paths"]["setup({ options = { display only } }) detects colors"] 
   local s = config.get_setup_options({
     options = { display = { mode = "virtualtext" } },
   })
-  eq("virtualtext", s.options.display.mode)
+  eq({ "virtualtext" }, s.options.display.mode)
   eq(true, s.options.parsers.names.enable)
   eq(true, s.options.parsers.hex.rrggbb)
 end
@@ -1545,7 +1545,7 @@ T["config entry paths"]["top-level display only detects colors"] = function()
   local s = config.get_setup_options({
     display = { mode = "foreground" },
   })
-  eq("foreground", s.options.display.mode)
+  eq({ "foreground" }, s.options.display.mode)
   eq(true, s.options.parsers.names.enable)
   eq(true, s.options.parsers.hex.rrggbb)
 end
@@ -1557,7 +1557,7 @@ T["config entry paths"]["top-level display virtualtext detects colors"] = functi
       virtualtext = { char = "X", position = "after" },
     },
   })
-  eq("virtualtext", s.options.display.mode)
+  eq({ "virtualtext" }, s.options.display.mode)
   eq("X", s.options.display.virtualtext.char)
   eq("after", s.options.display.virtualtext.position)
   eq(true, s.options.parsers.names.enable)
@@ -1568,28 +1568,28 @@ T["config entry paths"]["legacy mode only detects colors"] = function()
   local s = config.get_setup_options({
     user_default_options = { mode = "foreground" },
   })
-  eq("foreground", s.options.display.mode)
+  eq({ "foreground" }, s.options.display.mode)
   eq(true, s.options.parsers.names.enable)
   eq(true, s.options.parsers.hex.rrggbb)
 end
 
 T["config entry paths"]["resolve_options with display only detects colors"] = function()
   local result = config.resolve_options({ display = { mode = "virtualtext" } })
-  eq("virtualtext", result.display.mode)
+  eq({ "virtualtext" }, result.display.mode)
   eq(true, result.parsers.names.enable)
   eq(true, result.parsers.hex.rrggbb)
 end
 
 T["config entry paths"]["resolve_options with legacy mode only detects colors"] = function()
   local result = config.resolve_options({ mode = "virtualtext" })
-  eq("virtualtext", result.display.mode)
+  eq({ "virtualtext" }, result.display.mode)
   eq(true, result.parsers.names.enable)
   eq(true, result.parsers.hex.rrggbb)
 end
 
 T["config entry paths"]["resolve_options with legacy underline mode"] = function()
   local result = config.resolve_options({ mode = "underline" })
-  eq("underline", result.display.mode)
+  eq({ "underline" }, result.display.mode)
   eq(true, result.parsers.names.enable)
   eq(true, result.parsers.hex.rrggbb)
 end
@@ -1649,7 +1649,7 @@ T["config entry paths"]["setup options disable + display mode"] = function()
       display = { mode = "virtualtext" },
     },
   })
-  eq("virtualtext", s.options.display.mode)
+  eq({ "virtualtext" }, s.options.display.mode)
   eq(false, s.options.parsers.names.enable)
   eq(false, s.options.parsers.hex.rgb)
 end
@@ -1726,7 +1726,7 @@ T["get_setup_options legacy"]["no arguments uses plugin defaults"] = function()
   eq(true, s.options.parsers.names.enable)
   eq(true, s.options.parsers.hex.rrggbb)
   eq(true, s.options.parsers.hex.rgb)
-  eq("background", s.options.display.mode)
+  eq({ "background" }, s.options.display.mode)
   eq(true, s.user_default_options.names)
   eq(true, s.user_default_options.RGB)
   eq(true, s.user_default_options.RRGGBB)
@@ -1749,7 +1749,7 @@ T["get_setup_options legacy"]["sparse user_default_options preserves plugin defa
   eq(true, s.options.parsers.names.enable)
   eq(true, s.options.parsers.hex.rrggbb)
   eq(true, s.options.parsers.hex.rgb)
-  eq("foreground", s.options.display.mode)
+  eq({ "foreground" }, s.options.display.mode)
 end
 
 T["get_setup_options legacy"]["single override does not clobber other defaults"] = function()
@@ -1830,7 +1830,7 @@ T["new-only options"]["options wins over user_default_options"] = function()
   })
   -- options takes precedence
   eq(false, s.options.parsers.names.enable)
-  eq("foreground", s.options.display.mode)
+  eq({ "foreground" }, s.options.display.mode)
 end
 
 -- matcher cache tests -------------------------------------------------------
@@ -2244,13 +2244,13 @@ T["resolve_options"]["nil returns copy of defaults"] = function()
   local result = config.resolve_options(nil)
   eq(true, result.parsers.hex.default)
   eq(true, result.parsers.names.enable)
-  eq("background", result.display.mode)
+  eq("background", result.display.mode) -- raw defaults, not validated
 end
 
 T["resolve_options"]["empty table returns defaults"] = function()
   local result = config.resolve_options({})
   eq(true, result.parsers.hex.default)
-  eq("background", result.display.mode)
+  eq({ "background" }, result.display.mode)
 end
 
 -- as_flat tests --------------------------------------------------------------
@@ -2326,7 +2326,7 @@ T["validate_new_options"]["invalid display mode resets to default"] = function()
   local opts = vim.deepcopy(config.default_options)
   opts.display.mode = "invalid_mode"
   config.validate_new_options(opts)
-  eq("background", opts.display.mode)
+  eq({ "background" }, opts.display.mode)
 end
 
 T["validate_new_options"]["invalid virtualtext position resets to default"] = function()
@@ -2543,7 +2543,7 @@ T["roundtrip"]["new -> flat -> resolve preserves enabled parsers"] = function()
   eq(true, restored.parsers.hex.default)
   eq(true, restored.parsers.hex.rrggbb)
   eq(true, restored.parsers.rgb.enable)
-  eq("foreground", restored.display.mode)
+  eq({ "foreground" }, restored.display.mode)
 end
 
 T["roundtrip"]["new -> flat -> resolve preserves display settings"] = function()
@@ -2557,7 +2557,7 @@ T["roundtrip"]["new -> flat -> resolve preserves display settings"] = function()
   local flat = config.as_flat(original)
   local restored = config.resolve_options(flat)
 
-  eq("virtualtext", restored.display.mode)
+  eq({ "virtualtext" }, restored.display.mode)
   eq("X", restored.display.virtualtext.char)
   eq("before", restored.display.virtualtext.position)
   eq("background", restored.display.virtualtext.hl_mode)
