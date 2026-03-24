@@ -911,7 +911,69 @@ display = {
 
 </details>
 </td>
-<td></td>
+<td align="center">
+<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B53%5D%20display_bg_vt&body=%2A%2AScreenshot%20index%3A%2A%2A%2053%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_bg_vt%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[53]</a> display_bg_vt</strong><br>
+<em>combined: background + virtualtext</em><br>
+<img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/display_bg_vt.png" width="400"><br>
+<details><summary>Config</summary>
+
+```lua
+parsers = { css = true }
+display = {
+  mode = { [1] = "background", [2] = "virtualtext" },
+  virtualtext = { position = "after" },
+}
+```
+
+</details>
+</td>
+<td align="center">
+<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B54%5D%20display_fg_underline&body=%2A%2AScreenshot%20index%3A%2A%2A%2054%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_fg_underline%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[54]</a> display_fg_underline</strong><br>
+<em>combined: foreground + underline</em><br>
+<img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/display_fg_underline.png" width="400"><br>
+<details><summary>Config</summary>
+
+```lua
+parsers = { css = true }
+display = { mode = { [1] = "foreground", [2] = "underline" } }
+```
+
+</details>
+</td>
+</tr>
+<tr>
+<td align="center">
+<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B55%5D%20display_bg_underline&body=%2A%2AScreenshot%20index%3A%2A%2A%2055%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_bg_underline%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[55]</a> display_bg_underline</strong><br>
+<em>combined: background + underline</em><br>
+<img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/display_bg_underline.png" width="400"><br>
+<details><summary>Config</summary>
+
+```lua
+parsers = { css = true }
+display = { mode = { [1] = "background", [2] = "underline" } }
+```
+
+</details>
+</td>
+<td align="center">
+<strong><a href="https://github.com/catgoose/nvim-colorizer.lua/issues/new?title=Screenshot%20issue%3A%20%5B56%5D%20display_bg_underline_vt&body=%2A%2AScreenshot%20index%3A%2A%2A%2056%0A%2A%2AConfig%20key%3A%2A%2A%20%60display_bg_underline_vt%60%0A%0A%2A%2ADescribe%20the%20issue%3A%2A%2A%0A">[56]</a> display_bg_underline_vt</strong><br>
+<em>combined: background + underline + virtualtext (eol)</em><br>
+<img src="https://raw.githubusercontent.com/catgoose/screenshots/main/nvim-colorizer.lua/display_bg_underline_vt.png" width="400"><br>
+<details><summary>Config</summary>
+
+```lua
+parsers = { css = true }
+display = {
+  mode = {
+    [1] = "background",
+    [2] = "underline",
+    [3] = "virtualtext",
+  },
+}
+```
+
+</details>
+</td>
 <td></td>
 </tr>
 </table>
