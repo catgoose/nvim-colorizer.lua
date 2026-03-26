@@ -127,6 +127,9 @@ local function build_entry_config(spec, opts)
       m_opts.names_custom = p.names.custom_hashed
     end
     m_opts.extra_word_chars = p.names and p.names.extra_word_chars or nil
+    if p.names and p.names.exclude and type(p.names.exclude) == "table" and #p.names.exclude > 0 then
+      m_opts.names_exclude = p.names.exclude
+    end
     local tw = p.tailwind
     if tw and tw.enable then
       m_opts.tailwind_names = true
@@ -410,6 +413,7 @@ local function read_parser_flags(opts)
     names_uppercase = names.uppercase,
     names_strip_digits = names.strip_digits,
     names_extra_word_chars = names.extra_word_chars or "",
+    names_exclude = names.exclude or false,
     names_custom = names.custom_hashed,
     sass = p.sass and p.sass.enable,
     tailwind_enable = tw.enable or false,
@@ -489,6 +493,14 @@ local function calculate_matcher_key(f)
     custom_parser_key = table.concat(cp_parts, ",")
   end
 
+  -- Include exclude list in the cache key
+  local exclude_key = ""
+  if f.names_exclude and type(f.names_exclude) == "table" and #f.names_exclude > 0 then
+    local sorted = vim.deepcopy(f.names_exclude)
+    table.sort(sorted)
+    exclude_key = table.concat(sorted, ",")
+  end
+
   -- Include hooks identity in the cache key so different hook functions
   -- don't share cached matchers
   local hooks_key = ""
@@ -507,19 +519,22 @@ local function calculate_matcher_key(f)
 
   local matcher_key = f.names_custom
       and string.format(
-        "%d|%s|%s|%s",
+        "%d|%s|%s|%s|%s",
         matcher_mask,
         f.names_custom.hash,
         custom_parser_key,
-        hooks_key
+        hooks_key,
+        exclude_key
       )
     or custom_parser_key ~= "" and string.format(
-      "%d|%s|%s",
+      "%d|%s|%s|%s",
       matcher_mask,
       custom_parser_key,
-      hooks_key
+      hooks_key,
+      exclude_key
     )
-    or hooks_key ~= "" and string.format("%d|%s", matcher_mask, hooks_key)
+    or hooks_key ~= "" and string.format("%d|%s|%s", matcher_mask, hooks_key, exclude_key)
+    or exclude_key ~= "" and string.format("%d|%s", matcher_mask, exclude_key)
     or matcher_mask
 
   return matcher_mask, matcher_key

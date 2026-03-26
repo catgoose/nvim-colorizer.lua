@@ -148,6 +148,7 @@ local plugin_user_default_options = {
 ---@field camelcase boolean Match camelCase names (e.g. "LightBlue")
 ---@field uppercase boolean Match UPPERCASE names (e.g. "BLUE")
 ---@field strip_digits boolean Ignore names with digits (e.g. skip "blue3")
+---@field exclude string[]|false List of color names to exclude from matching (case-insensitive, e.g. `{ "azure", "tan" }`)
 ---@field custom table|function|false Custom name-to-RGB mappings. Table of `{name = "#rrggbb"}` or function returning one.
 
 ---@class colorizer.ParsersHex

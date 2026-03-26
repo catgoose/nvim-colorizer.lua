@@ -1,0 +1,12 @@
+/* ── Should highlight ────────────────────────── */
+
+/* Non-excluded names still work */
+.base { color: red; background: blue; border: green; }
+.warm { color: yellow; background: orange; border: coral; }
+
+/* ── Should NOT highlight ───────────────────── */
+
+/* Excluded names (azure, tan, gold) */
+.excluded { color: azure; background: tan; border: gold; }
+/* Invalid */
+.invalid { color: notacolor; background: blueish; }

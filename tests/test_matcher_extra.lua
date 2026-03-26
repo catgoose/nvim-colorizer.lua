@@ -311,4 +311,43 @@ T["caching new flags"]["css_var_rgb toggle produces different cache key"] = func
   eq(true, fn1 ~= fn2)
 end
 
+T["caching new flags"]["exclude list produces different cache key"] = function()
+  local fn1 = matcher.make(make_new_opts({ names = { enable = true, lowercase = true } }))
+  local fn2 = matcher.make(make_new_opts({ names = { enable = true, lowercase = true, exclude = { "azure" } } }))
+  eq(true, fn1 ~= fn2)
+end
+
+-- names exclude via matcher ---------------------------------------------------
+
+T["names exclude via matcher"] = new_set()
+
+T["names exclude via matcher"]["excluded name is not matched"] = function()
+  local parse_fn = matcher.make(make_new_opts({
+    names = { enable = true, lowercase = true, exclude = { "azure" } },
+  }))
+  local len = parse_fn("azure", 1, 0, 0)
+  eq(nil, len)
+end
+
+T["names exclude via matcher"]["non-excluded names still match"] = function()
+  local parse_fn = matcher.make(make_new_opts({
+    names = { enable = true, lowercase = true, exclude = { "azure" } },
+  }))
+  local len, hex = parse_fn("red", 1, 0, 0)
+  eq(3, len)
+  eq("ff0000", hex)
+end
+
+T["names exclude via matcher"]["multiple excludes work"] = function()
+  local parse_fn = matcher.make(make_new_opts({
+    names = { enable = true, lowercase = true, exclude = { "azure", "tan", "gold" } },
+  }))
+  eq(nil, (parse_fn("azure", 1, 0, 0)))
+  eq(nil, (parse_fn("tan", 1, 0, 0)))
+  eq(nil, (parse_fn("gold", 1, 0, 0)))
+  local len, hex = parse_fn("blue", 1, 0, 0)
+  eq(4, len)
+  eq("0000ff", hex)
+end
+
 return T

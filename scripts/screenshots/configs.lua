@@ -204,6 +204,13 @@ M.configs = {
     description = "User-defined custom color names",
   }),
 
+  names_exclude = cfg("names_exclude.css", {
+    names = { enable = true, lowercase = true, exclude = { "azure", "tan", "gold" } },
+  }, {
+    label = "names_exclude",
+    description = "exclude list rejects specific color names",
+  }),
+
   names_extra_word_chars = cfg("names_extra_word_chars.css", {
     names = {
       enable = true,
@@ -426,7 +433,7 @@ M.categories = {
   {
     flag = "names",
     display = "Named Colors",
-    names = { "names_lowercase", "names_camelcase", "names_uppercase", "names_tailwind", "names_tailwind_lsp_config", "names_strip_digits", "names_custom", "names_extra_word_chars", "names_all" },
+    names = { "names_lowercase", "names_camelcase", "names_uppercase", "names_tailwind", "names_tailwind_lsp_config", "names_strip_digits", "names_exclude", "names_custom", "names_extra_word_chars", "names_all" },
   },
   {
     flag = "special",

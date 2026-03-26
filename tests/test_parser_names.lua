@@ -249,4 +249,48 @@ T["extra_word_chars"]["default extra_word_chars includes hyphen"] = function()
   eq("ff0000", hex)
 end
 
+-- exclude -----------------------------------------------------------------------
+
+T["exclude"] = new_set()
+
+T["exclude"]["excluded name is not matched"] = function()
+  local opts = make_names_opts({ names_exclude = { "azure" } })
+  local len = names.parser("azure", 1, opts)
+  eq(nil, len)
+end
+
+T["exclude"]["excluded name is case-insensitive"] = function()
+  local opts = make_names_opts({
+    color_names_opts = { camelcase = true },
+    names_exclude = { "Azure" },
+  })
+  -- lowercase "azure" should also be excluded
+  local len = names.parser("azure", 1, opts)
+  eq(nil, len)
+end
+
+T["exclude"]["non-excluded names still match"] = function()
+  local opts = make_names_opts({ names_exclude = { "azure" } })
+  local len, hex = names.parser("red", 1, opts)
+  eq(3, len)
+  eq("ff0000", hex)
+end
+
+T["exclude"]["multiple names can be excluded"] = function()
+  local opts = make_names_opts({ names_exclude = { "azure", "tan", "red" } })
+  eq(nil, (names.parser("azure", 1, opts)))
+  eq(nil, (names.parser("tan", 1, opts)))
+  eq(nil, (names.parser("red", 1, opts)))
+  -- blue should still work
+  local len, hex = names.parser("blue", 1, opts)
+  eq(4, len)
+  eq("0000ff", hex)
+end
+
+T["exclude"]["lookup_name returns nil for excluded name"] = function()
+  local opts = make_names_opts({ names_exclude = { "azure" } })
+  local hex = names.lookup_name("azure", opts)
+  eq(nil, hex)
+end
+
 return T

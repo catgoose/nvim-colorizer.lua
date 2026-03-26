@@ -93,17 +93,19 @@ local function add_color(name, val, namespace, hash)
 end
 
 --- Handles Vim's color map and adds colors to the Trie and map.
-local function populate_names(color_names_opts)
+local function populate_names(color_names_opts, exclude_set)
   for name, value in pairs(vim.api.nvim_get_color_map()) do
-    local rgb_hex = bit.tohex(value, 6)
-    if color_names_opts.lowercase then
-      add_color(name:lower(), rgb_hex, "lowercase")
-    end
-    if color_names_opts.camelcase then
-      add_color(name, rgb_hex, "camelcase")
-    end
-    if color_names_opts.uppercase then
-      add_color(name:upper(), rgb_hex, "uppercase")
+    if not (exclude_set and exclude_set[name:lower()]) then
+      local rgb_hex = bit.tohex(value, 6)
+      if color_names_opts.lowercase then
+        add_color(name:lower(), rgb_hex, "lowercase")
+      end
+      if color_names_opts.camelcase then
+        add_color(name, rgb_hex, "camelcase")
+      end
+      if color_names_opts.uppercase then
+        add_color(name:upper(), rgb_hex, "uppercase")
+      end
     end
   end
 end
@@ -170,9 +172,17 @@ local function populate_colors(m_opts)
   if m_opts.extra_word_chars and m_opts.extra_word_chars ~= "" then
     utils.add_additional_color_chars(m_opts.extra_word_chars)
   end
+  -- Build exclude set (lowercased for case-insensitive matching)
+  local exclude_set
+  if m_opts.names_exclude then
+    exclude_set = {}
+    for _, name in ipairs(m_opts.names_exclude) do
+      exclude_set[name:lower()] = true
+    end
+  end
   -- Add Vim's color map
   if m_opts.color_names then
-    populate_names(m_opts.color_names_opts)
+    populate_names(m_opts.color_names_opts, exclude_set)
     if m_opts.color_names_opts.lowercase then
       set_namespace("lowercase")
     end
@@ -326,6 +336,7 @@ M.spec = {
     camelcase = true,
     uppercase = false,
     strip_digits = false,
+    exclude = false,
     custom = false,
     extra_word_chars = "-",
   },
