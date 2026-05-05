@@ -220,11 +220,13 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, opts, hl_opts
       -- Non-virtualtext: one extmark with combined highlight group
       if #non_vt_modes > 0 then
         local hlname = create_combined_highlight(hl.rgb_hex, non_vt_modes, bg_opts)
-        vim.api.nvim_buf_set_extmark(bufnr, ns_id, linenr, hl.range[1], {
-          end_col = hl.range[2],
-          hl_group = hlname,
-          priority = priority,
-        })
+        pcall(function()
+          vim.api.nvim_buf_set_extmark(bufnr, ns_id, linenr, hl.range[1], {
+            end_col = hl.range[2],
+            hl_group = hlname,
+            priority = priority,
+          })
+        end)
       end
 
       -- Virtualtext: separate extmark
