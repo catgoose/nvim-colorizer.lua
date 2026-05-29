@@ -911,6 +911,30 @@ T["translate_filetypes"]["override translates legacy options"] = function()
   eq(true, new.overrides.html.parsers.hsl.enable)
 end
 
+T["translate_filetypes"]["override translates legacy names shorthand"] = function()
+  local new = config.translate_filetypes({
+    html = { names = true },
+  })
+  eq(true, new.overrides.html.parsers.names.enable)
+end
+
+T["translate_filetypes"]["override translates legacy names_opts"] = function()
+  local new = config.translate_filetypes({
+    html = { names = true, names_opts = { lowercase = false, camelcase = true } },
+  })
+  eq(true, new.overrides.html.parsers.names.enable)
+  eq(false, new.overrides.html.parsers.names.lowercase)
+  eq(true, new.overrides.html.parsers.names.camelcase)
+end
+
+T["translate_filetypes"]["override accepts nested new-format parser key"] = function()
+  local new = config.translate_filetypes({
+    html = { parsers = { names = { enable = true, lowercase = false } } },
+  })
+  eq(true, new.overrides.html.parsers.names.enable)
+  eq(false, new.overrides.html.parsers.names.lowercase)
+end
+
 T["translate_filetypes"]["new format fills missing keys"] = function()
   local new = config.translate_filetypes({ enable = { "*" } })
   eq("*", new.enable[1])

@@ -90,14 +90,67 @@ require("colorizer").setup({
 
 -- Per-filetype overrides
 require("colorizer").setup({
+  options = {
+    -- base options applied to every filetype unless overridden below
+    parsers = {
+      hex = { default = false },
+      names = { enable = false },
+      tailwind = { enable = false },
+    },
+  },
   filetypes = {
     "*",
-    "!markdown",
-    html = { mode = "foreground" },
-    cmp_docs = { always_update = true },
+    "!markdown",                          -- exclude markdown entirely
+    html = { mode = "foreground" },       -- legacy flat key
+    cmp_docs = { always_update = true },  -- legacy flat key
+    -- Each entry can also use the same nested format as `options`,
+    -- deep-merged on top of the base options:
+    css = {
+      parsers = {
+        hex = { default = true },
+        oklch = { enable = true },
+      },
+    },
+    javascriptreact = {
+      parsers = { tailwind = { enable = true, lsp = true } },
+    },
+  },
+  buftypes = {
+    -- Same override format works for buftypes
+    terminal = { parsers = { hex = { default = true } } },
+  },
+})
+
+-- Enabling a parser per-filetype: both shapes below are valid
+require("colorizer").setup({
+  options = {
+    parsers = { names = { enable = false } }, -- disabled by default
+  },
+  filetypes = {
+    html = { names = true },                                               -- legacy flat shorthand
+    css  = { parsers = { names = { enable = true, lowercase = false } } }, -- nested new-format
   },
 })
 ```
+
+> Each value in `filetypes` / `buftypes` accepts **either** the nested
+> format (`parsers = {...}`, `display = {...}`, `hooks = {...}`,
+> `always_update`) **or** legacy flat keys (`mode`, `names`, `RGB`,
+> `rgb_fn`, …). Both shapes are translated and deep-merged onto the base
+> `options`, so you only need to specify what changes for that filetype.
+>
+> This mixed-format compatibility is intentional for `filetypes` /
+> `buftypes` overrides even though the top-level recommended shape is
+> `options = { ... }` — it lets short per-filetype tweaks stay terse.
+>
+> In summary
+>
+> - flat legacy parser keys (`names`, `RGB`, `rgb_fn`, …) go **directly**
+>   on the filetype table, e.g. `html = { names = true }`
+> - structured parser config goes **under `parsers`**, e.g.
+>   `html = { parsers = { names = { enable = true } } }`
+> - to tweak sub-options (`lowercase`, `camelcase`, …) use the nested
+>   form — the flat shorthand only toggles `enable`
 
 ## Parser options
 
