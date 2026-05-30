@@ -273,6 +273,7 @@ colorizer.ParsersOptions                              *colorizer.ParsersOptions*
         {tailwind}   (colorizer.ParsersTailwind)    Tailwind CSS color options
         {sass}       (colorizer.ParsersSass)        Sass variable color options
         {xterm}      (colorizer.ParsersSimple)      xterm 256-color code parser
+        {ls_colors}  (colorizer.ParsersSimple)      LS_COLORS/SGR snippet parser (e.g. `=38;5;196`, `=48;2;0;0;255`)
         {custom}     (colorizer.CustomParserDef[])  List of custom parser definitions
 
 
@@ -1358,6 +1359,10 @@ Supported formats:
   - \e[38;2;R;G;Bm / \e[48;2;R;G;Bm for 24-bit true-color foreground/background
   - \e[X;Ym for 16-color foreground (30-37) and background (40-47) with brightness
 
+Exposes the 256-color palette for reuse:
+  - `M.lookup_256(idx)` returns the RGB hex for `0..255`, or `nil`
+  - `M.get_palette()` returns a fresh copy of the full 256-entry palette
+
 M.parser({line}, {i})                            *colorizer.parser.xterm.parser*
 
     Parameters: ~
@@ -1367,6 +1372,46 @@ M.parser({line}, {i})                            *colorizer.parser.xterm.parser*
     Returns: ~
         (number|nil)  end index of the parsed xterm color code within the line, or `nil` if parsing failed
         (string|nil)  RGB hexadecimal color from the xterm palette, or `nil` if parsing failed
+
+
+M.lookup_256({idx})                          *colorizer.parser.xterm.lookup_256*
+    Look up an xterm 256-color palette entry.
+
+    Parameters: ~
+        {idx}  (number)  Palette index, 0..255
+
+    Returns: ~
+        (string|nil)  Lowercase 6-digit hex, or `nil` for out-of-range/non-numeric input
+
+
+M.get_palette()                             *colorizer.parser.xterm.get_palette*
+    Return a fresh copy of the full xterm 256-color palette.
+
+    Returns: ~
+        (string[])  1-indexed list of 256 lowercase 6-digit hex strings
+
+
+==============================================================================
+LS_COLORS Parser                                    *colorizer.parser.ls_colors*
+
+Parses LS_COLORS / SGR color-producing snippets such as:
+  - `=38;5;NNN` and `=48;5;NNN` (256-color foreground/background)
+  - `=38;2;R;G;B` and `=48;2;R;G;B` (24-bit truecolor)
+
+Leading semicolon-separated style codes (e.g. `01;`) are skipped before the
+color directive. 256-color values reuse the xterm palette so users do not
+need to duplicate it in custom parsers.
+
+M.parser({line}, {i})                        *colorizer.parser.ls_colors.parser*
+    Parse an LS_COLORS/SGR color snippet starting at `i` in `line`.
+
+    Parameters: ~
+        {line}  (string)
+        {i}     (number)  1-indexed start position; must point at `=`
+
+    Returns: ~
+        (number|nil)  consumed from `i`
+        (string|nil)  rgb_hex
 
 
 vim:tw=78:ts=8:noet:ft=help:norl:

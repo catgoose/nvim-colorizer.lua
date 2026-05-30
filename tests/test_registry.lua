@@ -19,7 +19,7 @@ T["registration"] = new_set()
 
 T["registration"]["all built-in parsers are registered"] = function()
   local expected = {
-    "rgba_hex", "argb_hex", "hex_no_hash", "xterm", "rgb", "hsl", "hsluv",
+    "rgba_hex", "argb_hex", "hex_no_hash", "xterm", "ls_colors", "rgb", "hsl", "hsluv",
     "oklch", "hwb", "lab", "lch", "css_color", "names", "sass", "xcolor", "css_var_rgb", "css_var",
   }
   for _, name in ipairs(expected) do
@@ -39,7 +39,7 @@ T["ordering"] = new_set()
 
 T["ordering"]["all() returns specs sorted by priority ascending"] = function()
   local all = registry.all()
-  eq(true, #all >= 17, "expected at least 17 registered parsers")
+  eq(true, #all >= 18, "expected at least 18 registered parsers")
   for i = 2, #all do
     eq(true, all[i].priority >= all[i - 1].priority,
       string.format("expected priority %d >= %d for %s after %s",
@@ -85,6 +85,12 @@ T["dispatch"]["sass is byte-dispatched on $"] = function()
   local spec = registry.get("sass")
   eq("byte", spec.dispatch.kind)
   eq(true, vim.tbl_contains(spec.dispatch.bytes, 0x24))
+end
+
+T["dispatch"]["ls_colors is byte-dispatched on ="] = function()
+  local spec = registry.get("ls_colors")
+  eq("byte", spec.dispatch.kind)
+  eq(true, vim.tbl_contains(spec.dispatch.bytes, 0x3D))
 end
 
 -- Config defaults --------------------------------------------------------------

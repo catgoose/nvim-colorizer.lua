@@ -54,6 +54,7 @@ $LEMMY -f \
   "$PROJECT_DIR/lua/colorizer/parser/sass.lua" \
   "$PROJECT_DIR/lua/colorizer/parser/css_var.lua" \
   "$PROJECT_DIR/lua/colorizer/parser/xterm.lua" \
+  "$PROJECT_DIR/lua/colorizer/parser/ls_colors.lua" \
   >"$OUTPUT"
 
 echo "$OUTPUT created"

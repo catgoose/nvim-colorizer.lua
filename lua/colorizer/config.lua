@@ -140,6 +140,7 @@ local plugin_user_default_options = {
 ---@field tailwind colorizer.ParsersTailwind Tailwind CSS color options
 ---@field sass colorizer.ParsersSass Sass variable color options
 ---@field xterm colorizer.ParsersSimple xterm 256-color code parser
+---@field ls_colors colorizer.ParsersSimple LS_COLORS/SGR snippet parser (e.g. `=38;5;196`, `=48;2;0;0;255`)
 ---@field custom colorizer.CustomParserDef[] List of custom parser definitions
 
 ---@class colorizer.ParsersNames
