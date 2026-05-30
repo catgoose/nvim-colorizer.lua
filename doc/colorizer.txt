@@ -1395,12 +1395,16 @@ M.get_palette()                             *colorizer.parser.xterm.get_palette*
 LS_COLORS Parser                                    *colorizer.parser.ls_colors*
 
 Parses LS_COLORS / SGR color-producing snippets such as:
-  - `=38;5;NNN` and `=48;5;NNN` (256-color foreground/background)
-  - `=38;2;R;G;B` and `=48;2;R;G;B` (24-bit truecolor)
+  - `=NN` plain 8-color (30-37 fg, 40-47 bg)
+  - `=NN` bright 8-color (90-97 fg, 100-107 bg)
+  - `=01;NN` bold-promoted fg becomes the bright variant
+  - `=38;5;NNN` / `=48;5;NNN` 256-color
+  - `=38;2;R;G;B` / `=48;2;R;G;B` truecolor
 
-Leading semicolon-separated style codes (e.g. `01;`) are skipped before the
-color directive. 256-color values reuse the xterm palette so users do not
-need to duplicate it in custom parsers.
+Walks semicolon-separated codes starting after `=` until a non-digit /
+non-semicolon byte (typically `:` or whitespace). Foreground wins when both
+are present. 256-color values reuse the xterm palette so users do not need
+to duplicate it in custom parsers.
 
 M.parser({line}, {i})                        *colorizer.parser.ls_colors.parser*
     Parse an LS_COLORS/SGR color snippet starting at `i` in `line`.
