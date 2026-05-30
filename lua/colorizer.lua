@@ -1,7 +1,10 @@
 ---@mod colorizer Colorizer
 ---@tag colorizer.nvim
 ---@brief [[
----Requires Neovim >= 0.10.0 and `set termguicolors`
+---Requires Neovim >= 0.10.0.  `termguicolors` must be active for highlights to
+---render; if it is not set when `setup()` runs (for example during a lazy-load
+---on `BufReadPre` or `UIEnter`) colorizer will automatically wait for Neovim
+---to enable it and then finish setup.
 ---
 ---Highlights terminal CSI ANSI color codes.
 ---
@@ -641,37 +644,51 @@ function M.detach_from_buffer(bufnr)
   return bufnr
 end
 
----Easy to use function if you want the full setup without fine grained control.
---Setup an autocmd which enables colorizing for the filetypes and options specified.
---
---By default highlights all FileTypes.
---
---Example config:~
---<pre>
---  { filetypes = { "css", "html" }, user_default_options = { names = true } }
---</pre>
---Setup with all the default options:~
---<pre>
---    require("colorizer").setup {
---      user_commands,
---      filetypes = { "*" },
---      user_default_options,
---      -- all the sub-options of filetypes apply to buftypes
---      buftypes = {},
---    }
---</pre>
----Setup colorizer with user options
----@param opts table|nil User provided options
---- `require("colorizer").setup()`
----@see colorizer.config
-function M.setup(opts)
-  if not vim.o.termguicolors then
-    vim.schedule(function()
-      vim.notify("Colorizer: Error: &termguicolors must be set", 4)
-    end)
+--- Attach `bufnr` if it passes exclusion + eligibility checks.
+--- Shared by the FileType/BufWinEnter autocmd path and the startup bootstrap.
+---@param bufnr number
+---@param bo_type 'filetype'|'buftype'
+---@param s table Resolved setup options (from config.get_setup_options)
+local function attach_buffer_if_eligible(bufnr, bo_type, s)
+  if not vim.api.nvim_buf_is_valid(bufnr) then
+    return
+  end
+  local filetype = vim.api.nvim_get_option_value("filetype", { buf = bufnr })
+  local buftype = vim.api.nvim_get_option_value("buftype", { buf = bufnr })
+  colorizer_state.buffer_local[bufnr] = colorizer_state.buffer_local[bufnr] or {}
+  if s.exclusions.filetype[filetype] or s.exclusions.buftype[buftype] then
+    -- when a filetype is disabled but buftype is enabled, it can Attach in
+    -- some cases, so manually detach
+    if colorizer_state.buffer_options[bufnr] then
+      M.detach_from_buffer(bufnr)
+    end
+    if colorizer_state.buffer_local[bufnr] then
+      colorizer_state.buffer_local[bufnr].__init = nil
+    end
     return
   end
 
+  -- get cached options
+  local bo_opts = config.get_bo_options(bo_type, buftype, filetype)
+  if not bo_opts and not s.all[bo_type] then
+    return
+  end
+
+  -- Multiple autocmd events can try to attach to buffer
+  -- check if buffer has already been initialized before attaching
+  if not colorizer_state.buffer_local[bufnr].__init then
+    M.attach_to_buffer(bufnr, bo_opts, bo_type)
+  end
+end
+
+--- Augroup used to retry setup when termguicolors is not yet active.
+local pending_setup_augroup = nil
+
+--- Run the main setup body.  Extracted so it can be called directly when
+--- `termguicolors` is already true, or deferred via a retry path when it is
+--- not (see `M.setup`).
+---@param opts table|nil
+local function run_setup(opts)
   colorizer_state = {
     augroup = vim.api.nvim_create_augroup("ColorizerSetup", { clear = true }),
     buffer_current = 0,
@@ -685,37 +702,6 @@ function M.setup(opts)
   require("colorizer.buffer").reset_cache()
 
   local s = config.get_setup_options(opts)
-
-  -- Setup the buffer with the correct options
-  local function bo_type_setup(bo_type)
-    local filetype = vim.bo.filetype
-    local buftype = vim.bo.buftype
-    local bufnr = utils.bufme()
-    colorizer_state.buffer_local[bufnr] = colorizer_state.buffer_local[bufnr] or {}
-    if s.exclusions.filetype[filetype] or s.exclusions.buftype[buftype] then
-      -- when a filetype is disabled but buftype is enabled, it can Attach in
-      -- some cases, so manually detach
-      if colorizer_state.buffer_options[bufnr] then
-        M.detach_from_buffer(bufnr)
-      end
-      if colorizer_state.buffer_local[bufnr] then
-        colorizer_state.buffer_local[bufnr].__init = nil
-      end
-      return
-    end
-
-    -- get cached options
-    local bo_opts = config.get_bo_options(bo_type, buftype, filetype)
-    if not bo_opts and not s.all[bo_type] then
-      return
-    end
-
-    -- Multiple autocmd events can try to attach to buffer
-    -- check if buffer has already been initialized before attaching
-    if not colorizer_state.buffer_local[bufnr].__init then
-      M.attach_to_buffer(bufnr, bo_opts, bo_type)
-    end
-  end
 
   -- Setup highlighting autocmds for filetypes and buftypes
   local bo_type_options = {
@@ -770,13 +756,14 @@ function M.setup(opts)
     vim.api.nvim_create_autocmd({ const.autocmd.bo_type_ac[bo_type] }, {
       group = colorizer_state.augroup,
       pattern = bo_type == "filetype" and (s.all[bo_type] and "*" or list) or nil,
-      callback = function()
+      callback = function(args)
+        local bufnr = args.buf or utils.bufme()
         if s.lazy_load then
           vim.schedule(function()
-            bo_type_setup(bo_type)
+            attach_buffer_if_eligible(bufnr, bo_type, s)
           end)
         else
-          bo_type_setup(bo_type)
+          attach_buffer_if_eligible(bufnr, bo_type, s)
         end
       end,
     })
@@ -790,6 +777,100 @@ function M.setup(opts)
 
   --  TODO: 2024-11-23 - Delete user commands first
   require("colorizer.usercmds").make(s.user_commands)
+
+  -- Bootstrap: attach buffers that already exist by the time setup() runs.
+  -- Without this, a plugin lazy-loaded on `UIEnter` (or any trigger after the
+  -- first buffer's FileType/BufWinEnter has fired) never highlights the first
+  -- buffer.  Try the filetype path first, then buftype, matching the
+  -- precedence used by `config.get_bo_options`.
+  for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.api.nvim_buf_is_loaded(bufnr) then
+      attach_buffer_if_eligible(bufnr, "filetype", s)
+      local bl = colorizer_state.buffer_local[bufnr]
+      if not bl or not bl.__init then
+        attach_buffer_if_eligible(bufnr, "buftype", s)
+      end
+    end
+  end
+end
+
+---Easy to use function if you want the full setup without fine grained control.
+--Setup an autocmd which enables colorizing for the filetypes and options specified.
+--
+--By default highlights all FileTypes.
+--
+--Example config:~
+--<pre>
+--  { filetypes = { "css", "html" }, user_default_options = { names = true } }
+--</pre>
+--Setup with all the default options:~
+--<pre>
+--    require("colorizer").setup {
+--      user_commands,
+--      filetypes = { "*" },
+--      user_default_options,
+--      -- all the sub-options of filetypes apply to buftypes
+--      buftypes = {},
+--    }
+--</pre>
+---Setup colorizer with user options
+---@param opts table|nil User provided options
+--- `require("colorizer").setup()`
+---@see colorizer.config
+function M.setup(opts)
+  if not vim.o.termguicolors then
+    -- Neovim may not have finalized `termguicolors` yet (e.g. the plugin is
+    -- lazy-loaded on `BufReadPre` before the TUI auto-detection completes).
+    -- Register a one-shot retry instead of hard-failing.
+    if pending_setup_augroup then
+      pcall(vim.api.nvim_del_augroup_by_id, pending_setup_augroup)
+    end
+    pending_setup_augroup =
+      vim.api.nvim_create_augroup("ColorizerPendingSetup", { clear = true })
+
+    local function retry()
+      if not vim.o.termguicolors then
+        return
+      end
+      vim.schedule(function()
+        if not vim.o.termguicolors then
+          return
+        end
+        if pending_setup_augroup then
+          pcall(vim.api.nvim_del_augroup_by_id, pending_setup_augroup)
+          pending_setup_augroup = nil
+        end
+        M.setup(opts)
+      end)
+    end
+
+    vim.api.nvim_create_autocmd("UIEnter", {
+      group = pending_setup_augroup,
+      once = true,
+      callback = function()
+        if vim.o.termguicolors then
+          retry()
+        else
+          vim.schedule(function()
+            vim.notify("Colorizer: Error: &termguicolors must be set", 4)
+          end)
+        end
+      end,
+    })
+    vim.api.nvim_create_autocmd("OptionSet", {
+      group = pending_setup_augroup,
+      pattern = "termguicolors",
+      callback = retry,
+    })
+    return
+  end
+
+  if pending_setup_augroup then
+    pcall(vim.api.nvim_del_augroup_by_id, pending_setup_augroup)
+    pending_setup_augroup = nil
+  end
+
+  run_setup(opts)
 end
 
 --- Clears the highlight cache and reloads all buffers.

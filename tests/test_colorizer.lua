@@ -130,4 +130,83 @@ T["reload_all_buffers"]["doesn't error with no active buffers"] = function()
   eq(true, true)
 end
 
+-- deferred setup (issue #210) ------------------------------------------------
+
+T["deferred setup"] = new_set({
+  hooks = {
+    pre_case = function()
+      matcher.reset_cache()
+      names.reset_cache()
+      buffer.reset_cache()
+      config.get_setup_options(nil)
+    end,
+    post_case = function()
+      -- Restore termguicolors for subsequent tests.
+      vim.o.termguicolors = true
+      -- Clean up any lingering pending-setup augroup.
+      pcall(vim.api.nvim_del_augroup_by_name, "ColorizerPendingSetup")
+    end,
+  },
+})
+
+T["deferred setup"]["does not permanently abort when termguicolors is false"] = function()
+  vim.o.termguicolors = false
+  -- Should not throw / notify synchronously; must register a retry.
+  colorizer.setup({ user_default_options = { RRGGBB = true } })
+  -- Autogroup registered for retry
+  local au = vim.api.nvim_get_autocmds({ group = "ColorizerPendingSetup" })
+  eq(true, #au > 0)
+
+  -- Simulate termguicolors becoming true, then fire OptionSet to trigger retry.
+  vim.o.termguicolors = true
+  vim.api.nvim_exec_autocmds("OptionSet", { pattern = "termguicolors" })
+  vim.wait(50, function()
+    return pcall(vim.api.nvim_get_autocmds, { group = "ColorizerSetup" })
+      and #vim.api.nvim_get_autocmds({ group = "ColorizerSetup" }) > 0
+  end)
+  -- After retry, the normal setup augroup exists.
+  eq(
+    true,
+    #vim.api.nvim_get_autocmds({ group = "ColorizerSetup" }) > 0
+  )
+end
+
+T["deferred setup"]["bootstrap attaches already-existing buffer"] = function()
+  local buf = make_buf({ "#FF0000" })
+  vim.api.nvim_set_current_buf(buf)
+  vim.api.nvim_set_option_value("filetype", "css", { buf = buf })
+  -- Buffer exists before setup; bootstrap should attach it.
+  colorizer.setup({ user_default_options = { RRGGBB = true } })
+  eq(true, colorizer.is_buffer_attached(buf))
+  colorizer.detach_from_buffer(buf)
+  vim.api.nvim_buf_delete(buf, { force = true })
+end
+
+T["deferred setup"]["bootstrap skips excluded filetype"] = function()
+  local buf = make_buf({ "#FF0000" })
+  vim.api.nvim_set_current_buf(buf)
+  vim.api.nvim_set_option_value("filetype", "markdown", { buf = buf })
+  colorizer.setup({
+    filetypes = { "*", "!markdown" },
+    user_default_options = { RRGGBB = true },
+  })
+  eq(false, colorizer.is_buffer_attached(buf))
+  vim.api.nvim_buf_delete(buf, { force = true })
+end
+
+T["deferred setup"]["reload_all_buffers only touches attached buffers"] = function()
+  colorizer.setup({ user_default_options = { RRGGBB = true } })
+  local attached = make_buf({ "#FF0000" })
+  local detached = make_buf({ "#00FF00" })
+  local opts = config.apply_alias_options({ RRGGBB = true })
+  colorizer.attach_to_buffer(attached, opts, "buftype")
+  -- `detached` is never attached.  reload_all_buffers must not attach it.
+  colorizer.reload_all_buffers()
+  eq(true, colorizer.is_buffer_attached(attached))
+  eq(false, colorizer.is_buffer_attached(detached))
+  colorizer.detach_from_buffer(attached)
+  vim.api.nvim_buf_delete(attached, { force = true })
+  vim.api.nvim_buf_delete(detached, { force = true })
+end
+
 return T

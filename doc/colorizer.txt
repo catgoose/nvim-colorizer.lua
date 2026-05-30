@@ -2,7 +2,10 @@
 Colorizer                                                            *colorizer*
 
                                                                 *colorizer.nvim*
-Requires Neovim >= 0.10.0 and `set termguicolors`
+Requires Neovim >= 0.10.0.  `termguicolors` must be active for highlights to
+render; if it is not set when `setup()` runs (for example during a lazy-load
+on `BufReadPre` or `UIEnter`) colorizer will automatically wait for Neovim
+to enable it and then finish setup.
 
 Highlights terminal CSI ANSI color codes.
 

@@ -43,7 +43,11 @@ next to the test to report an issue.
 
 ## Installation
 
-Requires Neovim >= 0.10.0 and `set termguicolors`
+Requires Neovim >= 0.10.0.  `termguicolors` must be active when the plugin
+actually highlights a buffer; if it is not yet set when `setup()` runs (for
+example during a lazy-load on `BufReadPre` or `UIEnter`), colorizer waits for
+Neovim to enable it and finishes setup automatically.  You do not need to
+eagerly `set termguicolors` before loading the plugin.
 
 ```lua
 -- vim.pack
@@ -57,10 +61,14 @@ require("colorizer").setup()
 -- lazy.nvim
 {
     "catgoose/nvim-colorizer.lua",
-    event = "BufReadPre",
+    event = "BufReadPre", -- or "UIEnter"
     opts = {},
 }
 ```
+
+Lazy loading on `BufReadPre` or `UIEnter` is supported: the first buffer that
+already exists when `setup()` runs is highlighted automatically without a
+manual `:ColorizerAttachToBuffer`.
 
 ## Examples
 
