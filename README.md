@@ -8,6 +8,7 @@
   - [Examples](#examples)
   - [Parser options](#parser-options)
     - [Hex `default` key](#hex-default-key)
+    - [Custom named colors](#custom-named-colors)
   - [Default configuration](#default-configuration)
   - [Tailwind CSS](#tailwind-css)
     - [Neovim built-in LSP document colors (0.12+)](#neovim-built-in-lsp-document-colors-012)
@@ -181,6 +182,31 @@ hex = { default = false, rrggbb = true }
 > **Note:** Other parsers (`names`, `tailwind`, `sass`) use `enable` as a
 > simple on/off switch. The `default` key is unique to `hex` because it is
 > the only parser with multiple boolean format sub-keys.
+
+### Custom named colors
+
+`parsers.names.custom` adds user-defined name-to-hex mappings on top of the
+built-in CSS names. Pass a table, or a function returning a table for dynamic
+loading. Enabling `xcolor` lets the same custom names work in LaTeX
+`name!percent` expressions (see
+[#211](https://github.com/catgoose/nvim-colorizer.lua/issues/211)).
+
+```lua
+require("colorizer").setup({
+  options = {
+    parsers = {
+      names = {
+        enable = true,
+        custom = {
+          thesisblue = "#1f4e79",
+          accentgreen = "#2e7d32",
+        },
+      },
+      xcolor = { enable = true }, -- LaTeX: thesisblue!30
+    },
+  },
+})
+```
 
 ## Default configuration
 
