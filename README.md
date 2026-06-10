@@ -500,6 +500,72 @@ require("colorizer").setup({
 
 Each custom parser supports: `name`, `parse(ctx)`, `prefixes`, `prefix_bytes`, `setup(ctx)`, `teardown(ctx)`, `state_factory()`. See the [full documentation](https://catgoose.github.io/nvim-colorizer.lua/) for details.
 
+For formats that are not already RGB, decode the matched value and return a
+normal six-digit RGB hex string. This example highlights Neo Geo color words
+like `$7fff` or `0x7fff`:
+
+```lua
+local bit = require("bit")
+local band, bor, lshift, rshift = bit.band, bit.bor, bit.lshift, bit.rshift
+
+local function component_to_hex(value)
+  -- Expand a 6-bit Neo Geo channel to 8-bit RGB.
+  return ("%02x"):format(math.floor((value * 255 / 63) + 0.5))
+end
+
+local function neogeo_to_rgb_hex(word)
+  local dark = band(rshift(word, 15), 0x1)
+  local r = bor(
+    lshift(band(rshift(word, 8), 0x0f), 2),
+    lshift(band(rshift(word, 14), 0x1), 1),
+    dark
+  )
+  local g = bor(
+    lshift(band(rshift(word, 4), 0x0f), 2),
+    lshift(band(rshift(word, 13), 0x1), 1),
+    dark
+  )
+  local b = bor(
+    lshift(band(word, 0x0f), 2),
+    lshift(band(rshift(word, 12), 0x1), 1),
+    dark
+  )
+
+  return component_to_hex(r) .. component_to_hex(g) .. component_to_hex(b)
+end
+
+require("colorizer").setup({
+  options = {
+    parsers = {
+      custom = {
+        {
+          name = "neogeo_color",
+          prefixes = { "$", "0x" },
+          parse = function(ctx)
+            local hex = ctx.line:match("^%$(%x%x%x%x)", ctx.col)
+            if hex then
+              return 5, neogeo_to_rgb_hex(tonumber(hex, 16))
+            end
+
+            hex = ctx.line:match("^0x(%x%x%x%x)", ctx.col)
+            if hex then
+              return 6, neogeo_to_rgb_hex(tonumber(hex, 16))
+            end
+          end,
+        },
+      },
+    },
+    display = {
+      mode = "background",
+    },
+  },
+})
+```
+
+The parser decides what text is a color and returns the RGB value. The `display`
+options are separate; use them only to choose how that returned color is drawn
+(`"background"`, `"foreground"`, `"virtual"`, etc.).
+
 ## Hooks
 
 `should_highlight_line` is called before each line is parsed. Return `true` to highlight, `false` to skip:

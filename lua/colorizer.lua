@@ -782,6 +782,21 @@ function M.setup(opts)
     })
   end
 
+  -- If setup() runs after the current buffer's FileType/BufWinEnter events
+  -- have already fired, the autocmds above won't attach until a later buffer
+  -- event. Do one scheduled pass for the current buffer to cover package
+  -- managers that load colorizer after opening the first file.
+  vim.schedule(function()
+    local bufnr = utils.bufme()
+    if not vim.api.nvim_buf_is_valid(bufnr) then
+      return
+    end
+    if vim.api.nvim_get_option_value("filetype", { buf = bufnr }) ~= "" then
+      bo_type_setup("filetype")
+    end
+    bo_type_setup("buftype")
+  end)
+
   -- Clear highlight cache on colorscheme change
   vim.api.nvim_create_autocmd("ColorScheme", {
     group = colorizer_state.augroup,

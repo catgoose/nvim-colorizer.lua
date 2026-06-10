@@ -41,6 +41,22 @@ T["setup()"]["with custom opts doesn't error"] = function()
   eq(true, true)
 end
 
+T["setup()"]["attaches current buffer when filetype already exists"] = function()
+  local buf = make_buf({ "#FF0000" })
+  vim.api.nvim_set_current_buf(buf)
+  vim.api.nvim_set_option_value("filetype", "lua", { buf = buf })
+
+  colorizer.setup({ filetypes = { "lua" } })
+
+  vim.wait(100, function()
+    return colorizer.is_buffer_attached(buf)
+  end)
+
+  eq(true, colorizer.is_buffer_attached(buf))
+  colorizer.detach_from_buffer(buf)
+  vim.api.nvim_buf_delete(buf, { force = true })
+end
+
 -- attach / detach lifecycle ---------------------------------------------------
 
 T["attach_to_buffer"] = new_set()
