@@ -129,6 +129,35 @@ local function slice_line(bufnr, line, start_col, end_col)
   return string.sub(lines[1], start_col + 1, end_col)
 end
 
+local stale_extmark_range_errors = {
+  "Invalid 'col': out of range",
+  "Invalid 'end_col': out of range",
+  "Invalid 'line': out of range",
+}
+
+local function is_stale_extmark_range_error(err)
+  if type(err) ~= "string" then
+    return false
+  end
+  for _, msg in ipairs(stale_extmark_range_errors) do
+    if err:find(msg, 1, true) then
+      return true
+    end
+  end
+  return false
+end
+
+local function set_extmark_ignore_stale_range(bufnr, ns_id, line, col, extmark_opts)
+  local ok, err = pcall(vim.api.nvim_buf_set_extmark, bufnr, ns_id, line, col, extmark_opts)
+  if ok then
+    return true
+  end
+  if is_stale_extmark_range_error(err) then
+    return false
+  end
+  error(err, 2)
+end
+
 --- Normalize opts to new format if needed.
 --- Ensures the result is fully merged with defaults so all expected
 --- sub-tables (parsers.names, parsers.hex, etc.) are present.
@@ -220,7 +249,7 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, opts, hl_opts
       -- Non-virtualtext: one extmark with combined highlight group
       if #non_vt_modes > 0 then
         local hlname = create_combined_highlight(hl.rgb_hex, non_vt_modes, bg_opts)
-        vim.api.nvim_buf_set_extmark(bufnr, ns_id, linenr, hl.range[1], {
+        set_extmark_ignore_stale_range(bufnr, ns_id, linenr, hl.range[1], {
           end_col = hl.range[2],
           hl_group = hlname,
           priority = priority,
@@ -250,9 +279,7 @@ function M.add_highlight(bufnr, ns_id, line_start, line_end, data, opts, hl_opts
         end
         vt_extmark_opts.virt_text = vt_list
         vt_extmark_opts.end_col = start_col
-        pcall(function()
-          vim.api.nvim_buf_set_extmark(bufnr, ns_id, linenr, start_col, vt_extmark_opts)
-        end)
+        set_extmark_ignore_stale_range(bufnr, ns_id, linenr, start_col, vt_extmark_opts)
       end
     end
   end
