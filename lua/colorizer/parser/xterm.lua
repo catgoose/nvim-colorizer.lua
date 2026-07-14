@@ -6,6 +6,10 @@
 ---  - \e[38;5;NNNm / \e[48;5;NNNm for 256-color foreground/background
 ---  - \e[38;2;R;G;Bm / \e[48;2;R;G;Bm for 24-bit true-color foreground/background
 ---  - \e[X;Ym for 16-color foreground (30-37) and background (40-47) with brightness
+---
+---Exposes the 256-color palette for reuse:
+---  - `M.lookup_256(idx)` returns the RGB hex for `0..255`, or `nil`
+---  - `M.get_palette()` returns a fresh copy of the full 256-entry palette
 ---@brief ]]
 local M = {}
 
@@ -171,6 +175,26 @@ function M.parser(line, i)
     end
   end
   return nil
+end
+
+---Look up an xterm 256-color palette entry.
+---@param idx number Palette index, 0..255
+---@return string|nil rgb_hex Lowercase 6-digit hex, or `nil` for out-of-range/non-numeric input
+function M.lookup_256(idx)
+  if type(idx) ~= "number" or idx < 0 or idx > 255 then
+    return nil
+  end
+  return xterm_palette[idx + 1]
+end
+
+---Return a fresh copy of the full xterm 256-color palette.
+---@return string[] palette 1-indexed list of 256 lowercase 6-digit hex strings
+function M.get_palette()
+  local out = {}
+  for i = 1, 256 do
+    out[i] = xterm_palette[i]
+  end
+  return out
 end
 
 --- Parser spec for the registry

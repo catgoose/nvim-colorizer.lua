@@ -260,6 +260,7 @@ require("colorizer").setup({
         variable_pattern = "^%$([%w_-]+)", -- Lua pattern for variable names
       },
       xterm = { enable = false }, -- xterm 256-color codes (#xNN, \e[38;5;NNNm)
+      ls_colors = { enable = false }, -- LS_COLORS/SGR snippets (e.g. =38;5;196, =48;2;0;0;255)
       xcolor = { enable = false }, -- LaTeX xcolor expressions (e.g. red!30)
       hsluv = { enable = false }, -- hsluv()/hsluvu() functions
       css_var_rgb = { enable = false }, -- CSS vars with R,G,B (e.g. --color: 240,198,198)
@@ -499,6 +500,14 @@ require("colorizer").setup({
 ```
 
 Each custom parser supports: `name`, `parse(ctx)`, `prefixes`, `prefix_bytes`, `setup(ctx)`, `teardown(ctx)`, `state_factory()`. See the [full documentation](https://catgoose.github.io/nvim-colorizer.lua/) for details.
+
+> **Tip:** A custom parser can declare `prefixes = { "=" }` (or any other
+> trigger) and validate the rest in `parse`. To reuse the xterm 256-color
+> palette without copying it, call
+> `require("colorizer.parser.xterm").lookup_256(idx)` or
+> `require("colorizer.parser.xterm").get_palette()`. The built-in `ls_colors`
+> parser already covers `=38;5;NNN` / `=48;5;NNN` and `=38;2;R;G;B` /
+> `=48;2;R;G;B` snippets.
 
 ## Hooks
 
